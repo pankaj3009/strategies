@@ -1,0 +1,2 @@
+serialno,symbol,type,exchange,primaryexchange,currency,expiry,option,right,contractID,additionalInput,longvolume,shortvolume,aggression,minsize,bars
+1,NIFTY50,FUT,NSE,,INR,201308,,,,2000,100000,-500000,-1,100,Y

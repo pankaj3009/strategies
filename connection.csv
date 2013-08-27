@@ -1,0 +1,2 @@
+ip,port,clientID,purpose,rtMessageLimit,histMessageLimit,tickersLimit
+72.55.156.141,4170,10,Trading,48,10,90
