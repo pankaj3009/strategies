@@ -149,6 +149,7 @@ public class NewSwingAlgorithm extends Algorithm implements OneMinBarsListner, T
     public void barsReceived(OneMinBarsEvent event) {
 
         //get the symbolbean
+        try{
         int id = event.getSymbol().getSerialno() - 1;
         close.set(id, event.ohlc().getClose());
         int barno=event.barNumber();
@@ -230,12 +231,16 @@ public class NewSwingAlgorithm extends Algorithm implements OneMinBarsListner, T
                 +" , Slope: "+slope.get(id)
                 + ", Bar: "+event.barNumber());
     }
+        catch (Exception e){
+            LOGGER.log(Level.INFO,e.getMessage());
+        }
+    }
 
     @Override
     public void tradeReceived(TradeEvent event) {
         //Algo signals generated here based o trade event.
         int id = event.getSymbolID();
-        System.out.print(":"+Parameters.symbol.get(id).getLastPrice());
+        //System.out.print(":"+Parameters.symbol.get(id).getLastPrice());
         
         //LOGGER.log(Level.INFO,"Symbol"+","+"BarNo"+","+"HighestHigh"+","+"LowestLow"+","+"LastPrice"+","+"Volume"+","+"CumulativeVol"+","+"VolumeSlope"+","+"MinSlopeReqd"+","+"MA"+","+"LongVolume"+","+"ShortVolume" );
         //Write to Log
@@ -253,7 +258,7 @@ public class NewSwingAlgorithm extends Algorithm implements OneMinBarsListner, T
                 //Buy Condition
                 LOGGER.log(Level.INFO,"BUY");
                 notionalPosition.set(id, 1L);
-                _fireOrderEvent(Parameters.symbol.get(id), "BUY", Parameters.symbol.get(id).getMinsize(), highestHigh.get(id), 0);
+                _fireOrderEvent(Parameters.symbol.get(id), OrderSide.BUY, Parameters.symbol.get(id).getMinsize(), highestHigh.get(id), 0);
             } else if (Parameters.symbol.get(id).getLastPrice() < lowestLow.get(id)
                     && cumVolume.get(id).get(cumVolume.get(id).size()-1) <= -shortVolume.get(id)
                     && slope.get(id) < -Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * volumeSlopeLongMultiplier / 375
@@ -261,25 +266,25 @@ public class NewSwingAlgorithm extends Algorithm implements OneMinBarsListner, T
                 //Sell condition
                 LOGGER.log(Level.INFO,"SELL");
                 notionalPosition.set(id, -1L);
-                _fireOrderEvent(Parameters.symbol.get(id), "SHORT",Parameters.symbol.get(id).getMinsize(), lowestLow.get(id), 0);
+                _fireOrderEvent(Parameters.symbol.get(id), OrderSide.SHORT,Parameters.symbol.get(id).getMinsize(), lowestLow.get(id), 0);
             }
         }
         else  if (notionalPosition.get(id) == -1){
             if(Parameters.symbol.get(id).getLastPrice()>highestHigh.get(id)||System.currentTimeMillis()>endDate.getTime()){
                 notionalPosition.set(id, 0L);
-                _fireOrderEvent(Parameters.symbol.get(id), "COVER",Parameters.symbol.get(id).getMinsize(), highestHigh.get(id), highestHigh.get(id));
+                _fireOrderEvent(Parameters.symbol.get(id), OrderSide.COVER,Parameters.symbol.get(id).getMinsize(), highestHigh.get(id), highestHigh.get(id));
             }
             
         } 
         else if (notionalPosition.get(id) == 1){
             if(Parameters.symbol.get(id).getLastPrice()<lowestLow.get(id)||System.currentTimeMillis()>endDate.getTime()){
                 notionalPosition.set(id, 0L);
-                _fireOrderEvent(Parameters.symbol.get(id), "SELL",Parameters.symbol.get(id).getMinsize(), lowestLow.get(id), lowestLow.get(id));
+                _fireOrderEvent(Parameters.symbol.get(id), OrderSide.SELL,Parameters.symbol.get(id).getMinsize(), lowestLow.get(id), lowestLow.get(id));
             }
         }
     }
 
-    private void _fireOrderEvent(SymbolBean s, String side, int size, double lmtprice, double triggerprice) {
+    private void _fireOrderEvent(SymbolBean s, OrderSide side, int size, double lmtprice, double triggerprice) {
         OrderEvent order = new OrderEvent(this, s, side, size, lmtprice, triggerprice);
         Iterator listeners = _listeners.iterator();
         while (listeners.hasNext()) {

@@ -25,29 +25,66 @@ public OrderPlacement (NewSwingAlgorithm o){
     @Override
     public void orderReceived(OrderEvent event) {
         //for each connection eligible for trading
-        int id=event.getSymbolBean().getSerialno();
-        Boolean square= null;
-        for(ConnectionBean c: Parameters.connection){
-            if(c.getPurpose()=="Trading"){
-                if(event.getSide()=="BUY"){
-                    //check if system is square
-                    if(c.getOrders().get(id).getPositionsize()==0){
-                        //confirm current active order id is complete else cleanup orders
-                        //place orders to buy
-                        
+        int id = event.getSymbolBean().getSerialno();
+        Boolean square = null;
+        for (ConnectionBean c : Parameters.connection) {
+            if (c.getPurpose() == "Trading") {
+                    //check if system is square && order id is to initiate
+                    if (c.getOrders().get(id).getPositionsize() == 0){
+                        if (event.getSide()==OrderSide.BUY||event.getSide()==OrderSide.SHORT) {
+                        //confirm current active order id is complete 
+                        if (zilchOpenOrders(c, id)) {
+                            Order ord = c.getWrapper().createOrder(event.getOrderSize(), event.getSide(), event.getLimitPrice(), event.getTriggerPrice(), "DAY", 180000);
+                            Contract con=c.getWrapper().createContract(id);
+                            c.getWrapper().placeOrder(c, id, OrderSide.BUY, ord, con);
+                        }
+                        //else cancel open orders
+                        {
+                            cancelOpenOrders(c, id);
+                        }
+                    } else if (event.getSide()==OrderSide.SELL||event.getSide()==OrderSide.COVER){
+                        //do nothing as position size=0. Can open orders if any exist
+                        cancelOpenOrders(c, id);
                     }
-                    else if(c.getOrders().get(id).getPositionsize()<0){
-                        //occurs if there was a stop and reverse. Ideally, the stop would have thrown the first event.
-                        
                     }
-                        
-                        
-                    
+                        else if (c.getOrders().get(id).getPositionsize() != 0) {
+                            if (event.getSide()==OrderSide.SELL||event.getSide()==OrderSide.COVER){
+                                cancelOpenOrders(c,id);
+                                if((event.getSide()==OrderSide.SELL && c.getPositions().get(id)>0) ||(event.getSide()==OrderSide.COVER && c.getPositions().get(id)<0)){
+                                Order ord = c.getWrapper().createOrder(c.getPositions().get(id), event.getSide(), event.getLimitPrice(), event.getTriggerPrice(), "DAY", 180000);
+                                Contract con=c.getWrapper().createContract(id);
+                                c.getWrapper().placeOrder(c, id, event.getSide(), ord, con);
+                                }
+                                else
+                                {
+                                    //something is wrong in positions. Cancel all open orders and square all positions
+                                    cancelOpenOrders(c,id);
+                                Order ord = c.getWrapper().createOrder(c.getPositions().get(id), event.getSide(), event.getLimitPrice(), event.getTriggerPrice(), "DAY", 180000);
+                                Contract con=c.getWrapper().createContract(id);
+                                if(c.getPositions().get(id)>0){
+                                 c.getWrapper().placeOrder(c, id, OrderSide.SELL, ord, con);
+                                    }
+                                    else if(c.getPositions().get(id)<0){
+                                         c.getWrapper().placeOrder(c, id, OrderSide.COVER, ord, con);
+                                    }
+                                }
+                            }
+                            else if(event.getSide()==OrderSide.SELL||event.getSide()==OrderSide.COVER){
+                                
+                                
+                            }
+                            
+                            
+                        int tempOrderID = c.getOrdersSymbols().get(id).get(3);
+                        if (tempOrderID > 0) {
+                            fastClose(c, id, OrderSide.COVER, tempOrderID);
+                        }
+
+                    }
+                    }
                 }
-                int orderid=c.getIdmanager().getNextOrderId();
             }
-        }
-    }
+    
     
     
     private synchronized boolean squarePosition(ConnectionBean c, int id){
@@ -60,6 +97,51 @@ public OrderPlacement (NewSwingAlgorithm o){
         return temp;
     }
     
+    private synchronized void cancelOpenOrders (ConnectionBean c, int id){
+        
+        ArrayList<Integer> tempArray=c.getOrdersSymbols().get(id);
+        int ordSide=0;
+        OrderSide side=OrderSide.UNDEFINED;
+        for(int orderID: tempArray){
+            if(orderID>0 && (ordSide==0||ordSide==2)){
+                //if order exists and open ordType="Buy" or "Short"
+                //check an earlier cancellation request is not pending and if all ok then cancel
+                if(!c.getOrders().get(orderID).isCancelRequested()){
+                c.getWrapper().cancelOrder(c, orderID);
+                }
+            }
+            if(orderID>0 && (ordSide==1||ordSide==3)){
+                //if order exists and open ordType="Sell" or "Cover"
+                switch(ordSide){
+                    case 1: side=OrderSide.SELL;
+                    case 3: side=OrderSide.COVER;
+                    default: side=OrderSide.UNDEFINED;
+                }
+                fastClose(c, id, side,orderID);
+            }
+            ordSide=ordSide+1;
+            
+        }
+    } 
+    
+    private synchronized void fastClose(ConnectionBean c, int symbolID, OrderSide side, int orderID){
+        //Check if order is already market. If yes, return
+        if(c.getOrders().get(orderID).getOrderType()==OrderType.Market){
+        return;
+        }
+        
+        //amend order to market
+        Order ord=new Order();
+        String ordValidity="DAY";
+        int expireMinutes=0;
+       
+        int size=Parameters.symbol.get(symbolID).getMinsize();
+
+        ord=c.getWrapper().createOrder(size, side, 0,0, ordValidity, expireMinutes);
+        c.getWrapper().modifyOrder(c, symbolID, orderID, side, ord, null);
+        
+        }
+      
     private synchronized boolean updateFilledOrders(ConnectionBean c,int symbolID, int orderID, int filled,double avgFillPrice){
         OrderBean ord=c.getOrders().get(symbolID);
         ord.setFillSize(filled);
@@ -76,12 +158,13 @@ public OrderPlacement (NewSwingAlgorithm o){
         //Delete order from Symbols HashMap
         ArrayList <Integer> orders= c.getOrdersSymbols().get(symbolID);
         if(orders.size()>0){
+            int count=0;
             for(int i: orders){
                 if(i==orderID){
-                    orders.remove(i);
+                    orders.set(count, 0);
                     return true;
                     }
-                else return false;
+                count=count+1;
             }
         }
         return false;
