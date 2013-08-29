@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.math3.stat.descriptive.*;
 import org.apache.commons.math3.stat.regression.*;
 
@@ -44,7 +46,8 @@ public class NewSwingAlgorithm extends Algorithm implements OneMinBarsListner, T
     private boolean marketOpen = false; // market state
     private boolean mocPeriod = false; //market state
     private OrderPlacement ordManagement=new OrderPlacement(this);
-
+    public final static Logger LOGGER = Logger.getLogger(Algorithm.class.getName());
+    
     public NewSwingAlgorithm(List<String> args) throws Exception {
         super(args); //this initializes the connection and symbols
 
@@ -129,7 +132,8 @@ public class NewSwingAlgorithm extends Algorithm implements OneMinBarsListner, T
             Parameters.addTradeListener(this);
         }
         //initialize listners
-        
+      LOGGER.log(Level.INFO,"Symbol"+";"+"BarNo"+";"+"HighestHigh"+";"+"LowestLow"+";"+"LastPrice"+";"+"Volume"+";"+"CumulativeVol"+";"+"VolumeSlope"+";"+"MinSlopeReqd"+";"+"MA"+";"+"LongVolume"+";"+"ShortVolume" );
+
         this.run();
     }
     /*
@@ -232,12 +236,22 @@ public class NewSwingAlgorithm extends Algorithm implements OneMinBarsListner, T
         //Algo signals generated here based o trade event.
         int id = event.getSymbolID();
         System.out.print(":"+Parameters.symbol.get(id).getLastPrice());
+        
+        //LOGGER.log(Level.INFO,"Symbol"+","+"BarNo"+","+"HighestHigh"+","+"LowestLow"+","+"LastPrice"+","+"Volume"+","+"CumulativeVol"+","+"VolumeSlope"+","+"MinSlopeReqd"+","+"MA"+","+"LongVolume"+","+"ShortVolume" );
+        //Write to Log
+        LOGGER.log(Level.INFO, "{0};{1};{2};{3};{4};{5};{6};{7};{8};{9};{10};{11}",new Object[]{Parameters.symbol.get(id).getSymbol(),cumVolume.get(id).size(),highestHigh.get(id),lowestLow.get(id),Parameters.symbol.get(id).getLastPrice(),
+        Volume.get(id),cumVolume.get(id).get(cumVolume.get(id).size()-1),
+        slope.get(id),Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * volumeSlopeLongMultiplier / 375,
+        VolumeMA.get(id),longVolume.get(id),shortVolume.get(id),});
+        
+        
         if (notionalPosition.get(id) == 0 && cumVolume.get(id).size()>0) {
             if (Parameters.symbol.get(id).getLastPrice() > highestHigh.get(id)
                     && cumVolume.get(id).get(cumVolume.get(id).size()-1) >= longVolume.get(id)
                     && slope.get(id) > Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * volumeSlopeLongMultiplier / 375
                     && Volume.get(id) > VolumeMA.get(id)) {
                 //Buy Condition
+                LOGGER.log(Level.INFO,"BUY");
                 notionalPosition.set(id, 1L);
                 _fireOrderEvent(Parameters.symbol.get(id), "BUY", Parameters.symbol.get(id).getMinsize(), highestHigh.get(id), 0);
             } else if (Parameters.symbol.get(id).getLastPrice() < lowestLow.get(id)
@@ -245,6 +259,7 @@ public class NewSwingAlgorithm extends Algorithm implements OneMinBarsListner, T
                     && slope.get(id) < -Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * volumeSlopeLongMultiplier / 375
                     && Volume.get(id) > 2 * VolumeMA.get(id)) {
                 //Sell condition
+                LOGGER.log(Level.INFO,"SELL");
                 notionalPosition.set(id, -1L);
                 _fireOrderEvent(Parameters.symbol.get(id), "SHORT",Parameters.symbol.get(id).getMinsize(), lowestLow.get(id), 0);
             }

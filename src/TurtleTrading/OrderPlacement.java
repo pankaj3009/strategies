@@ -34,6 +34,7 @@ public OrderPlacement (NewSwingAlgorithm o){
                     if(c.getOrders().get(id).getPositionsize()==0){
                         //confirm current active order id is complete else cleanup orders
                         //place orders to buy
+                        
                     }
                     else if(c.getOrders().get(id).getPositionsize()<0){
                         //occurs if there was a stop and reverse. Ideally, the stop would have thrown the first event.

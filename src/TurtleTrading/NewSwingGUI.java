@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.logging.LogManager;
 import javax.swing.*;
 
 /**
@@ -128,6 +129,9 @@ private void StartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:e
         myList.add("connection.csv");
         myList.add("symbols.csv");
         loadParam("NewSwing.properties");
+        FileInputStream configFile = null;
+        configFile = new FileInputStream("logging.properties");
+        LogManager.getLogManager().readConfiguration(configFile);
         algo=new NewSwingAlgorithm(myList);
         /* Create and display the form */
 //2. Load properties file for any global parameters like start time, end time, blah blah
