@@ -50,10 +50,11 @@ public class NewSwingAlgorithm extends Algorithm implements OneMinBarsListner, T
     
     public NewSwingAlgorithm(List<String> args) throws Exception {
         super(args); //this initializes the connection and symbols
-
+        
         // initialize anything else 
         //initialized wrappers
         //BoilerPlate
+        
         for (ConnectionBean c : Parameters.connection) {
             c.setWrapper(new TWSConnection(c));
         }
@@ -70,9 +71,12 @@ public class NewSwingAlgorithm extends Algorithm implements OneMinBarsListner, T
         ConnectionBean tempC = Parameters.connection.get(0);
         for (SymbolBean s : Parameters.symbol) {
             tempC.getWrapper().getContractDetails(s);
+            System.out.print("ContractDetails Requested:"+s.getSymbol());
         }
 
         while (TWSConnection.mTotalSymbols > 0) {
+            
+            //System.out.println(TWSConnection.mTotalSymbols);
             //do nothing
         }
         //Request Market Data
@@ -94,6 +98,8 @@ public class NewSwingAlgorithm extends Algorithm implements OneMinBarsListner, T
         tempC = Parameters.connection.get(0);
         for (SymbolBean s : Parameters.symbol) {
             if (s.getBars()) {
+                
+                System.out.println("Requesting RealTime Bars. Thread going to sleep: "+Thread.currentThread().getName());
                 tempC.getWrapper().getRealTimeBars(s);
                 Thread.sleep(11000);
             }
@@ -132,9 +138,9 @@ public class NewSwingAlgorithm extends Algorithm implements OneMinBarsListner, T
             Parameters.addTradeListener(this);
         }
         //initialize listners
-      LOGGER.log(Level.INFO,"Symbol"+";"+"BarNo"+";"+"HighestHigh"+";"+"LowestLow"+";"+"LastPrice"+";"+"Volume"+";"+"CumulativeVol"+";"+"VolumeSlope"+";"+"MinSlopeReqd"+";"+"MA"+";"+"LongVolume"+";"+"ShortVolume" );
+      LOGGER.log(Level.INFO,",Symbol"+","+"BarNo"+","+"HighestHigh"+","+"LowestLow"+","+"LastPrice"+","+"Volume"+","+"CumulativeVol"+","+"VolumeSlope"+","+"MinSlopeReqd"+","+"MA"+","+"LongVolume"+","+"ShortVolume" );
 
-        this.run();
+        
     }
     /*
      * barsReceived() - fired when one minute bar is completed.
@@ -146,7 +152,7 @@ public class NewSwingAlgorithm extends Algorithm implements OneMinBarsListner, T
      */
 
     @Override
-    public void barsReceived(OneMinBarsEvent event) {
+    public synchronized void barsReceived(OneMinBarsEvent event) {
 
         //get the symbolbean
         try{
@@ -237,17 +243,27 @@ public class NewSwingAlgorithm extends Algorithm implements OneMinBarsListner, T
     }
 
     @Override
-    public void tradeReceived(TradeEvent event) {
+    public synchronized  void tradeReceived(TradeEvent event) {
         //Algo signals generated here based o trade event.
+        //System.out.println("TradeReceived. Thread: "+Thread.currentThread().getName());
         int id = event.getSymbolID();
         //System.out.print(":"+Parameters.symbol.get(id).getLastPrice());
         
         //LOGGER.log(Level.INFO,"Symbol"+","+"BarNo"+","+"HighestHigh"+","+"LowestLow"+","+"LastPrice"+","+"Volume"+","+"CumulativeVol"+","+"VolumeSlope"+","+"MinSlopeReqd"+","+"MA"+","+"LongVolume"+","+"ShortVolume" );
         //Write to Log
-        LOGGER.log(Level.INFO, "{0};{1};{2};{3};{4};{5};{6};{7};{8};{9};{10};{11}",new Object[]{Parameters.symbol.get(id).getSymbol(),cumVolume.get(id).size(),highestHigh.get(id),lowestLow.get(id),Parameters.symbol.get(id).getLastPrice(),
-        Volume.get(id),cumVolume.get(id).get(cumVolume.get(id).size()-1),
-        slope.get(id),Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * volumeSlopeLongMultiplier / 375,
-        VolumeMA.get(id),longVolume.get(id),shortVolume.get(id),});
+        LOGGER.log(Level.INFO,","+ "{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}",new Object[]{
+            Parameters.symbol.get(id).getSymbol()
+            ,String.valueOf(cumVolume.get(id).size())
+            ,highestHigh.get(id).toString()
+            ,lowestLow.get(id).toString()
+            ,String.valueOf(Parameters.symbol.get(id).getLastPrice())
+            ,Volume.get(id).toString()
+            ,cumVolume.get(id).get(cumVolume.get(id).size()-1).toString()
+            ,slope.get(id).toString()
+            ,String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * volumeSlopeLongMultiplier / 375)
+            ,VolumeMA.get(id).toString()
+            ,longVolume.get(id).toString()
+            ,shortVolume.get(id).toString()});
         
         
         if (notionalPosition.get(id) == 0 && cumVolume.get(id).size()>0) {

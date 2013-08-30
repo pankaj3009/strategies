@@ -173,6 +173,7 @@ public OrderPlacement (NewSwingAlgorithm o){
     
     private synchronized boolean updateCancelledOrders(ConnectionBean c,int symbolID, int orderID ){
          OrderBean ord=c.getOrders().get(symbolID);
+         c.getOrders().get(orderID).setCancelRequested(false);
          if(ord.getFillSize()>0)
          ord.setStatus(OrderStatus.CancelledPartialFill);
          else 
