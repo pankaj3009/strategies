@@ -17,10 +17,18 @@ import java.util.HashMap;
  */
 public class OrderPlacement implements OrderListener, OrderStatusListener {
 
-    private NewSwingAlgorithm a;
+    private MainAlgorithm a;
     
-public OrderPlacement (NewSwingAlgorithm o){
+public OrderPlacement (MainAlgorithm o){
     a=o;
+
+    // register listeners
+       MainAlgorithm.addOrderListner(this);
+       for(ConnectionBean c: Parameters.connection){
+           c.getWrapper().addOrderStatusListener(this);
+       }     
+            
+       
 }
     @Override
     public void orderReceived(OrderEvent event) {
@@ -34,7 +42,7 @@ public OrderPlacement (NewSwingAlgorithm o){
                         if (event.getSide()==OrderSide.BUY||event.getSide()==OrderSide.SHORT) {
                         //confirm current active order id is complete 
                         if (zilchOpenOrders(c, id)) {
-                            Order ord = c.getWrapper().createOrder(event.getOrderSize(), event.getSide(), event.getLimitPrice(), event.getTriggerPrice(), "DAY", 180000);
+                            Order ord = c.getWrapper().createOrder(event.getOrderSize(), event.getSide(), event.getLimitPrice(), event.getTriggerPrice(), "DAY", 180000,false);
                             Contract con=c.getWrapper().createContract(id);
                             c.getWrapper().placeOrder(c, id, OrderSide.BUY, ord, con);
                         }
@@ -51,7 +59,7 @@ public OrderPlacement (NewSwingAlgorithm o){
                             if (event.getSide()==OrderSide.SELL||event.getSide()==OrderSide.COVER){
                                 cancelOpenOrders(c,id);
                                 if((event.getSide()==OrderSide.SELL && c.getPositions().get(id)>0) ||(event.getSide()==OrderSide.COVER && c.getPositions().get(id)<0)){
-                                Order ord = c.getWrapper().createOrder(c.getPositions().get(id), event.getSide(), event.getLimitPrice(), event.getTriggerPrice(), "DAY", 180000);
+                                Order ord = c.getWrapper().createOrder(c.getPositions().get(id), event.getSide(), event.getLimitPrice(), event.getTriggerPrice(), "DAY", 180000,false);
                                 Contract con=c.getWrapper().createContract(id);
                                 c.getWrapper().placeOrder(c, id, event.getSide(), ord, con);
                                 }
@@ -59,7 +67,7 @@ public OrderPlacement (NewSwingAlgorithm o){
                                 {
                                     //something is wrong in positions. Cancel all open orders and square all positions
                                     cancelOpenOrders(c,id);
-                                Order ord = c.getWrapper().createOrder(c.getPositions().get(id), event.getSide(), event.getLimitPrice(), event.getTriggerPrice(), "DAY", 180000);
+                                Order ord = c.getWrapper().createOrder(c.getPositions().get(id), event.getSide(), event.getLimitPrice(), event.getTriggerPrice(), "DAY", 180000,false);
                                 Contract con=c.getWrapper().createContract(id);
                                 if(c.getPositions().get(id)>0){
                                  c.getWrapper().placeOrder(c, id, OrderSide.SELL, ord, con);
@@ -137,7 +145,7 @@ public OrderPlacement (NewSwingAlgorithm o){
        
         int size=Parameters.symbol.get(symbolID).getMinsize();
 
-        ord=c.getWrapper().createOrder(size, side, 0,0, ordValidity, expireMinutes);
+        ord=c.getWrapper().createOrder(size, side, 0,0, ordValidity, expireMinutes,false);
         c.getWrapper().modifyOrder(c, symbolID, orderID, side, ord, null);
         
         }
@@ -210,9 +218,25 @@ public OrderPlacement (NewSwingAlgorithm o){
         
     }
 
-    private synchronized void placeTrailingStops(){
-        
-    }
+    private OrderSide reverseLookup(ArrayList<Integer> arr,int orderid){
+    
+        int side=0;
+        OrderSide ordSide=OrderSide.UNDEFINED;
+        for(int i:arr){
+            if(i==orderid){
+                switch(side){
+                    case 0: ordSide=OrderSide.BUY;
+                    case 1: ordSide=OrderSide.SELL;
+                    case 2: ordSide=OrderSide.SHORT;
+                    case 3: ordSide=OrderSide.COVER;
+                    case 4: ordSide=OrderSide.TRAILBUY;
+                    case 5: ordSide=OrderSide.TRAILSELL;
+                }
+                return ordSide;
+            }
+        }
+        return ordSide;
+}
     
     @Override
     public void orderStatusReceived(OrderStatusEvent event) {
@@ -225,7 +249,14 @@ public OrderPlacement (NewSwingAlgorithm o){
        if(ob.getFillSize()==ob.getOrderSize()){
            //completely filled
            updateFilledOrders(event.getC(), symbolid, orderid,event.getFilled(),event.getAvgFillPrice());
-           placeTrailingStops();
+           //Reverse lookup on OrderSymbols to get the orderside for the fill
+           OrderSide tmpOrdSide=reverseLookup(event.getC().getOrdersSymbols().get(symbolid),orderid);
+           if(tmpOrdSide==OrderSide.BUY||tmpOrdSide==OrderSide.SHORT){
+           OrderSide tmpOrderSide=event.getC().getPositions().get(symbolid)>0?OrderSide.TRAILSELL:OrderSide.TRAILBUY;
+           Order ord = event.getC().getWrapper().createOrder(event.getC().getPositions().get(symbolid), tmpOrderSide, 0, Parameters.symbol.get(symbolid).getTrailstop(), "DAY", 0,true);
+           Contract con=event.getC().getWrapper().createContract(symbolid);
+           event.getC().getWrapper().placeOrder(event.getC(), symbolid, tmpOrderSide, ord, con);
+           }
        } else if (ob.getFillSize()<ob.getOrderSize() && ob.getFillSize()>0){
            // partial fill
            updatePartialFills(event.getC(),symbolid, orderid,event.getFilled(),event.getAvgFillPrice());

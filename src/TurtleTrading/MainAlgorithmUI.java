@@ -22,12 +22,12 @@ import javax.swing.*;
  *
  * @author admin
  */
-public class NewSwingGUI extends javax.swing.JFrame {
+public class MainAlgorithmUI extends javax.swing.JFrame {
    static List<String> myList = new ArrayList<String>();
    public JList list;
-   static public NewSwingAlgorithm algo;
+   static public MainAlgorithm algo;
     /** Creates new form NewSwingGUI */
-    public NewSwingGUI() {
+    public MainAlgorithmUI() {
         initComponents();
     }
 
@@ -85,7 +85,7 @@ public class NewSwingGUI extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addGap(24, 24, 24)
                 .addComponent(Start)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 28, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(OutputTable, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
@@ -95,7 +95,7 @@ public class NewSwingGUI extends javax.swing.JFrame {
 
 private void StartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_StartActionPerformed
         algo.run();
-        DataTable.setModel(NewSwingAlgorithm.model1);
+        DataTable.setModel(MainAlgorithm.model1);
         
 }//GEN-LAST:event_StartActionPerformed
 
@@ -116,13 +116,13 @@ private void StartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:e
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(NewSwingGUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(MainAlgorithmUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(NewSwingGUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(MainAlgorithmUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(NewSwingGUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(MainAlgorithmUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(NewSwingGUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(MainAlgorithmUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
 //1. Add the parameters files to myList variable        
@@ -132,14 +132,14 @@ private void StartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:e
         FileInputStream configFile = null;
         configFile = new FileInputStream("logging.properties");
         LogManager.getLogManager().readConfiguration(configFile);
-        algo=new NewSwingAlgorithm(myList);
+        algo=new MainAlgorithm(myList);
         /* Create and display the form */
 //2. Load properties file for any global parameters like start time, end time, blah blah
         
         java.awt.EventQueue.invokeLater(new Runnable() {
            
             public void run() {
-                new NewSwingGUI().setVisible(true);
+                new MainAlgorithmUI().setVisible(true);
             }
         });
     }

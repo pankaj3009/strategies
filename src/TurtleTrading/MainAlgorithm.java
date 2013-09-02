@@ -21,7 +21,7 @@ import org.apache.commons.math3.stat.regression.*;
  *
  * @author admin
  */
-public class NewSwingAlgorithm extends Algorithm implements OneMinBarsListner, TradeListner {
+public class MainAlgorithm extends Algorithm implements OneMinBarsListner, TradeListner {
 
     public MarketData m;
     //strategy variables
@@ -45,10 +45,10 @@ public class NewSwingAlgorithm extends Algorithm implements OneMinBarsListner, T
     private double volumeSlopeShortMultipler;
     private boolean marketOpen = false; // market state
     private boolean mocPeriod = false; //market state
-    private OrderPlacement ordManagement=new OrderPlacement(this);
+    private OrderPlacement ordManagement;
     public final static Logger LOGGER = Logger.getLogger(Algorithm.class.getName());
     
-    public NewSwingAlgorithm(List<String> args) throws Exception {
+    public MainAlgorithm(List<String> args) throws Exception {
         super(args); //this initializes the connection and symbols
         
         // initialize anything else 
@@ -107,6 +107,7 @@ public class NewSwingAlgorithm extends Algorithm implements OneMinBarsListner, T
         //BoilerPlate Ends
 
         //Initialize algo variables
+        ordManagement=new OrderPlacement(this);
         Properties p = new Properties(System.getProperties());
         FileInputStream propFile = new FileInputStream("NewSwing.properties");
         p.load(propFile);
@@ -155,100 +156,96 @@ public class NewSwingAlgorithm extends Algorithm implements OneMinBarsListner, T
     public synchronized void barsReceived(OneMinBarsEvent event) {
 
         //get the symbolbean
-        try{
-        int id = event.getSymbol().getSerialno() - 1;
-        close.set(id, event.ohlc().getClose());
-        int barno=event.barNumber();
+        try {
+            int id = event.getSymbol().getSerialno() - 1;
+            close.set(id, event.ohlc().getClose());
+            int barno = event.barNumber();
+            System.out.println("Size:"+ event.list().size()+"BarNumber: "+event.barNumber()+"Symbol:"+Parameters.symbol.get(id));
 
-        //Set cumVolume
-        //ArrayList <Long>cumVolumeTemp=cumVolume.get(id);
-        List <OHLC> temp = new ArrayList();
-        if(barno >=2){
-        temp = (List) event.list().subList(event.barNumber()-2, event.barNumber());
-        if ( temp.get(temp.size()-1).getClose() > temp.get(temp.size()-2).getClose() ) {
-            cumVolume.get(id).add(cumVolume.get(id).get(barno-2).longValue()+event.ohlc().getVolume());
-        } else if (temp.get(temp.size()-1).getClose() < temp.get(temp.size()-2).getClose() ) {
-            cumVolume.get(id).add(cumVolume.get(id).get(barno-2).longValue()-event.ohlc().getVolume());
-        }
-        }
-        else if(barno==200){
-            temp = (List) event.list().subList(event.barNumber()-2, event.barNumber());
-        if ( temp.get(temp.size()-1).getClose() > temp.get(temp.size()-2).getClose() ) {
-            cumVolume.get(id).set(0,event.ohlc().getVolume());
-        } else if (temp.get(temp.size()-1).getClose() < temp.get(temp.size()-2).getClose() ) {
-            cumVolume.get(id).set(0,-event.ohlc().getVolume());
-        }
-        }
-        Volume.set(id, event.ohlc().getVolume());
+            //Set cumVolume
+            List<OHLC> temp = new ArrayList();
+            if (barno >= 2) {
+                if (event.list().get(barno - 1).getClose() > event.list().get(barno - 2).getClose()) {
+                    cumVolume.get(id).add(cumVolume.get(id).get(barno - 2).longValue() + event.ohlc().getVolume());
+                } else if (event.list().get(barno - 1).getClose() < event.list().get(barno - 2).getClose()) {
+                    cumVolume.get(id).add(cumVolume.get(id).get(barno - 2).longValue() - event.ohlc().getVolume());
+                }
+            }
 
-        //Set Highest High and Lowest Low
-        
-        if (event.barNumber() >= channelDuration) {
-            temp = (List) event.list().subList(event.barNumber() - channelDuration, event.barNumber());
-        
-        Iterator itr = temp.iterator();
-        double HH = 0;
-        double LL = Double.MAX_VALUE;
-        while (itr.hasNext()) {
-            OHLC tempOHLC = (OHLC) itr.next();
-            HH = HH > tempOHLC.getHigh() ? HH : tempOHLC.getHigh();
-            LL = LL < tempOHLC.getLow() && LL != 0 ? LL : tempOHLC.getLow();
-        }
-        highestHigh.set(id, HH);
-        lowestLow.set(id, LL);
-        }
-        //Set Slope
-        List <Long> tempCumVolume = new ArrayList();
-        if (event.barNumber() >= regressionLookBack) {
-        tempCumVolume = (List <Long>) cumVolume.get(id).subList(event.barNumber() - regressionLookBack, event.barNumber());
-       
-        SimpleRegression regression = new SimpleRegression();
-        int itr = tempCumVolume.size();
-        double i = 0;
-        while (i<itr) {
-            regression.addData(i+1, (Long) tempCumVolume.get((int)i));
-            i=i+1;
-        }
-        double tempSlope= Double.isNaN(regression.getSlope()) ==true?0D: regression.getSlope();
-        slope.set(id, tempSlope);
-        }
-        //set MA of volume
-        if (event.barNumber() >= channelDuration - 1) {
-            temp = (List) event.list().subList(event.barNumber() - channelDuration+1, event.barNumber());
-        
-        DescriptiveStatistics stats = new DescriptiveStatistics();
-        Iterator itr = temp.iterator();
-        int i = 1;
-        while (itr.hasNext()) {
-            OHLC tempOHLC = (OHLC) itr.next();
-            stats.addValue(tempOHLC.getVolume());
-        }
-        VolumeMA.set(id, stats.getMean());
-        }
-        System.out.println();
-        System.out.println(event.ohlc().getOpenTime().toString()+","+event.ohlc().getOpen()
-                + ":"+event.ohlc().getHigh()
-                +":"+event.ohlc().getLow()
-                +":"+event.ohlc().getClose()
-                +" , HH: "+highestHigh.get(id)
-                +" , LL: "+lowestLow.get(id)
-                +" , Volume MA: "+VolumeMA.get(id)
-                +" , CumVolume: "+cumVolume.get(id).get(cumVolume.get(id).size()-1)
-                +" , Slope: "+slope.get(id)
-                + ", Bar: "+event.barNumber());
-    }
-        catch (Exception e){
-            LOGGER.log(Level.INFO,e.getMessage());
+            Volume.set(id, event.ohlc().getVolume());
+
+            //Set Highest High and Lowest Low
+
+            if (event.barNumber() >= channelDuration) {
+                temp = (List) event.list().subList(event.barNumber() - channelDuration, event.barNumber());
+
+                Iterator itr = temp.iterator();
+                double HH = 0;
+                double LL = Double.MAX_VALUE;
+                while (itr.hasNext()) {
+                    OHLC tempOHLC = (OHLC) itr.next();
+                    HH = HH > tempOHLC.getHigh() ? HH : tempOHLC.getHigh();
+                    LL = LL < tempOHLC.getLow() && LL != 0 ? LL : tempOHLC.getLow();
+                }
+                highestHigh.set(id, HH);
+                lowestLow.set(id, LL);
+            }
+            //Set Slope
+            List<Long> tempCumVolume = new ArrayList();
+            if (event.barNumber() >= regressionLookBack) {
+                tempCumVolume = (List<Long>) cumVolume.get(id).subList(event.barNumber() - regressionLookBack, event.barNumber());
+
+                SimpleRegression regression = new SimpleRegression();
+                int itr = tempCumVolume.size();
+                double i = 0;
+                while (i < itr) {
+                    regression.addData(i + 1, (Long) tempCumVolume.get((int) i));
+                    i = i + 1;
+                }
+                double tempSlope = Double.isNaN(regression.getSlope()) == true ? 0D : regression.getSlope();
+                slope.set(id, tempSlope);
+            }
+            //set MA of volume
+            if (event.barNumber() >= channelDuration - 1) {
+
+                temp = (List) event.list().subList(event.barNumber() - channelDuration+1, event.barNumber());
+
+                DescriptiveStatistics stats = new DescriptiveStatistics();
+                Iterator itr = temp.iterator();
+                int i = 1;
+                while (itr.hasNext()) {
+                    OHLC tempOHLC = (OHLC) itr.next();
+                    stats.addValue(tempOHLC.getVolume());
+                }
+                VolumeMA.set(id, stats.getMean());
+            }
+            System.out.println();
+            System.out.println(event.ohlc().getOpenTime().toString() + "," + event.ohlc().getOpen()
+                    + ":" + event.ohlc().getHigh()
+                    + ":" + event.ohlc().getLow()
+                    + ":" + event.ohlc().getClose()
+                    + " , HH: " + highestHigh.get(id)
+                    + " , LL: " + lowestLow.get(id)
+                    + " , Volume MA: " + VolumeMA.get(id)
+                    + " , CumVolume: " + cumVolume.get(id).get(cumVolume.get(id).size() - 1)
+                    + " , Slope: " + slope.get(id)
+                    + ", Bar: " + event.barNumber());
+        } catch (Exception e) {
+            LOGGER.log(Level.INFO, e.getMessage());
         }
     }
 
     @Override
-    public synchronized  void tradeReceived(TradeEvent event) {
+    public synchronized  void tradeReceived(final TradeEvent event) {
         //Algo signals generated here based o trade event.
         //System.out.println("TradeReceived. Thread: "+Thread.currentThread().getName());
-        int id = event.getSymbolID();
+        new Runnable(){
+
+            @Override
+            public void run() {
+               int id = event.getSymbolID();
         //System.out.print(":"+Parameters.symbol.get(id).getLastPrice());
-        
+        System.out.println("Thread Name:"+Thread.currentThread().getName());
         //LOGGER.log(Level.INFO,"Symbol"+","+"BarNo"+","+"HighestHigh"+","+"LowestLow"+","+"LastPrice"+","+"Volume"+","+"CumulativeVol"+","+"VolumeSlope"+","+"MinSlopeReqd"+","+"MA"+","+"LongVolume"+","+"ShortVolume" );
         //Write to Log
         LOGGER.log(Level.INFO,","+ "{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}",new Object[]{
@@ -297,7 +294,11 @@ public class NewSwingAlgorithm extends Algorithm implements OneMinBarsListner, T
                 notionalPosition.set(id, 0L);
                 _fireOrderEvent(Parameters.symbol.get(id), OrderSide.SELL,Parameters.symbol.get(id).getMinsize(), lowestLow.get(id), lowestLow.get(id));
             }
-        }
+        }        
+            }
+        };
+        
+ 
     }
 
     private void _fireOrderEvent(SymbolBean s, OrderSide side, int size, double lmtprice, double triggerprice) {

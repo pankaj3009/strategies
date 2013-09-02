@@ -1,3 +1,3 @@
-serialno,symbol,type,exchange,primaryexchange,currency,expiry,option,right,contractID,additionalInput,longvolume,shortvolume,aggression,minsize,bars
-1,GOOG,STK,SMART,,USD,,,,,2000,1000,-5000000,0,100,Y
-2,AAPL,STK,SMART,,USD,,,,,2000,1000,-5000000,0,100,Y
+serialno,symbol,type,exchange,primaryexchange,currency,expiry,option,right,contractID,additionalInput,longvolume,shortvolume,aggression,minsize,bars,trailstop
+1,GOOG,STK,SMART,,USD,,,,,2000,1000,-5000000,0,100,Y,40
+2,AAPL,STK,SMART,,USD,,,,,2000,1000,-5000000,0,100,Y,40
