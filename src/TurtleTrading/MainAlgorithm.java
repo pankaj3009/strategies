@@ -236,13 +236,10 @@ public class MainAlgorithm extends Algorithm implements OneMinBarsListner, Trade
     }
 
     @Override
-    public synchronized  void tradeReceived(final TradeEvent event) {
+    public synchronized  void tradeReceived(TradeEvent event) {
         //Algo signals generated here based o trade event.
         //System.out.println("TradeReceived. Thread: "+Thread.currentThread().getName());
-        new Runnable(){
-
-            @Override
-            public void run() {
+       
                int id = event.getSymbolID();
         //System.out.print(":"+Parameters.symbol.get(id).getLastPrice());
         System.out.println("Thread Name:"+Thread.currentThread().getName());
@@ -295,8 +292,7 @@ public class MainAlgorithm extends Algorithm implements OneMinBarsListner, Trade
                 _fireOrderEvent(Parameters.symbol.get(id), OrderSide.SELL,Parameters.symbol.get(id).getMinsize(), lowestLow.get(id), lowestLow.get(id));
             }
         }        
-            }
-        };
+
         
  
     }

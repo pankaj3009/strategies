@@ -248,12 +248,15 @@ public OrderPlacement (MainAlgorithm o){
       
        if(ob.getFillSize()==ob.getOrderSize()){
            //completely filled
+           double trigger=0;
+           double limit=0;
            updateFilledOrders(event.getC(), symbolid, orderid,event.getFilled(),event.getAvgFillPrice());
            //Reverse lookup on OrderSymbols to get the orderside for the fill
            OrderSide tmpOrdSide=reverseLookup(event.getC().getOrdersSymbols().get(symbolid),orderid);
            if(tmpOrdSide==OrderSide.BUY||tmpOrdSide==OrderSide.SHORT){
            OrderSide tmpOrderSide=event.getC().getPositions().get(symbolid)>0?OrderSide.TRAILSELL:OrderSide.TRAILBUY;
-           Order ord = event.getC().getWrapper().createOrder(event.getC().getPositions().get(symbolid), tmpOrderSide, 0, Parameters.symbol.get(symbolid).getTrailstop(), "DAY", 0,true);
+           double tmpTrailStop=((int)(Parameters.symbol.get(symbolid).getTrailstop()*event.getAvgFillPrice()/0.05))*0.05;
+           Order ord = event.getC().getWrapper().createOrder(event.getC().getPositions().get(symbolid), tmpOrderSide, 0, tmpTrailStop, "DAY", 0,true);
            Contract con=event.getC().getWrapper().createContract(symbolid);
            event.getC().getWrapper().placeOrder(event.getC(), symbolid, tmpOrderSide, ord, con);
            }
