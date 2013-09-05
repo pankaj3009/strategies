@@ -48,6 +48,7 @@ public class MainAlgorithm extends Algorithm implements OneMinBarsListner, Trade
     private boolean mocPeriod = false; //market state
     private OrderPlacement ordManagement;
     public final static Logger LOGGER = Logger.getLogger(Algorithm.class.getName());
+    //private RealTimeBars rtBars = new RealTimeBars();
     
     public MainAlgorithm(List<String> args) throws Exception {
         super(args); //this initializes the connection and symbols
@@ -94,17 +95,26 @@ public class MainAlgorithm extends Algorithm implements OneMinBarsListner, Trade
                 }
             //}
         }
-
-        //Request RealTime Bars
-        tempC = Parameters.connection.get(0);
-        for (SymbolBean s : Parameters.symbol) {
-            if (s.getBars()) {
-                
-                System.out.println("Requesting RealTime Bars. Thread going to sleep: "+Thread.currentThread().getName());
-                tempC.getWrapper().getRealTimeBars(s);
-                Thread.sleep(11000);
-            }
-        }
+        //Attempt realtime bars in a new thread
+        //new Thread(new RealTimeBars(),"RealTime").start();
+        new RealTimeBars();
+        
+        
+        
+        //end attempt
+        
+        //Request RealTime Bars, in a new thread
+        
+  //      tempC = Parameters.connection.get(0);
+  //      for (SymbolBean s : Parameters.symbol) {
+  //          if (s.getBars()) {
+  //              
+  //              System.out.println("Requesting RealTime Bars. Thread going to sleep: "+Thread.currentThread().getName());
+  //              tempC.getWrapper().getRealTimeBars(s);
+  //              Thread.sleep(11000);
+  //          }
+  //      }
+        
         //BoilerPlate Ends
 
         //Initialize algo variables
