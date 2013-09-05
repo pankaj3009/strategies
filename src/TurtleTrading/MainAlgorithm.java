@@ -16,6 +16,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.math3.stat.descriptive.*;
 import org.apache.commons.math3.stat.regression.*;
+import javax.swing.JOptionPane; 
 
 /**
  *
@@ -136,10 +137,13 @@ public class MainAlgorithm extends Algorithm implements OneMinBarsListner, Trade
             shortVolume.add(Parameters.symbol.get(i).getShortvolume());
             notionalPosition.add(0L);
             Parameters.symbol.get(i).getmDataBar().addOneMinBarListener(this);
-            Parameters.addTradeListener(this);
         }
+
+            Parameters.addTradeListener(this);
         //initialize listners
-      LOGGER.log(Level.INFO,",Symbol"+","+"BarNo"+","+"HighestHigh"+","+"LowestLow"+","+"LastPrice"+","+"Volume"+","+"CumulativeVol"+","+"VolumeSlope"+","+"MinSlopeReqd"+","+"MA"+","+"LongVolume"+","+"ShortVolume" );
+      LOGGER.log(Level.INFO,",Symbol"+","+"BarNo"+","+"HighestHigh"+","+"LowestLow"+","+"LastPrice"+","+"Volume"+","+"CumulativeVol"+","+"VolumeSlope"+","+"MinSlopeReqd"+","+"MA"+","+"LongVolume"+","+"ShortVolume"+","+"DateTime"+","+
+              "ruleHighestHigh"+","+"ruleCumVolumeLong"+","+"ruleSlopeLong"+","+"ruleVolumeLong"+","+"ruleLowestLow"+","+
+              "ruleCumVolumeShort"+","+"ruleSlopeShort"+","+"ruleVolumeShort" );
 
         
     }
@@ -157,23 +161,53 @@ public class MainAlgorithm extends Algorithm implements OneMinBarsListner, Trade
 
         //get the symbolbean
         try {
+  //          LOGGER.log(Level.INFO, "Received one minute bar for:{0}", event.getSymbol().getSymbol());
             int id = event.getSymbol().getSerialno() - 1;
             close.set(id, event.ohlc().getClose());
             int barno = event.barNumber();
-            System.out.println("Size:"+ event.list().size()+"BarNumber: "+event.barNumber()+"Symbol:"+Parameters.symbol.get(id));
 
             //Set cumVolume
+            int size=cumVolume.get(id).size();
             List<OHLC> temp = new ArrayList();
-            if (barno >= 2) {
-                if (event.list().get(barno - 1).getClose() > event.list().get(barno - 2).getClose()) {
-                    cumVolume.get(id).add(cumVolume.get(id).get(barno - 2).longValue() + event.ohlc().getVolume());
-                } else if (event.list().get(barno - 1).getClose() < event.list().get(barno - 2).getClose()) {
-                    cumVolume.get(id).add(cumVolume.get(id).get(barno - 2).longValue() - event.ohlc().getVolume());
+            int cumVolumeStartSize=cumVolume.get(id).size();
+ //           LOGGER.log(Level.INFO, "CumVolume.get(id).size()={0}", size);
+            //check if there are OHLC bars created that dont have a cumulative volume.
+            if((barno>=2) && (cumVolumeStartSize<barno-1)){
+                //we have cumVolume from earlier bars that is not populated. Populate these
+                //int cumVolIndex=cumVolume.get(id).size()-1;
+                for(int cumVolIndex=cumVolume.get(id).size()-1;cumVolIndex<barno-2;cumVolIndex++){
+                long tmpVolume=event.list().get(cumVolIndex+1).getVolume();
+                double tmpClose=event.list().get(cumVolIndex+1).getClose();
+                double tmpCloseMinus1=event.list().get(cumVolIndex).getClose();
+                long tmpCumVolMinus1=cumVolume.get(id).get(cumVolIndex);
+                if(tmpClose>tmpCloseMinus1){
+                    cumVolume.get(id).add(tmpCumVolMinus1+tmpVolume);
+                } else if (tmpClose<tmpCloseMinus1){
+                    cumVolume.get(id).add(tmpCumVolMinus1-tmpVolume);
+                } else if (tmpClose==tmpCloseMinus1){
+                    cumVolume.get(id).add(tmpCumVolMinus1);
                 }
+                }
+                
             }
-
+            
+            if (barno >= 2) {
+                if (event.list().get(barno - 1).getClose() > event.list().get(size-1).getClose()) {
+                    cumVolume.get(id).add(cumVolume.get(id).get(size-1).longValue() + event.ohlc().getVolume());
+                } else if (event.list().get(barno - 1).getClose() < event.list().get(size-1).getClose()) {
+                    cumVolume.get(id).add(cumVolume.get(id).get(size-1).longValue() - event.ohlc().getVolume());
+                }
+                else if(event.list().get(barno - 1).getClose() == event.list().get(size-1).getClose()){
+                    cumVolume.get(id).add(cumVolume.get(id).get(size-1).longValue());
+                }
+  //          LOGGER.log(Level.INFO, "Cumulative Volume set to:{0}", cumVolume.get(id).get(size));
+            }
+            int size1=cumVolume.get(id).size();
+            if(cumVolume.get(id).size()<event.barNumber()){
+                JOptionPane.showMessageDialog (null, "Error" ); 
+            }
             Volume.set(id, event.ohlc().getVolume());
-
+//            LOGGER.log(Level.INFO, "Volume set to:{0}", Volume.get(id));
             //Set Highest High and Lowest Low
 
             if (event.barNumber() >= channelDuration) {
@@ -231,7 +265,7 @@ public class MainAlgorithm extends Algorithm implements OneMinBarsListner, Trade
                     + " , Slope: " + slope.get(id)
                     + ", Bar: " + event.barNumber());
         } catch (Exception e) {
-            LOGGER.log(Level.INFO, e.getMessage());
+            LOGGER.log(Level.INFO, "{0} Symbol: {1}", new Object[]{e.getMessage(), event.getSymbol().getSymbol()});
         }
     }
 
@@ -245,7 +279,17 @@ public class MainAlgorithm extends Algorithm implements OneMinBarsListner, Trade
         System.out.println("Thread Name:"+Thread.currentThread().getName());
         //LOGGER.log(Level.INFO,"Symbol"+","+"BarNo"+","+"HighestHigh"+","+"LowestLow"+","+"LastPrice"+","+"Volume"+","+"CumulativeVol"+","+"VolumeSlope"+","+"MinSlopeReqd"+","+"MA"+","+"LongVolume"+","+"ShortVolume" );
         //Write to Log
-        LOGGER.log(Level.INFO,","+ "{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}",new Object[]{
+
+        boolean ruleHighestHigh=Parameters.symbol.get(id).getLastPrice() > highestHigh.get(id);
+        boolean ruleLowestLow=Parameters.symbol.get(id).getLastPrice() < lowestLow.get(id);
+        boolean ruleCumVolumeLong =cumVolume.get(id).get(cumVolume.get(id).size()-1) >= longVolume.get(id);
+        boolean ruleCumVolumeShort =cumVolume.get(id).get(cumVolume.get(id).size()-1) <= -shortVolume.get(id);
+        boolean ruleSlopeLong= slope.get(id) > Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * volumeSlopeLongMultiplier / 375;
+        boolean ruleSlopeShort=slope.get(id) < -Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * volumeSlopeLongMultiplier / 375;
+        boolean ruleVolumeLong=Volume.get(id) > VolumeMA.get(id);
+        boolean ruleVolumeShort=Volume.get(id) > 2 * VolumeMA.get(id);
+        
+        LOGGER.log(Level.INFO,","+ "{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20}",new Object[]{
             Parameters.symbol.get(id).getSymbol()
             ,String.valueOf(cumVolume.get(id).size())
             ,highestHigh.get(id).toString()
@@ -257,22 +301,29 @@ public class MainAlgorithm extends Algorithm implements OneMinBarsListner, Trade
             ,String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * volumeSlopeLongMultiplier / 375)
             ,VolumeMA.get(id).toString()
             ,longVolume.get(id).toString()
-            ,shortVolume.get(id).toString()});
+            ,shortVolume.get(id).toString()
+            ,DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss z", Parameters.symbol.get(id).getLastPriceTime())
+            ,ruleHighestHigh
+            ,ruleCumVolumeLong
+            ,ruleSlopeLong
+            ,ruleVolumeLong
+            ,ruleLowestLow
+            ,ruleCumVolumeShort
+            ,ruleSlopeShort
+            ,ruleVolumeShort
+        });
         
         
-        if (notionalPosition.get(id) == 0 && cumVolume.get(id).size()>0) {
-            if (Parameters.symbol.get(id).getLastPrice() > highestHigh.get(id)
-                    && cumVolume.get(id).get(cumVolume.get(id).size()-1) >= longVolume.get(id)
-                    && slope.get(id) > Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * volumeSlopeLongMultiplier / 375
-                    && Volume.get(id) > VolumeMA.get(id)) {
-                //Buy Condition
+        if (notionalPosition.get(id) == 0 && cumVolume.get(id).size()>=channelDuration ) {
+            if (ruleHighestHigh && ruleCumVolumeLong && ruleSlopeLong && ruleVolumeLong) {
+        //if(true && notionalPosition.get(id) == 0 ){ 
+        //Buy Condition
                 LOGGER.log(Level.INFO,"BUY");
                 notionalPosition.set(id, 1L);
                 _fireOrderEvent(Parameters.symbol.get(id), OrderSide.BUY, Parameters.symbol.get(id).getMinsize(), highestHigh.get(id), 0);
-            } else if (Parameters.symbol.get(id).getLastPrice() < lowestLow.get(id)
-                    && cumVolume.get(id).get(cumVolume.get(id).size()-1) <= -shortVolume.get(id)
-                    && slope.get(id) < -Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * volumeSlopeLongMultiplier / 375
-                    && Volume.get(id) > 2 * VolumeMA.get(id)) {
+                //testing line remove 
+        //    _fireOrderEvent(Parameters.symbol.get(id), OrderSide.BUY, Parameters.symbol.get(id).getMinsize(), Parameters.symbol.get(id).getLastPrice(), 0);
+            } else if (ruleLowestLow && ruleCumVolumeShort && ruleSlopeShort && ruleVolumeShort) {
                 //Sell condition
                 LOGGER.log(Level.INFO,"SELL");
                 notionalPosition.set(id, -1L);
@@ -280,14 +331,14 @@ public class MainAlgorithm extends Algorithm implements OneMinBarsListner, Trade
             }
         }
         else  if (notionalPosition.get(id) == -1){
-            if(Parameters.symbol.get(id).getLastPrice()>highestHigh.get(id)||System.currentTimeMillis()>endDate.getTime()){
+            if(ruleHighestHigh||System.currentTimeMillis()>endDate.getTime()){
                 notionalPosition.set(id, 0L);
                 _fireOrderEvent(Parameters.symbol.get(id), OrderSide.COVER,Parameters.symbol.get(id).getMinsize(), highestHigh.get(id), highestHigh.get(id));
             }
             
         } 
         else if (notionalPosition.get(id) == 1){
-            if(Parameters.symbol.get(id).getLastPrice()<lowestLow.get(id)||System.currentTimeMillis()>endDate.getTime()){
+            if(ruleLowestLow||System.currentTimeMillis()>endDate.getTime()){
                 notionalPosition.set(id, 0L);
                 _fireOrderEvent(Parameters.symbol.get(id), OrderSide.SELL,Parameters.symbol.get(id).getMinsize(), lowestLow.get(id), lowestLow.get(id));
             }

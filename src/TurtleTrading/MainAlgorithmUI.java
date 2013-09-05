@@ -126,8 +126,8 @@ private void StartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:e
         }
         //</editor-fold>
 //1. Add the parameters files to myList variable        
-        myList.add("connection.csv");
         myList.add("symbols.csv");
+        myList.add("connection.csv");
         loadParam("NewSwing.properties");
         FileInputStream configFile = null;
         configFile = new FileInputStream("logging.properties");
