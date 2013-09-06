@@ -7,11 +7,15 @@ package TurtleTrading;
 import com.ib.client.Contract;
 import com.ib.client.Order;
 import incurrframework.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.Timer;
 
 /**
  *
@@ -20,7 +24,7 @@ import java.util.logging.Logger;
 public class OrderPlacement implements OrderListener, OrderStatusListener {
 
     private MainAlgorithm a;
-private final static Logger logger = Logger.getLogger(DataBars.class .getName());
+    private final static Logger logger = Logger.getLogger(DataBars.class .getName());
 
     public OrderPlacement(MainAlgorithm o) {
         a = o;
@@ -30,14 +34,18 @@ private final static Logger logger = Logger.getLogger(DataBars.class .getName())
         for (ConnectionBean c : Parameters.connection) {
             c.getWrapper().addOrderStatusListener(this);
         }
-
-
-    }
+        
+        //Initialize timers
+        new Timer(10000, cancelExpiredOrders).start();
+        new Timer(2000, hastenCloseOut).start();
+        new Timer(10000, reattemptOrders).start();
+   }
 
     @Override
     public void orderReceived(OrderEvent event) {
         //for each connection eligible for trading
        // System.out.println(Thread.currentThread().getName());
+        try{
         int id = event.getSymbolBean().getSerialno() - 1;
         for (ConnectionBean c : Parameters.connection) {
             if ("Trading".equals(c.getPurpose())) {
@@ -50,14 +58,26 @@ private final static Logger logger = Logger.getLogger(DataBars.class .getName())
                         if (zilchOpenOrders(c, id)) {
                             Order ord = c.getWrapper().createOrder(event.getOrderSize(), event.getSide(), event.getLimitPrice(), event.getTriggerPrice(), "DAY", 3, false);
                             Contract con = c.getWrapper().createContract(id);
-                            c.getWrapper().placeOrder(c, id+1, OrderSide.BUY, ord, con);
+                            logger.log(Level.INFO,"Order Placed. Entry. Symbol ID={0}",new Object[]{id+1});
+                            int orderid = c.getWrapper().placeOrder(c, id+1, event.getSide(), ord, con);
+                            long tempexpire=System.currentTimeMillis()+3*60*1000;
+                            c.getOrdersToBeCancelled().put(orderid, tempexpire);
+                            logger.log(Level.INFO,"Expiration time in object getOrdersToBeCancelled="+tempexpire);
+                            
                         } //else cancel open orders
                         else {
                             cancelOpenOrders(c, id);
                             //Introduce Logic: Place orders when cancelation is successful
+                            OrderBean ord=new OrderBean();
+                            ord.setSymbolID(id+1);
+                            ord.setOrderSize(event.getOrderSize());
+                            ord.setOrderSide(event.getSide());
+                            ord.setLimitPrice(event.getLimitPrice());
+                            ord.setTriggerPrice(event.getTriggerPrice());
+                            c.getOrdersToBeRetried().put(System.currentTimeMillis(), ord);
                         }
                     } else if (event.getSide() == OrderSide.SELL || event.getSide() == OrderSide.COVER) {
-                        //do nothing as position size=0. Original orders were not filled. Can open orders if any exist
+                        //do nothing as position size=0. Original orders were not filled. 
                         cancelOpenOrders(c, id); 
                     }
                 
@@ -68,7 +88,9 @@ private final static Logger logger = Logger.getLogger(DataBars.class .getName())
                         if ((event.getSide() == OrderSide.SELL && c.getPositions().get(id) > 0) || (event.getSide() == OrderSide.COVER && c.getPositions().get(id) < 0)) {
                             Order ord = c.getWrapper().createOrder(c.getPositions().get(id), event.getSide(), event.getLimitPrice(), event.getTriggerPrice(), "DAY", 3, false);
                             Contract con = c.getWrapper().createContract(id);
-                            c.getWrapper().placeOrder(c, id+1, event.getSide(), ord, con);
+                            logger.log(Level.INFO,"Order Placed. Exit. Symbol ID={0}",new Object[]{id+1});
+                            int orderid=c.getWrapper().placeOrder(c, id+1, event.getSide(), ord, con);
+                            c.getOrdersToBeFastTracked().put(orderid, System.currentTimeMillis()+3*60*1000);
                         } else {
                             //something is wrong in positions. Cancel all open orders and square all positions
                             cancelOpenOrders(c, id);
@@ -83,10 +105,15 @@ private final static Logger logger = Logger.getLogger(DataBars.class .getName())
                 }
             }
         }
+        }
+        catch (Exception e){
+            logger.log(Level.SEVERE,e.toString());
+        }
     }
 
     @Override
     public void orderStatusReceived(OrderStatusEvent event) {
+        try{
         int orderid = event.getOrderID();
 
         //update HashMap orders
@@ -95,17 +122,18 @@ private final static Logger logger = Logger.getLogger(DataBars.class .getName())
             int id = ob.getSymbolID()-1;
             if (event.getRemaining()==0) {
                 //completely filled
-                OrderSide tmpOrdSide = reverseLookup(event.getC().getOrdersSymbols().get(id), orderid);
+                OrderSide tmpOrdSide = reverseLookup(event.getC(),event.getC().getOrdersSymbols().get(id), orderid);
                 updateFilledOrders(event.getC(), id, orderid, event.getFilled(), event.getAvgFillPrice());
                 //Reverse lookup on OrderSymbols to get the orderside for the fill
                     if (tmpOrdSide == OrderSide.BUY || tmpOrdSide == OrderSide.SHORT) {
-                    logger.log(Level.INFO,"OrderSide="+tmpOrdSide+" Position="+ event.getC().getPositions().get(id));
+                    logger.log(Level.INFO, "Check if Trailing Required. SymbolID={0}, OrderSide={1} Position={2}", new Object[]{id+1,tmpOrdSide, event.getC().getPositions().get(id)});
                     OrderSide tmpOrderSide = event.getC().getPositions().get(id) > 0 ? OrderSide.TRAILSELL : OrderSide.TRAILBUY;
                     double tmpTrailStop = ((int) (Parameters.symbol.get(id).getTrailstop() * event.getAvgFillPrice() / 0.05)) * 0.05;
-                    Order ord = event.getC().getWrapper().createOrder(event.getC().getPositions().get(id), tmpOrderSide, 0, tmpTrailStop, "DAY", 0, true);
+                    Order ord = event.getC().getWrapper().createOrder(Math.abs(event.getC().getPositions().get(id)), tmpOrderSide, 0, tmpTrailStop, "DAY", 0, true);
                     Contract con = event.getC().getWrapper().createContract(id);
+                    logger.log(Level.INFO,"Order Placed. Trailing. Symbol ID={0}",new Object[]{id+1});
                     event.getC().getWrapper().placeOrder(event.getC(), id+1, tmpOrderSide, ord, con);
-                }
+                   }
             } else if ( event.getRemaining()> 0 && event.getAvgFillPrice()>0) {
                 // partial fill
                 updatePartialFills(event.getC(), id, orderid, event.getFilled(), event.getAvgFillPrice());
@@ -116,18 +144,99 @@ private final static Logger logger = Logger.getLogger(DataBars.class .getName())
                 updateAcknowledgement(event.getC(), id, orderid);
             }
         }
+        }
+        catch (Exception e){
+            logger.log(Level.SEVERE,e.toString());
+        }
     }
 
+    ActionListener cancelExpiredOrders = new ActionListener() { //call this every 10 seconds
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            for (ConnectionBean c : Parameters.connection) {
+                if (c.getOrdersToBeCancelled().size() > 0) {
+                    ArrayList<Integer> temp = new ArrayList();
+                    for (Integer key : c.getOrdersToBeCancelled().keySet()) {
+                        logger.log(Level.INFO,"Expiration Time:{0},System Time:{1}",new Object[]{c.getOrdersToBeCancelled().get(key),System.currentTimeMillis()});
+                        if (c.getOrdersToBeCancelled().get(key) < System.currentTimeMillis()
+                                && ((c.getOrders().get(key).getStatus() != OrderStatus.Acknowledged) || c.getOrders().get(key).getStatus() == OrderStatus.Submitted || c.getOrders().get(key).getStatus() == OrderStatus.PartialFilled)) {
+                            logger.log(Level.INFO,"Expired Order being cancelled. OrderID="+key);
+                            c.getWrapper().cancelOrder(c, key);
+                            temp.add(key); //holds all orders that have now been cancelled
+                        }
+                    }
+                    for (int ordersToBeDeleted : temp) {
+                        c.getOrdersToBeCancelled().remove(ordersToBeDeleted);
+                    }
+                }
+            }
+        }
+    };
+    
+    ActionListener hastenCloseOut = new ActionListener() { //call this every 1 second
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            for (ConnectionBean c : Parameters.connection) {
+                if (c.getOrdersToBeFastTracked().size() > 0) {
+                    ArrayList<Integer> temp = new ArrayList();
+                    for (Integer key : c.getOrdersToBeFastTracked().keySet()) {
+                        if (c.getOrdersToBeCancelled().get(key) < System.currentTimeMillis()
+                                && (c.getOrders().get(key).getStatus() != OrderStatus.Acknowledged) || c.getOrders().get(key).getStatus() == OrderStatus.Submitted || c.getOrders().get(key).getStatus() == OrderStatus.PartialFilled) {
+                            logger.log(Level.INFO,"Order being converted to market. OrderID="+key);
+                            fastClose(c, c.getOrders().get(key).getSymbolID(), c.getOrders().get(key).getOrderSide(), key);
+                            temp.add(key); //holds all orders that have now been cancelled
+                        }
+                    }
+                    for (int ordersToBeDeleted : temp) {
+                        c.getOrdersToBeFastTracked().remove(ordersToBeDeleted);
+                    }
+                }
+            }
+        }
+    };
+    
+    ActionListener reattemptOrders = new ActionListener() { //call this every 10 seconds
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            for (ConnectionBean c : Parameters.connection) {
+                if (c.getOrdersToBeRetried().size() > 0) {
+                    ArrayList<Long> temp = new ArrayList();
+                    for (Long key : c.getOrdersToBeRetried().keySet()) {
+                        int tempID = c.getOrdersToBeRetried().get(key).getSymbolID() - 1;
+                        OrderBean ordb = c.getOrdersToBeRetried().get(key);
+                        if (System.currentTimeMillis() > key + 60 * 1000) {
+                            temp.add(key);
+                        } else if (c.getPositions().get(tempID) == 0 && zilchOpenOrders(c, tempID)) {
+                            //update temp
+                            temp.add(key);
+                            //place orders
+                            Order ord = c.getWrapper().createOrder(ordb.getOrderSize(), ordb.getOrderSide(), ordb.getLimitPrice(), ordb.getTriggerPrice(), "DAY", 3, false);
+                            Contract con = c.getWrapper().createContract(tempID);
+                            logger.log(Level.INFO,"Order Placed. Delayed. Symbol ID={0}",new Object[]{ordb.getSymbolID()});
+                            c.getWrapper().placeOrder(c, tempID + 1, ordb.getOrderSide(), ord, con);
+                           }
+                    }
+                    for (long ordersToBeDeleted : temp) {
+                        c.getOrdersToBeRetried().remove(ordersToBeDeleted);
+                    }
+
+                }
+            }
+        }
+    };
+    
     private synchronized void squareAllPositions(ConnectionBean c, int id) {
         int position = c.getPositions().get(id);
         Contract con = c.getWrapper().createContract(id);
         if (position > 0) {
             Order ord = c.getWrapper().createOrder(position, OrderSide.SELL, 0, 0, "DAY", 0, false);
+            logger.log(Level.INFO,"Order Placed. Square on Error. Symbol ID={0}",new Object[]{id+1});
             c.getWrapper().placeOrder(c, id+1, OrderSide.SELL, ord, con);
-        } else if (position < 0) {
+            } else if (position < 0) {
             Order ord = c.getWrapper().createOrder(-position, OrderSide.COVER, 0, 0, "DAY", 0, false);
+            logger.log(Level.INFO,"Order Placed. Square on Error. Symbol ID={0}",new Object[]{id+1});
             c.getWrapper().placeOrder(c, id+1, OrderSide.COVER, ord, con);
-        }
+            }
     }
 
     private synchronized boolean squarePosition(ConnectionBean c, int id) {
@@ -157,6 +266,7 @@ private final static Logger logger = Logger.getLogger(DataBars.class .getName())
                 //if order exists and open ordType="Buy" or "Short"
                 //check an earlier cancellation request is not pending and if all ok then cancel
                 if (!c.getOrders().get(orderID).isCancelRequested()) {
+                    logger.log(Level.INFO,"Open orders being cancelled. OrderID="+orderID);
                     c.getWrapper().cancelOrder(c, orderID);
                 }
             }
@@ -185,6 +295,7 @@ private final static Logger logger = Logger.getLogger(DataBars.class .getName())
     private synchronized boolean updateFilledOrders(ConnectionBean c, int id, int orderID, int filled, double avgFillPrice) {
         OrderBean ord = c.getOrders().get(orderID);
         int fill=filled-ord.getFillSize();
+        logger.log(Level.INFO, "Symbol: {0}, Fill Amount: {1},Reported by Event={2},Existing in Program={3}, Side={4}",new Object[]{ord.getSymbolID(),fill,filled,ord.getFillSize(),ord.getOrderSide()});
         ord.setFillSize(filled);
         ord.setFillPrice(avgFillPrice);
         ord.setStatus(OrderStatus.CompleteFilled);
@@ -193,9 +304,10 @@ private final static Logger logger = Logger.getLogger(DataBars.class .getName())
         int origposition = c.getPositions().get(id);
         if (c.getOrders().get(orderID).getOrderSide() == OrderSide.SELL || c.getOrders().get(orderID).getOrderSide() == OrderSide.SHORT) {
             fill = -fill;
+            logger.log(Level.INFO,"Reversed fill sign as sell or short. Fill="+fill);
         }
         c.getPositions().put(id, origposition + fill);
-
+        logger.log(Level.INFO, "Symbol: {0}, Current Position: {1}",new Object[]{id+1,origposition + fill});
         //update orderid=0 from Symbols HashMap
         ArrayList<Integer> orders = c.getOrdersSymbols().get(id);
         if (orders.size() > 0) {
@@ -256,32 +368,13 @@ private final static Logger logger = Logger.getLogger(DataBars.class .getName())
 
     }
 
-    private synchronized OrderSide reverseLookup(ArrayList<Integer> arr, int orderid) {
+    private synchronized OrderSide reverseLookup(ConnectionBean c, ArrayList<Integer> arr, int orderid) {
 
-        int side = 0;
         OrderSide ordSide = OrderSide.UNDEFINED;
         for (int i : arr) {
             if (i == orderid) {
-                switch (side) {
-                    case 0:
-                        ordSide = OrderSide.BUY;
-                        break;
-                    case 1:
-                        ordSide = OrderSide.SELL;
-                        break;
-                    case 2:
-                        ordSide = OrderSide.SHORT;
-                        break;
-                    case 3:
-                        ordSide = OrderSide.COVER;
-                        break;
-                    case 4:
-                        ordSide = OrderSide.TRAILBUY;
-                        break;
-                    case 5:
-                        ordSide = OrderSide.TRAILSELL;
-                        break;
-                }
+                logger.log(Level.INFO,"In reverseLookup. Orderside={0},Array Position={1}",new Object[]{c.getOrders().get(orderid).getOrderSide(),i});
+                ordSide=c.getOrders().get(orderid).getOrderSide();
                 return ordSide;
             }
         }

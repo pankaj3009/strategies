@@ -1,50 +1,398 @@
-[Thu Sep 05 16:31:53 IST 2013] INFO: ,Symbol,BarNo,HighestHigh,LowestLow,LastPrice,Volume,CumulativeVol,VolumeSlope,MinSlopeReqd,MA,LongVolume,ShortVolume,DateTime,ruleHighestHigh,ruleCumVolumeLong,ruleSlopeLong,ruleVolumeLong,ruleLowestLow,ruleCumVolumeShort,ruleSlopeShort,ruleVolumeShort 
-[Thu Sep 05 16:31:54 IST 2013] INFO: ,BAC,1,9.99999999E8,0.0,14.38,-9223372036854775808,0,0.0,1.0666666666666667,4.9E-324,0,-5000000,20130905 16:31:54 IST,false,true,false,false,false,true,false,false 
-[Thu Sep 05 16:31:54 IST 2013] INFO: ,MSFT,1,9.99999999E8,0.0,31.32,-9223372036854775808,0,0.0,1.0666666666666667,4.9E-324,0,-5000000,20130905 16:31:54 IST,false,true,false,false,false,true,false,false 
-[Thu Sep 05 16:31:54 IST 2013] INFO: ,FB,1,9.99999999E8,0.0,41.9,-9223372036854775808,0,0.0,1.0666666666666667,4.9E-324,0,-5000000,20130905 16:31:54 IST,false,true,false,false,false,true,false,false 
-[Thu Sep 05 16:31:54 IST 2013] INFO: ,AAPL,1,9.99999999E8,0.0,500.5,-9223372036854775808,0,0.0,1.0666666666666667,4.9E-324,0,-5000000,20130905 16:31:54 IST,false,true,false,false,false,true,false,false 
-[Thu Sep 05 16:31:54 IST 2013] INFO: ,CSCO,1,9.99999999E8,0.0,23.79,-9223372036854775808,0,0.0,1.0666666666666667,4.9E-324,0,-5000000,20130905 16:31:54 IST,false,true,false,false,false,true,false,false 
-[Thu Sep 05 16:31:54 IST 2013] INFO: ,BBRY,1,9.99999999E8,0.0,10.96,-9223372036854775808,0,0.0,1.0666666666666667,4.9E-324,0,-5000000,20130905 16:31:54 IST,false,true,false,false,false,true,false,false 
-[Thu Sep 05 16:31:54 IST 2013] INFO: ,INTC,1,9.99999999E8,0.0,22.74,-9223372036854775808,0,0.0,1.0666666666666667,4.9E-324,0,-5000000,20130905 16:31:54 IST,false,true,false,false,false,true,false,false 
-[Thu Sep 05 16:31:54 IST 2013] INFO: ,BAC,1,9.99999999E8,0.0,14.38,-9223372036854775808,0,0.0,1.0666666666666667,4.9E-324,0,-5000000,20130905 16:31:54 IST,false,true,false,false,false,true,false,false 
-[Thu Sep 05 16:31:54 IST 2013] INFO: ,QQQ,1,9.99999999E8,0.0,76.88,-9223372036854775808,0,0.0,1.0666666666666667,4.9E-324,0,-5000000,20130905 16:31:54 IST,false,true,false,false,false,true,false,false 
-[Thu Sep 05 16:31:54 IST 2013] INFO: ,GM,1,9.99999999E8,0.0,35.82,-9223372036854775808,0,0.0,1.0666666666666667,4.9E-324,0,-5000000,20130905 16:31:54 IST,false,true,false,false,false,true,false,false 
-[Thu Sep 05 16:31:54 IST 2013] INFO: ,FB,1,9.99999999E8,0.0,41.9,-9223372036854775808,0,0.0,1.0666666666666667,4.9E-324,0,-5000000,20130905 16:31:54 IST,false,true,false,false,false,true,false,false 
-[Thu Sep 05 16:31:54 IST 2013] INFO: ,MSFT,1,9.99999999E8,0.0,31.32,-9223372036854775808,0,0.0,1.0666666666666667,4.9E-324,0,-5000000,20130905 16:31:54 IST,false,true,false,false,false,true,false,false 
-[Thu Sep 05 16:31:54 IST 2013] INFO: ,INTC,1,9.99999999E8,0.0,22.74,-9223372036854775808,0,0.0,1.0666666666666667,4.9E-324,0,-5000000,20130905 16:31:54 IST,false,true,false,false,false,true,false,false 
-[Thu Sep 05 16:31:54 IST 2013] INFO: ,BBRY,1,9.99999999E8,0.0,10.96,-9223372036854775808,0,0.0,1.0666666666666667,4.9E-324,0,-5000000,20130905 16:31:54 IST,false,true,false,false,false,true,false,false 
-[Thu Sep 05 16:31:54 IST 2013] INFO: ,CSCO,1,9.99999999E8,0.0,23.79,-9223372036854775808,0,0.0,1.0666666666666667,4.9E-324,0,-5000000,20130905 16:31:54 IST,false,true,false,false,false,true,false,false 
-[Thu Sep 05 16:31:55 IST 2013] INFO: ,GM,1,9.99999999E8,0.0,35.82,-9223372036854775808,0,0.0,1.0666666666666667,4.9E-324,0,-5000000,20130905 16:31:55 IST,false,true,false,false,false,true,false,false 
-[Thu Sep 05 16:31:55 IST 2013] INFO: ,QQQ,1,9.99999999E8,0.0,76.88,-9223372036854775808,0,0.0,1.0666666666666667,4.9E-324,0,-5000000,20130905 16:31:55 IST,false,true,false,false,false,true,false,false 
-[Thu Sep 05 16:31:59 IST 2013] INFO: ,BBRY,1,9.99999999E8,0.0,11.0,-9223372036854775808,0,0.0,1.0666666666666667,4.9E-324,0,-5000000,20130905 16:31:59 IST,false,true,false,false,false,true,false,false 
-[Thu Sep 05 16:32:32 IST 2013] INFO: ,FB,1,9.99999999E8,0.0,41.91,-9223372036854775808,0,0.0,1.0666666666666667,4.9E-324,0,-5000000,20130905 16:32:32 IST,false,true,false,false,false,true,false,false 
-[Thu Sep 05 16:32:33 IST 2013] INFO: ,FB,1,9.99999999E8,0.0,41.98,-9223372036854775808,0,0.0,1.0666666666666667,4.9E-324,0,-5000000,20130905 16:32:33 IST,false,true,false,false,false,true,false,false 
-[Thu Sep 05 16:32:34 IST 2013] INFO: ,FB,1,9.99999999E8,0.0,41.99,-9223372036854775808,0,0.0,1.0666666666666667,4.9E-324,0,-5000000,20130905 16:32:34 IST,false,true,false,false,false,true,false,false 
-[Thu Sep 05 16:32:38 IST 2013] INFO: ,FB,1,9.99999999E8,0.0,41.95,-9223372036854775808,0,0.0,1.0666666666666667,4.9E-324,0,-5000000,20130905 16:32:38 IST,false,true,false,false,false,true,false,false 
-[Thu Sep 05 16:32:44 IST 2013] INFO: ,QCOM,1,9.99999999E8,0.0,67.5,-9223372036854775808,0,0.0,1.0666666666666667,4.9E-324,0,-5000000,20130905 16:32:44 IST,false,true,false,false,false,true,false,false 
-[Thu Sep 05 16:33:07 IST 2013] INFO: ,AAPL,1,9.99999999E8,0.0,500.8,-9223372036854775808,0,0.0,1.0666666666666667,4.9E-324,0,-5000000,20130905 16:33:07 IST,false,true,false,false,false,true,false,false 
-[Thu Sep 05 16:33:24 IST 2013] INFO: ,AAPL,1,9.99999999E8,0.0,500.85,-9223372036854775808,0,0.0,1.0666666666666667,4.9E-324,0,-5000000,20130905 16:33:24 IST,false,true,false,false,false,true,false,false 
-[Thu Sep 05 16:33:29 IST 2013] INFO: ,AAPL,1,9.99999999E8,0.0,501.0,-9223372036854775808,0,0.0,1.0666666666666667,4.9E-324,0,-5000000,20130905 16:33:29 IST,false,true,false,false,false,true,false,false 
-[Thu Sep 05 16:33:33 IST 2013] INFO: ,FB,1,9.99999999E8,0.0,41.86,-9223372036854775808,0,0.0,1.0666666666666667,4.9E-324,0,-5000000,20130905 16:33:33 IST,false,true,false,false,false,true,false,false 
-[Thu Sep 05 16:33:51 IST 2013] INFO: ,AAPL,1,9.99999999E8,0.0,500.97,-9223372036854775808,0,0.0,1.0666666666666667,4.9E-324,0,-5000000,20130905 16:33:51 IST,false,true,false,false,false,true,false,false 
-[Thu Sep 05 16:33:55 IST 2013] INFO: ,F,1,9.99999999E8,0.0,17.0,-9223372036854775808,0,0.0,1.0666666666666667,4.9E-324,0,-5000000,20130905 16:33:55 IST,false,true,false,false,false,true,false,false 
-[Thu Sep 05 16:34:32 IST 2013] INFO: ,FB,1,9.99999999E8,0.0,41.88,-9223372036854775808,0,0.0,1.0666666666666667,4.9E-324,0,-5000000,20130905 16:34:32 IST,false,true,false,false,false,true,false,false 
-[Thu Sep 05 16:34:42 IST 2013] INFO: ,AAPL,1,9.99999999E8,0.0,501.4,-9223372036854775808,0,0.0,1.0666666666666667,4.9E-324,0,-5000000,20130905 16:34:42 IST,false,true,false,false,false,true,false,false 
-[Thu Sep 05 16:35:15 IST 2013] INFO: ,BAC,1,9.99999999E8,0.0,14.39,-9223372036854775808,0,0.0,1.0666666666666667,4.9E-324,0,-5000000,20130905 16:35:15 IST,false,true,false,false,false,true,false,false 
-[Thu Sep 05 16:35:24 IST 2013] INFO: ,MSFT,1,9.99999999E8,0.0,31.29,-9223372036854775808,0,0.0,1.0666666666666667,4.9E-324,0,-5000000,20130905 16:35:24 IST,false,true,false,false,false,true,false,false 
-[Thu Sep 05 16:35:42 IST 2013] INFO: ,AAPL,1,9.99999999E8,0.0,501.46,-9223372036854775808,0,0.0,1.0666666666666667,4.9E-324,0,-5000000,20130905 16:35:42 IST,false,true,false,false,false,true,false,false 
-[Thu Sep 05 16:36:01 IST 2013] INFO: ,FB,1,9.99999999E8,0.0,41.94,-9223372036854775808,0,0.0,1.0666666666666667,4.9E-324,0,-5000000,20130905 16:36:01 IST,false,true,false,false,false,true,false,false 
-[Thu Sep 05 16:36:03 IST 2013] INFO: ,FB,1,9.99999999E8,0.0,41.95,-9223372036854775808,0,0.0,1.0666666666666667,4.9E-324,0,-5000000,20130905 16:36:03 IST,false,true,false,false,false,true,false,false 
-[Thu Sep 05 16:36:21 IST 2013] INFO: ,FB,1,9.99999999E8,0.0,41.92,-9223372036854775808,0,0.0,1.0666666666666667,4.9E-324,0,-5000000,20130905 16:36:21 IST,false,true,false,false,false,true,false,false 
-[Thu Sep 05 16:36:26 IST 2013] INFO: ,BBRY,1,9.99999999E8,0.0,11.02,-9223372036854775808,0,0.0,1.0666666666666667,4.9E-324,0,-5000000,20130905 16:36:26 IST,false,true,false,false,false,true,false,false 
-[Thu Sep 05 16:36:29 IST 2013] INFO: ,AAPL,1,9.99999999E8,0.0,501.2,-9223372036854775808,0,0.0,1.0666666666666667,4.9E-324,0,-5000000,20130905 16:36:29 IST,false,true,false,false,false,true,false,false 
-[Thu Sep 05 16:36:58 IST 2013] INFO: ,AAPL,1,9.99999999E8,0.0,501.39,-9223372036854775808,0,0.0,1.0666666666666667,4.9E-324,0,-5000000,20130905 16:36:58 IST,false,true,false,false,false,true,false,false 
-[Thu Sep 05 16:37:05 IST 2013] INFO: ,BBRY,1,9.99999999E8,0.0,11.03,-9223372036854775808,0,0.0,1.0666666666666667,4.9E-324,0,-5000000,20130905 16:37:05 IST,false,true,false,false,false,true,false,false 
-[Thu Sep 05 16:37:12 IST 2013] INFO: ,GM,1,9.99999999E8,0.0,36.0,-9223372036854775808,0,0.0,1.0666666666666667,4.9E-324,0,-5000000,20130905 16:37:12 IST,false,true,false,false,false,true,false,false 
-[Thu Sep 05 16:37:50 IST 2013] INFO: ,BBRY,1,9.99999999E8,0.0,11.05,-9223372036854775808,0,0.0,1.0666666666666667,4.9E-324,0,-5000000,20130905 16:37:50 IST,false,true,false,false,false,true,false,false 
-[Thu Sep 05 16:37:59 IST 2013] INFO: ,BBRY,1,9.99999999E8,0.0,11.09,-9223372036854775808,0,0.0,1.0666666666666667,4.9E-324,0,-5000000,20130905 16:37:59 IST,false,true,false,false,false,true,false,false 
-[Thu Sep 05 16:38:06 IST 2013] INFO: ,BBRY,1,9.99999999E8,0.0,11.11,-9223372036854775808,0,0.0,1.0666666666666667,4.9E-324,0,-5000000,20130905 16:38:06 IST,false,true,false,false,false,true,false,false 
-[Thu Sep 05 16:38:52 IST 2013] INFO: ,FB,1,9.99999999E8,0.0,41.94,-9223372036854775808,0,0.0,1.0666666666666667,4.9E-324,0,-5000000,20130905 16:38:52 IST,false,true,false,false,false,true,false,false 
-[Thu Sep 05 16:39:03 IST 2013] INFO: ,BBRY,1,9.99999999E8,0.0,11.13,-9223372036854775808,0,0.0,1.0666666666666667,4.9E-324,0,-5000000,20130905 16:39:03 IST,false,true,false,false,false,true,false,false 
-[Thu Sep 05 16:39:04 IST 2013] INFO: ,QQQ,1,9.99999999E8,0.0,76.86,-9223372036854775808,0,0.0,1.0666666666666667,4.9E-324,0,-5000000,20130905 16:39:04 IST,false,true,false,false,false,true,false,false 
-[Thu Sep 05 16:39:14 IST 2013] INFO: ,QQQ,1,9.99999999E8,0.0,76.85,-9223372036854775808,0,0.0,1.0666666666666667,4.9E-324,0,-5000000,20130905 16:39:14 IST,false,true,false,false,false,true,false,false 
+[Fri Sep 06 14:01:31 IST 2013] INFO: ,Symbol,BarNo,HighestHigh,LowestLow,LastPrice,Volume,CumulativeVol,VolumeSlope,MinSlopeReqd,MA,LongVolume,ShortVolume,DateTime,ruleHighestHigh,ruleCumVolumeLong,ruleSlopeLong,ruleVolumeLong,ruleLowestLow,ruleCumVolumeShort,ruleSlopeShort,ruleVolumeShort 
+[Fri Sep 06 14:09:01 IST 2013] INFO: BUY.Symbol ID=71 
+[Fri Sep 06 14:09:01 IST 2013] INFO: Expiration time in placeOrder=1378456921352 
+[Fri Sep 06 14:09:01 IST 2013] INFO: Order Placed. Entry. Symbol ID=8 
+[Fri Sep 06 14:09:01 IST 2013] INFO: Order Placed. Order id=190, SymbolID=8, Side=BUY 
+[Fri Sep 06 14:09:01 IST 2013] INFO: Expiration time in object getOrdersToBeCancelled=1378456921367 
+[Fri Sep 06 14:09:11 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:09:21 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:09:31 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:09:41 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:09:51 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:10:01 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:10:11 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:10:21 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:10:23 IST 2013] INFO: BUY.Symbol ID=191 
+[Fri Sep 06 14:10:23 IST 2013] INFO: Expiration time in placeOrder=1378457003094 
+[Fri Sep 06 14:10:23 IST 2013] INFO: Order Placed. Entry. Symbol ID=20 
+[Fri Sep 06 14:10:23 IST 2013] INFO: Order Placed. Order id=191, SymbolID=20, Side=BUY 
+[Fri Sep 06 14:10:23 IST 2013] INFO: Expiration time in object getOrdersToBeCancelled=1378457003102 
+[Fri Sep 06 14:10:31 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:10:31 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:10:41 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:10:41 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:10:51 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:10:51 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:11:01 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:11:01 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:11:09 IST 2013] INFO: BUY.Symbol ID=41 
+[Fri Sep 06 14:11:09 IST 2013] INFO: Expiration time in placeOrder=1378457049095 
+[Fri Sep 06 14:11:09 IST 2013] INFO: Order Placed. Entry. Symbol ID=5 
+[Fri Sep 06 14:11:09 IST 2013] INFO: Order Placed. Order id=192, SymbolID=5, Side=BUY 
+[Fri Sep 06 14:11:09 IST 2013] INFO: Expiration time in object getOrdersToBeCancelled=1378457049102 
+[Fri Sep 06 14:11:11 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:11:11 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:11:11 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:11:13 IST 2013] INFO: In reverseLookup. Orderside=BUY,Array Position=192 
+[Fri Sep 06 14:11:13 IST 2013] INFO: Symbol: 5, Fill Amount: 1,000,Reported by Event=3,000,Existing in Program=2,000, Side=BUY 
+[Fri Sep 06 14:11:13 IST 2013] INFO: Symbol: 5, Current Position: 3,000 
+[Fri Sep 06 14:11:13 IST 2013] INFO: Check if Trailing Required. SymbolID=5, OrderSide=BUY Position=3,000 
+[Fri Sep 06 14:11:13 IST 2013] INFO: Order Placed. Trailing. Symbol ID=5 
+[Fri Sep 06 14:11:13 IST 2013] INFO: Order Placed. Order id=193, SymbolID=5, Side=TRAILSELL 
+[Fri Sep 06 14:11:14 IST 2013] INFO: Symbol: 5, Fill Amount: 0,Reported by Event=3,000,Existing in Program=3,000, Side=BUY 
+[Fri Sep 06 14:11:14 IST 2013] INFO: Symbol: 5, Current Position: 3,000 
+[Fri Sep 06 14:11:21 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:11:21 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:11:21 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:11:31 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:11:31 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:11:31 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:11:41 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:11:41 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:11:41 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:11:51 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:11:51 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:11:51 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:12:01 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:12:01 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:12:01 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:12:11 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:12:11 IST 2013] INFO: Expired Order being cancelled. OrderID=190 
+[Fri Sep 06 14:12:11 IST 2013] INFO: Order Cancelled. Order id=190 
+[Fri Sep 06 14:12:11 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:12:11 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:12:21 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:12:21 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:12:31 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:12:31 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:12:33 IST 2013] INFO: BUY.Symbol ID=151 
+[Fri Sep 06 14:12:33 IST 2013] INFO: Expiration time in placeOrder=1378457133373 
+[Fri Sep 06 14:12:33 IST 2013] INFO: Order Placed. Entry. Symbol ID=16 
+[Fri Sep 06 14:12:33 IST 2013] INFO: Order Placed. Order id=194, SymbolID=16, Side=BUY 
+[Fri Sep 06 14:12:33 IST 2013] INFO: Expiration time in object getOrdersToBeCancelled=1378457133380 
+[Fri Sep 06 14:12:41 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:12:41 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:12:41 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:12:51 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:12:51 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:12:51 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:13:01 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:13:01 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:13:01 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:13:11 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:13:11 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:13:11 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:13:21 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:13:21 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:13:21 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:13:31 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:13:31 IST 2013] INFO: Expired Order being cancelled. OrderID=191 
+[Fri Sep 06 14:13:31 IST 2013] INFO: Order Cancelled. Order id=191 
+[Fri Sep 06 14:13:31 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:13:31 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:13:41 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:13:41 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:13:51 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:13:51 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:14:01 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:14:01 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:14:02 IST 2013] INFO: BUY.Symbol ID=131 
+[Fri Sep 06 14:14:02 IST 2013] INFO: Expiration time in placeOrder=1378457222892 
+[Fri Sep 06 14:14:02 IST 2013] INFO: Order Placed. Entry. Symbol ID=14 
+[Fri Sep 06 14:14:02 IST 2013] INFO: Order Placed. Order id=195, SymbolID=14, Side=BUY 
+[Fri Sep 06 14:14:02 IST 2013] INFO: Expiration time in object getOrdersToBeCancelled=1378457222899 
+[Fri Sep 06 14:14:11 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:14:11 IST 2013] INFO: Expired Order being cancelled. OrderID=192 
+[Fri Sep 06 14:14:11 IST 2013] INFO: Order Cancelled. Order id=192 
+[Fri Sep 06 14:14:11 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:14:11 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:14:20 IST 2013] INFO: In reverseLookup. Orderside=BUY,Array Position=194 
+[Fri Sep 06 14:14:20 IST 2013] INFO: Symbol: 16, Fill Amount: 250,Reported by Event=750,Existing in Program=500, Side=BUY 
+[Fri Sep 06 14:14:20 IST 2013] INFO: Symbol: 16, Current Position: 750 
+[Fri Sep 06 14:14:20 IST 2013] INFO: Check if Trailing Required. SymbolID=16, OrderSide=BUY Position=750 
+[Fri Sep 06 14:14:20 IST 2013] INFO: Order Placed. Trailing. Symbol ID=16 
+[Fri Sep 06 14:14:20 IST 2013] INFO: Order Placed. Order id=196, SymbolID=16, Side=TRAILSELL 
+[Fri Sep 06 14:14:20 IST 2013] INFO: Symbol: 16, Fill Amount: 0,Reported by Event=750,Existing in Program=750, Side=BUY 
+[Fri Sep 06 14:14:20 IST 2013] INFO: Symbol: 16, Current Position: 750 
+[Fri Sep 06 14:14:21 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:14:21 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:14:31 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:14:31 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:14:41 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:14:41 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:14:51 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:14:51 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:15:01 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:15:01 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:15:11 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:15:11 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:15:21 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:15:21 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:15:31 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:15:31 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:15:41 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:15:41 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:15:41 IST 2013] INFO: Expired Order being cancelled. OrderID=194 
+[Fri Sep 06 14:15:41 IST 2013] INFO: Order Cancelled. Order id=194 
+[Fri Sep 06 14:15:51 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:16:01 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:16:11 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:16:14 IST 2013] INFO: BUY.Symbol ID=161 
+[Fri Sep 06 14:16:14 IST 2013] INFO: Expiration time in placeOrder=1378457354835 
+[Fri Sep 06 14:16:14 IST 2013] INFO: Order Placed. Entry. Symbol ID=17 
+[Fri Sep 06 14:16:14 IST 2013] INFO: Order Placed. Order id=197, SymbolID=17, Side=BUY 
+[Fri Sep 06 14:16:14 IST 2013] INFO: Expiration time in object getOrdersToBeCancelled=1378457354843 
+[Fri Sep 06 14:16:21 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:16:21 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:16:29 IST 2013] INFO: SELL. Symbol ID=41 
+[Fri Sep 06 14:16:29 IST 2013] SEVERE: java.lang.NullPointerException 
+[Fri Sep 06 14:16:31 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:16:31 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:16:41 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:16:41 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:16:51 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:16:51 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:17:01 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:17:01 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:17:11 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:17:11 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:17:11 IST 2013] INFO: Expired Order being cancelled. OrderID=195 
+[Fri Sep 06 14:17:11 IST 2013] INFO: Order Cancelled. Order id=195 
+[Fri Sep 06 14:17:21 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:17:31 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:17:41 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:17:51 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:18:01 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:18:11 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:18:11 IST 2013] INFO: In reverseLookup. Orderside=BUY,Array Position=197 
+[Fri Sep 06 14:18:11 IST 2013] INFO: Symbol: 17, Fill Amount: 248,Reported by Event=375,Existing in Program=127, Side=BUY 
+[Fri Sep 06 14:18:11 IST 2013] INFO: Symbol: 17, Current Position: 375 
+[Fri Sep 06 14:18:11 IST 2013] INFO: Check if Trailing Required. SymbolID=17, OrderSide=BUY Position=375 
+[Fri Sep 06 14:18:11 IST 2013] INFO: Order Placed. Trailing. Symbol ID=17 
+[Fri Sep 06 14:18:11 IST 2013] INFO: Order Placed. Order id=198, SymbolID=17, Side=TRAILSELL 
+[Fri Sep 06 14:18:11 IST 2013] INFO: Symbol: 17, Fill Amount: 0,Reported by Event=375,Existing in Program=375, Side=BUY 
+[Fri Sep 06 14:18:11 IST 2013] INFO: Symbol: 17, Current Position: 375 
+[Fri Sep 06 14:18:21 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:18:31 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:18:41 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:18:51 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:19:01 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:19:11 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:19:21 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:19:21 IST 2013] INFO: Expired Order being cancelled. OrderID=197 
+[Fri Sep 06 14:19:21 IST 2013] INFO: Order Cancelled. Order id=197 
+[Fri Sep 06 14:19:50 IST 2013] INFO: BUY.Symbol ID=211 
+[Fri Sep 06 14:19:50 IST 2013] INFO: Expiration time in placeOrder=1378457570089 
+[Fri Sep 06 14:19:50 IST 2013] INFO: Order Placed. Entry. Symbol ID=22 
+[Fri Sep 06 14:19:50 IST 2013] INFO: Order Placed. Order id=199, SymbolID=22, Side=BUY 
+[Fri Sep 06 14:19:50 IST 2013] INFO: Expiration time in object getOrdersToBeCancelled=1378457570097 
+[Fri Sep 06 14:19:51 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:20:01 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:20:11 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:20:21 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:20:31 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:20:41 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:20:51 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:21:01 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:21:11 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:21:21 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:21:31 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:21:41 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:21:42 IST 2013] INFO: SELL. Symbol ID=71 
+[Fri Sep 06 14:21:42 IST 2013] SEVERE: java.lang.NullPointerException 
+[Fri Sep 06 14:21:45 IST 2013] INFO: SELL. Symbol ID=161 
+[Fri Sep 06 14:21:45 IST 2013] SEVERE: java.lang.NullPointerException 
+[Fri Sep 06 14:21:51 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:21:52 IST 2013] INFO: SELL. Symbol ID=151 
+[Fri Sep 06 14:21:52 IST 2013] SEVERE: java.lang.NullPointerException 
+[Fri Sep 06 14:21:59 IST 2013] INFO: SELL. Symbol ID=131 
+[Fri Sep 06 14:22:00 IST 2013] INFO: SHORT. Symbol ID=201 
+[Fri Sep 06 14:22:00 IST 2013] INFO: Expiration time in placeOrder=1378457700131 
+[Fri Sep 06 14:22:00 IST 2013] INFO: Order Placed. Entry. Symbol ID=21 
+[Fri Sep 06 14:22:00 IST 2013] INFO: Order Placed. Order id=200, SymbolID=21, Side=SHORT 
+[Fri Sep 06 14:22:00 IST 2013] INFO: Expiration time in object getOrdersToBeCancelled=1378457700140 
+[Fri Sep 06 14:22:01 IST 2013] INFO: SHORT. Symbol ID=181 
+[Fri Sep 06 14:22:01 IST 2013] INFO: Expiration time in placeOrder=1378457701202 
+[Fri Sep 06 14:22:01 IST 2013] INFO: Order Placed. Entry. Symbol ID=19 
+[Fri Sep 06 14:22:01 IST 2013] INFO: Order Placed. Order id=201, SymbolID=19, Side=SHORT 
+[Fri Sep 06 14:22:01 IST 2013] INFO: Expiration time in object getOrdersToBeCancelled=1378457701208 
+[Fri Sep 06 14:22:01 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:22:01 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:22:01 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:22:02 IST 2013] INFO: SHORT. Symbol ID=111 
+[Fri Sep 06 14:22:02 IST 2013] INFO: Expiration time in placeOrder=1378457702640 
+[Fri Sep 06 14:22:02 IST 2013] INFO: Order Placed. Entry. Symbol ID=12 
+[Fri Sep 06 14:22:02 IST 2013] INFO: Order Placed. Order id=202, SymbolID=12, Side=SHORT 
+[Fri Sep 06 14:22:02 IST 2013] INFO: Expiration time in object getOrdersToBeCancelled=1378457702647 
+[Fri Sep 06 14:22:04 IST 2013] INFO: SHORT. Symbol ID=91 
+[Fri Sep 06 14:22:04 IST 2013] INFO: Expiration time in placeOrder=1378457704370 
+[Fri Sep 06 14:22:04 IST 2013] INFO: Order Placed. Entry. Symbol ID=10 
+[Fri Sep 06 14:22:04 IST 2013] INFO: Order Placed. Order id=203, SymbolID=10, Side=SHORT 
+[Fri Sep 06 14:22:04 IST 2013] INFO: Expiration time in object getOrdersToBeCancelled=1378457704377 
+[Fri Sep 06 14:22:11 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:22:11 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:22:11 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:22:11 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:22:11 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:22:21 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:22:21 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:22:21 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:22:21 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:22:21 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:22:22 IST 2013] INFO: SHORT. Symbol ID=161 
+[Fri Sep 06 14:22:22 IST 2013] SEVERE: java.lang.NullPointerException 
+[Fri Sep 06 14:22:31 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:22:31 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:22:31 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:22:31 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:22:31 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:22:41 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:22:41 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:22:41 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:22:41 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:22:41 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:22:51 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:22:51 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:22:51 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:22:51 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:22:51 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:22:51 IST 2013] INFO: Expired Order being cancelled. OrderID=199 
+[Fri Sep 06 14:22:51 IST 2013] INFO: Order Cancelled. Order id=199 
+[Fri Sep 06 14:23:01 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:23:01 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:23:01 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:23:01 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:23:08 IST 2013] INFO: SHORT. Symbol ID=61 
+[Fri Sep 06 14:23:08 IST 2013] INFO: Expiration time in placeOrder=1378457768114 
+[Fri Sep 06 14:23:08 IST 2013] INFO: Order Placed. Entry. Symbol ID=7 
+[Fri Sep 06 14:23:08 IST 2013] INFO: Order Placed. Order id=204, SymbolID=7, Side=SHORT 
+[Fri Sep 06 14:23:08 IST 2013] INFO: Expiration time in object getOrdersToBeCancelled=1378457768121 
+[Fri Sep 06 14:23:11 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:23:11 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:23:11 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:23:11 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:23:11 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:23:16 IST 2013] INFO: In reverseLookup. Orderside=SHORT,Array Position=204 
+[Fri Sep 06 14:23:16 IST 2013] INFO: Symbol: 7, Fill Amount: 8,000,Reported by Event=24,000,Existing in Program=16,000, Side=SHORT 
+[Fri Sep 06 14:23:16 IST 2013] INFO: Reversed fill sign as sell or short. Fill=-8000 
+[Fri Sep 06 14:23:16 IST 2013] INFO: Symbol: 7, Current Position: -24,000 
+[Fri Sep 06 14:23:16 IST 2013] INFO: Check if Trailing Required. SymbolID=7, OrderSide=SHORT Position=-24,000 
+[Fri Sep 06 14:23:16 IST 2013] INFO: Order Placed. Trailing. Symbol ID=7 
+[Fri Sep 06 14:23:16 IST 2013] INFO: Order Placed. Order id=205, SymbolID=7, Side=TRAILBUY 
+[Fri Sep 06 14:23:16 IST 2013] INFO: Symbol: 7, Fill Amount: 0,Reported by Event=24,000,Existing in Program=24,000, Side=SHORT 
+[Fri Sep 06 14:23:16 IST 2013] INFO: Reversed fill sign as sell or short. Fill=0 
+[Fri Sep 06 14:23:16 IST 2013] INFO: Symbol: 7, Current Position: -24,000 
+[Fri Sep 06 14:23:20 IST 2013] INFO: SHORT. Symbol ID=131 
+[Fri Sep 06 14:23:21 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:23:21 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:23:21 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:23:21 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:23:21 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:23:31 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:23:31 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:23:31 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:23:31 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:23:31 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:23:41 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:23:41 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:23:41 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:23:41 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:23:41 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:23:45 IST 2013] INFO: COVER. Symbol ID=131 
+[Fri Sep 06 14:23:48 IST 2013] INFO: SELL. Symbol ID=191 
+[Fri Sep 06 14:23:51 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:23:51 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:23:51 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:23:51 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:23:51 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:24:01 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:24:01 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:24:01 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:24:01 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:24:01 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:24:11 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:24:11 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:24:11 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:24:11 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:24:11 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:24:21 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:24:21 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:24:21 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:24:21 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:24:21 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:24:31 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:24:31 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:24:31 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:24:31 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:24:31 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:24:34 IST 2013] INFO: SHORT. Symbol ID=51 
+[Fri Sep 06 14:24:34 IST 2013] INFO: Expiration time in placeOrder=1378457854913 
+[Fri Sep 06 14:24:34 IST 2013] INFO: Order Placed. Entry. Symbol ID=6 
+[Fri Sep 06 14:24:34 IST 2013] INFO: Order Placed. Order id=206, SymbolID=6, Side=SHORT 
+[Fri Sep 06 14:24:34 IST 2013] INFO: Expiration time in object getOrdersToBeCancelled=1378457854920 
+[Fri Sep 06 14:24:41 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:24:41 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:24:41 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:24:41 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:24:41 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:24:41 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:24:51 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:24:51 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:24:51 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:24:51 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:24:51 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:24:51 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:25:01 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:25:01 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:25:01 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:25:01 IST 2013] INFO: Expired Order being cancelled. OrderID=201 
+[Fri Sep 06 14:25:01 IST 2013] INFO: Order Cancelled. Order id=201 
+[Fri Sep 06 14:25:01 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:25:01 IST 2013] INFO: Expired Order being cancelled. OrderID=200 
+[Fri Sep 06 14:25:01 IST 2013] INFO: Order Cancelled. Order id=200 
+[Fri Sep 06 14:25:01 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:25:01 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:25:10 IST 2013] INFO: BUY.Symbol ID=131 
+[Fri Sep 06 14:25:11 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:25:11 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:25:11 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:25:11 IST 2013] INFO: Expired Order being cancelled. OrderID=203 
+[Fri Sep 06 14:25:11 IST 2013] INFO: Order Cancelled. Order id=203 
+[Fri Sep 06 14:25:11 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:25:11 IST 2013] INFO: Expired Order being cancelled. OrderID=202 
+[Fri Sep 06 14:25:11 IST 2013] INFO: Order Cancelled. Order id=202 
+[Fri Sep 06 14:25:21 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:25:21 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:25:31 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:25:31 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:25:41 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:25:41 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:25:51 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:25:51 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:26:01 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:26:01 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:26:11 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:26:11 IST 2013] INFO: Expired Order being cancelled. OrderID=204 
+[Fri Sep 06 14:26:11 IST 2013] INFO: Order Cancelled. Order id=204 
+[Fri Sep 06 14:26:11 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:26:21 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:26:31 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:26:41 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:26:51 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:26:57 IST 2013] INFO: In reverseLookup. Orderside=SHORT,Array Position=206 
+[Fri Sep 06 14:26:57 IST 2013] INFO: Symbol: 6, Fill Amount: 2,000,Reported by Event=6,000,Existing in Program=4,000, Side=SHORT 
+[Fri Sep 06 14:26:57 IST 2013] INFO: Reversed fill sign as sell or short. Fill=-2000 
+[Fri Sep 06 14:26:57 IST 2013] INFO: Symbol: 6, Current Position: -6,000 
+[Fri Sep 06 14:26:57 IST 2013] INFO: Check if Trailing Required. SymbolID=6, OrderSide=SHORT Position=-6,000 
+[Fri Sep 06 14:26:57 IST 2013] INFO: Order Placed. Trailing. Symbol ID=6 
+[Fri Sep 06 14:26:57 IST 2013] INFO: Order Placed. Order id=207, SymbolID=6, Side=TRAILBUY 
+[Fri Sep 06 14:26:57 IST 2013] INFO: Symbol: 6, Fill Amount: 0,Reported by Event=6,000,Existing in Program=6,000, Side=SHORT 
+[Fri Sep 06 14:26:57 IST 2013] INFO: Reversed fill sign as sell or short. Fill=0 
+[Fri Sep 06 14:26:57 IST 2013] INFO: Symbol: 6, Current Position: -6,000 
+[Fri Sep 06 14:27:01 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:27:11 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:27:21 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:27:31 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:27:41 IST 2013] INFO: Expiration Time:{},System Time:{1} 
+[Fri Sep 06 14:27:41 IST 2013] INFO: Expired Order being cancelled. OrderID=206 
+[Fri Sep 06 14:27:41 IST 2013] INFO: Order Cancelled. Order id=206 

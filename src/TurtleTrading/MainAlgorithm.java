@@ -14,6 +14,7 @@ import java.util.Iterator;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JFrame;
 import org.apache.commons.math3.stat.descriptive.*;
 import org.apache.commons.math3.stat.regression.*;
 import javax.swing.JOptionPane; 
@@ -99,22 +100,7 @@ public class MainAlgorithm extends Algorithm implements OneMinBarsListner, Trade
         //new Thread(new RealTimeBars(),"RealTime").start();
         new RealTimeBars();
         
-        
-        
-        //end attempt
-        
-        //Request RealTime Bars, in a new thread
-        
-  //      tempC = Parameters.connection.get(0);
-  //      for (SymbolBean s : Parameters.symbol) {
-  //          if (s.getBars()) {
-  //              
-  //              System.out.println("Requesting RealTime Bars. Thread going to sleep: "+Thread.currentThread().getName());
-  //              tempC.getWrapper().getRealTimeBars(s);
-  //              Thread.sleep(11000);
-  //          }
-  //      }
-        
+      
         //BoilerPlate Ends
 
         //Initialize algo variables
@@ -154,7 +140,7 @@ public class MainAlgorithm extends Algorithm implements OneMinBarsListner, Trade
       LOGGER.log(Level.INFO,",Symbol"+","+"BarNo"+","+"HighestHigh"+","+"LowestLow"+","+"LastPrice"+","+"Volume"+","+"CumulativeVol"+","+"VolumeSlope"+","+"MinSlopeReqd"+","+"MA"+","+"LongVolume"+","+"ShortVolume"+","+"DateTime"+","+
               "ruleHighestHigh"+","+"ruleCumVolumeLong"+","+"ruleSlopeLong"+","+"ruleVolumeLong"+","+"ruleLowestLow"+","+
               "ruleCumVolumeShort"+","+"ruleSlopeShort"+","+"ruleVolumeShort" );
-
+      createAndShowGUI();
         
     }
     /*
@@ -263,7 +249,8 @@ public class MainAlgorithm extends Algorithm implements OneMinBarsListner, Trade
                 }
                 VolumeMA.set(id, stats.getMean());
             }
-            System.out.println();
+            //System.out.println();
+            /*
             System.out.println(event.ohlc().getOpenTime().toString() + "," + event.ohlc().getOpen()
                     + ":" + event.ohlc().getHigh()
                     + ":" + event.ohlc().getLow()
@@ -274,8 +261,9 @@ public class MainAlgorithm extends Algorithm implements OneMinBarsListner, Trade
                     + " , CumVolume: " + cumVolume.get(id).get(cumVolume.get(id).size() - 1)
                     + " , Slope: " + slope.get(id)
                     + ", Bar: " + event.barNumber());
+            */
         } catch (Exception e) {
-            LOGGER.log(Level.INFO, "{0} Symbol: {1}", new Object[]{e.getMessage(), event.getSymbol().getSymbol()});
+            LOGGER.log(Level.SEVERE, "{0} Symbol: {1}", new Object[]{e.toString(), event.getSymbol().getSymbol()});
         }
     }
 
@@ -283,10 +271,10 @@ public class MainAlgorithm extends Algorithm implements OneMinBarsListner, Trade
     public synchronized  void tradeReceived(TradeEvent event) {
         //Algo signals generated here based o trade event.
         //System.out.println("TradeReceived. Thread: "+Thread.currentThread().getName());
-       
-               int id = event.getSymbolID();
+       try{
+               int id = event.getSymbolID(); //here symbolID is with zero base.
         //System.out.print(":"+Parameters.symbol.get(id).getLastPrice());
-        System.out.println("Thread Name:"+Thread.currentThread().getName());
+        //System.out.println("Thread Name:"+Thread.currentThread().getName());
         //LOGGER.log(Level.INFO,"Symbol"+","+"BarNo"+","+"HighestHigh"+","+"LowestLow"+","+"LastPrice"+","+"Volume"+","+"CumulativeVol"+","+"VolumeSlope"+","+"MinSlopeReqd"+","+"MA"+","+"LongVolume"+","+"ShortVolume" );
         //Write to Log
 
@@ -299,7 +287,7 @@ public class MainAlgorithm extends Algorithm implements OneMinBarsListner, Trade
         boolean ruleVolumeLong=Volume.get(id) > VolumeMA.get(id);
         boolean ruleVolumeShort=Volume.get(id) > 2 * VolumeMA.get(id);
         
-        LOGGER.log(Level.INFO,","+ "{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20}",new Object[]{
+        LOGGER.log(Level.FINEST,","+ "{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20}",new Object[]{
             Parameters.symbol.get(id).getSymbol()
             ,String.valueOf(cumVolume.get(id).size())
             ,highestHigh.get(id).toString()
@@ -328,20 +316,21 @@ public class MainAlgorithm extends Algorithm implements OneMinBarsListner, Trade
             if (ruleHighestHigh && ruleCumVolumeLong && ruleSlopeLong && ruleVolumeLong) {
         //if(true && notionalPosition.get(id) == 0 ){ 
         //Buy Condition
-                LOGGER.log(Level.INFO,"BUY");
+                LOGGER.log(Level.INFO,"BUY.Symbol ID={0}",new Object[]{id+1});
                 notionalPosition.set(id, 1L);
                 _fireOrderEvent(Parameters.symbol.get(id), OrderSide.BUY, Parameters.symbol.get(id).getMinsize(), highestHigh.get(id), 0);
                 //testing line remove 
         //    _fireOrderEvent(Parameters.symbol.get(id), OrderSide.BUY, Parameters.symbol.get(id).getMinsize(), Parameters.symbol.get(id).getLastPrice(), 0);
             } else if (ruleLowestLow && ruleCumVolumeShort && ruleSlopeShort && ruleVolumeShort) {
                 //Sell condition
-                LOGGER.log(Level.INFO,"SELL");
+                LOGGER.log(Level.INFO,"SHORT. Symbol ID={0}",new Object[]{id+1});
                 notionalPosition.set(id, -1L);
                 _fireOrderEvent(Parameters.symbol.get(id), OrderSide.SHORT,Parameters.symbol.get(id).getMinsize(), lowestLow.get(id), 0);
             }
         }
         else  if (notionalPosition.get(id) == -1){
             if(ruleHighestHigh||System.currentTimeMillis()>endDate.getTime()){
+                LOGGER.log(Level.INFO,"COVER. Symbol ID={0}", new Object[]{id+1});
                 notionalPosition.set(id, 0L);
                 _fireOrderEvent(Parameters.symbol.get(id), OrderSide.COVER,Parameters.symbol.get(id).getMinsize(), highestHigh.get(id), highestHigh.get(id));
             }
@@ -349,6 +338,7 @@ public class MainAlgorithm extends Algorithm implements OneMinBarsListner, Trade
         } 
         else if (notionalPosition.get(id) == 1){
             if(ruleLowestLow||System.currentTimeMillis()>endDate.getTime()){
+                LOGGER.log(Level.INFO,"SELL. Symbol ID={0}",new Object[]{id+1});
                 notionalPosition.set(id, 0L);
                 _fireOrderEvent(Parameters.symbol.get(id), OrderSide.SELL,Parameters.symbol.get(id).getMinsize(), lowestLow.get(id), lowestLow.get(id));
             }
@@ -356,6 +346,10 @@ public class MainAlgorithm extends Algorithm implements OneMinBarsListner, Trade
 
         
  
+    }
+       catch (Exception e){
+           LOGGER.log(Level.SEVERE,e.toString());
+       }
     }
 
     private void _fireOrderEvent(SymbolBean s, OrderSide side, int size, double lmtprice, double triggerprice) {
@@ -366,6 +360,21 @@ public class MainAlgorithm extends Algorithm implements OneMinBarsListner, Trade
         }
     }
 
+    
+        private static void createAndShowGUI() {
+        //Create and set up the window.
+        JFrame frame = new JFrame("Positions");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+ 
+        //Create and set up the content pane.
+        GUITable newContentPane = new GUITable();
+        newContentPane.setOpaque(true); //content panes must be opaque
+        frame.setContentPane(newContentPane);
+ 
+        //Display the window.
+        frame.pack();
+        frame.setVisible(true);
+    }
     /**
      * @return the notionalPosition
      */

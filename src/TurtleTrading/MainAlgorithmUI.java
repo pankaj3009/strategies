@@ -139,7 +139,7 @@ private void StartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:e
         java.awt.EventQueue.invokeLater(new Runnable() {
            
             public void run() {
-                new MainAlgorithmUI().setVisible(true);
+                //new MainAlgorithmUI().setVisible(true);
             }
         });
     }
