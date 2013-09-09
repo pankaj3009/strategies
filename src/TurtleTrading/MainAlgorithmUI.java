@@ -10,12 +10,20 @@
  */
 package TurtleTrading;
 
+import incurrframework.Parameters;
+import incurrframework.BeanSymbol;
+import java.beans.XMLEncoder;
+import java.io.BufferedOutputStream;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.logging.Level;
 import java.util.logging.LogManager;
+import java.util.logging.Logger;
 import javax.swing.*;
 
 /**
@@ -94,8 +102,22 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
 private void StartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_StartActionPerformed
-        algo.run();
-        DataTable.setModel(MainAlgorithm.model1);
+        //algo.run();
+        //DataTable.setModel(MainAlgorithm.model1);
+    XMLEncoder encoder1;
+    XMLEncoder encoder2;
+       try {
+           encoder1 = new XMLEncoder(new BufferedOutputStream(new FileOutputStream("Beanarchive.xml")));
+       encoder1.writeObject(Parameters.symbol);
+       encoder1.close();
+           encoder2 = new XMLEncoder(new BufferedOutputStream(new FileOutputStream("Connectionarchive.xml")));
+       encoder2.writeObject(Parameters.connection);
+       encoder2.close();
+       } catch (FileNotFoundException ex) {
+           Logger.getLogger(MainAlgorithmUI.class.getName()).log(Level.SEVERE, null, ex);
+       }
+
+ 
         
 }//GEN-LAST:event_StartActionPerformed
 
@@ -139,7 +161,7 @@ private void StartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:e
         java.awt.EventQueue.invokeLater(new Runnable() {
            
             public void run() {
-                //new MainAlgorithmUI().setVisible(true);
+                new MainAlgorithmUI().setVisible(true);
             }
         });
     }
