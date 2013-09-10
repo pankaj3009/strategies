@@ -58,11 +58,11 @@ public class OrderPlacement implements OrderListener, OrderStatusListener {
                         if (zilchOpenOrders(c, id)) {
                             Order ord = c.getWrapper().createOrder(event.getOrderSize(), event.getSide(), event.getLimitPrice(), event.getTriggerPrice(), "DAY", 3, false);
                             Contract con = c.getWrapper().createContract(id);
-                            logger.log(Level.INFO,"Order Placed. Entry. Symbol ID={0}",new Object[]{id+1});
+                            logger.log(Level.INFO,"Order Placed. Entry. Symbol ID={0}",new Object[]{Parameters.symbol.get(id+1).getSymbol()});
                             int orderid = c.getWrapper().placeOrder(c, id+1, event.getSide(), ord, con);
                             long tempexpire=System.currentTimeMillis()+3*60*1000;
                             c.getOrdersToBeCancelled().put(orderid, tempexpire);
-                            logger.log(Level.INFO,"Expiration time in object getOrdersToBeCancelled="+tempexpire);
+                            logger.log(Level.INFO,"Expiration time in object getOrdersToBeCancelled="+DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss",tempexpire));
                             
                         } //else cancel open orders
                         else {
@@ -88,7 +88,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener {
                         if ((event.getSide() == OrderSide.SELL && c.getPositions().get(id) > 0) || (event.getSide() == OrderSide.COVER && c.getPositions().get(id) < 0)) {
                             Order ord = c.getWrapper().createOrder(c.getPositions().get(id), event.getSide(), event.getLimitPrice(), event.getTriggerPrice(), "DAY", 3, false);
                             Contract con = c.getWrapper().createContract(id);
-                            logger.log(Level.INFO,"Order Placed. Exit. Symbol ID={0}",new Object[]{id+1});
+                            logger.log(Level.INFO,"Order Placed. Exit. Symbol ID={0}",new Object[]{Parameters.symbol.get(id+1).getSymbol()});
                             int orderid=c.getWrapper().placeOrder(c, id+1, event.getSide(), ord, con);
                             c.getOrdersToBeFastTracked().put(orderid, System.currentTimeMillis()+3*60*1000);
                         } else {
@@ -170,7 +170,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener {
                 if (c.getOrdersToBeCancelled().size() > 0) {
                     ArrayList<Integer> temp = new ArrayList();
                     for (Integer key : c.getOrdersToBeCancelled().keySet()) {
-                        logger.log(Level.INFO,"Expiration Time:{0},System Time:{1}",new Object[]{c.getOrdersToBeCancelled().get(key),System.currentTimeMillis()});
+                        logger.log(Level.INFO,"Expiration Time:{0},System Time:{1}",new Object[]{DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss",c.getOrdersToBeCancelled().get(key)),DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss",System.currentTimeMillis())});
                         if (c.getOrdersToBeCancelled().get(key) < System.currentTimeMillis()
                                 && ((c.getOrders().get(key).getStatus() != EnumOrderStatus.Acknowledged) || c.getOrders().get(key).getStatus() == EnumOrderStatus.Submitted || c.getOrders().get(key).getStatus() == EnumOrderStatus.PartialFilled)) {
                             logger.log(Level.INFO,"Expired Order being cancelled. OrderID="+key);
@@ -225,7 +225,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener {
                             //place orders
                             Order ord = c.getWrapper().createOrder(ordb.getOrderSize(), ordb.getOrderSide(), ordb.getLimitPrice(), ordb.getTriggerPrice(), "DAY", 3, false);
                             Contract con = c.getWrapper().createContract(tempID);
-                            logger.log(Level.INFO,"Order Placed. Delayed. Symbol ID={0}",new Object[]{ordb.getSymbolID()});
+                            logger.log(Level.INFO,"Order Placed. Delayed. Symbol: {0}",new Object[]{Parameters.symbol.get(ordb.getSymbolID())});
                             c.getWrapper().placeOrder(c, tempID + 1, ordb.getOrderSide(), ord, con);
                            }
                     }
@@ -240,7 +240,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener {
     
      private synchronized void manageTrailingOrders(BeanConnection c, int orderID, int id, int size, OrderSide underlyingSide,double fillprice){
                     if(orderID>0){
-                        logger.log(Level.INFO,"Order Updated. Trailing. Symbol ID={0}",new Object[]{c.getOrders().get(orderID).getSymbolID()});
+                        logger.log(Level.INFO,"Order Updated. Trailing. Symbol ID={0}",new Object[]{Parameters.symbol.get(c.getOrders().get(orderID).getSymbolID())});
                         updateOrderAmount(c,orderID,size);
                     }
                     else {
@@ -249,7 +249,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener {
                     double tmpTrailStop = ((int) (Parameters.symbol.get(id).getTrailstop() *fillprice  / 0.05)) * 0.05;
                     Order ord =c.getWrapper().createOrder(size, tmpOrderSide, 0, tmpTrailStop, "DAY", 0, true);
                     Contract con = c.getWrapper().createContract(id);
-                    logger.log(Level.INFO,"Order Placed. Trailing. Symbol ID={0}",new Object[]{id+1});
+                    logger.log(Level.INFO,"Order Placed. Trailing. Symbol ID={0}",new Object[]{Parameters.symbol.get(id+1).getSymbol()});
                     c.getWrapper().placeOrder(c, id+1, tmpOrderSide, ord, con);
                     }
      }
@@ -271,11 +271,11 @@ public class OrderPlacement implements OrderListener, OrderStatusListener {
         Contract con = c.getWrapper().createContract(id);
         if (position > 0) {
             Order ord = c.getWrapper().createOrder(position, OrderSide.SELL, 0, 0, "DAY", 0, false);
-            logger.log(Level.INFO,"Order Placed. Square on Error. Symbol ID={0}",new Object[]{id+1});
+            logger.log(Level.INFO,"Order Placed. Square on Error. Symbol ID={0}",new Object[]{Parameters.symbol.get(id+1).getSymbol()});
             c.getWrapper().placeOrder(c, id+1, OrderSide.SELL, ord, con);
             } else if (position < 0) {
             Order ord = c.getWrapper().createOrder(-position, OrderSide.COVER, 0, 0, "DAY", 0, false);
-            logger.log(Level.INFO,"Order Placed. Square on Error. Symbol ID={0}",new Object[]{id+1});
+            logger.log(Level.INFO,"Order Placed. Square on Error. Symbol ID={0}",new Object[]{Parameters.symbol.get(id+1).getSymbol()});
             c.getWrapper().placeOrder(c, id+1, OrderSide.COVER, ord, con);
             }
     }
@@ -335,7 +335,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener {
     private synchronized boolean updateFilledOrders(BeanConnection c, int id, int orderID, int filled, double avgFillPrice) {
         OrderBean ord = c.getOrders().get(orderID);
         int fill=filled-ord.getFillSize();
-        logger.log(Level.INFO, "Symbol: {0}, Fill Amount: {1},Reported by Event={2},Existing in Program={3}, Side={4}",new Object[]{ord.getSymbolID(),fill,filled,ord.getFillSize(),ord.getOrderSide()});
+        logger.log(Level.INFO, "Symbol: {0}, Fill Amount: {1},Reported by Event={2},Existing in Program={3}, Side={4}",new Object[]{Parameters.symbol.get(ord.getSymbolID()),fill,filled,ord.getFillSize(),ord.getOrderSide()});
         ord.setFillSize(filled);
         ord.setFillPrice(avgFillPrice);
         ord.setStatus(EnumOrderStatus.CompleteFilled);
@@ -347,7 +347,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener {
             logger.log(Level.INFO,"Reversed fill sign as sell or short. Fill="+fill);
         }
         c.getPositions().put(id, origposition + fill);
-        logger.log(Level.INFO, "Symbol: {0}, Current Position: {1}",new Object[]{id+1,origposition + fill});
+        logger.log(Level.INFO, "Symbol: {0}, Current Position: {1}",new Object[]{Parameters.symbol.get(id+1).getSymbol(),origposition + fill});
         //update orderid=0 from Symbols HashMap
         ArrayList<Integer> orders = c.getOrdersSymbols().get(id);
         if (orders.size() > 0) {

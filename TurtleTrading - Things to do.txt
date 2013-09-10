@@ -1,4 +1,2 @@
-1. Place trail limit order on partial fills. Update size as fill progresses.
-2. Display shows zero fill price when trail order is active. Correct this.
-3. Get EOD volume for futures
-4. Split historical and real time bars amongst multiple connections
+1. Stop placing orders after a given time. Introduce parameter.
+2. Ensure orders placed on market close are executed before market closes.

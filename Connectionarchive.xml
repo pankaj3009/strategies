@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<java version="1.7.0_25" class="java.beans.XMLDecoder">
+ <object class="java.util.ArrayList">
+  <void method="add">
+   <object class="incurrframework.ConnectionBean">
+    <void property="clientID">
+     <int>9</int>
+    </void>
+    <void property="connectionTime">
+     <long>1378631746000</long>
+    </void>
+    <void property="mRealTimeBarsReqID">
+     <void method="put">
+      <int>24</int>
+      <int>1</int>
+     </void>
+    </void>
+    <void property="purpose">
+     <string>Trading</string>
+    </void>
+    <void id="ReqHandle0" property="reqHandle">
+     <void class="incurrframework.ReqHandle" method="getField">
+      <string>reqCounter</string>
+      <void method="set">
+       <object idref="ReqHandle0"/>
+       <int>46</int>
+      </void>
+     </void>
+     <void class="incurrframework.ReqHandle" method="getField">
+      <string>maxreqpersec</string>
+      <void method="set">
+       <object idref="ReqHandle0"/>
+       <int>48</int>
+      </void>
+     </void>
+    </void>
+    <void property="timeDiff">
+     <long>-4697</long>
+    </void>
+   </object>
+  </void>
+ </object>
+</java>

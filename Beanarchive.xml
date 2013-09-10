@@ -1,0 +1,1473 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<java version="1.7.0_25" class="java.beans.XMLDecoder">
+ <object class="java.util.ArrayList">
+  <void method="add">
+   <object class="incurrframework.SymbolBean">
+    <void property="additionalInput">
+     <string>2000</string>
+    </void>
+    <void property="askPrice">
+     <double>13.16</double>
+    </void>
+    <void property="askSize">
+     <double>300.0</double>
+    </void>
+    <void property="bars">
+     <boolean>true</boolean>
+    </void>
+    <void property="bidPrice">
+     <double>13.14</double>
+    </void>
+    <void property="bidSize">
+     <double>384.0</double>
+    </void>
+    <void property="contractID">
+     <int>10098</int>
+    </void>
+    <void property="currency">
+     <string>USD</string>
+    </void>
+    <void property="exchange">
+     <string>SMART</string>
+    </void>
+    <void property="lastPrice">
+     <double>13.15</double>
+    </void>
+    <void property="lastPriceTime">
+     <long>1378631743822</long>
+    </void>
+    <void property="lastSize">
+     <double>4.0</double>
+    </void>
+    <void property="longvolume">
+     <long>0</long>
+    </void>
+    <void property="minsize">
+     <int>100</int>
+    </void>
+    <void property="reqID">
+     <int>22</int>
+    </void>
+    <void property="serialno">
+     <int>1</int>
+    </void>
+    <void property="shortvolume">
+     <long>-5000000</long>
+    </void>
+    <void property="symbol">
+     <string>BAC</string>
+    </void>
+    <void property="tradedVolume">
+     <int>25829</int>
+    </void>
+    <void property="trailstop">
+     <double>0.05</double>
+    </void>
+    <void property="type">
+     <string>STK</string>
+    </void>
+   </object>
+  </void>
+  <void method="add">
+   <object class="incurrframework.SymbolBean">
+    <void property="additionalInput">
+     <string>2000</string>
+    </void>
+    <void property="askPrice">
+     <double>49.46</double>
+    </void>
+    <void property="askSize">
+     <double>8.0</double>
+    </void>
+    <void property="bars">
+     <boolean>true</boolean>
+    </void>
+    <void property="bidPrice">
+     <double>49.45</double>
+    </void>
+    <void property="bidSize">
+     <double>10.0</double>
+    </void>
+    <void property="contractID">
+     <int>87335484</int>
+    </void>
+    <void property="currency">
+     <string>USD</string>
+    </void>
+    <void property="exchange">
+     <string>SMART</string>
+    </void>
+    <void property="lastPrice">
+     <double>49.45</double>
+    </void>
+    <void property="lastPriceTime">
+     <long>1378631743139</long>
+    </void>
+    <void property="lastSize">
+     <double>2.0</double>
+    </void>
+    <void property="longvolume">
+     <long>0</long>
+    </void>
+    <void property="minsize">
+     <int>100</int>
+    </void>
+    <void property="reqID">
+     <int>23</int>
+    </void>
+    <void property="serialno">
+     <int>2</int>
+    </void>
+    <void property="shortvolume">
+     <long>-5000000</long>
+    </void>
+    <void property="symbol">
+     <string>C</string>
+    </void>
+    <void property="tradedVolume">
+     <int>16353</int>
+    </void>
+    <void property="trailstop">
+     <double>0.05</double>
+    </void>
+    <void property="type">
+     <string>STK</string>
+    </void>
+   </object>
+  </void>
+  <void method="add">
+   <object class="incurrframework.SymbolBean">
+    <void property="additionalInput">
+     <string>2000</string>
+    </void>
+    <void property="askPrice">
+     <double>30.29</double>
+    </void>
+    <void property="askSize">
+     <double>60.0</double>
+    </void>
+    <void property="bars">
+     <boolean>true</boolean>
+    </void>
+    <void property="bidPrice">
+     <double>30.27</double>
+    </void>
+    <void property="bidSize">
+     <double>60.0</double>
+    </void>
+    <void property="contractID">
+     <int>272093</int>
+    </void>
+    <void property="currency">
+     <string>USD</string>
+    </void>
+    <void property="exchange">
+     <string>SMART</string>
+    </void>
+    <void property="lastPrice">
+     <double>30.28</double>
+    </void>
+    <void property="lastPriceTime">
+     <long>1378631744823</long>
+    </void>
+    <void property="lastSize">
+     <double>12.0</double>
+    </void>
+    <void property="longvolume">
+     <long>0</long>
+    </void>
+    <void property="minsize">
+     <int>100</int>
+    </void>
+    <void property="reqID">
+     <int>25</int>
+    </void>
+    <void property="serialno">
+     <int>3</int>
+    </void>
+    <void property="shortvolume">
+     <long>-5000000</long>
+    </void>
+    <void property="symbol">
+     <string>MSFT</string>
+    </void>
+    <void property="tradedVolume">
+     <int>71771</int>
+    </void>
+    <void property="trailstop">
+     <double>0.05</double>
+    </void>
+    <void property="type">
+     <string>STK</string>
+    </void>
+   </object>
+  </void>
+  <void method="add">
+   <object class="incurrframework.SymbolBean">
+    <void property="additionalInput">
+     <string>2000</string>
+    </void>
+    <void property="askPrice">
+     <double>44.49</double>
+    </void>
+    <void property="askSize">
+     <double>14.0</double>
+    </void>
+    <void property="bars">
+     <boolean>true</boolean>
+    </void>
+    <void property="bidPrice">
+     <double>44.47</double>
+    </void>
+    <void property="bidSize">
+     <double>12.0</double>
+    </void>
+    <void property="contractID">
+     <int>107113386</int>
+    </void>
+    <void property="currency">
+     <string>USD</string>
+    </void>
+    <void property="exchange">
+     <string>SMART</string>
+    </void>
+    <void property="lastPrice">
+     <double>44.48</double>
+    </void>
+    <void property="lastPriceTime">
+     <long>1378631743823</long>
+    </void>
+    <void property="lastSize">
+     <double>1.0</double>
+    </void>
+    <void property="longvolume">
+     <long>0</long>
+    </void>
+    <void property="minsize">
+     <int>100</int>
+    </void>
+    <void property="reqID">
+     <int>26</int>
+    </void>
+    <void property="serialno">
+     <int>4</int>
+    </void>
+    <void property="shortvolume">
+     <long>-5000000</long>
+    </void>
+    <void property="symbol">
+     <string>FB</string>
+    </void>
+    <void property="tradedVolume">
+     <int>69631</int>
+    </void>
+    <void property="trailstop">
+     <double>0.05</double>
+    </void>
+    <void property="type">
+     <string>STK</string>
+    </void>
+   </object>
+  </void>
+  <void method="add">
+   <object class="incurrframework.SymbolBean">
+    <void property="additionalInput">
+     <string>2000</string>
+    </void>
+    <void property="askPrice">
+     <double>880.37</double>
+    </void>
+    <void property="askSize">
+     <double>1.0</double>
+    </void>
+    <void property="bars">
+     <boolean>true</boolean>
+    </void>
+    <void property="bidPrice">
+     <double>880.09</double>
+    </void>
+    <void property="bidSize">
+     <double>1.0</double>
+    </void>
+    <void property="contractID">
+     <int>30351181</int>
+    </void>
+    <void property="currency">
+     <string>USD</string>
+    </void>
+    <void property="exchange">
+     <string>SMART</string>
+    </void>
+    <void property="lastPrice">
+     <double>880.46</double>
+    </void>
+    <void property="lastPriceTime">
+     <long>1378631743141</long>
+    </void>
+    <void property="lastSize">
+     <double>6.0</double>
+    </void>
+    <void property="longvolume">
+     <long>0</long>
+    </void>
+    <void property="minsize">
+     <int>100</int>
+    </void>
+    <void property="reqID">
+     <int>27</int>
+    </void>
+    <void property="serialno">
+     <int>5</int>
+    </void>
+    <void property="shortvolume">
+     <long>-5000000</long>
+    </void>
+    <void property="symbol">
+     <string>GOOG</string>
+    </void>
+    <void property="tradedVolume">
+     <int>2</int>
+    </void>
+    <void property="trailstop">
+     <double>0.05</double>
+    </void>
+    <void property="type">
+     <string>STK</string>
+    </void>
+   </object>
+  </void>
+  <void method="add">
+   <object class="incurrframework.SymbolBean">
+    <void property="additionalInput">
+     <string>2000</string>
+    </void>
+    <void property="askPrice">
+     <double>496.53</double>
+    </void>
+    <void property="askSize">
+     <double>1.0</double>
+    </void>
+    <void property="bars">
+     <boolean>true</boolean>
+    </void>
+    <void property="bidPrice">
+     <double>496.41</double>
+    </void>
+    <void property="bidSize">
+     <double>1.0</double>
+    </void>
+    <void property="contractID">
+     <int>265598</int>
+    </void>
+    <void property="currency">
+     <string>USD</string>
+    </void>
+    <void property="exchange">
+     <string>SMART</string>
+    </void>
+    <void property="lastPrice">
+     <double>496.5</double>
+    </void>
+    <void property="lastPriceTime">
+     <long>1378631744150</long>
+    </void>
+    <void property="lastSize">
+     <double>1.0</double>
+    </void>
+    <void property="longvolume">
+     <long>0</long>
+    </void>
+    <void property="minsize">
+     <int>100</int>
+    </void>
+    <void property="reqID">
+     <int>28</int>
+    </void>
+    <void property="serialno">
+     <int>6</int>
+    </void>
+    <void property="shortvolume">
+     <long>-5000000</long>
+    </void>
+    <void property="symbol">
+     <string>AAPL</string>
+    </void>
+    <void property="tradedVolume">
+     <int>3986</int>
+    </void>
+    <void property="trailstop">
+     <double>0.05</double>
+    </void>
+    <void property="type">
+     <string>STK</string>
+    </void>
+   </object>
+  </void>
+  <void method="add">
+   <object class="incurrframework.SymbolBean">
+    <void property="additionalInput">
+     <string>2000</string>
+    </void>
+    <void property="askPrice">
+     <double>23.93</double>
+    </void>
+    <void property="askSize">
+     <double>50.0</double>
+    </void>
+    <void property="bars">
+     <boolean>true</boolean>
+    </void>
+    <void property="bidPrice">
+     <double>23.9</double>
+    </void>
+    <void property="bidSize">
+     <double>30.0</double>
+    </void>
+    <void property="contractID">
+     <int>268084</int>
+    </void>
+    <void property="currency">
+     <string>USD</string>
+    </void>
+    <void property="exchange">
+     <string>SMART</string>
+    </void>
+    <void property="lastPrice">
+     <double>23.9</double>
+    </void>
+    <void property="lastPriceTime">
+     <long>1378631744820</long>
+    </void>
+    <void property="lastSize">
+     <double>24.0</double>
+    </void>
+    <void property="longvolume">
+     <long>0</long>
+    </void>
+    <void property="minsize">
+     <int>100</int>
+    </void>
+    <void property="reqID">
+     <int>29</int>
+    </void>
+    <void property="serialno">
+     <int>7</int>
+    </void>
+    <void property="shortvolume">
+     <long>-5000000</long>
+    </void>
+    <void property="symbol">
+     <string>CSCO</string>
+    </void>
+    <void property="tradedVolume">
+     <int>149973</int>
+    </void>
+    <void property="trailstop">
+     <double>0.05</double>
+    </void>
+    <void property="type">
+     <string>STK</string>
+    </void>
+   </object>
+  </void>
+  <void method="add">
+   <object class="incurrframework.SymbolBean">
+    <void property="additionalInput">
+     <string>2000</string>
+    </void>
+    <void property="askPrice">
+     <double>16.96</double>
+    </void>
+    <void property="askSize">
+     <double>138.0</double>
+    </void>
+    <void property="bars">
+     <boolean>true</boolean>
+    </void>
+    <void property="bidPrice">
+     <double>16.94</double>
+    </void>
+    <void property="bidSize">
+     <double>398.0</double>
+    </void>
+    <void property="contractID">
+     <int>9599491</int>
+    </void>
+    <void property="currency">
+     <string>USD</string>
+    </void>
+    <void property="exchange">
+     <string>SMART</string>
+    </void>
+    <void property="lastPrice">
+     <double>16.95</double>
+    </void>
+    <void property="lastPriceTime">
+     <long>1378631743823</long>
+    </void>
+    <void property="lastSize">
+     <double>1.0</double>
+    </void>
+    <void property="longvolume">
+     <long>0</long>
+    </void>
+    <void property="minsize">
+     <int>100</int>
+    </void>
+    <void property="reqID">
+     <int>30</int>
+    </void>
+    <void property="serialno">
+     <int>8</int>
+    </void>
+    <void property="shortvolume">
+     <long>-5000000</long>
+    </void>
+    <void property="symbol">
+     <string>F</string>
+    </void>
+    <void property="tradedVolume">
+     <int>127928</int>
+    </void>
+    <void property="trailstop">
+     <double>0.05</double>
+    </void>
+    <void property="type">
+     <string>STK</string>
+    </void>
+   </object>
+  </void>
+  <void method="add">
+   <object class="incurrframework.SymbolBean">
+    <void property="additionalInput">
+     <string>2000</string>
+    </void>
+    <void property="askPrice">
+     <double>14.62</double>
+    </void>
+    <void property="askSize">
+     <double>6.0</double>
+    </void>
+    <void property="bars">
+     <boolean>true</boolean>
+    </void>
+    <void property="bidPrice">
+     <double>14.59</double>
+    </void>
+    <void property="bidSize">
+     <double>24.0</double>
+    </void>
+    <void property="contractID">
+     <int>8655</int>
+    </void>
+    <void property="currency">
+     <string>USD</string>
+    </void>
+    <void property="exchange">
+     <string>SMART</string>
+    </void>
+    <void property="lastPrice">
+     <double>14.6</double>
+    </void>
+    <void property="lastPriceTime">
+     <long>1378631743138</long>
+    </void>
+    <void property="lastSize">
+     <double>1.0</double>
+    </void>
+    <void property="longvolume">
+     <long>0</long>
+    </void>
+    <void property="minsize">
+     <int>100</int>
+    </void>
+    <void property="reqID">
+     <int>31</int>
+    </void>
+    <void property="serialno">
+     <int>9</int>
+    </void>
+    <void property="shortvolume">
+     <long>-5000000</long>
+    </void>
+    <void property="symbol">
+     <string>JCP</string>
+    </void>
+    <void property="tradedVolume">
+     <int>30</int>
+    </void>
+    <void property="trailstop">
+     <double>0.05</double>
+    </void>
+    <void property="type">
+     <string>STK</string>
+    </void>
+   </object>
+  </void>
+  <void method="add">
+   <object class="incurrframework.SymbolBean">
+    <void property="additionalInput">
+     <string>2000</string>
+    </void>
+    <void property="askPrice">
+     <double>11.03</double>
+    </void>
+    <void property="askSize">
+     <double>20.0</double>
+    </void>
+    <void property="bars">
+     <boolean>true</boolean>
+    </void>
+    <void property="bidPrice">
+     <double>11.01</double>
+    </void>
+    <void property="bidSize">
+     <double>26.0</double>
+    </void>
+    <void property="contractID">
+     <int>131217639</int>
+    </void>
+    <void property="currency">
+     <string>USD</string>
+    </void>
+    <void property="exchange">
+     <string>SMART</string>
+    </void>
+    <void property="lastPrice">
+     <double>11.01</double>
+    </void>
+    <void property="lastPriceTime">
+     <long>1378631743147</long>
+    </void>
+    <void property="lastSize">
+     <double>2.0</double>
+    </void>
+    <void property="longvolume">
+     <long>0</long>
+    </void>
+    <void property="minsize">
+     <int>100</int>
+    </void>
+    <void property="reqID">
+     <int>32</int>
+    </void>
+    <void property="serialno">
+     <int>10</int>
+    </void>
+    <void property="shortvolume">
+     <long>-5000000</long>
+    </void>
+    <void property="symbol">
+     <string>BBRY</string>
+    </void>
+    <void property="tradedVolume">
+     <int>13170</int>
+    </void>
+    <void property="trailstop">
+     <double>0.05</double>
+    </void>
+    <void property="type">
+     <string>STK</string>
+    </void>
+   </object>
+  </void>
+  <void method="add">
+   <object class="incurrframework.SymbolBean">
+    <void property="additionalInput">
+     <string>2000</string>
+    </void>
+    <void property="askPrice">
+     <double>16.98</double>
+    </void>
+    <void property="askSize">
+     <double>90.0</double>
+    </void>
+    <void property="bars">
+     <boolean>true</boolean>
+    </void>
+    <void property="bidPrice">
+     <double>16.96</double>
+    </void>
+    <void property="bidSize">
+     <double>240.0</double>
+    </void>
+    <void property="contractID">
+     <int>7516</int>
+    </void>
+    <void property="currency">
+     <string>USD</string>
+    </void>
+    <void property="exchange">
+     <string>SMART</string>
+    </void>
+    <void property="lastPrice">
+     <double>17.78</double>
+    </void>
+    <void property="lastPriceTime">
+     <long>1378631743148</long>
+    </void>
+    <void property="lastSize">
+     <double>1.0</double>
+    </void>
+    <void property="longvolume">
+     <long>0</long>
+    </void>
+    <void property="minsize">
+     <int>100</int>
+    </void>
+    <void property="reqID">
+     <int>33</int>
+    </void>
+    <void property="serialno">
+     <int>11</int>
+    </void>
+    <void property="shortvolume">
+     <long>-5000000</long>
+    </void>
+    <void property="symbol">
+     <string>GE</string>
+    </void>
+    <void property="tradedVolume">
+     <int>646</int>
+    </void>
+    <void property="trailstop">
+     <double>0.05</double>
+    </void>
+    <void property="type">
+     <string>STK</string>
+    </void>
+   </object>
+  </void>
+  <void method="add">
+   <object class="incurrframework.SymbolBean">
+    <void property="additionalInput">
+     <string>2000</string>
+    </void>
+    <void property="askPrice">
+     <double>22.74</double>
+    </void>
+    <void property="askSize">
+     <double>128.0</double>
+    </void>
+    <void property="bars">
+     <boolean>true</boolean>
+    </void>
+    <void property="bidPrice">
+     <double>22.72</double>
+    </void>
+    <void property="bidSize">
+     <double>150.0</double>
+    </void>
+    <void property="contractID">
+     <int>270639</int>
+    </void>
+    <void property="currency">
+     <string>USD</string>
+    </void>
+    <void property="exchange">
+     <string>SMART</string>
+    </void>
+    <void property="lastPrice">
+     <double>22.73</double>
+    </void>
+    <void property="lastPriceTime">
+     <long>1378631744819</long>
+    </void>
+    <void property="lastSize">
+     <double>1.0</double>
+    </void>
+    <void property="longvolume">
+     <long>0</long>
+    </void>
+    <void property="minsize">
+     <int>100</int>
+    </void>
+    <void property="reqID">
+     <int>34</int>
+    </void>
+    <void property="serialno">
+     <int>12</int>
+    </void>
+    <void property="shortvolume">
+     <long>-5000000</long>
+    </void>
+    <void property="symbol">
+     <string>INTC</string>
+    </void>
+    <void property="tradedVolume">
+     <int>18860</int>
+    </void>
+    <void property="trailstop">
+     <double>0.05</double>
+    </void>
+    <void property="type">
+     <string>STK</string>
+    </void>
+   </object>
+  </void>
+  <void method="add">
+   <object class="incurrframework.SymbolBean">
+    <void property="additionalInput">
+     <string>2000</string>
+    </void>
+    <void property="askPrice">
+     <double>76.86</double>
+    </void>
+    <void property="askSize">
+     <double>130.0</double>
+    </void>
+    <void property="bars">
+     <boolean>true</boolean>
+    </void>
+    <void property="bidPrice">
+     <double>76.83</double>
+    </void>
+    <void property="bidSize">
+     <double>320.0</double>
+    </void>
+    <void property="contractID">
+     <int>43661924</int>
+    </void>
+    <void property="currency">
+     <string>USD</string>
+    </void>
+    <void property="exchange">
+     <string>SMART</string>
+    </void>
+    <void property="lastPrice">
+     <double>76.83</double>
+    </void>
+    <void property="lastPriceTime">
+     <long>1378631744819</long>
+    </void>
+    <void property="lastSize">
+     <double>1.0</double>
+    </void>
+    <void property="longvolume">
+     <long>0</long>
+    </void>
+    <void property="minsize">
+     <int>100</int>
+    </void>
+    <void property="reqID">
+     <int>35</int>
+    </void>
+    <void property="serialno">
+     <int>13</int>
+    </void>
+    <void property="shortvolume">
+     <long>-5000000</long>
+    </void>
+    <void property="symbol">
+     <string>QQQ</string>
+    </void>
+    <void property="tradedVolume">
+     <int>2165</int>
+    </void>
+    <void property="trailstop">
+     <double>0.05</double>
+    </void>
+    <void property="type">
+     <string>STK</string>
+    </void>
+   </object>
+  </void>
+  <void method="add">
+   <object class="incurrframework.SymbolBean">
+    <void property="additionalInput">
+     <string>2000</string>
+    </void>
+    <void property="askPrice">
+     <double>25.61</double>
+    </void>
+    <void property="askSize">
+     <double>19.0</double>
+    </void>
+    <void property="bars">
+     <boolean>true</boolean>
+    </void>
+    <void property="bidPrice">
+     <double>25.59</double>
+    </void>
+    <void property="bidSize">
+     <double>31.0</double>
+    </void>
+    <void property="contractID">
+     <int>9042756</int>
+    </void>
+    <void property="currency">
+     <string>USD</string>
+    </void>
+    <void property="exchange">
+     <string>SMART</string>
+    </void>
+    <void property="lastPrice">
+     <double>25.59</double>
+    </void>
+    <void property="lastPriceTime">
+     <long>1378631744821</long>
+    </void>
+    <void property="lastSize">
+     <double>1.0</double>
+    </void>
+    <void property="longvolume">
+     <long>0</long>
+    </void>
+    <void property="minsize">
+     <int>100</int>
+    </void>
+    <void property="reqID">
+     <int>36</int>
+    </void>
+    <void property="serialno">
+     <int>14</int>
+    </void>
+    <void property="shortvolume">
+     <long>-5000000</long>
+    </void>
+    <void property="symbol">
+     <string>HPQ</string>
+    </void>
+    <void property="tradedVolume">
+     <int>23591</int>
+    </void>
+    <void property="trailstop">
+     <double>0.05</double>
+    </void>
+    <void property="type">
+     <string>STK</string>
+    </void>
+   </object>
+  </void>
+  <void method="add">
+   <object class="incurrframework.SymbolBean">
+    <void property="additionalInput">
+     <string>2000</string>
+    </void>
+    <void property="askPrice">
+     <double>52.28</double>
+    </void>
+    <void property="askSize">
+     <double>12.0</double>
+    </void>
+    <void property="bars">
+     <boolean>true</boolean>
+    </void>
+    <void property="bidPrice">
+     <double>52.27</double>
+    </void>
+    <void property="bidSize">
+     <double>31.0</double>
+    </void>
+    <void property="contractID">
+     <int>1520593</int>
+    </void>
+    <void property="currency">
+     <string>USD</string>
+    </void>
+    <void property="exchange">
+     <string>SMART</string>
+    </void>
+    <void property="lastPrice">
+     <double>52.27</double>
+    </void>
+    <void property="lastPriceTime">
+     <long>1378631744151</long>
+    </void>
+    <void property="lastSize">
+     <double>1.0</double>
+    </void>
+    <void property="longvolume">
+     <long>0</long>
+    </void>
+    <void property="minsize">
+     <int>100</int>
+    </void>
+    <void property="reqID">
+     <int>37</int>
+    </void>
+    <void property="serialno">
+     <int>15</int>
+    </void>
+    <void property="shortvolume">
+     <long>-5000000</long>
+    </void>
+    <void property="symbol">
+     <string>JPM</string>
+    </void>
+    <void property="tradedVolume">
+     <int>41125</int>
+    </void>
+    <void property="trailstop">
+     <double>0.05</double>
+    </void>
+    <void property="type">
+     <string>STK</string>
+    </void>
+   </object>
+  </void>
+  <void method="add">
+   <object class="incurrframework.SymbolBean">
+    <void property="additionalInput">
+     <string>2000</string>
+    </void>
+    <void property="askPrice">
+     <double>33.5</double>
+    </void>
+    <void property="askSize">
+     <double>19.0</double>
+    </void>
+    <void property="bars">
+     <boolean>true</boolean>
+    </void>
+    <void property="bidPrice">
+     <double>33.48</double>
+    </void>
+    <void property="bidSize">
+     <double>40.0</double>
+    </void>
+    <void property="contractID">
+     <int>272800</int>
+    </void>
+    <void property="currency">
+     <string>USD</string>
+    </void>
+    <void property="exchange">
+     <string>SMART</string>
+    </void>
+    <void property="lastPrice">
+     <double>33.47</double>
+    </void>
+    <void property="lastPriceTime">
+     <long>1378631744480</long>
+    </void>
+    <void property="lastSize">
+     <double>1.0</double>
+    </void>
+    <void property="longvolume">
+     <long>0</long>
+    </void>
+    <void property="minsize">
+     <int>100</int>
+    </void>
+    <void property="reqID">
+     <int>38</int>
+    </void>
+    <void property="serialno">
+     <int>16</int>
+    </void>
+    <void property="shortvolume">
+     <long>-5000000</long>
+    </void>
+    <void property="symbol">
+     <string>ORCL</string>
+    </void>
+    <void property="tradedVolume">
+     <int>25294</int>
+    </void>
+    <void property="trailstop">
+     <double>0.05</double>
+    </void>
+    <void property="type">
+     <string>STK</string>
+    </void>
+   </object>
+  </void>
+  <void method="add">
+   <object class="incurrframework.SymbolBean">
+    <void property="additionalInput">
+     <string>2000</string>
+    </void>
+    <void property="askPrice">
+     <double>16.33</double>
+    </void>
+    <void property="askSize">
+     <double>562.0</double>
+    </void>
+    <void property="bars">
+     <boolean>true</boolean>
+    </void>
+    <void property="bidPrice">
+     <double>16.31</double>
+    </void>
+    <void property="bidSize">
+     <double>518.0</double>
+    </void>
+    <void property="contractID">
+     <int>268395</int>
+    </void>
+    <void property="currency">
+     <string>USD</string>
+    </void>
+    <void property="exchange">
+     <string>SMART</string>
+    </void>
+    <void property="lastPrice">
+     <double>13.38</double>
+    </void>
+    <void property="lastPriceTime">
+     <long>1378631742865</long>
+    </void>
+    <void property="lastSize">
+     <double>4.0</double>
+    </void>
+    <void property="longvolume">
+     <long>0</long>
+    </void>
+    <void property="minsize">
+     <int>100</int>
+    </void>
+    <void property="reqID">
+     <int>39</int>
+    </void>
+    <void property="serialno">
+     <int>17</int>
+    </void>
+    <void property="shortvolume">
+     <long>-5000000</long>
+    </void>
+    <void property="symbol">
+     <string>DELL</string>
+    </void>
+    <void property="tradedVolume">
+     <int>2</int>
+    </void>
+    <void property="trailstop">
+     <double>0.05</double>
+    </void>
+    <void property="type">
+     <string>STK</string>
+    </void>
+   </object>
+  </void>
+  <void method="add">
+   <object class="incurrframework.SymbolBean">
+    <void property="additionalInput">
+     <string>2000</string>
+    </void>
+    <void property="askPrice">
+     <double>27.93</double>
+    </void>
+    <void property="askSize">
+     <double>18.0</double>
+    </void>
+    <void property="bars">
+     <boolean>true</boolean>
+    </void>
+    <void property="bidPrice">
+     <double>27.9</double>
+    </void>
+    <void property="bidSize">
+     <double>32.0</double>
+    </void>
+    <void property="contractID">
+     <int>3312890</int>
+    </void>
+    <void property="currency">
+     <string>USD</string>
+    </void>
+    <void property="exchange">
+     <string>SMART</string>
+    </void>
+    <void property="lastPrice">
+     <double>27.9</double>
+    </void>
+    <void property="lastPriceTime">
+     <long>1378631742867</long>
+    </void>
+    <void property="longvolume">
+     <long>0</long>
+    </void>
+    <void property="minsize">
+     <int>100</int>
+    </void>
+    <void property="reqID">
+     <int>40</int>
+    </void>
+    <void property="serialno">
+     <int>18</int>
+    </void>
+    <void property="shortvolume">
+     <long>-5000000</long>
+    </void>
+    <void property="symbol">
+     <string>YHOO</string>
+    </void>
+    <void property="tradedVolume">
+     <int>4528</int>
+    </void>
+    <void property="trailstop">
+     <double>0.05</double>
+    </void>
+    <void property="type">
+     <string>STK</string>
+    </void>
+   </object>
+  </void>
+  <void method="add">
+   <object class="incurrframework.SymbolBean">
+    <void property="additionalInput">
+     <string>2000</string>
+    </void>
+    <void property="askPrice">
+     <double>36.46</double>
+    </void>
+    <void property="askSize">
+     <double>2.0</double>
+    </void>
+    <void property="bars">
+     <boolean>true</boolean>
+    </void>
+    <void property="bidPrice">
+     <double>36.43</double>
+    </void>
+    <void property="bidSize">
+     <double>32.0</double>
+    </void>
+    <void property="contractID">
+     <int>80986742</int>
+    </void>
+    <void property="currency">
+     <string>USD</string>
+    </void>
+    <void property="exchange">
+     <string>SMART</string>
+    </void>
+    <void property="lastPrice">
+     <double>36.45</double>
+    </void>
+    <void property="lastPriceTime">
+     <long>1378631744151</long>
+    </void>
+    <void property="lastSize">
+     <double>36.0</double>
+    </void>
+    <void property="longvolume">
+     <long>0</long>
+    </void>
+    <void property="minsize">
+     <int>100</int>
+    </void>
+    <void property="reqID">
+     <int>41</int>
+    </void>
+    <void property="serialno">
+     <int>19</int>
+    </void>
+    <void property="shortvolume">
+     <long>-5000000</long>
+    </void>
+    <void property="symbol">
+     <string>GM</string>
+    </void>
+    <void property="tradedVolume">
+     <int>28273</int>
+    </void>
+    <void property="trailstop">
+     <double>0.05</double>
+    </void>
+    <void property="type">
+     <string>STK</string>
+    </void>
+   </object>
+  </void>
+  <void method="add">
+   <object class="incurrframework.SymbolBean">
+    <void property="additionalInput">
+     <string>2000</string>
+    </void>
+    <void property="askPrice">
+     <double>68.27</double>
+    </void>
+    <void property="askSize">
+     <double>2.0</double>
+    </void>
+    <void property="bars">
+     <boolean>true</boolean>
+    </void>
+    <void property="bidPrice">
+     <double>68.25</double>
+    </void>
+    <void property="bidSize">
+     <double>12.0</double>
+    </void>
+    <void property="contractID">
+     <int>273544</int>
+    </void>
+    <void property="currency">
+     <string>USD</string>
+    </void>
+    <void property="exchange">
+     <string>SMART</string>
+    </void>
+    <void property="lastPrice">
+     <double>68.25</double>
+    </void>
+    <void property="lastPriceTime">
+     <long>1378631743143</long>
+    </void>
+    <void property="lastSize">
+     <double>1.0</double>
+    </void>
+    <void property="longvolume">
+     <long>0</long>
+    </void>
+    <void property="minsize">
+     <int>100</int>
+    </void>
+    <void property="reqID">
+     <int>42</int>
+    </void>
+    <void property="serialno">
+     <int>20</int>
+    </void>
+    <void property="shortvolume">
+     <long>-5000000</long>
+    </void>
+    <void property="symbol">
+     <string>QCOM</string>
+    </void>
+    <void property="tradedVolume">
+     <int>6274</int>
+    </void>
+    <void property="trailstop">
+     <double>0.05</double>
+    </void>
+    <void property="type">
+     <string>STK</string>
+    </void>
+   </object>
+  </void>
+  <void method="add">
+   <object class="incurrframework.SymbolBean">
+    <void property="additionalInput">
+     <string>2000</string>
+    </void>
+    <void property="askPrice">
+     <double>14.83</double>
+    </void>
+    <void property="askSize">
+     <double>50.0</double>
+    </void>
+    <void property="bars">
+     <boolean>true</boolean>
+    </void>
+    <void property="bidPrice">
+     <double>14.81</double>
+    </void>
+    <void property="bidSize">
+     <double>16.0</double>
+    </void>
+    <void property="contractID">
+     <int>4815747</int>
+    </void>
+    <void property="currency">
+     <string>USD</string>
+    </void>
+    <void property="exchange">
+     <string>SMART</string>
+    </void>
+    <void property="lastPrice">
+     <double>14.79</double>
+    </void>
+    <void property="lastPriceTime">
+     <long>1378631743151</long>
+    </void>
+    <void property="lastSize">
+     <double>2.0</double>
+    </void>
+    <void property="longvolume">
+     <long>0</long>
+    </void>
+    <void property="minsize">
+     <int>100</int>
+    </void>
+    <void property="reqID">
+     <int>43</int>
+    </void>
+    <void property="serialno">
+     <int>21</int>
+    </void>
+    <void property="shortvolume">
+     <long>-5000000</long>
+    </void>
+    <void property="symbol">
+     <string>NVDA</string>
+    </void>
+    <void property="tradedVolume">
+     <int>2</int>
+    </void>
+    <void property="trailstop">
+     <double>0.05</double>
+    </void>
+    <void property="type">
+     <string>STK</string>
+    </void>
+   </object>
+  </void>
+  <void method="add">
+   <object class="incurrframework.SymbolBean">
+    <void property="additionalInput">
+     <string>2000</string>
+    </void>
+    <void property="askPrice">
+     <double>53.39</double>
+    </void>
+    <void property="askSize">
+     <double>4.0</double>
+    </void>
+    <void property="bars">
+     <boolean>true</boolean>
+    </void>
+    <void property="bidPrice">
+     <double>53.37</double>
+    </void>
+    <void property="bidSize">
+     <double>4.0</double>
+    </void>
+    <void property="contractID">
+     <int>4347086</int>
+    </void>
+    <void property="currency">
+     <string>USD</string>
+    </void>
+    <void property="exchange">
+     <string>SMART</string>
+    </void>
+    <void property="lastPrice">
+     <double>53.37</double>
+    </void>
+    <void property="lastPriceTime">
+     <long>1378631744479</long>
+    </void>
+    <void property="longvolume">
+     <long>0</long>
+    </void>
+    <void property="minsize">
+     <int>100</int>
+    </void>
+    <void property="reqID">
+     <int>44</int>
+    </void>
+    <void property="serialno">
+     <int>22</int>
+    </void>
+    <void property="shortvolume">
+     <long>-5000000</long>
+    </void>
+    <void property="symbol">
+     <string>EBAY</string>
+    </void>
+    <void property="tradedVolume">
+     <int>80956</int>
+    </void>
+    <void property="trailstop">
+     <double>0.05</double>
+    </void>
+    <void property="type">
+     <string>STK</string>
+    </void>
+   </object>
+  </void>
+ </object>
+</java>
