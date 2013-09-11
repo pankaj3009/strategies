@@ -107,10 +107,10 @@ private void StartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:e
     XMLEncoder encoder1;
     XMLEncoder encoder2;
        try {
-           encoder1 = new XMLEncoder(new BufferedOutputStream(new FileOutputStream("Beanarchive.xml")));
+       encoder1 = new XMLEncoder(new BufferedOutputStream(new FileOutputStream("Beanarchive.xml")));
        encoder1.writeObject(Parameters.symbol);
        encoder1.close();
-           encoder2 = new XMLEncoder(new BufferedOutputStream(new FileOutputStream("Connectionarchive.xml")));
+       encoder2 = new XMLEncoder(new BufferedOutputStream(new FileOutputStream("Connectionarchive.xml")));
        encoder2.writeObject(Parameters.connection);
        encoder2.close();
        } catch (FileNotFoundException ex) {

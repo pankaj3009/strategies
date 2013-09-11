@@ -87,7 +87,6 @@ public class MainAlgorithm extends Algorithm implements HistoricalBarListener, T
     public MarketData m;
     //strategy variables
     private ArrayList<ArrayList<Long>> cumVolume = new ArrayList<ArrayList<Long>>();
-    //private ArrayList<Long> cumVolume = new <Long[]> ArrayList(); //algo parameter 
     private ArrayList<Double> highestHigh = new <Double> ArrayList();  //algo parameter 
     private ArrayList<Double> lowestLow = new <Double> ArrayList(); //algo parameter 
     private ArrayList<Double> close = new <Double> ArrayList();
@@ -103,19 +102,12 @@ public class MainAlgorithm extends Algorithm implements HistoricalBarListener, T
     private int channelDuration;
     private int regressionLookBack;
     private double volumeSlopeLongMultiplier;
-    private double volumeSlopeShortMultipler;
-    private boolean marketOpen = false; // market state
-    private boolean mocPeriod = false; //market state
-    private OrderPlacement ordManagement;
+    //private double volumeSlopeShortMultipler;
+    //private OrderPlacement ordManagement;
     public final static Logger LOGGER = Logger.getLogger(Algorithm.class.getName());
-    //private RealTimeBars rtBars = new RealTimeBars();
-    //private static LinkedHashMap queue = new <Integer,PendingHistoricalRequests> LinkedHashMap();
     private static ConcurrentHashMap queue = new <Integer,PendingHistoricalRequests> ConcurrentHashMap();
-    
     private static ConcurrentLinkedQueue queueHistRequests=new ConcurrentLinkedQueue(new ArrayList<PendingHistoricalRequests>());
     private static ArrayList<PendingHistoricalRequests>temp=new ArrayList<PendingHistoricalRequests>();
- //   private static LinkedBlockingQueue<LinkedHashMap<Integer,PendingHistoricalRequests>> queue = new LinkedBlockingQueue<LinkedHashMap<Integer,PendingHistoricalRequests>>(1);
-    
     private static HashMap<Integer,Integer> BarsCount=new HashMap();
     
     
@@ -167,7 +159,7 @@ public class MainAlgorithm extends Algorithm implements HistoricalBarListener, T
         }
         
         //Initialize algo variables
-        ordManagement=new OrderPlacement(this);
+        //ordManagement=new OrderPlacement(this);
         Properties p = new Properties(System.getProperties());
         FileInputStream propFile = new FileInputStream("NewSwing.properties");
         p.load(propFile);
@@ -179,7 +171,7 @@ public class MainAlgorithm extends Algorithm implements HistoricalBarListener, T
         endDate = DateUtil.parseDate("yyyyMMdd HH:mm:ss", endDateStr);
         channelDuration = Integer.parseInt(System.getProperty("ChannelDuration"));
         volumeSlopeLongMultiplier = Double.parseDouble(System.getProperty("VolSlopeMultLong"));
-        volumeSlopeShortMultipler = Double.parseDouble(System.getProperty("VolSlopeMultLong"));
+        //volumeSlopeShortMultipler = Double.parseDouble(System.getProperty("VolSlopeMultLong"));
         regressionLookBack = Integer.parseInt(System.getProperty("RegressionLookBack"));
 
         for (int i = 0; i < Parameters.symbol.size(); i++) {
@@ -200,12 +192,12 @@ public class MainAlgorithm extends Algorithm implements HistoricalBarListener, T
         }
         //Attempt realtime bars in a new thread
         //new Thread(new RealTimeBars(),"RealTime").start();
-     /*
+     
         Thread t = new Thread(new HistoricalBars());
      t.setName("Historical Bars");
      t.start();
      t.join();
-     */
+     
      
      new RealTimeBars();
 
@@ -384,10 +376,8 @@ public class MainAlgorithm extends Algorithm implements HistoricalBarListener, T
                 //update symbol volumes
                 int id=event.getSymbol().getSerialno()-1;
                 BeanSymbol s=Parameters.symbol.get(id);
-                if(Long.toString(event.list().lastKey())==DateUtil.getFormatedDate("YYYYMMDD", System.currentTimeMillis())){
-                    long tempkey=event.list().lastKey();
-                    long tempVol=event.list().lowerKey(tempkey-1);
-                    s.setAdditionalInput(String.valueOf(tempVol));
+                if(Long.toString(event.list().lastKey()).equals(DateUtil.getFormatedDate("yyyyMMdd", System.currentTimeMillis()))){
+return;
                 } else
                 s.setAdditionalInput(String.valueOf(event.list().lastEntry().getValue().getVolume()));
             }
@@ -448,31 +438,31 @@ public class MainAlgorithm extends Algorithm implements HistoricalBarListener, T
         
         
         if (notionalPosition.get(id) == 0 && getCumVolume().get(id).size()>=channelDuration ) {
-            if (ruleHighestHigh && ruleCumVolumeLong && ruleSlopeLong && ruleVolumeLong && endDate.compareTo(new Date())<0) {
+            if (ruleHighestHigh && ruleCumVolumeLong && ruleSlopeLong && ruleVolumeLong && endDate.compareTo(new Date())>0) {
         //Buy Condition
-                LOGGER.log(Level.INFO,"BUY.Symbol ID={0}",new Object[]{Parameters.symbol.get(id+1).getSymbol()});
+                LOGGER.log(Level.INFO,"BUY.Symbol ID={0}",new Object[]{Parameters.symbol.get(id).getSymbol()});
                 notionalPosition.set(id, 1L);
                 _fireOrderEvent(Parameters.symbol.get(id), OrderSide.BUY, Parameters.symbol.get(id).getMinsize(), getHighestHigh().get(id), 0);
-          } else if (ruleLowestLow && ruleCumVolumeShort && ruleSlopeShort && ruleVolumeShort && endDate.compareTo(new Date())<0) {
-                //Sell condition
-                LOGGER.log(Level.INFO,"SHORT. Symbol ID={0}",new Object[]{Parameters.symbol.get(id+1).getSymbol()});
+          } else if (ruleLowestLow && ruleCumVolumeShort && ruleSlopeShort && ruleVolumeShort && endDate.compareTo(new Date())>0) {
+                //Short condition
+                LOGGER.log(Level.INFO,"SHORT. Symbol ID={0}",new Object[]{Parameters.symbol.get(id).getSymbol()});
                 notionalPosition.set(id, -1L);
                 _fireOrderEvent(Parameters.symbol.get(id), OrderSide.SHORT,Parameters.symbol.get(id).getMinsize(), getLowestLow().get(id), 0);
             }
         }
         else  if (notionalPosition.get(id) == -1){
             if(ruleHighestHigh||System.currentTimeMillis()>endDate.getTime()){
-                LOGGER.log(Level.INFO,"COVER. Symbol ID={0}", new Object[]{Parameters.symbol.get(id+1).getSymbol()});
+                LOGGER.log(Level.INFO,"COVER. Symbol ID={0}", new Object[]{Parameters.symbol.get(id).getSymbol()});
                 notionalPosition.set(id, 0L);
-                _fireOrderEvent(Parameters.symbol.get(id), OrderSide.COVER,Parameters.symbol.get(id).getMinsize(), getHighestHigh().get(id), getHighestHigh().get(id));
+                _fireOrderEvent(Parameters.symbol.get(id), OrderSide.COVER,Parameters.symbol.get(id).getMinsize(),Parameters.symbol.get(id).getLastPrice() , Parameters.symbol.get(id).getLastPrice());
             }
             
         } 
         else if (notionalPosition.get(id) == 1){
             if(ruleLowestLow||System.currentTimeMillis()>endDate.getTime()){
-                LOGGER.log(Level.INFO,"SELL. Symbol ID={0}",new Object[]{Parameters.symbol.get(id+1).getSymbol()});
+                LOGGER.log(Level.INFO,"SELL. Symbol ID={0}",new Object[]{Parameters.symbol.get(id).getSymbol()});
                 notionalPosition.set(id, 0L);
-                _fireOrderEvent(Parameters.symbol.get(id), OrderSide.SELL,Parameters.symbol.get(id).getMinsize(), getLowestLow().get(id), getLowestLow().get(id));
+                _fireOrderEvent(Parameters.symbol.get(id), OrderSide.SELL,Parameters.symbol.get(id).getMinsize(), Parameters.symbol.get(id).getLastPrice(), Parameters.symbol.get(id).getLastPrice());
             }
         }        
 
