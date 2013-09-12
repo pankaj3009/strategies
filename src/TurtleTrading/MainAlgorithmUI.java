@@ -106,6 +106,7 @@ private void StartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:e
         //DataTable.setModel(MainAlgorithm.model1);
     XMLEncoder encoder1;
     XMLEncoder encoder2;
+    XMLEncoder encoder3;
        try {
        encoder1 = new XMLEncoder(new BufferedOutputStream(new FileOutputStream("Beanarchive.xml")));
        encoder1.writeObject(Parameters.symbol);
@@ -113,6 +114,9 @@ private void StartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:e
        encoder2 = new XMLEncoder(new BufferedOutputStream(new FileOutputStream("Connectionarchive.xml")));
        encoder2.writeObject(Parameters.connection);
        encoder2.close();
+       encoder3 = new XMLEncoder(new BufferedOutputStream(new FileOutputStream("param.xml")));
+       encoder3.writeObject(MainAlgorithm.param);
+       encoder3.close();
        } catch (FileNotFoundException ex) {
            Logger.getLogger(MainAlgorithmUI.class.getName()).log(Level.SEVERE, null, ex);
        }

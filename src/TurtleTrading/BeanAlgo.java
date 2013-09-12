@@ -5,14 +5,21 @@
 package TurtleTrading;
 
 import incurrframework.Algorithm;
+import incurrframework.DateUtil;
+import incurrframework.Parameters;
 import incurrframework.PendingHistoricalRequests;
 import java.beans.*;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -21,6 +28,72 @@ import java.util.logging.Logger;
  */
 public class BeanAlgo implements Serializable {
 
+        private ArrayList<ArrayList<Long>> cumVolume = new ArrayList<ArrayList<Long>>();
+    private ArrayList<Double> highestHigh = new <Double> ArrayList();  //algo parameter 
+    private ArrayList<Double> lowestLow = new <Double> ArrayList(); //algo parameter 
+    private ArrayList<Double> close = new <Double> ArrayList();
+    private ArrayList<Long> barNumber = new <Long> ArrayList();
+    private ArrayList<Double> slope = new <Double>ArrayList();
+    private ArrayList<Long> Volume = new ArrayList();
+    private ArrayList<Double> VolumeMA = new ArrayList();
+    private ArrayList<Long> longVolume = new ArrayList();
+    private ArrayList<Long> shortVolume = new ArrayList();
+    private ArrayList<Long> notionalPosition = new ArrayList();
+    private Date startDate;
+    private Date endDate;
+    private int channelDuration;
+    private int regressionLookBack;
+    private double volumeSlopeLongMultiplier;
+    private static final Logger LOGGER = Logger.getLogger(Algorithm.class.getName());
+    private static ConcurrentHashMap queue = new <Integer,PendingHistoricalRequests> ConcurrentHashMap();
+    private static ConcurrentLinkedQueue queueHistRequests=new ConcurrentLinkedQueue(new ArrayList<PendingHistoricalRequests>());
+    private static ArrayList<PendingHistoricalRequests>temp=new ArrayList<PendingHistoricalRequests>();
+    private static HashMap<Integer,Integer> BarsCount=new HashMap(); 
+
+    
+    public BeanAlgo() {
+        queueHistRequests=new ConcurrentLinkedQueue(temp);
+                Properties p = new Properties(System.getProperties());
+        FileInputStream propFile;
+            try {
+                propFile = new FileInputStream("NewSwing.properties");
+            try {
+                p.load(propFile);
+            } catch (IOException ex) {
+                Logger.getLogger(BeanAlgo.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            } catch (FileNotFoundException ex) {
+                Logger.getLogger(BeanAlgo.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        System.setProperties(p);
+        String currDateStr = DateUtil.getFormatedDate("yyyyMMdd", Parameters.connection.get(0).getConnectionTime());
+        String startDateStr = currDateStr + " " + System.getProperty("StartTime");
+        String endDateStr = currDateStr + " " + System.getProperty("EndTime");
+        startDate = DateUtil.parseDate("yyyyMMdd HH:mm:ss", startDateStr);
+        endDate = DateUtil.parseDate("yyyyMMdd HH:mm:ss", endDateStr);
+        channelDuration = Integer.parseInt(System.getProperty("ChannelDuration"));
+        volumeSlopeLongMultiplier = Double.parseDouble(System.getProperty("VolSlopeMultLong"));
+        //volumeSlopeShortMultipler = Double.parseDouble(System.getProperty("VolSlopeMultLong"));
+        regressionLookBack = Integer.parseInt(System.getProperty("RegressionLookBack"));
+
+        for (int i = 0; i < Parameters.symbol.size(); i++) {
+            cumVolume.add(i,new ArrayList<Long>());
+            cumVolume.get(i).add(0L);
+            highestHigh.add(999999999D);
+            lowestLow.add(0D);
+            close.add(0D);
+            barNumber.add(0L);
+            slope.add(0D);
+            Volume.add(Long.MIN_VALUE);
+            VolumeMA.add(Double.MIN_VALUE);
+            longVolume.add(Parameters.symbol.get(i).getLongvolume());
+            shortVolume.add(Parameters.symbol.get(i).getShortvolume());
+            notionalPosition.add(0L);
+
+        }
+    }
+
+    
     /**
      * @return the LOGGER
      */
@@ -31,7 +104,7 @@ public class BeanAlgo implements Serializable {
     /**
      * @return the queue
      */
-    public static ConcurrentHashMap getQueue() {
+    public synchronized static ConcurrentHashMap getQueue() {
         return queue;
     }
 
@@ -73,7 +146,7 @@ public class BeanAlgo implements Serializable {
     /**
      * @return the BarsCount
      */
-    public static HashMap<Integer,Integer> getBarsCount() {
+    public synchronized static HashMap<Integer,Integer> getBarsCount() {
         return BarsCount;
     }
 
@@ -84,33 +157,6 @@ public class BeanAlgo implements Serializable {
         BarsCount = aBarsCount;
     }
     
-    private ArrayList<ArrayList<Long>> cumVolume = new ArrayList<ArrayList<Long>>();
-    private ArrayList<Double> highestHigh = new <Double> ArrayList();  //algo parameter 
-    private ArrayList<Double> lowestLow = new <Double> ArrayList(); //algo parameter 
-    private ArrayList<Double> close = new <Double> ArrayList();
-    private ArrayList<Long> barNumber = new <Long> ArrayList();
-    private ArrayList<Double> slope = new <Double>ArrayList();
-    private ArrayList<Long> Volume = new ArrayList();
-    private ArrayList<Double> VolumeMA = new ArrayList();
-    private ArrayList<Long> longVolume = new ArrayList();
-    private ArrayList<Long> shortVolume = new ArrayList();
-    private ArrayList<Long> notionalPosition = new ArrayList();
-    private Date startDate;
-    private Date endDate;
-    private int channelDuration;
-    private int regressionLookBack;
-    private double volumeSlopeLongMultiplier;
-    private static final Logger LOGGER = Logger.getLogger(Algorithm.class.getName());
-    private static ConcurrentHashMap queue = new <Integer,PendingHistoricalRequests> ConcurrentHashMap();
-    private static ConcurrentLinkedQueue queueHistRequests=new ConcurrentLinkedQueue(new ArrayList<PendingHistoricalRequests>());
-    private static ArrayList<PendingHistoricalRequests>temp=new ArrayList<PendingHistoricalRequests>();
-    private static HashMap<Integer,Integer> BarsCount=new HashMap(); 
-
-    
-    public BeanAlgo() {
-
-    }
-
     /**
      * @return the cumVolume
      */
