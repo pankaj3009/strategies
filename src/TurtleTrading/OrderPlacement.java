@@ -86,7 +86,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener {
                     if (event.getSide() == OrderSide.SELL || event.getSide() == OrderSide.COVER) {
                         cancelOpenOrders(c, id); //as this is a squareoff condition, first cancel all open orders
                         if ((event.getSide() == OrderSide.SELL && c.getPositions().get(id) > 0) || (event.getSide() == OrderSide.COVER && c.getPositions().get(id) < 0)) {
-                            Order ord = c.getWrapper().createOrder(c.getPositions().get(id), event.getSide(), event.getLimitPrice(), event.getTriggerPrice(), "DAY", 3, false);
+                            Order ord = c.getWrapper().createOrder(Math.abs(c.getPositions().get(id)), event.getSide(), event.getLimitPrice(), event.getTriggerPrice(), "DAY", 3, false);
                             Contract con = c.getWrapper().createContract(id);
                             logger.log(Level.INFO,"Order Placed. Exit. Symbol ID={0}",new Object[]{Parameters.symbol.get(id).getSymbol()});
                             int orderid=c.getWrapper().placeOrder(c, id+1, event.getSide(), ord, con);
@@ -247,8 +247,9 @@ public class OrderPlacement implements OrderListener, OrderStatusListener {
                     else {
                         //place new trailbuy or trailsell order
                     OrderSide tmpOrderSide = underlyingSide == OrderSide.BUY ? OrderSide.TRAILSELL : OrderSide.TRAILBUY;
-                    double tmpTrailStop = ((int) (Parameters.symbol.get(id).getTrailstop() *fillprice  / 0.05)) * 0.05;
-                    Order ord =c.getWrapper().createOrder(size, tmpOrderSide, 0, tmpTrailStop, "DAY", 0, true);
+                    double tickSize=Double.parseDouble(a.getParam().getTickSize());
+                    double tmpTrailStop = ((int) (Parameters.symbol.get(id).getTrailstop() *fillprice  / tickSize)) * tickSize;
+                    Order ord =c.getWrapper().createOrder(Math.abs(size), tmpOrderSide, 0, tmpTrailStop, "DAY", 0, true);
                     Contract con = c.getWrapper().createContract(id);
                     logger.log(Level.INFO,"Order Placed. Trailing. Symbol ID={0}",new Object[]{Parameters.symbol.get(id).getSymbol()});
                     c.getWrapper().placeOrder(c, id+1, tmpOrderSide, ord, con);
@@ -271,11 +272,11 @@ public class OrderPlacement implements OrderListener, OrderStatusListener {
         int position = c.getPositions().get(id);
         Contract con = c.getWrapper().createContract(id);
         if (position > 0) {
-            Order ord = c.getWrapper().createOrder(position, OrderSide.SELL, 0, 0, "DAY", 0, false);
+            Order ord = c.getWrapper().createOrder(Math.abs(position), OrderSide.SELL, 0, 0, "DAY", 0, false);
             logger.log(Level.INFO,"Order Placed. Square on Error. Symbol ID={0}",new Object[]{Parameters.symbol.get(id).getSymbol()});
             c.getWrapper().placeOrder(c, id+1, OrderSide.SELL, ord, con);
             } else if (position < 0) {
-            Order ord = c.getWrapper().createOrder(-position, OrderSide.COVER, 0, 0, "DAY", 0, false);
+            Order ord = c.getWrapper().createOrder(Math.abs(position), OrderSide.COVER, 0, 0, "DAY", 0, false);
             logger.log(Level.INFO,"Order Placed. Square on Error. Symbol ID={0}",new Object[]{Parameters.symbol.get(id+1).getSymbol()});
             c.getWrapper().placeOrder(c, id+1, OrderSide.COVER, ord, con);
             }
@@ -325,6 +326,8 @@ public class OrderPlacement implements OrderListener, OrderStatusListener {
         int symbolID=origOrder.getSymbolID();
         //amend order to market
         Order ord = new Order();
+        ord=c.getWrapper().createOrder(origOrder.getOrderSize(), origOrder.getOrderSide(), 0, 0, "DAY", 0, false);
+        /*
         ord.m_orderType="MKT";
         ord.m_goodTillDate="";
         ord.m_tif="DAY";
@@ -333,8 +336,9 @@ public class OrderPlacement implements OrderListener, OrderStatusListener {
         ord.m_lmtPrice=0;
         ord.m_orderRef="TurtleTrading";
         ord.m_totalQuantity=origOrder.getOrderSize(); 
+        */
         Contract con=c.getWrapper().createContract(symbolID-1);
-        logger.log(Level.INFO,"Place market Order. Symbol:{0}",Parameters.symbol.get(orderID).getSymbol());
+        logger.log(Level.INFO,"Place market Order. Symbol:{0}",Parameters.symbol.get(symbolID-1).getSymbol());
         c.getWrapper().placeOrder(c, symbolID, origOrder.getOrderSide(),ord,con);
     }
 

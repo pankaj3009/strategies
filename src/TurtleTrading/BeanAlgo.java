@@ -28,6 +28,20 @@ import java.util.logging.Logger;
  */
 public class BeanAlgo implements Serializable {
 
+    /**
+     * @return the tickSize
+     */
+    public  String getTickSize() {
+        return tickSize;
+    }
+
+    /**
+     * @param aTickSize the tickSize to set
+     */
+    public void setTickSize(String aTickSize) {
+        tickSize = aTickSize;
+    }
+
         private ArrayList<ArrayList<Long>> cumVolume = new ArrayList<ArrayList<Long>>();
     private ArrayList<Double> highestHigh = new <Double> ArrayList();  //algo parameter 
     private ArrayList<Double> lowestLow = new <Double> ArrayList(); //algo parameter 
@@ -49,6 +63,7 @@ public class BeanAlgo implements Serializable {
     private static ConcurrentLinkedQueue queueHistRequests=new ConcurrentLinkedQueue(new ArrayList<PendingHistoricalRequests>());
     private static ArrayList<PendingHistoricalRequests>temp=new ArrayList<PendingHistoricalRequests>();
     private static HashMap<Integer,Integer> BarsCount=new HashMap(); 
+    private  String tickSize;
 
     
     public BeanAlgo() {
@@ -69,8 +84,16 @@ public class BeanAlgo implements Serializable {
         String currDateStr = DateUtil.getFormatedDate("yyyyMMdd", Parameters.connection.get(0).getConnectionTime());
         String startDateStr = currDateStr + " " + System.getProperty("StartTime");
         String endDateStr = currDateStr + " " + System.getProperty("EndTime");
+        String tickSize=System.getProperty("TickSize");
         startDate = DateUtil.parseDate("yyyyMMdd HH:mm:ss", startDateStr);
         endDate = DateUtil.parseDate("yyyyMMdd HH:mm:ss", endDateStr);
+        if(endDate.compareTo(startDate)<0 && new Date().compareTo(startDate)>0){
+        //increase enddate by one calendar day
+            endDate=DateUtil.addDays(endDate, 1); //system date is > start date time. Therefore we have not crossed the 12:00 am barrier
+    }
+        else if(endDate.compareTo(startDate)<0 && new Date().compareTo(startDate)<0){
+            startDate=DateUtil.addDays(startDate, -1); // we have moved beyond 12:00 am . adjust startdate to previous date
+        }
         channelDuration = Integer.parseInt(System.getProperty("ChannelDuration"));
         volumeSlopeLongMultiplier = Double.parseDouble(System.getProperty("VolSlopeMultLong"));
         //volumeSlopeShortMultipler = Double.parseDouble(System.getProperty("VolSlopeMultLong"));
