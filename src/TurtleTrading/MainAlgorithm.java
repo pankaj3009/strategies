@@ -116,10 +116,12 @@ public class MainAlgorithm extends Algorithm implements HistoricalBarListener, T
         Parameters.addTradeListener(this);
         
         //Attempt realtime bars in a new thread
-       Thread t = new Thread(new HistoricalBars());
+     
+     Thread t = new Thread(new HistoricalBars());
      t.setName("Historical Bars");
      t.start();
      t.join();
+     
         new RealTimeBars(getParam());
         //BoilerPlate Ends
  
@@ -149,7 +151,7 @@ public class MainAlgorithm extends Algorithm implements HistoricalBarListener, T
             int id = event.getSymbol().getSerialno() - 1;
                 getParam().getClose().set(id, event.ohlc().getClose());
             int barno = event.barNumber();
-            LOGGER.log(Level.INFO,"Bar No:{0}, Date={1}, Symbol:{2},FirstBarTime:{3}, LastBarTime:{4}, LastKey-FirstKey:{5}",
+            LOGGER.log(Level.FINEST,"Bar No:{0}, Date={1}, Symbol:{2},FirstBarTime:{3}, LastBarTime:{4}, LastKey-FirstKey:{5}",
                     new Object[]{barno,DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss",event.ohlc().getOpenTime()),Parameters.symbol.get(id).getSymbol()
                     ,DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss",event.list().firstKey()),DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss",event.list().lastKey())
                     ,(event.list().lastKey()-event.list().firstKey())/(1000*60)});
@@ -159,6 +161,7 @@ public class MainAlgorithm extends Algorithm implements HistoricalBarListener, T
             int cumVolumeStartSize=getParam().getCumVolume().get(id).size();
  //           LOGGER.log(Level.INFO, "CumVolume.get(id).size()={0}", size);
            //check if bars are complete. If bars are not complete, send add to pending requests and exit.
+            String firstBarFullDateTime=DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss",event.list().firstEntry().getKey());
             String startTime=System.getProperty("StartTime");
             SimpleDateFormat sdfDate = new SimpleDateFormat("HH:mm:ss");//dd/MM/yyyy
             String firstBarTime = sdfDate.format(event.list().firstEntry().getKey());
@@ -167,17 +170,17 @@ public class MainAlgorithm extends Algorithm implements HistoricalBarListener, T
             if(!firstBarTime.contains(startTime)){
                 startTime=DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss",event.list().firstEntry().getKey());
                 PendingHistoricalRequests temphistReq =new PendingHistoricalRequests(event.getSymbol().getSerialno(),startTime,"2 D","1 min");
-                //PendingHistoricalRequests histReq=getParam().getQueue().get(event.getSymbol().getSerialno())==null?temphistReq:(PendingHistoricalRequests)getParam().getQueue().get(event.getSymbol().getSerialno());    
+                PendingHistoricalRequests histReq=getParam().getQueue().get(event.getSymbol().getSerialno())==null?temphistReq:(PendingHistoricalRequests)getParam().getQueue().get(event.getSymbol().getSerialno());    
                 // if temphistReq.status==true AND 1 minute bars are complete, we should never have hit this loop.   
                 //if we have still hit this loop, its safe to assume that there was a race condition, and we need to re-request historical bars
-                PendingHistoricalRequests histReq=temphistReq;
+                //PendingHistoricalRequests histReq=temphistReq;
                 getParam().getQueue().put(event.getSymbol().getSerialno(), histReq);
                 return;
             } 
             else if(event.list().size()-1==(event.list().lastKey()-event.list().firstKey())/(1000*60)){
                 BeanTurtle.getBarsCount().put(id+1, 1);
                 if((barno>=2) && (cumVolumeStartSize<barno-1)){
-                LOGGER.log(Level.INFO,"Setting Cumulative Vol in Loop 1. Bar No:{0}, cumVolumeStartSize={1}, Symbol:{2}",new Object[]{barno,cumVolumeStartSize,Parameters.symbol.get(id).getSymbol()});
+                LOGGER.log(Level.FINEST,"Setting Cumulative Vol in Loop 1. Bar No:{0}, cumVolumeStartSize={1}, Symbol:{2}",new Object[]{barno,cumVolumeStartSize,Parameters.symbol.get(id).getSymbol()});
                     //we have cumVolume from earlier bars that is not populated. Populate these
                 //int cumVolIndex=cumVolume.get(id).size()-1;
                 double priorClose=0;
@@ -209,7 +212,7 @@ public class MainAlgorithm extends Algorithm implements HistoricalBarListener, T
  
             if (barno ==getParam().getCumVolume().get(id).size()+1 && !exclude) {
              int ref=barno-1;
-             LOGGER.log(Level.INFO,"Setting Cumulative Vol in Loop 2. Bar No:{0}, cumVolumeStartSize={1}, Symbol:{2}",new Object[]{barno,cumVolumeStartSize,Parameters.symbol.get(id).getSymbol()});
+             LOGGER.log(Level.FINEST,"Setting Cumulative Vol in Loop 2. Bar No:{0}, cumVolumeStartSize={1}, Symbol:{2}",new Object[]{barno,cumVolumeStartSize,Parameters.symbol.get(id).getSymbol()});
              BeanOHLC OHLC = event.list().lastEntry().getValue();
              Long OHLCPriorKey=event.list().lowerKey(event.list().lastKey());
              BeanOHLC OHLCPrior=event.list().get(OHLCPriorKey);
@@ -226,10 +229,10 @@ public class MainAlgorithm extends Algorithm implements HistoricalBarListener, T
             }
             
             int size1=getParam().getCumVolume().get(id).size();
-            LOGGER.log(Level.INFO,"CumVolume Bars after Loop 2. Bar No:{0}, cumVolumeEndSize={1}, Symbol:{2}",new Object[]{barno,size1,Parameters.symbol.get(id).getSymbol()});            
+            LOGGER.log(Level.FINEST,"CumVolume Bars after Loop 2. Bar No:{0}, cumVolumeEndSize={1}, Symbol:{2}",new Object[]{barno,size1,Parameters.symbol.get(id).getSymbol()});            
             if( getParam().getCumVolume().get(id).size()<event.barNumber()){
                 //JOptionPane.showMessageDialog (null, "Error" ); 
-                 LOGGER.log(Level.INFO,"Error. Bars:{0}, cumVolumeEndSize={1}, Symbol:{2}",new Object[]{barno,size1,Parameters.symbol.get(id).getSymbol()});
+                 LOGGER.log(Level.FINEST,"Error. Bars:{0}, cumVolumeEndSize={1}, Symbol:{2}",new Object[]{barno,size1,Parameters.symbol.get(id).getSymbol()});
                 
             }
                 getParam().getVolume().set(id, event.ohlc().getVolume());

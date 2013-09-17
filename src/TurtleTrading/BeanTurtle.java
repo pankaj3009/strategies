@@ -42,7 +42,7 @@ public class BeanTurtle implements Serializable {
         tickSize = aTickSize;
     }
 
-        private ArrayList<ArrayList<Long>> cumVolume = new ArrayList<ArrayList<Long>>();
+    private ArrayList<ArrayList<Long>> cumVolume = new ArrayList<ArrayList<Long>>();
     private ArrayList<Double> highestHigh = new <Double> ArrayList();  //algo parameter 
     private ArrayList<Double> lowestLow = new <Double> ArrayList(); //algo parameter 
     private ArrayList<Double> close = new <Double> ArrayList();
@@ -53,8 +53,8 @@ public class BeanTurtle implements Serializable {
     private ArrayList<Long> longVolume = new ArrayList();
     private ArrayList<Long> shortVolume = new ArrayList();
     private ArrayList<Long> notionalPosition = new ArrayList();
-    private Date startDate;
-    private Date endDate;
+    private static Date startDate;
+    private static Date endDate;
     private int channelDuration;
     private int regressionLookBack;
     private double volumeSlopeLongMultiplier;
@@ -84,7 +84,7 @@ public class BeanTurtle implements Serializable {
         String currDateStr = DateUtil.getFormatedDate("yyyyMMdd", Parameters.connection.get(0).getConnectionTime());
         String startDateStr = currDateStr + " " + System.getProperty("StartTime");
         String endDateStr = currDateStr + " " + System.getProperty("EndTime");
-        String tickSize=System.getProperty("TickSize");
+        tickSize=System.getProperty("TickSize");
         startDate = DateUtil.parseDate("yyyyMMdd HH:mm:ss", startDateStr);
         endDate = DateUtil.parseDate("yyyyMMdd HH:mm:ss", endDateStr);
         if(endDate.compareTo(startDate)<0 && new Date().compareTo(startDate)>0){
@@ -337,7 +337,7 @@ public class BeanTurtle implements Serializable {
     /**
      * @return the startDate
      */
-    public Date getStartDate() {
+    static public Date getStartDate() {
         return startDate;
     }
 
@@ -345,13 +345,13 @@ public class BeanTurtle implements Serializable {
      * @param startDate the startDate to set
      */
     public void setStartDate(Date startDate) {
-        this.startDate = startDate;
+        startDate = startDate;
     }
 
     /**
      * @return the endDate
      */
-    public Date getEndDate() {
+    static public Date getEndDate() {
         return endDate;
     }
 
@@ -359,7 +359,7 @@ public class BeanTurtle implements Serializable {
      * @param endDate the endDate to set
      */
     public void setEndDate(Date endDate) {
-        this.endDate = endDate;
+        endDate = endDate;
     }
 
     /**
