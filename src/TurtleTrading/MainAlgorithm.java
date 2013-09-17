@@ -43,20 +43,20 @@ public class MainAlgorithm extends Algorithm implements HistoricalBarListener, T
     /**
      * @return the param
      */
-    public  BeanAlgo getParam() {
+    public  BeanTurtle getParam() {
         return param;
     }
 
     /**
      * @param aParam the param to set
      */
-    public   void setParam(BeanAlgo aParam) {
+    public   void setParam(BeanTurtle aParam) {
         param = aParam;
     }
 
     public MarketData m;
     public final static Logger LOGGER = Logger.getLogger(Algorithm.class.getName());
-    private  BeanAlgo param;
+    private  BeanTurtle param;
     private OrderPlacement ordManagement;
     
     
@@ -107,7 +107,7 @@ public class MainAlgorithm extends Algorithm implements HistoricalBarListener, T
 
         //ordManagement=new OrderPlacement(this);
         //initialize listners
-       param=new BeanAlgo();
+       param=new BeanTurtle();
        ordManagement=new OrderPlacement(this);
         for (int i = 0; i < Parameters.symbol.size(); i++) {
             Parameters.symbol.get(i).getOneMinuteBar().addHistoricalBarListener(this);
@@ -122,10 +122,12 @@ public class MainAlgorithm extends Algorithm implements HistoricalBarListener, T
      t.join();
         new RealTimeBars(getParam());
         //BoilerPlate Ends
-      LOGGER.log(Level.INFO,",Symbol"+","+"BarNo"+","+"HighestHigh"+","+"LowestLow"+","+"LastPrice"+","+"Volume"+","+"CumulativeVol"+","+"VolumeSlope"+","+"MinSlopeReqd"+","+"MA"+","+"LongVolume"+","+"ShortVolume"+","+"DateTime"+","+
+ 
+        LOGGER.log(Level.FINEST,",Symbol"+","+"BarNo"+","+"HighestHigh"+","+"LowestLow"+","+"LastPrice"+","+"Volume"+","+"CumulativeVol"+","+"VolumeSlope"+","+"MinSlopeReqd"+","+"MA"+","+"LongVolume"+","+"ShortVolume"+","+"DateTime"+","+
               "ruleHighestHigh"+","+"ruleCumVolumeLong"+","+"ruleSlopeLong"+","+"ruleVolumeLong"+","+"ruleLowestLow"+","+
               "ruleCumVolumeShort"+","+"ruleSlopeShort"+","+"ruleVolumeShort" );
-      createAndShowGUI(this);
+   
+   createAndShowGUI(this);
         
     }
     /*
@@ -165,12 +167,15 @@ public class MainAlgorithm extends Algorithm implements HistoricalBarListener, T
             if(!firstBarTime.contains(startTime)){
                 startTime=DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss",event.list().firstEntry().getKey());
                 PendingHistoricalRequests temphistReq =new PendingHistoricalRequests(event.getSymbol().getSerialno(),startTime,"2 D","1 min");
-                PendingHistoricalRequests histReq=getParam().getQueue().get(event.getSymbol().getSerialno())==null?temphistReq:(PendingHistoricalRequests)getParam().getQueue().get(event.getSymbol().getSerialno());    
-                    getParam().getQueue().put(event.getSymbol().getSerialno(), histReq);
+                //PendingHistoricalRequests histReq=getParam().getQueue().get(event.getSymbol().getSerialno())==null?temphistReq:(PendingHistoricalRequests)getParam().getQueue().get(event.getSymbol().getSerialno());    
+                // if temphistReq.status==true AND 1 minute bars are complete, we should never have hit this loop.   
+                //if we have still hit this loop, its safe to assume that there was a race condition, and we need to re-request historical bars
+                PendingHistoricalRequests histReq=temphistReq;
+                getParam().getQueue().put(event.getSymbol().getSerialno(), histReq);
                 return;
             } 
             else if(event.list().size()-1==(event.list().lastKey()-event.list().firstKey())/(1000*60)){
-                BeanAlgo.getBarsCount().put(id+1, 1);
+                BeanTurtle.getBarsCount().put(id+1, 1);
                 if((barno>=2) && (cumVolumeStartSize<barno-1)){
                 LOGGER.log(Level.INFO,"Setting Cumulative Vol in Loop 1. Bar No:{0}, cumVolumeStartSize={1}, Symbol:{2}",new Object[]{barno,cumVolumeStartSize,Parameters.symbol.get(id).getSymbol()});
                     //we have cumVolume from earlier bars that is not populated. Populate these
@@ -352,29 +357,68 @@ return;
         if (getParam().getNotionalPosition().get(id) == 0 && getParam().getCumVolume().get(id).size()>=getParam().getChannelDuration() ) {
             if (ruleHighestHigh && ruleCumVolumeLong && ruleSlopeLong && ruleVolumeLong && getParam().getEndDate().compareTo(new Date())>0) {
         //Buy Condition
-                LOGGER.log(Level.INFO,"BUY.Symbol ID={0}",new Object[]{Parameters.symbol.get(id).getSymbol()});
                     getParam().getNotionalPosition().set(id, 1L);
+                    LOGGER.log(Level.INFO,"Buy,Symbol:{0},LL:{1},LastPrice:{2},HH{3},Slope:{4},SlopeThreshold:{5},Volume:{6},VolumeMA:{7}",
+                            new Object[]{Parameters.symbol.get(id).getSymbol()
+                                    ,getParam().getLowestLow().get(id).toString()
+                                    ,Parameters.symbol.get(id).getLastPrice()
+                                    ,getParam().getHighestHigh().get(id).toString()
+                                    ,getParam().getSlope().get(id).toString()
+                                    ,String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * getParam().getVolumeSlopeLongMultiplier() / 375)
+                                    ,getParam().getVolume().get(id).toString()
+                                    ,getParam().getVolumeMA().get(id).toString()
+                               }
+                            );
                 _fireOrderEvent(Parameters.symbol.get(id), OrderSide.BUY, Parameters.symbol.get(id).getMinsize(), getParam().getHighestHigh().get(id), 0);
           } else if (ruleLowestLow && ruleCumVolumeShort && ruleSlopeShort && ruleVolumeShort && getParam().getEndDate().compareTo(new Date())>0) {
                 //Short condition
-                LOGGER.log(Level.INFO,"SHORT. Symbol ID={0}",new Object[]{Parameters.symbol.get(id).getSymbol()});
-                    getParam().getNotionalPosition().set(id, -1L);
-                _fireOrderEvent(Parameters.symbol.get(id), OrderSide.SHORT,Parameters.symbol.get(id).getMinsize(), getParam().getLowestLow().get(id), 0);
+                 getParam().getNotionalPosition().set(id, -1L);
+                LOGGER.log(Level.INFO,"Short,Symbol:{0},LL:{1},LastPrice:{2},HH{3},Slope:{4},SlopeThreshold:{5},Volume:{6},VolumeMA:{7}",
+                            new Object[]{Parameters.symbol.get(id).getSymbol()
+                                    ,getParam().getLowestLow().get(id).toString()
+                                    ,Parameters.symbol.get(id).getLastPrice()
+                                    ,getParam().getHighestHigh().get(id).toString()
+                                    ,getParam().getSlope().get(id).toString()
+                                    ,String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * getParam().getVolumeSlopeLongMultiplier() / 375)
+                                    ,getParam().getVolume().get(id).toString()
+                                    ,getParam().getVolumeMA().get(id).toString()
+                               }
+                            );
+                 _fireOrderEvent(Parameters.symbol.get(id), OrderSide.SHORT,Parameters.symbol.get(id).getMinsize(), getParam().getLowestLow().get(id), 0);
             }
         }
         else  if (getParam().getNotionalPosition().get(id) == -1){
             if(ruleHighestHigh||System.currentTimeMillis()>getParam().getEndDate().getTime()){
-                LOGGER.log(Level.INFO,"COVER. Symbol ID={0}", new Object[]{Parameters.symbol.get(id).getSymbol()});
                     getParam().getNotionalPosition().set(id, 0L);
+                    LOGGER.log(Level.INFO,"Cover,Symbol:{0},LL:{1},LastPrice:{2},HH{3},Slope:{4},SlopeThreshold:{5},Volume:{6},VolumeMA:{7}",
+                            new Object[]{Parameters.symbol.get(id).getSymbol()
+                                    ,getParam().getLowestLow().get(id).toString()
+                                    ,Parameters.symbol.get(id).getLastPrice()
+                                    ,getParam().getHighestHigh().get(id).toString()
+                                    ,getParam().getSlope().get(id).toString()
+                                    ,String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * getParam().getVolumeSlopeLongMultiplier() / 375)
+                                    ,getParam().getVolume().get(id).toString()
+                                    ,getParam().getVolumeMA().get(id).toString()
+                               }
+                            );
                 _fireOrderEvent(Parameters.symbol.get(id), OrderSide.COVER,Parameters.symbol.get(id).getMinsize(),Parameters.symbol.get(id).getLastPrice() , Parameters.symbol.get(id).getLastPrice());
             }
             
         } 
         else if (getParam().getNotionalPosition().get(id) == 1){
             if(ruleLowestLow||System.currentTimeMillis()>getParam().getEndDate().getTime()){
-                LOGGER.log(Level.INFO,"SELL. Symbol ID={0}",new Object[]{Parameters.symbol.get(id).getSymbol()});
                     getParam().getNotionalPosition().set(id, 0L);
-                _fireOrderEvent(Parameters.symbol.get(id), OrderSide.SELL,Parameters.symbol.get(id).getMinsize(), Parameters.symbol.get(id).getLastPrice(), Parameters.symbol.get(id).getLastPrice());
+                LOGGER.log(Level.INFO,"Sell,Symbol:{0},LL:{1},LastPrice:{2},HH{3},Slope:{4},SlopeThreshold:{5},Volume:{6},VolumeMA:{7}",
+                            new Object[]{Parameters.symbol.get(id).getSymbol()
+                                    ,getParam().getLowestLow().get(id).toString()
+                                    ,Parameters.symbol.get(id).getLastPrice()
+                                    ,getParam().getHighestHigh().get(id).toString()
+                                    ,getParam().getSlope().get(id).toString()
+                                    ,String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * getParam().getVolumeSlopeLongMultiplier() / 375)
+                                    ,getParam().getVolume().get(id).toString()
+                                    ,getParam().getVolumeMA().get(id).toString()
+                               }
+                            );_fireOrderEvent(Parameters.symbol.get(id), OrderSide.SELL,Parameters.symbol.get(id).getMinsize(), Parameters.symbol.get(id).getLastPrice(), Parameters.symbol.get(id).getLastPrice());
             }
         }        
 

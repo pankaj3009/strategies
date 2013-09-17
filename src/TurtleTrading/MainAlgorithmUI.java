@@ -154,7 +154,7 @@ private void StartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:e
 //1. Add the parameters files to myList variable        
         myList.add("symbols.csv");
         myList.add("connection.csv");
-        loadParam("NewSwing.properties");
+        loadParam("Algo.properties");
         FileInputStream configFile = null;
         configFile = new FileInputStream("logging.properties");
         LogManager.getLogManager().readConfiguration(configFile);

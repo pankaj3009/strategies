@@ -26,7 +26,7 @@ import java.util.logging.Logger;
  *
  * @author pankaj
  */
-public class BeanAlgo implements Serializable {
+public class BeanTurtle implements Serializable {
 
     /**
      * @return the tickSize
@@ -66,19 +66,19 @@ public class BeanAlgo implements Serializable {
     private  String tickSize;
 
     
-    public BeanAlgo() {
+    public BeanTurtle() {
         queueHistRequests=new ConcurrentLinkedQueue(temp);
-                Properties p = new Properties(System.getProperties());
+        Properties p = new Properties(System.getProperties());
         FileInputStream propFile;
             try {
-                propFile = new FileInputStream("NewSwing.properties");
+                propFile = new FileInputStream("Algo.properties");
             try {
                 p.load(propFile);
             } catch (IOException ex) {
-                Logger.getLogger(BeanAlgo.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(BeanTurtle.class.getName()).log(Level.SEVERE, null, ex);
             }
             } catch (FileNotFoundException ex) {
-                Logger.getLogger(BeanAlgo.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(BeanTurtle.class.getName()).log(Level.SEVERE, null, ex);
             }
         System.setProperties(p);
         String currDateStr = DateUtil.getFormatedDate("yyyyMMdd", Parameters.connection.get(0).getConnectionTime());
