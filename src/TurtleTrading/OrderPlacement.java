@@ -240,23 +240,22 @@ public class OrderPlacement implements OrderListener, OrderStatusListener {
         }
     };
     
-     private synchronized void manageTrailingOrders(BeanConnection c, int orderID, int id, int size, OrderSide underlyingSide,double fillprice){
-                    if(orderID>0){
-                        int tempid=c.getOrders().get(orderID).getSymbolID()-1;
-                        logger.log(Level.INFO,"Order Updated. Trailing. Symbol ID={0}",new Object[]{Parameters.symbol.get(tempid)});
-                        updateOrderAmount(c,orderID,size);
-                    }
-                    else {
-                        //place new trailbuy or trailsell order
-                    OrderSide tmpOrderSide = underlyingSide == OrderSide.BUY ? OrderSide.TRAILSELL : OrderSide.TRAILBUY;
-                    double tickSize=Double.parseDouble(a.getParam().getTickSize());
-                    double tmpTrailStop = ((int) (Parameters.symbol.get(id).getTrailstop() *fillprice  / tickSize)) * tickSize;
-                    Order ord =c.getWrapper().createOrder(Math.abs(size), tmpOrderSide, 0, tmpTrailStop, "DAY", 0, true);
-                    Contract con = c.getWrapper().createContract(id);
-                    logger.log(Level.INFO,"Order Placed. Trailing. Symbol ID={0}",new Object[]{Parameters.symbol.get(id).getSymbol()});
-                    c.getWrapper().placeOrder(c, id+1, tmpOrderSide, ord, con);
-                    }
-     }
+    private synchronized void manageTrailingOrders(BeanConnection c, int orderID, int id, int size, OrderSide underlyingSide, double fillprice) {
+        if (orderID > 0) {
+            //int tempid=c.getOrders().get(orderID).getSymbolID()-1;
+            updateOrderAmount(c, orderID, size);
+        } else {
+            //place new trailbuy or trailsell order
+            OrderSide tmpOrderSide = underlyingSide == OrderSide.BUY ? OrderSide.TRAILSELL : OrderSide.TRAILBUY;
+            double tickSize = Double.parseDouble(a.getParam().getTickSize());
+            double tmpTrailStop = ((int) (Parameters.symbol.get(id).getTrailstop() * fillprice / tickSize)) * tickSize;
+            Order ord = c.getWrapper().createOrder(Math.abs(size), tmpOrderSide, 0, tmpTrailStop, "DAY", 0, true);
+            Contract con = c.getWrapper().createContract(id);
+            c.getWrapper().placeOrder(c, id + 1, tmpOrderSide, ord, con);
+        }
+        logger.log(Level.INFO, "Method:{0}, Symbol:{1}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol()});
+
+    }
 
     private synchronized void updateOrderAmount(BeanConnection c,int orderid, int size){
         OrderSide ordSide=c.getOrders().get(orderid).getOrderSide();
@@ -265,7 +264,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener {
         Order ord=new Order();
         ord=c.getWrapper().createOrderFromExisting(c, orderid);
         ord.m_orderId=orderid;
-        ord.m_totalQuantity=size+c.getOrders().get(orderid).getOrderSize();
+        ord.m_totalQuantity=size;
         Contract con=c.getWrapper().createContract(id);
         c.getWrapper().placeOrder(c, id+1, ordSide, ord, con);
         
@@ -355,26 +354,25 @@ public class OrderPlacement implements OrderListener, OrderStatusListener {
     private synchronized boolean updateFilledOrders(BeanConnection c, int id, int orderID, int filled, double avgFillPrice,double lastFillPrice) {
         OrderBean ord = c.getOrders().get(orderID);
         int fill=filled-ord.getFillSize();
-        logger.log(Level.INFO, "Symbol: {0}, Filled in this update: {1},Total Fill={2},Position within Program={3}, Side={4}",new Object[]{Parameters.symbol.get(id),fill,filled,ord.getFillSize(),ord.getOrderSide()});
         ord.setFillSize(filled);
         ord.setFillPrice(avgFillPrice);
         ord.setStatus(EnumOrderStatus.CompleteFilled);
         BeanPosition p=c.getPositions().get(id);
-        
+        logger.log(Level.INFO, "Method:{0},Symbol:{1}, Incremental Fill Reported:{2},Total Fill={3},Position within Program={4}, Side={5}",new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(),Parameters.symbol.get(id).getSymbol(),fill,filled,ord.getFillSize(),ord.getOrderSide()});
+
         //update position
         int origposition = c.getPositions().get(id).getPosition();
         if (c.getOrders().get(orderID).getOrderSide() == OrderSide.SELL || c.getOrders().get(orderID).getOrderSide() == OrderSide.SHORT) {
             fill = -fill;
-            logger.log(Level.INFO,"Reversed fill sign as sell or short. Fill="+fill);
+            logger.log(Level.FINEST,"Reversed fill sign as sell or short. Fill="+fill);
         }
         double realizedPL=(origposition+fill)==0 && origposition!=0 ? -(origposition*p.getPrice()+fill*lastFillPrice):p.getProfit();
         double positionPrice=(origposition+fill)==0?0:(p.getPosition()*p.getPrice()+fill*lastFillPrice)/(origposition+fill);
-        logger.log(Level.INFO,"Symbol:{0},Position:{1},Position Price:{2},Realized P&L:{3}",new Object[]{Parameters.symbol.get(id).getSymbol(),origposition + fill,positionPrice,realizedPL});
+        logger.log(Level.INFO,"Method:{0},Symbol:{1},Position:{2},Position Price:{3},Realized P&L:{4}",new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(),Parameters.symbol.get(id).getSymbol(),origposition + fill,positionPrice,realizedPL});
         p.setPrice(positionPrice);
         p.setProfit(realizedPL);
         p.setPosition(origposition + fill);
         c.getPositions().put(id, p);
-        logger.log(Level.INFO, "Symbol: {0}, Current Position: {1}",new Object[]{Parameters.symbol.get(id).getSymbol(),origposition + fill});
         //update orderid=0 from Symbols HashMap
         ArrayList<Integer> orders = c.getOrdersSymbols().get(id);
         if (orders.size() > 0) {
@@ -436,7 +434,6 @@ public class OrderPlacement implements OrderListener, OrderStatusListener {
         p.setPosition(origposition + fill);
         c.getPositions().put(id, p);
         return true;
-
     }
 
     private synchronized OrderSide reverseLookup(BeanConnection c, ArrayList<Integer> arr, int orderid) {
