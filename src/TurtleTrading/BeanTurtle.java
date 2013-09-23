@@ -64,6 +64,10 @@ public class BeanTurtle implements Serializable {
     private static ArrayList<PendingHistoricalRequests>temp=new ArrayList<PendingHistoricalRequests>();
     private static HashMap<Integer,Integer> BarsCount=new HashMap(); 
     private  String tickSize;
+    private ArrayList<Boolean>breachUpInBar = new ArrayList();
+    private ArrayList<Boolean>breachDownInBar = new ArrayList();
+    private ArrayList<Integer>breachUp = new ArrayList();
+    private ArrayList<Integer>breachDown = new ArrayList();
 
     
     public BeanTurtle() {
@@ -112,7 +116,10 @@ public class BeanTurtle implements Serializable {
             longVolume.add(Parameters.symbol.get(i).getLongvolume());
             shortVolume.add(Parameters.symbol.get(i).getShortvolume());
             notionalPosition.add(0L);
-
+            breachUpInBar.set(i, Boolean.FALSE);
+            breachDownInBar.set(i, Boolean.FALSE);
+            breachUp.set(i, 0);
+            breachDown.set(i, 0);
         }
     }
 
@@ -402,6 +409,62 @@ public class BeanTurtle implements Serializable {
      */
     public void setVolumeSlopeLongMultiplier(double volumeSlopeLongMultiplier) {
         this.volumeSlopeLongMultiplier = volumeSlopeLongMultiplier;
+    }
+
+    /**
+     * @return the breachUpInBar
+     */
+    public ArrayList<Boolean> getBreachUpInBar() {
+        return breachUpInBar;
+    }
+
+    /**
+     * @param breachUpInBar the breachUpInBar to set
+     */
+    public void setBreachUpInBar(ArrayList<Boolean> breachUpInBar) {
+        this.breachUpInBar = breachUpInBar;
+    }
+
+    /**
+     * @return the breachDownInBar
+     */
+    public ArrayList<Boolean> getBreachDownInBar() {
+        return breachDownInBar;
+    }
+
+    /**
+     * @param breachDownInBar the breachDownInBar to set
+     */
+    public void setBreachDownInBar(ArrayList<Boolean> breachDownInBar) {
+        this.breachDownInBar = breachDownInBar;
+    }
+
+    /**
+     * @return the breachUp
+     */
+    public ArrayList<Integer> getBreachUp() {
+        return breachUp;
+    }
+
+    /**
+     * @param breachUp the breachUp to set
+     */
+    public void setBreachUp(ArrayList<Integer> breachUp) {
+        this.breachUp = breachUp;
+    }
+
+    /**
+     * @return the breachDown
+     */
+    public ArrayList<Integer> getBreachDown() {
+        return breachDown;
+    }
+
+    /**
+     * @param breachDown the breachDown to set
+     */
+    public void setBreachDown(ArrayList<Integer> breachDown) {
+        this.breachDown = breachDown;
     }
     
 
