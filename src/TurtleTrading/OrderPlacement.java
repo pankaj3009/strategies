@@ -211,7 +211,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener {
                         int tempID = c.getOrdersToBeRetried().get(key).getSymbolID() - 1;
                         OrderBean ordb = c.getOrdersToBeRetried().get(key);
                         if (System.currentTimeMillis() > key + 60 * 1000) {
-                            temp.add(key);
+                            temp.add(key); //if > 60 seconds have passed then add the key to temp. This record will be deleted from orders to be retried queue.
                         } else if (c.getPositions().get(tempID).getPosition() == 0 && zilchOpenOrders(c, tempID)) {
                             //update temp
                             temp.add(key);
@@ -224,6 +224,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener {
                     }
                     for (long ordersToBeDeleted : temp) {
                         c.getOrdersToBeRetried().remove(ordersToBeDeleted);
+                            logger.log(Level.INFO, "Symbol Deleted from retry attempt. Method:{0}, Symbol:{1}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(),  Parameters.symbol.get(c.getOrdersToBeRetried().get(ordersToBeDeleted).getSymbolID()-1).getSymbol()});
                     }
 
                 }
@@ -378,13 +379,13 @@ public class OrderPlacement implements OrderListener, OrderStatusListener {
         //Delete order from Symbols HashMap
         ArrayList<Integer> orders = c.getOrdersSymbols().get(id);
         if (orders.size() > 0) {
+            int count = 0;
             for (int i : orders) {
                 if (i == orderID) {
-                    orders.remove(i);
+                    orders.set(count, 0);
                     return true;
-                } else {
-                    return false;
                 }
+                count = count + 1;
             }
         }
         return false;

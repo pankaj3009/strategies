@@ -13,6 +13,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFrame;
@@ -40,6 +41,7 @@ public class MainAlgorithm extends Algorithm implements HistoricalBarListener, T
     }
     public MarketData m;
     public final static Logger LOGGER = Logger.getLogger(Algorithm.class.getName());
+    public final static Logger logger=Logger.getLogger("KeyParameters");
     private BeanTurtle param;
     private OrderPlacement ordManagement;
 
@@ -106,7 +108,8 @@ public class MainAlgorithm extends Algorithm implements HistoricalBarListener, T
 
         new RealTimeBars(getParam());
         //BoilerPlate Ends
-
+        FileHandler fileHandler = new FileHandler("myLogFile");
+        logger.addHandler(fileHandler);
         LOGGER.log(Level.FINEST, ",Symbol" + "," + "BarNo" + "," + "HighestHigh" + "," + "LowestLow" + "," + "LastPrice" + "," + "Volume" + "," + "CumulativeVol" + "," + "VolumeSlope" + "," + "MinSlopeReqd" + "," + "MA" + "," + "LongVolume" + "," + "ShortVolume" + "," + "DateTime" + ","
                 + "ruleHighestHigh" + "," + "ruleCumVolumeLong" + "," + "ruleSlopeLong" + "," + "ruleVolumeLong" + "," + "ruleLowestLow" + ","
                 + "ruleCumVolumeShort" + "," + "ruleSlopeShort" + "," + "ruleVolumeShort");
@@ -278,6 +281,20 @@ public class MainAlgorithm extends Algorithm implements HistoricalBarListener, T
                     getParam().getVolumeMA().set(id, stats.getMean());
                     
                 }
+            logger.log(Level.INFO,"{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10}",new Object[]{
+            Parameters.symbol.get(id).getSymbol(),
+            sdfDate.format(event.list().lastEntry().getKey()),
+            getParam().getHighestHigh().get(id).toString(),
+            getParam().getLowestLow().get(id).toString(),
+            getParam().getCumVolume().get(id).get(event.barNumber()-1).toString(),
+            String.valueOf(0.05*Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput())).replace(",", ""),
+            String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput())).replace(",", ""),
+            getParam().getSlope().get(id).toString(),
+            String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * getParam().getVolumeSlopeLongMultiplier() / 375).replace(",", ""),
+            getParam().getVolume().get(id).toString(),
+            getParam().getVolumeMA().get(id).toString()
+                    });
+            
             } else if (event.ohlc().getPeriodicity() == EnumBarSize.Daily) {
                 //update symbol volumes
                 int id = event.getSymbol().getSerialno() - 1;
