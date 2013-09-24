@@ -68,6 +68,7 @@ public class BeanTurtle implements Serializable {
     private ArrayList<Boolean>breachDownInBar = new ArrayList();
     private ArrayList<Integer>breachUp = new ArrayList();
     private ArrayList<Integer>breachDown = new ArrayList();
+    private double exposure=0;
 
     
     public BeanTurtle() {
@@ -102,7 +103,8 @@ public class BeanTurtle implements Serializable {
         volumeSlopeLongMultiplier = Double.parseDouble(System.getProperty("VolSlopeMultLong"));
         //volumeSlopeShortMultipler = Double.parseDouble(System.getProperty("VolSlopeMultLong"));
         regressionLookBack = Integer.parseInt(System.getProperty("RegressionLookBack"));
-
+        exposure = Double.parseDouble(System.getProperty("Exposure"));
+        
         for (int i = 0; i < Parameters.symbol.size(); i++) {
             cumVolume.add(i,new ArrayList<Long>());
             cumVolume.get(i).add(0L);
@@ -116,10 +118,10 @@ public class BeanTurtle implements Serializable {
             longVolume.add(Parameters.symbol.get(i).getLongvolume());
             shortVolume.add(Parameters.symbol.get(i).getShortvolume());
             notionalPosition.add(0L);
-            breachUpInBar.set(i, Boolean.FALSE);
-            breachDownInBar.set(i, Boolean.FALSE);
-            breachUp.set(i, 0);
-            breachDown.set(i, 0);
+            breachUpInBar.add(Boolean.FALSE);
+            breachDownInBar.add(Boolean.FALSE);
+            breachUp.add(0);
+            breachDown.add(0);
         }
     }
 
@@ -465,6 +467,20 @@ public class BeanTurtle implements Serializable {
      */
     public void setBreachDown(ArrayList<Integer> breachDown) {
         this.breachDown = breachDown;
+    }
+
+    /**
+     * @return the exposure
+     */
+    public double getExposure() {
+        return exposure;
+    }
+
+    /**
+     * @param exposure the exposure to set
+     */
+    public void setExposure(double exposure) {
+        this.exposure = exposure;
     }
     
 

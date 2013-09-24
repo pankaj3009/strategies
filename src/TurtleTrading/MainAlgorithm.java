@@ -301,8 +301,10 @@ public class MainAlgorithm extends Algorithm implements HistoricalBarListener, T
             int id = event.getSymbolID(); //here symbolID is with zero base.
             boolean ruleHighestHigh = Parameters.symbol.get(id).getLastPrice() > getParam().getHighestHigh().get(id);
             boolean ruleLowestLow = Parameters.symbol.get(id).getLastPrice() < getParam().getLowestLow().get(id);
-            boolean ruleCumVolumeLong = getParam().getCumVolume().get(id).get(getParam().getCumVolume().get(id).size() - 1) >= getParam().getLongVolume().get(id);
-            boolean ruleCumVolumeShort = getParam().getCumVolume().get(id).get(getParam().getCumVolume().get(id).size() - 1) <= -param.getShortVolume().get(id);
+            //boolean ruleCumVolumeLong = getParam().getCumVolume().get(id).get(getParam().getCumVolume().get(id).size() - 1) >= getParam().getLongVolume().get(id);
+            boolean ruleCumVolumeLong = getParam().getCumVolume().get(id).get(getParam().getCumVolume().get(id).size() - 1) >=0.05* Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput());
+           // boolean ruleCumVolumeShort = getParam().getCumVolume().get(id).get(getParam().getCumVolume().get(id).size() - 1) <= -param.getShortVolume().get(id);
+            boolean ruleCumVolumeShort = getParam().getCumVolume().get(id).get(getParam().getCumVolume().get(id).size() - 1) <= Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput());
             boolean ruleSlopeLong = getParam().getSlope().get(id) > Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * getParam().getVolumeSlopeLongMultiplier() / 375;
             boolean ruleSlopeShort = getParam().getSlope().get(id) < -Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * getParam().getVolumeSlopeLongMultiplier() / 375;
             boolean ruleVolumeLong = getParam().getVolume().get(id) > getParam().getVolumeMA().get(id);
@@ -362,6 +364,9 @@ public class MainAlgorithm extends Algorithm implements HistoricalBarListener, T
     }
 
     private void _fireOrderEvent(BeanSymbol s, OrderSide side, int size, double lmtprice, double triggerprice) {
+        if(getParam().getExposure()!=0){
+            size=(int) (getParam().getExposure()/s.getLastPrice());
+        }
         OrderEvent order = new OrderEvent(this, s, side, size, lmtprice, triggerprice);
         Iterator listeners = _listeners.iterator();
         while (listeners.hasNext()) {
