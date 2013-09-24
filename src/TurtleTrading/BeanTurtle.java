@@ -6,6 +6,7 @@ package TurtleTrading;
 
 import incurrframework.Algorithm;
 import incurrframework.DateUtil;
+import incurrframework.OrderBean;
 import incurrframework.Parameters;
 import incurrframework.PendingHistoricalRequests;
 import java.beans.*;
@@ -69,6 +70,7 @@ public class BeanTurtle implements Serializable {
     private ArrayList<Integer>breachUp = new ArrayList();
     private ArrayList<Integer>breachDown = new ArrayList();
     private double exposure=0;
+    private HashMap <Integer,BeanOutputTurtle> summary= new HashMap <Integer,BeanOutputTurtle>();
 
     
     public BeanTurtle() {
@@ -481,6 +483,20 @@ public class BeanTurtle implements Serializable {
      */
     public void setExposure(double exposure) {
         this.exposure = exposure;
+    }
+
+    /**
+     * @return the summary
+     */
+    public HashMap <Integer,BeanOutputTurtle> getSummary() {
+        return summary;
+    }
+
+    /**
+     * @param summary the summary to set
+     */
+    public void setSummary(HashMap <Integer,BeanOutputTurtle> summary) {
+        this.summary = summary;
     }
     
 

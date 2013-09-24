@@ -61,6 +61,13 @@ public class OrderPlacement implements OrderListener, OrderStatusListener {
                                 Contract con = c.getWrapper().createContract(id);
                                 logger.log(Level.INFO, "Method:{0},Action:Entry Order Placed, Symbol:{1}, Side={2}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getOrderSize()});
                                 int orderid = c.getWrapper().placeOrder(c, id + 1, event.getSide(), ord, con);
+                                BeanOutputTurtle summary=new BeanOutputTurtle();
+                                summary.setPriceEntry(event.getLimitPrice());
+                                summary.setSymbolName(Parameters.symbol.get(id).getSymbol());
+                                summary.setQuantity(event.getOrderSize());
+                                summary.setUpbar(a.getParam().getBreachUp().get(id));
+                                summary.setDownbar(a.getParam().getBreachDown().get(id));
+                                a.getParam().getSummary().put(orderid, summary);
                                 long tempexpire = System.currentTimeMillis() + 3 * 60 * 1000;
                                 c.getOrdersToBeCancelled().put(orderid, tempexpire);
                                 logger.log(Level.FINEST, "Expiration time in object getOrdersToBeCancelled=" + DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", tempexpire));
