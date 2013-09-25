@@ -357,7 +357,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener {
             int count = 0;
             for (int i : orders) {
                 if (i == orderID) {
-                    orders.set(count, 0);
+                    c.getOrdersSymbols().get(id).set(count, 0);
                     return true;
                 }
                 count = count + 1;
@@ -382,7 +382,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener {
             int count = 0;
             for (int i : orders) {
                 if (i == orderID) {
-                    orders.set(count, 0);
+                    c.getOrdersSymbols().get(id).set(count, 0);
                     return true;
                 }
                 count = count + 1;
