@@ -340,12 +340,12 @@ public class MainAlgorithm extends Algorithm implements HistoricalBarListener, T
             });
 
 
-            if (getParam().getNotionalPosition().get(id) == 0 && getParam().getCumVolume().get(id).size() >= getParam().getChannelDuration()) {
-                if (ruleHighestHigh && ruleCumVolumeLong && ruleSlopeLong && ruleVolumeLong && getParam().getEndDate().compareTo(new Date()) > 0) {
-                    //Buy Condition
+           if (getParam().getNotionalPosition().get(id) == 0 && getParam().getCumVolume().get(id).size() >= getParam().getChannelDuration()) {
+            if (ruleHighestHigh && ruleCumVolumeLong && ruleSlopeLong && ruleVolumeLong && getParam().getEndDate().compareTo(new Date()) > 0) {
+                //Buy Condition
                     getParam().getNotionalPosition().set(id, 1L);
                     LOGGER.log(Level.INFO, "Method:{0},Buy. Symbol:{1},LL:{2},LastPrice:{3},HH{4},Slope:{5},SlopeThreshold:{6},Volume:{7},VolumeMA:{8}",
-                            new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), getParam().getLowestLow().get(id).toString(), Parameters.symbol.get(id).getLastPrice(), getParam().getHighestHigh().get(id).toString(), getParam().getSlope().get(id).toString(), String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * getParam().getVolumeSlopeLongMultiplier() / 375), getParam().getVolume().get(id).toString(), getParam().getVolumeMA().get(id).toString()
+                       new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), getParam().getLowestLow().get(id).toString(), Parameters.symbol.get(id).getLastPrice(), getParam().getHighestHigh().get(id).toString(), getParam().getSlope().get(id).toString(), String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * getParam().getVolumeSlopeLongMultiplier() / 375), getParam().getVolume().get(id).toString(), getParam().getVolumeMA().get(id).toString()
                     });
                     _fireOrderEvent(Parameters.symbol.get(id), OrderSide.BUY, Parameters.symbol.get(id).getMinsize(), getParam().getHighestHigh().get(id), 0);
                 } else if (ruleLowestLow && ruleCumVolumeShort && ruleSlopeShort && ruleVolumeShort && getParam().getEndDate().compareTo(new Date()) > 0) {

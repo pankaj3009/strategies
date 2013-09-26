@@ -135,7 +135,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener {
                     if (tmpOrdSide == OrderSide.BUY || tmpOrdSide == OrderSide.SHORT) {
                         manageTrailingOrders(event.getC(), trailBuyOrderID + trailSellOrderID, id, event.getFilled(), tmpOrdSide, event.getAvgFillPrice());
                     }
-                } else if (event.getRemaining() > 0 && event.getAvgFillPrice() > 0) {
+                } else if (event.getRemaining() > 0 && event.getAvgFillPrice() > 0 && !"Cancelled".equals(event.getStatus())) {
                     // partial fill
                     OrderSide tmpOrdSide = reverseLookup(event.getC(), event.getC().getOrdersSymbols().get(id), orderid);
                     updatePartialFills(event.getC(), id, orderid, event.getFilled(), event.getAvgFillPrice(), event.getLastFillPrice());
@@ -144,10 +144,11 @@ public class OrderPlacement implements OrderListener, OrderStatusListener {
                         Integer trailSellOrderID = event.getC().getOrdersSymbols().get(id).get(5);
                         manageTrailingOrders(event.getC(), trailBuyOrderID + trailSellOrderID, id, event.getFilled(), tmpOrdSide, event.getAvgFillPrice());
                     }
-                } else if (event.getStatus() == "Cancelled") {
+                } else if ("Cancelled".equals(event.getStatus())) {
                     //cancelled
                     updateCancelledOrders(event.getC(), id, orderid);
-                } else if (event.getStatus() == "Submitted") {
+                    
+                } else if ("Submitted".equals(event.getStatus())) {
                     updateAcknowledgement(event.getC(), id, orderid);
                 }
             }
@@ -223,8 +224,8 @@ public class OrderPlacement implements OrderListener, OrderStatusListener {
                         }
                     }
                     for (long ordersToBeDeleted : temp) {
+                        logger.log(Level.INFO, "Symbol Deleted from retry attempt. Method:{0}, Symbol:{1}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(),  Parameters.symbol.get(c.getOrdersToBeRetried().get(ordersToBeDeleted).getSymbolID()-1).getSymbol()});
                         c.getOrdersToBeRetried().remove(ordersToBeDeleted);
-                            logger.log(Level.INFO, "Symbol Deleted from retry attempt. Method:{0}, Symbol:{1}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(),  Parameters.symbol.get(c.getOrdersToBeRetried().get(ordersToBeDeleted).getSymbolID()-1).getSymbol()});
                     }
 
                 }
@@ -368,8 +369,8 @@ public class OrderPlacement implements OrderListener, OrderStatusListener {
     }
 
     private synchronized boolean updateCancelledOrders(BeanConnection c, int id, int orderID) {
-        OrderBean ord = c.getOrders().get(id);
-        c.getOrders().get(orderID).setCancelRequested(false);
+        OrderBean ord = c.getOrders().get(orderID);
+        ord.setCancelRequested(false);
         if (ord.getFillSize() > 0) {
             ord.setStatus(EnumOrderStatus.CancelledPartialFill);
         } else {
