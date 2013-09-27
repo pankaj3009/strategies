@@ -341,7 +341,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener {
 
         //update position
         int origposition = c.getPositions().get(id).getPosition();
-        if (c.getOrders().get(orderID).getOrderSide() == OrderSide.SELL || c.getOrders().get(orderID).getOrderSide() == OrderSide.SHORT) {
+        if (c.getOrders().get(orderID).getOrderSide() == OrderSide.SELL || c.getOrders().get(orderID).getOrderSide() == OrderSide.SHORT ||c.getOrders().get(orderID).getOrderSide() == OrderSide.TRAILSELL) {
             fill = -fill;
             logger.log(Level.FINEST, "Reversed fill sign as sell or short. Fill=" + fill);
         }
