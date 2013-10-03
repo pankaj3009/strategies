@@ -318,6 +318,7 @@ public class MainAlgorithm extends Algorithm implements HistoricalBarListener, T
     public synchronized void tradeReceived(TradeEvent event) {
         try {
             int id = event.getSymbolID(); //here symbolID is with zero base.
+            boolean tradeable=Integer.parseInt(Parameters.symbol.get(id).getAdditionalInput())/(Parameters.symbol.get(id).getMinsize()*375)>6;
             boolean ruleHighestHigh = Parameters.symbol.get(id).getLastPrice() > getParam().getHighestHigh().get(id);
             boolean ruleLowestLow = Parameters.symbol.get(id).getLastPrice() < getParam().getLowestLow().get(id);
             //boolean ruleCumVolumeLong = getParam().getCumVolume().get(id).get(getParam().getCumVolume().get(id).size() - 1) >= getParam().getLongVolume().get(id);
@@ -340,7 +341,7 @@ public class MainAlgorithm extends Algorithm implements HistoricalBarListener, T
             });
 
 
-           if (getParam().getNotionalPosition().get(id) == 0 && getParam().getCumVolume().get(id).size() >= getParam().getChannelDuration()) {
+           if (tradeable && getParam().getNotionalPosition().get(id) == 0 && getParam().getCumVolume().get(id).size() >= getParam().getChannelDuration()) {
             if (ruleHighestHigh && ruleCumVolumeLong && ruleSlopeLong && ruleVolumeLong && getParam().getEndDate().compareTo(new Date()) > 0) {
                 //Buy Condition
                     getParam().getNotionalPosition().set(id, 1L);
