@@ -343,7 +343,7 @@ public class MainAlgorithm extends Algorithm implements HistoricalBarListener, T
             });
 
 
-           if (getParam().getNotionalPosition().get(id) == 0 && getParam().getCumVolume().get(id).size() >= getParam().getChannelDuration()) {
+           if (tradeable && getParam().getNotionalPosition().get(id) == 0 && getParam().getCumVolume().get(id).size() >= getParam().getChannelDuration()) {
             if (ruleHighestHigh && ruleCumVolumeLong && ruleSlopeLong && ruleVolumeLong && getParam().getEndDate().compareTo(new Date()) > 0 && breachup>0.5) {
                 //Buy Condition
                     getParam().getNotionalPosition().set(id, 1L);
