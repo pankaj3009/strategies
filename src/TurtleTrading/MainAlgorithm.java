@@ -138,6 +138,7 @@ public class MainAlgorithm extends Algorithm implements HistoricalBarListener, T
                 int id = event.getSymbol().getSerialno() - 1;
                 getParam().getClose().set(id, event.ohlc().getClose());
                 int barno = event.barNumber();
+                logger.log(Level.INFO,"{0},{1},{2},{3},{4},{5},{6}",new Object[]{Parameters.symbol.get(id).getSymbol(),DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", event.ohlc().getOpenTime()),event.ohlc().getOpen(),event.ohlc().getHigh(),event.ohlc().getLow(),event.ohlc().getClose(),event.ohlc().getVolume()});
                 LOGGER.log(Level.FINEST, "Bar No:{0}, Date={1}, Symbol:{2},FirstBarTime:{3}, LastBarTime:{4}, LastKey-FirstKey:{5}",
                         new Object[]{barno, DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", event.ohlc().getOpenTime()), Parameters.symbol.get(id).getSymbol(), DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", event.list().firstKey()), DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", event.list().lastKey()), (event.list().lastKey() - event.list().firstKey()) / (1000 * 60)});
                 //Set cumVolume
