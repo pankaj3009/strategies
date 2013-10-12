@@ -71,7 +71,8 @@ public class BeanTurtle implements Serializable {
     private ArrayList<Integer>breachDown = new ArrayList();
     private double exposure=0;
     private HashMap <Integer,BeanOutputTurtle> summary= new HashMap <Integer,BeanOutputTurtle>();
-
+    private int startBars;
+    private int display;
     
     public BeanTurtle() {
         queueHistRequests=new ConcurrentLinkedQueue(temp);
@@ -106,6 +107,8 @@ public class BeanTurtle implements Serializable {
         //volumeSlopeShortMultipler = Double.parseDouble(System.getProperty("VolSlopeMultLong"));
         regressionLookBack = Integer.parseInt(System.getProperty("RegressionLookBack"));
         exposure = Double.parseDouble(System.getProperty("Exposure"));
+        startBars=Integer.parseInt(System.getProperty("StartBars"));
+        display=Integer.parseInt(System.getProperty("Display"));
         
         for (int i = 0; i < Parameters.symbol.size(); i++) {
             cumVolume.add(i,new ArrayList<Long>());
@@ -497,6 +500,34 @@ public class BeanTurtle implements Serializable {
      */
     public void setSummary(HashMap <Integer,BeanOutputTurtle> summary) {
         this.summary = summary;
+    }
+
+    /**
+     * @return the startBars
+     */
+    public int getStartBars() {
+        return startBars;
+    }
+
+    /**
+     * @param startBars the startBars to set
+     */
+    public void setStartBars(int startBars) {
+        this.startBars = startBars;
+    }
+
+    /**
+     * @return the display
+     */
+    public int getDisplay() {
+        return display;
+    }
+
+    /**
+     * @param display the display to set
+     */
+    public void setDisplay(int display) {
+        this.display = display;
     }
     
 

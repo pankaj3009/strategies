@@ -319,8 +319,8 @@ public class MainAlgorithm extends Algorithm implements HistoricalBarListener, T
     public synchronized void tradeReceived(TradeEvent event) {
         try {
             int id = event.getSymbolID(); //here symbolID is with zero base.
-            boolean tradeable=Integer.parseInt(Parameters.symbol.get(id).getAdditionalInput())/(Parameters.symbol.get(id).getMinsize()*375)>6;
-            if(getParam().getExposure()!=0){
+            boolean tradeable=Integer.parseInt(Parameters.symbol.get(id).getAdditionalInput())/(Parameters.symbol.get(id).getMinsize()*375)>6 && getParam().getCumVolume().get(id).size()>getParam().getStartBars() ;
+            if(getParam().getExposure()!=0 && getParam().getCumVolume().get(id).size()>getParam().getStartBars() ){
                 tradeable=true;
             }
             boolean ruleHighestHigh = Parameters.symbol.get(id).getLastPrice() > getParam().getHighestHigh().get(id);
