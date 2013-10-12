@@ -12,19 +12,25 @@ package TurtleTrading;
 
 import incurrframework.Parameters;
 import incurrframework.BeanSymbol;
+import incurrframework.OrderBean;
 import java.beans.XMLEncoder;
 import java.io.BufferedOutputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import javax.swing.*;
+import org.supercsv.io.CsvBeanWriter;
+import org.supercsv.prefs.CsvPreference;
 
 /**
  *
@@ -51,6 +57,7 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
         Start = new javax.swing.JButton();
         OutputTable = new javax.swing.JScrollPane();
         DataTable = new javax.swing.JTable();
+        ordStatus = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Swing");
@@ -75,14 +82,23 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
         ));
         OutputTable.setViewportView(DataTable);
 
+        ordStatus.setText("Order Status");
+        ordStatus.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                ordStatusActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap(270, Short.MAX_VALUE)
+                .addContainerGap(248, Short.MAX_VALUE)
                 .addComponent(Start)
-                .addGap(409, 409, 409))
+                .addGap(18, 18, 18)
+                .addComponent(ordStatus)
+                .addGap(318, 318, 318))
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(OutputTable, javax.swing.GroupLayout.PREFERRED_SIZE, 700, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -92,7 +108,9 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGap(24, 24, 24)
-                .addComponent(Start)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(Start)
+                    .addComponent(ordStatus))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(OutputTable, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
@@ -125,6 +143,29 @@ private void StartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:e
         
 }//GEN-LAST:event_StartActionPerformed
 
+    private void ordStatusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ordStatusActionPerformed
+         FileWriter file;
+       try {
+           file = new FileWriter("orders.csv", true);
+           String[] header = new String[] {
+                "symbolID", "orderID", "orderSide", "orderType",
+                "status", "orderSize", "fillSize", "cancelRequested", "positionsize", "limitPrice",
+                "triggerPrice","orderValidity","expireTime"};
+           CsvBeanWriter writer = new CsvBeanWriter(file, CsvPreference.EXCEL_PREFERENCE);
+             for (Map.Entry<Integer,OrderBean> orders : Parameters.connection.get(algo.getParam().getDisplay()).getOrders().entrySet()) {
+                 writer.write(orders.getValue(), header,Parameters.getOrderProcessors());
+             }
+           
+       } catch (IOException ex) {
+           Logger.getLogger(MainAlgorithmUI.class.getName()).log(Level.SEVERE, null, ex);
+       }
+        
+
+        
+    }//GEN-LAST:event_ordStatusActionPerformed
+
+    
+    
     /**
      * @param args the command line arguments
      */
@@ -185,5 +226,6 @@ private void StartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:e
     private javax.swing.JTable DataTable;
     private javax.swing.JScrollPane OutputTable;
     private javax.swing.JButton Start;
+    private javax.swing.JButton ordStatus;
     // End of variables declaration//GEN-END:variables
 }
