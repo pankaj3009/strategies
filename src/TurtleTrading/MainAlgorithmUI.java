@@ -55,9 +55,10 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
     private void initComponents() {
 
         Start = new javax.swing.JButton();
-        OutputTable = new javax.swing.JScrollPane();
-        DataTable = new javax.swing.JTable();
         ordStatus = new javax.swing.JButton();
+        cmdLong = new javax.swing.JButton();
+        cmdShort = new javax.swing.JButton();
+        cmdBoth = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Swing");
@@ -69,23 +70,31 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
             }
         });
 
-        DataTable.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null}
-            },
-            new String [] {
-                "Title 1", "Title 2", "Title 3", "Title 4"
-            }
-        ));
-        OutputTable.setViewportView(DataTable);
-
         ordStatus.setText("Order Status");
         ordStatus.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 ordStatusActionPerformed(evt);
+            }
+        });
+
+        cmdLong.setText("Long only");
+        cmdLong.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cmdLongActionPerformed(evt);
+            }
+        });
+
+        cmdShort.setText("Short Only");
+        cmdShort.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cmdShortActionPerformed(evt);
+            }
+        });
+
+        cmdBoth.setText("Both");
+        cmdBoth.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cmdBothActionPerformed(evt);
             }
         });
 
@@ -100,9 +109,14 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
                 .addComponent(ordStatus)
                 .addGap(318, 318, 318))
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(OutputTable, javax.swing.GroupLayout.PREFERRED_SIZE, 700, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(56, Short.MAX_VALUE))
+                .addGap(59, 59, 59)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(cmdBoth, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(cmdLong)
+                        .addGap(18, 18, 18)
+                        .addComponent(cmdShort)))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -111,9 +125,13 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(Start)
                     .addComponent(ordStatus))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(OutputTable, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(cmdLong)
+                    .addComponent(cmdShort))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(cmdBoth)
+                .addContainerGap(381, Short.MAX_VALUE))
         );
 
         pack();
@@ -133,7 +151,7 @@ private void StartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:e
        encoder2.writeObject(Parameters.connection);
        encoder2.close();
        encoder3 = new XMLEncoder(new BufferedOutputStream(new FileOutputStream("param.xml")));
-       encoder3.writeObject(algo.getParam());
+       encoder3.writeObject(algo.getParamTurtle());
        encoder3.close();
        } catch (FileNotFoundException ex) {
            Logger.getLogger(MainAlgorithmUI.class.getName()).log(Level.SEVERE, null, ex);
@@ -149,12 +167,13 @@ private void StartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:e
            file = new FileWriter("orders.csv", true);
            String[] header = new String[] {
                 "symbolID", "orderID", "orderSide", "orderType",
-                "status", "orderSize", "fillSize", "cancelRequested", "positionsize", "limitPrice",
-                "triggerPrice","orderValidity","expireTime"};
+                "status", "orderSize", "fillSize", "fillPrice","cancelRequested", "positionsize", "limitPrice",
+                "triggerPrice","orderValidity","expireTime","orderReference","exitLogic"};
            CsvBeanWriter writer = new CsvBeanWriter(file, CsvPreference.EXCEL_PREFERENCE);
-             for (Map.Entry<Integer,OrderBean> orders : Parameters.connection.get(algo.getParam().getDisplay()).getOrders().entrySet()) {
+             for (Map.Entry<Integer,OrderBean> orders : Parameters.connection.get(algo.getParamTurtle().getDisplay()).getOrders().entrySet()) {
                  writer.write(orders.getValue(), header,Parameters.getOrderProcessors());
              }
+             writer.close();
            
        } catch (IOException ex) {
            Logger.getLogger(MainAlgorithmUI.class.getName()).log(Level.SEVERE, null, ex);
@@ -163,6 +182,21 @@ private void StartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:e
 
         
     }//GEN-LAST:event_ordStatusActionPerformed
+
+    private void cmdLongActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdLongActionPerformed
+        algo.getParamTurtle().setLongOnly(true);
+        algo.getParamTurtle().setShortOnly(false);
+    }//GEN-LAST:event_cmdLongActionPerformed
+
+    private void cmdShortActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdShortActionPerformed
+        algo.getParamTurtle().setLongOnly(false);
+        algo.getParamTurtle().setShortOnly(true);
+    }//GEN-LAST:event_cmdShortActionPerformed
+
+    private void cmdBothActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdBothActionPerformed
+        algo.getParamTurtle().setLongOnly(true);
+        algo.getParamTurtle().setShortOnly(true);
+    }//GEN-LAST:event_cmdBothActionPerformed
 
     
     
@@ -195,7 +229,7 @@ private void StartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:e
 //1. Add the parameters files to myList variable        
         myList.add("symbols.csv");
         myList.add("connection.csv");
-        loadParam("Algo.properties");
+//        loadParam("Algo.properties");
         FileInputStream configFile = null;
         configFile = new FileInputStream("logging.properties");
         LogManager.getLogManager().readConfiguration(configFile);
@@ -223,9 +257,10 @@ private void StartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:e
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JTable DataTable;
-    private javax.swing.JScrollPane OutputTable;
     private javax.swing.JButton Start;
+    private javax.swing.JButton cmdBoth;
+    private javax.swing.JButton cmdLong;
+    private javax.swing.JButton cmdShort;
     private javax.swing.JButton ordStatus;
     // End of variables declaration//GEN-END:variables
 }

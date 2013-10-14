@@ -10,6 +10,8 @@ import incurrframework.DateUtil;
 import incurrframework.EnumBarSize;
 import incurrframework.HistoricalBarEvent;
 import incurrframework.HistoricalBarListener;
+import incurrframework.OrderBean;
+import incurrframework.OrderSide;
 import incurrframework.Parameters;
 import incurrframework.TradeEvent;
 import incurrframework.TradeListner;
@@ -31,11 +33,14 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.HashMap;
+import java.util.List;
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 /**
  *
  * @author pankaj
  */
-public class BeanGuds implements Serializable, HistoricalBarListener, TradeListner {
+public class BeanGuds implements Serializable, TradeListner {
     
     public static final String PROP_SAMPLE_PROPERTY = "sampleProperty";
     private String sampleProperty;
@@ -45,19 +50,23 @@ public class BeanGuds implements Serializable, HistoricalBarListener, TradeListn
     private ArrayList<Double> high = new <Double> ArrayList();  //algo parameter 
     private ArrayList<Double> lowThreshold = new <Double> ArrayList();  //algo parameter 
     private ArrayList<Double> highThreshold = new <Double> ArrayList();  //algo parameter 
+//    private HashMap<String,ArrayList<Double>> histClose = new HashMap<String,ArrayList<Double>>();
+//    private HashMap<String,ArrayList<Long>> histVolume = new HashMap<String,ArrayList<Long>>();//algo parameter 
     
+    private MainAlgorithm m;
     private Date startDate;
     private Date endDate;
     private OrderPlacement ordManagement;
     private final static Logger logger = Logger.getLogger(Algorithm.class.getName());
     private ArrayList<Boolean> openPrice;
     
-    public BeanGuds() {
+    public BeanGuds(MainAlgorithm m) {
+        this.m=m;
         propertySupport = new PropertyChangeSupport(this);
         Properties p = new Properties(System.getProperties());
         FileInputStream propFile;
             try {
-                propFile = new FileInputStream("Algo.properties");
+                propFile = new FileInputStream("Guds.properties");
             try {
                 p.load(propFile);
             } catch (IOException ex) {
@@ -86,10 +95,99 @@ public class BeanGuds implements Serializable, HistoricalBarListener, TradeListn
             high.add(Double.MAX_VALUE);
             lowThreshold.add(Double.MIN_VALUE);
             highThreshold.add(Double.MAX_VALUE);
-            Parameters.symbol.get(i).getDailyBar().addHistoricalBarListener(this);
+//            histClose.put(Parameters.symbol.get(i).getSymbol()+"_FUT",new ArrayList<Double>());
+//            histVolume.put(Parameters.symbol.get(i).getSymbol()+"_FUT",new ArrayList<Long>());
+            
         }
         Parameters.addTradeListener(this);
+        try {
+            Class.forName("com.mysql.jdbc.Driver");
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(BeanGuds.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        calculateSD();
+        int i=0;
     }
+    
+    private void calculateSD(){
+        Connection connect = null;
+        Statement statement = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet rs = null;
+        
+        
+        try {
+            
+            connect = DriverManager.getConnection("jdbc:mysql://localhost:3306/histdata","root","spark123");
+             //statement = connect.createStatement();
+        for(int j=0;j<Parameters.symbol.size();j++){
+            String name=Parameters.symbol.get(j).getSymbol()+"_FUT";
+        preparedStatement = connect.prepareStatement("select * from dharasymb where name=? order by date asc");
+        preparedStatement.setString(1, name);
+        rs = preparedStatement.executeQuery();
+        //parse and create one minute bars
+        Date priorDate=null;
+        Long volume=0L;
+        Double close=0D;
+        Double high=Double.MIN_VALUE;
+        Double low=Double.MAX_VALUE;
+        ArrayList<Double> returns = new ArrayList<Double>();
+        ArrayList<Double> histclose = new ArrayList<Double>();
+        ArrayList<Double> histlow = new ArrayList<Double>();
+        ArrayList<Double> histhigh = new ArrayList<Double>();
+        ArrayList<Long> histvolume = new ArrayList<Long>();
+        System.out.println("Symbol:"+Parameters.symbol.get(j).getSymbol());
+        while (rs.next()) {
+            priorDate=priorDate==null?rs.getDate("date"):priorDate;
+            //String name = rs.getString("name");
+            Date date = rs.getDate("date");
+            Date datetime=rs.getTimestamp("date");
+            if (date.compareTo(priorDate)>0 && date.compareTo(DateUtil.addDays(new Date(), -150))>0){
+                //new bar has started
+                priorDate=date;
+                String formattedDate=DateUtil.getFormatedDate("yyyyMMdd hh:mm:ss", datetime.getTime());
+                histclose.add(close);
+                histlow.add(low);
+                histhigh.add(high);
+                if(histclose.size()>1){
+                returns.add((close-histclose.get(histclose.size()-2))/histclose.get(histclose.size()-2));
+                }
+                histvolume.add(volume);
+                volume=rs.getLong("volume");
+
+            } else
+            {
+                volume=volume+rs.getLong("volume");
+                close=rs.getDouble("tickclose");
+                high=rs.getDouble("high");
+                low=rs.getDouble("low");
+            }            
+        }
+        rs.close();
+        List<Double> sublist = (List) returns.subList(returns.size() - 90, returns.size());
+                double[] sample = new double[sublist.size()];
+                int i = 0;
+                DescriptiveStatistics stats = new DescriptiveStatistics();
+                for (double value : sublist) {
+                    sample[i] = value;
+                    stats.addValue(value);
+                    i = i + 1;
+                }
+    //            StandardDeviation std = new StandardDeviation();
+      //          std.evaluate(sample);
+                //std.getResult();
+                standardDev.set(j, stats.getStandardDeviation());
+                low=histlow.get(histlow.size()-1);
+                high=histhigh.get(histhigh.size()-1);
+                lowThreshold.set(j, low*(1-standardDev.get(j)));
+                highThreshold.set(j, high*(1+standardDev.get(j)));
+        }
+        } catch (SQLException ex) {
+            Logger.getLogger(BeanGuds.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    
+
+    }   
     
     public String getSampleProperty() {
         return sampleProperty;
@@ -110,58 +208,19 @@ public class BeanGuds implements Serializable, HistoricalBarListener, TradeListn
     }
 
     @Override
-    public void barsReceived(HistoricalBarEvent event) {
-       try {
-            if (event.ohlc().getPeriodicity() == EnumBarSize.Daily && event.ohlc().getOpenTime() == 0L) {
-                //Last Bar. Calculate standard deviation
-                //1. Calculate Daily Returns
-                ArrayList<Double> returns = new ArrayList<Double>();
-                double priorClose = 0;
-                for (Map.Entry<Long, BeanOHLC> entry : event.list().entrySet()) {
-                    if (entry.getKey() == event.list().firstKey()) {
-                        //first entry. Ignore.
-                        priorClose = entry.getValue().getClose();
-                    } else {
-                        returns.add((entry.getValue().getClose() - priorClose) / priorClose);
-                    }
-                }
-                //getsublist
-                ArrayList<Double> sublist = (ArrayList) returns.subList(returns.size() - 90, returns.size());
-                double[] sample = new double[sublist.size()];
-                int i = 0;
-                for (double value : sublist) {
-                    sample[i] = value;
-                    i = i + 1;
-                }
-                StandardDeviation std = new StandardDeviation();
-                std.evaluate(sample);
-                std.getResult();
-                int id=event.getSymbol().getSerialno() - 1;
-                standardDev.set(id, std.getResult());
-                high.set(id,event.list().lastEntry().getValue().getHigh());
-                low.set(id,event.list().lastEntry().getValue().getLow());
-                lowThreshold.set(id, low.get(id)*(1-standardDev.get(id)));
-                highThreshold.set(id, low.get(id)*(1+standardDev.get(id)));
-            }
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "{0} Symbol: {1}", new Object[]{e.toString(), event.getSymbol().getSymbol()});
-        }
-    }
-
-    @Override
     public void tradeReceived(TradeEvent event) {
         int id = event.getSymbolID()-1; //here symbolID is with zero base.
         double lastPrice=Parameters.symbol.get(id).getLastPrice();
-  //      double bidPrice=Parameters.symbol.get(id).getBidPrice();
-  //      double askPrice=Parameters.symbol.get(id).getAskPrice();
         if(!openPrice.get(id)){ //do if this is the open price
             openPrice.set(id, Boolean.TRUE);
             //Short Signal
-            if (lastPrice>highThreshold.get(id)){ 
-                
+            if (lastPrice>highThreshold.get(id)||Parameters.symbol.get(id).getOpenPrice()>highThreshold.get(id)){ 
+                m.fireOrderEvent(Parameters.symbol.get(id), OrderSide.SHORT, Parameters.symbol.get(id).getMinsize(), Math.round(highThreshold.get(id)), 0,"GUDS",3);
+
             }
             //Buy Signal
-             if (lastPrice<lowThreshold.get(id)){ 
+            if (lastPrice<highThreshold.get(id)||Parameters.symbol.get(id).getOpenPrice()<highThreshold.get(id)){ 
+                m.fireOrderEvent(Parameters.symbol.get(id), OrderSide.BUY, Parameters.symbol.get(id).getMinsize(), Math.round(highThreshold.get(id)), 0,"GUDS",3);
                 
             }
             
@@ -209,5 +268,19 @@ public class BeanGuds implements Serializable, HistoricalBarListener, TradeListn
      */
     public void setHighThreshold(ArrayList<Double> highThreshold) {
         this.highThreshold = highThreshold;
+    }
+
+    /**
+     * @return the m
+     */
+    public MainAlgorithm getM() {
+        return m;
+    }
+
+    /**
+     * @param m the m to set
+     */
+    public void setM(MainAlgorithm m) {
+        this.m = m;
     }
 }
