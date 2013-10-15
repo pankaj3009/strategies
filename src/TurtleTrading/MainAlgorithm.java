@@ -96,9 +96,7 @@ public class MainAlgorithm extends Algorithm  {
 
         new RealTimeBars(getParamTurtle());
         //BoilerPlate Ends
-        FileHandler fileHandler = new FileHandler("myLogFile");
-        logger.addHandler(fileHandler);
-        logger.setUseParentHandlers(false);
+
         
         LOGGER.log(Level.FINEST, ",Symbol" + "," + "BarNo" + "," + "HighestHigh" + "," + "LowestLow" + "," + "LastPrice" + "," + "Volume" + "," + "CumulativeVol" + "," + "VolumeSlope" + "," + "MinSlopeReqd" + "," + "MA" + "," + "LongVolume" + "," + "ShortVolume" + "," + "DateTime" + ","
                 + "ruleHighestHigh" + "," + "ruleCumVolumeLong" + "," + "ruleSlopeLong" + "," + "ruleVolumeLong" + "," + "ruleLowestLow" + ","

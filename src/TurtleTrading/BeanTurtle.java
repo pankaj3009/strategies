@@ -35,6 +35,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
@@ -155,6 +156,18 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
             Parameters.symbol.get(i).getDailyBar().addHistoricalBarListener(this);
         }
         Parameters.addTradeListener(this);
+         FileHandler fileHandler;
+         
+        try {
+            fileHandler = new FileHandler("myLogFile");
+         logger.addHandler(fileHandler);
+        logger.setUseParentHandlers(false);
+
+        } catch (IOException ex) {
+            Logger.getLogger(BeanTurtle.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SecurityException ex) {
+            Logger.getLogger(BeanTurtle.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     @Override
@@ -171,18 +184,21 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
                         new Object[]{barno, DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", event.ohlc().getOpenTime()), Parameters.symbol.get(id).getSymbol(), DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", event.list().firstKey()), DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", event.list().lastKey()), (event.list().lastKey() - event.list().firstKey()) / (1000 * 60)});
                 //Was there a need to have a position, but no position exists?
                 if (exPriceBarLong.get(id) && this.getNotionalPosition().get(id) == 0L && event.ohlc().getHigh() > highestHigh.get(id)) {
-                    //place buy order as the last bar had a higher high and other conditions were met. 
+                    //place buy order as the last bar had a higher high and other conditions were met.
+                     LOGGER.log(Level.INFO, "Method:{0},Buy Order.Symbol:{1}",new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol()});
                     generateOrders(id, true, false, true, false, true, false, true, false);
                 } else if (exPriceBarShort.get(id) && this.getNotionalPosition().get(id) == 0L && event.ohlc().getLow() < lowestLow.get(id)) {
                     //place sell order as the last bar had a lower low and other conditions were met.
-                    generateOrders(id, false, true, false, true, false, true, false, true);
+                     LOGGER.log(Level.INFO, "Method:{0},Short Order.Symbol:{1}",new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol()});                    generateOrders(id, false, true, false, true, false, true, false, true);
                     //generateOrders(id, ruleHighestHigh, ruleLowestLow, ruleCumVolumeLong, ruleCumVolumeShort, ruleSlopeLong, ruleSlopeShort, ruleVolumeLong, ruleVolumeShort);
                 }
                 //Similarly, check for squareoffs that were missed
                  if (this.getNotionalPosition().get(id) == 1L && event.ohlc().getLow() < lowestLow.get(id)) {
-                 generateOrders(id, false, true, false, false, false, false, false, false);
+                      LOGGER.log(Level.INFO, "Method:{0},Sell Order.Symbol:{1}",new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol()});
+                     generateOrders(id, false, true, false, false, false, false, false, false);
                  } else if (this.getNotionalPosition().get(id) == -1L && event.ohlc().getHigh() > highestHigh.get(id)) {
-                 generateOrders(id, true, false, false, false, false, false, false, false);
+                     LOGGER.log(Level.INFO, "Method:{0},Cover Order.Symbol:{1}",new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol()});
+                     generateOrders(id, true, false, false, false, false, false, false, false);
                  }
                  
                 //Set cumVolume
@@ -656,14 +672,14 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
     /**
      * @return the notionalPosition
      */
-    public ArrayList<Long> getNotionalPosition() {
+    public synchronized ArrayList<Long> getNotionalPosition() {
         return notionalPosition;
     }
 
     /**
      * @param notionalPosition the notionalPosition to set
      */
-    public void setNotionalPosition(ArrayList<Long> notionalPosition) {
+    public synchronized void setNotionalPosition(ArrayList<Long> notionalPosition) {
         this.notionalPosition = notionalPosition;
     }
 

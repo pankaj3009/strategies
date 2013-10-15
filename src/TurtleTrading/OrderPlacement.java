@@ -68,6 +68,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener {
                             else {
                                 logger.log(Level.INFO, "Method:{0},Action:Open Orders Being Cancelled before Entry, Symbol:{1}, Side={2}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getOrderSize()});
                                 cancelOpenOrders(c, id, event.getOrdReference());
+                                 logger.log(Level.INFO, "Method:{0},Entry order received while orders were still active with zero position.Symbol:{1}",new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol()});
                                 //Introduce Logic: Place orders when cancelation is successful
                                 OrderBean ord = new OrderBean();
                                 ord.setSymbolID(id + 1);
@@ -109,9 +110,11 @@ public class OrderPlacement implements OrderListener, OrderStatusListener {
                             }
                         } else if (event.getSide() == OrderSide.BUY || event.getSide() == OrderSide.SHORT) {
                             //This will happen if an earlier squareoff order is still not filled and we get a new entry
+                            logger.log(Level.INFO, "Method:{0},Entry order received while position was not zero.Symbol:{1}",new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol()});
                             cancelOpenOrders(c, id, event.getOrdReference());
                             squareAllPositions(c, id, event.getOrdReference());
                             //Introduce Logic: Place orders when cancelation is successful
+                            
                             OrderBean ord = new OrderBean();
                             ord.setSymbolID(id + 1);
                             ord.setOrderSize(event.getOrderSize());
