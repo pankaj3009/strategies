@@ -59,6 +59,7 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
         cmdLong = new javax.swing.JButton();
         cmdShort = new javax.swing.JButton();
         cmdBoth = new javax.swing.JButton();
+        cmdPause = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Swing");
@@ -98,6 +99,13 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
             }
         });
 
+        cmdPause.setText("Pause Trading");
+        cmdPause.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cmdPauseActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -111,11 +119,13 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addGap(59, 59, 59)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(cmdBoth, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(cmdLong)
-                        .addGap(18, 18, 18)
-                        .addComponent(cmdShort)))
+                    .addComponent(cmdPause, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                        .addComponent(cmdBoth, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGroup(layout.createSequentialGroup()
+                            .addComponent(cmdLong)
+                            .addGap(18, 18, 18)
+                            .addComponent(cmdShort))))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -131,7 +141,9 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
                     .addComponent(cmdShort))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(cmdBoth)
-                .addContainerGap(381, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(cmdPause)
+                .addContainerGap(347, Short.MAX_VALUE))
         );
 
         pack();
@@ -198,6 +210,11 @@ private void StartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:e
         algo.getParamTurtle().setShortOnly(true);
     }//GEN-LAST:event_cmdBothActionPerformed
 
+    private void cmdPauseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdPauseActionPerformed
+        algo.getParamTurtle().setLongOnly(false);
+        algo.getParamTurtle().setShortOnly(false);
+    }//GEN-LAST:event_cmdPauseActionPerformed
+
     
     
     /**
@@ -260,6 +277,7 @@ private void StartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:e
     private javax.swing.JButton Start;
     private javax.swing.JButton cmdBoth;
     private javax.swing.JButton cmdLong;
+    private javax.swing.JButton cmdPause;
     private javax.swing.JButton cmdShort;
     private javax.swing.JButton ordStatus;
     // End of variables declaration//GEN-END:variables

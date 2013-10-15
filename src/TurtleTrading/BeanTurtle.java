@@ -808,28 +808,28 @@ public class BeanTurtle implements Serializable,HistoricalBarListener, TradeList
     /**
      * @return the longOnly
      */
-    public Boolean getLongOnly() {
+    public synchronized Boolean getLongOnly() {
         return longOnly;
     }
 
     /**
      * @param longOnly the longOnly to set
      */
-    public void setLongOnly(Boolean longOnly) {
+    public synchronized void setLongOnly(Boolean longOnly) {
         this.longOnly = longOnly;
     }
 
     /**
      * @return the shortOnly
      */
-    public Boolean getShortOnly() {
+    public synchronized Boolean getShortOnly() {
         return shortOnly;
     }
 
     /**
      * @param shortOnly the shortOnly to set
      */
-    public void setShortOnly(Boolean shortOnly) {
+    public synchronized void setShortOnly(Boolean shortOnly) {
         this.shortOnly = shortOnly;
     }
 

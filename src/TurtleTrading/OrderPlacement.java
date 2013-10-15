@@ -137,7 +137,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener {
                     updateFilledOrders(event.getC(), id, orderid, event.getFilled(), event.getAvgFillPrice(), event.getLastFillPrice());
                     event.getC().getOrdersInProgress().remove(new Integer(orderid));
                     if (tmpOrdSide == OrderSide.BUY || tmpOrdSide == OrderSide.SHORT) {
-                        manageTrailingOrders(event.getC(), trailBuyOrderID + trailSellOrderID, id, event.getFilled(), tmpOrdSide, event.getAvgFillPrice(),ob.getOrderReference());
+                        //manageTrailingOrders(event.getC(), trailBuyOrderID + trailSellOrderID, id, event.getFilled(), tmpOrdSide, event.getAvgFillPrice(),ob.getOrderReference());
                     }
                     
                 } else if (event.getRemaining() > 0 && event.getAvgFillPrice() > 0 && !"Cancelled".equals(event.getStatus())) {
@@ -147,7 +147,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener {
                     if (tmpOrdSide == OrderSide.BUY || tmpOrdSide == OrderSide.SHORT) {
                         Integer trailBuyOrderID = event.getC().getOrdersSymbols().get(ind).get(4);
                         Integer trailSellOrderID = event.getC().getOrdersSymbols().get(ind).get(5);
-                        manageTrailingOrders(event.getC(), trailBuyOrderID + trailSellOrderID, id, event.getFilled(), tmpOrdSide, event.getAvgFillPrice(),ob.getOrderReference());
+                        //manageTrailingOrders(event.getC(), trailBuyOrderID + trailSellOrderID, id, event.getFilled(), tmpOrdSide, event.getAvgFillPrice(),ob.getOrderReference());
                     }
                 } else if ("Cancelled".equals(event.getStatus())) {
                     //cancelled
