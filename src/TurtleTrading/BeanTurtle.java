@@ -339,13 +339,13 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
                 if (ruleCumVolumeLong && ruleSlopeLong && ruleVolumeLong) {
                     exPriceBarLong.set(id, Boolean.TRUE);
                 } else {
-                    exPriceBarLong.set(id, Boolean.TRUE);
+                    exPriceBarLong.set(id, Boolean.FALSE);
                 }
 
                 if (ruleCumVolumeShort && ruleSlopeShort && ruleVolumeShort) {
                     exPriceBarShort.set(id, Boolean.TRUE);
                 } else {
-                    exPriceBarShort.set(id, Boolean.TRUE);
+                    exPriceBarShort.set(id, Boolean.FALSE);
                 }
 
 
