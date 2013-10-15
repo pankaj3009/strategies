@@ -44,12 +44,12 @@ import org.apache.commons.math3.stat.regression.SimpleRegression;
  *
  * @author pankaj
  */
-public class BeanTurtle implements Serializable,HistoricalBarListener, TradeListner {
+public class BeanTurtle implements Serializable, HistoricalBarListener, TradeListner {
 
     /**
      * @return the tickSize
      */
-    public  String getTickSize() {
+    public String getTickSize() {
         return tickSize;
     }
 
@@ -77,60 +77,61 @@ public class BeanTurtle implements Serializable,HistoricalBarListener, TradeList
     private int regressionLookBack;
     private double volumeSlopeLongMultiplier;
     private static final Logger LOGGER = Logger.getLogger(Algorithm.class.getName());
-    private static ConcurrentHashMap queue = new <Integer,PendingHistoricalRequests> ConcurrentHashMap();
-    private static ConcurrentLinkedQueue queueHistRequests=new ConcurrentLinkedQueue(new ArrayList<PendingHistoricalRequests>());
-    private static ArrayList<PendingHistoricalRequests>temp=new ArrayList<PendingHistoricalRequests>();
-    private static HashMap<Integer,Integer> BarsCount=new HashMap(); 
-    private  String tickSize;
-    private ArrayList<Boolean>breachUpInBar = new ArrayList();
-    private ArrayList<Boolean>breachDownInBar = new ArrayList();
-    private ArrayList<Integer>breachUp = new ArrayList();
-    private ArrayList<Integer>breachDown = new ArrayList();
-    private double exposure=0;
+    private static ConcurrentHashMap queue = new <Integer, PendingHistoricalRequests> ConcurrentHashMap();
+    private static ConcurrentLinkedQueue queueHistRequests = new ConcurrentLinkedQueue(new ArrayList<PendingHistoricalRequests>());
+    private static ArrayList<PendingHistoricalRequests> temp = new ArrayList<PendingHistoricalRequests>();
+    private static HashMap<Integer, Integer> BarsCount = new HashMap();
+    private String tickSize;
+    private ArrayList<Boolean> breachUpInBar = new ArrayList();
+    private ArrayList<Boolean> breachDownInBar = new ArrayList();
+    private ArrayList<Integer> breachUp = new ArrayList();
+    private ArrayList<Integer> breachDown = new ArrayList();
+    private double exposure = 0;
     private int startBars;
     private int display;
-    private Boolean longOnly=true;
-    private Boolean shortOnly=true;
-    
+    private Boolean longOnly = true;
+    private Boolean shortOnly = true;
+    private ArrayList<Boolean> exPriceBarLong = new ArrayList();
+    private ArrayList<Boolean> exPriceBarShort = new ArrayList();
+
     public BeanTurtle(MainAlgorithm m) {
-        this.m=m;
-        queueHistRequests=new ConcurrentLinkedQueue(temp);
+        this.m = m;
+        queueHistRequests = new ConcurrentLinkedQueue(temp);
         Properties p = new Properties(System.getProperties());
         FileInputStream propFile;
-            try {
-                propFile = new FileInputStream("Turtle.properties");
+        try {
+            propFile = new FileInputStream("Turtle.properties");
             try {
                 p.load(propFile);
             } catch (IOException ex) {
                 Logger.getLogger(BeanTurtle.class.getName()).log(Level.SEVERE, null, ex);
             }
-            } catch (FileNotFoundException ex) {
-                Logger.getLogger(BeanTurtle.class.getName()).log(Level.SEVERE, null, ex);
-            }
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(BeanTurtle.class.getName()).log(Level.SEVERE, null, ex);
+        }
         System.setProperties(p);
         String currDateStr = DateUtil.getFormatedDate("yyyyMMdd", Parameters.connection.get(0).getConnectionTime());
         String startDateStr = currDateStr + " " + System.getProperty("StartTime");
         String endDateStr = currDateStr + " " + System.getProperty("EndTime");
-        tickSize=System.getProperty("TickSize");
+        tickSize = System.getProperty("TickSize");
         startDate = DateUtil.parseDate("yyyyMMdd HH:mm:ss", startDateStr);
         endDate = DateUtil.parseDate("yyyyMMdd HH:mm:ss", endDateStr);
-        if(endDate.compareTo(startDate)<0 && new Date().compareTo(startDate)>0){
-        //increase enddate by one calendar day
-            endDate=DateUtil.addDays(endDate, 1); //system date is > start date time. Therefore we have not crossed the 12:00 am barrier
-    }
-        else if(endDate.compareTo(startDate)<0 && new Date().compareTo(startDate)<0){
-            startDate=DateUtil.addDays(startDate, -1); // we have moved beyond 12:00 am . adjust startdate to previous date
+        if (endDate.compareTo(startDate) < 0 && new Date().compareTo(startDate) > 0) {
+            //increase enddate by one calendar day
+            endDate = DateUtil.addDays(endDate, 1); //system date is > start date time. Therefore we have not crossed the 12:00 am barrier
+        } else if (endDate.compareTo(startDate) < 0 && new Date().compareTo(startDate) < 0) {
+            startDate = DateUtil.addDays(startDate, -1); // we have moved beyond 12:00 am . adjust startdate to previous date
         }
         channelDuration = Integer.parseInt(System.getProperty("ChannelDuration"));
         volumeSlopeLongMultiplier = Double.parseDouble(System.getProperty("VolSlopeMultLong"));
         //volumeSlopeShortMultipler = Double.parseDouble(System.getProperty("VolSlopeMultLong"));
         regressionLookBack = Integer.parseInt(System.getProperty("RegressionLookBack"));
         exposure = Double.parseDouble(System.getProperty("Exposure"));
-        startBars=Integer.parseInt(System.getProperty("StartBars"));
-        display=Integer.parseInt(System.getProperty("Display"));
-        
+        startBars = Integer.parseInt(System.getProperty("StartBars"));
+        display = Integer.parseInt(System.getProperty("Display"));
+
         for (int i = 0; i < Parameters.symbol.size(); i++) {
-            cumVolume.add(i,new ArrayList<Long>());
+            cumVolume.add(i, new ArrayList<Long>());
             cumVolume.get(i).add(0L);
             highestHigh.add(999999999D);
             lowestLow.add(0D);
@@ -146,15 +147,16 @@ public class BeanTurtle implements Serializable,HistoricalBarListener, TradeList
             breachDownInBar.add(Boolean.FALSE);
             breachUp.add(0);
             breachDown.add(0);
+            exPriceBarLong.add(Boolean.FALSE);
+            exPriceBarShort.add(Boolean.FALSE);
         }
-            for (int i = 0; i < Parameters.symbol.size(); i++) {
+        for (int i = 0; i < Parameters.symbol.size(); i++) {
             Parameters.symbol.get(i).getOneMinuteBar().addHistoricalBarListener(this);
             Parameters.symbol.get(i).getDailyBar().addHistoricalBarListener(this);
         }
         Parameters.addTradeListener(this);
     }
 
-    
     @Override
     public void barsReceived(HistoricalBarEvent event) {
         //get the symbolbean
@@ -164,9 +166,25 @@ public class BeanTurtle implements Serializable,HistoricalBarListener, TradeList
                 int id = event.getSymbol().getSerialno() - 1;
                 this.getClose().set(id, event.ohlc().getClose());
                 int barno = event.barNumber();
-                logger.log(Level.INFO,"{0},{1},{2},{3},{4},{5},{6}",new Object[]{Parameters.symbol.get(id).getSymbol(),DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", event.ohlc().getOpenTime()),event.ohlc().getOpen(),event.ohlc().getHigh(),event.ohlc().getLow(),event.ohlc().getClose(),event.ohlc().getVolume()});
+                logger.log(Level.INFO, "{0},{1},{2},{3},{4},{5},{6}", new Object[]{Parameters.symbol.get(id).getSymbol(), DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", event.ohlc().getOpenTime()), event.ohlc().getOpen(), event.ohlc().getHigh(), event.ohlc().getLow(), event.ohlc().getClose(), event.ohlc().getVolume()});
                 LOGGER.log(Level.FINEST, "Bar No:{0}, Date={1}, Symbol:{2},FirstBarTime:{3}, LastBarTime:{4}, LastKey-FirstKey:{5}",
                         new Object[]{barno, DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", event.ohlc().getOpenTime()), Parameters.symbol.get(id).getSymbol(), DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", event.list().firstKey()), DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", event.list().lastKey()), (event.list().lastKey() - event.list().firstKey()) / (1000 * 60)});
+                //Was there a need to have a position, but no position exists?
+                if (exPriceBarLong.get(id) && this.getNotionalPosition().get(id) == 0L && event.ohlc().getHigh() > highestHigh.get(id)) {
+                    //place buy order as the last bar had a higher high and other conditions were met. 
+                    generateOrders(id, true, false, true, false, true, false, true, false);
+                } else if (exPriceBarShort.get(id) && this.getNotionalPosition().get(id) == 0L && event.ohlc().getLow() < lowestLow.get(id)) {
+                    //place sell order as the last bar had a lower low and other conditions were met.
+                    generateOrders(id, false, true, false, true, false, true, false, true);
+                    //generateOrders(id, ruleHighestHigh, ruleLowestLow, ruleCumVolumeLong, ruleCumVolumeShort, ruleSlopeLong, ruleSlopeShort, ruleVolumeLong, ruleVolumeShort);
+                }
+                //Similarly, check for squareoffs that were missed
+                 if (this.getNotionalPosition().get(id) == 1L && event.ohlc().getLow() < lowestLow.get(id)) {
+                 generateOrders(id, false, true, false, false, false, false, false, false);
+                 } else if (this.getNotionalPosition().get(id) == -1L && event.ohlc().getHigh() > highestHigh.get(id)) {
+                 generateOrders(id, true, false, false, false, false, false, false, false);
+                 }
+                 
                 //Set cumVolume
                 SortedMap<Long, BeanOHLC> temp = new TreeMap<Long, BeanOHLC>();
                 int cumVolumeStartSize = this.getCumVolume().get(id).size();
@@ -257,14 +275,7 @@ public class BeanTurtle implements Serializable,HistoricalBarListener, TradeList
                         HH = HH > entry.getValue().getHigh() ? HH : entry.getValue().getHigh();
                         LL = LL < entry.getValue().getLow() && LL != 0 ? LL : entry.getValue().getLow();
                     }
-                    /*
-                     Iterator itr = temp.entrySet().iterator();
-                     while (itr.hasNext()) {
-                     TreeMap<Long,BeanOHLC> tempOHLC = (TreeMap<Long,BeanOHLC>) itr.next();
-                     HH = HH > tempOHLC.getHigh() ? HH : tempOHLC.getHigh();
-                     LL = LL < tempOHLC.getLow() && LL != 0 ? LL : tempOHLC.getLow();
-                     }
-                     */
+ 
                     this.getHighestHigh().set(id, HH);
                     this.getLowestLow().set(id, LL);
                 }
@@ -283,15 +294,15 @@ public class BeanTurtle implements Serializable,HistoricalBarListener, TradeList
                     this.getSlope().set(id, tempSlope);
                 }
                 //set barupdown count
-                 if(this.getBreachUpInBar().get(id)){
-                     int breachup=this.getBreachUp().get(id);
-                     this.getBreachUp().set(id, breachup+1);
-                     this.getBreachUpInBar().set(id, false);
-                 } else if(this.getBreachDownInBar().get(id)){
-                     int breachdown=this.getBreachUp().get(id);
-                     this.getBreachDown().set(id, breachdown+1);
-                     this.getBreachDownInBar().set(id, false);
-                 }
+                if (this.getBreachUpInBar().get(id)) {
+                    int breachup = this.getBreachUp().get(id);
+                    this.getBreachUp().set(id, breachup + 1);
+                    this.getBreachUpInBar().set(id, false);
+                } else if (this.getBreachDownInBar().get(id)) {
+                    int breachdown = this.getBreachUp().get(id);
+                    this.getBreachDown().set(id, breachdown + 1);
+                    this.getBreachDownInBar().set(id, false);
+                }
                 //set MA of volume
                 if (event.barNumber() >= this.getChannelDuration() - 1) {
                     temp = (SortedMap<Long, BeanOHLC>) event.list().subMap(event.ohlc().getOpenTime() - (this.getChannelDuration() - 1) * 60 * 1000 + 1, event.ohlc().getOpenTime() + 1);
@@ -299,31 +310,44 @@ public class BeanTurtle implements Serializable,HistoricalBarListener, TradeList
                     for (Map.Entry<Long, BeanOHLC> entry : temp.entrySet()) {
                         stats.addValue(entry.getValue().getVolume());
                     }
-                    /*
-                     Iterator itr = temp.iterator();
-                     int i = 1;
-                     while (itr.hasNext()) {
-                     BeanOHLC tempOHLC = (BeanOHLC) itr.next();
-                     stats.addValue(tempOHLC.getVolume());
-                     }
-                     */
                     this.getVolumeMA().set(id, stats.getMean());
-                    
+
                 }
-            logger.log(Level.INFO,"{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10}",new Object[]{
-            Parameters.symbol.get(id).getSymbol(),
-            sdfDate.format(event.list().lastEntry().getKey()),
-            this.getHighestHigh().get(id).toString(),
-            this.getLowestLow().get(id).toString(),
-            this.getCumVolume().get(id).get(event.barNumber()-1).toString(),
-            String.valueOf(0.05*Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput())).replace(",", ""),
-            String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput())).replace(",", ""),
-            this.getSlope().get(id).toString(),
-            String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeLongMultiplier() / 375).replace(",", ""),
-            this.getVolume().get(id).toString(),
-            this.getVolumeMA().get(id).toString()
-                    });
-            
+                boolean ruleCumVolumeLong = this.getCumVolume().get(id).get(this.getCumVolume().get(id).size() - 1) >= 0.05 * Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput());
+                boolean ruleCumVolumeShort = this.getCumVolume().get(id).get(this.getCumVolume().get(id).size() - 1) <= Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput());
+                boolean ruleSlopeLong = this.getSlope().get(id) > Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeLongMultiplier() / 375;
+                boolean ruleSlopeShort = this.getSlope().get(id) < -Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeLongMultiplier() / 375;
+                boolean ruleVolumeLong = this.getVolume().get(id) > this.getVolumeMA().get(id);
+                boolean ruleVolumeShort = this.getVolume().get(id) > 2 * this.getVolumeMA().get(id);
+
+                if (ruleCumVolumeLong && ruleSlopeLong && ruleVolumeLong) {
+                    exPriceBarLong.set(id, Boolean.TRUE);
+                } else {
+                    exPriceBarLong.set(id, Boolean.TRUE);
+                }
+
+                if (ruleCumVolumeShort && ruleSlopeShort && ruleVolumeShort) {
+                    exPriceBarShort.set(id, Boolean.TRUE);
+                } else {
+                    exPriceBarShort.set(id, Boolean.TRUE);
+                }
+
+
+
+                logger.log(Level.INFO, "{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10}", new Object[]{
+                    Parameters.symbol.get(id).getSymbol(),
+                    sdfDate.format(event.list().lastEntry().getKey()),
+                    this.getHighestHigh().get(id).toString(),
+                    this.getLowestLow().get(id).toString(),
+                    this.getCumVolume().get(id).get(event.barNumber() - 1).toString(),
+                    String.valueOf(0.05 * Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput())).replace(",", ""),
+                    String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput())).replace(",", ""),
+                    this.getSlope().get(id).toString(),
+                    String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeLongMultiplier() / 375).replace(",", ""),
+                    this.getVolume().get(id).toString(),
+                    this.getVolumeMA().get(id).toString()
+                });
+
             } else if (event.ohlc().getPeriodicity() == EnumBarSize.Daily) {
                 //update symbol volumes
                 int id = event.getSymbol().getSerialno() - 1;
@@ -342,55 +366,62 @@ public class BeanTurtle implements Serializable,HistoricalBarListener, TradeList
     }
 
     @Override
-      public synchronized void tradeReceived(TradeEvent event) {
-        
+    public synchronized void tradeReceived(TradeEvent event) {
+
         try {
             int id = event.getSymbolID(); //here symbolID is with zero base.
-            boolean tradeable=Integer.parseInt(Parameters.symbol.get(id).getAdditionalInput())/(Parameters.symbol.get(id).getMinsize()*375)>6 && this.getCumVolume().get(id).size()>this.getStartBars() ;
-            if(this.getExposure()!=0 && this.getCumVolume().get(id).size()>this.getStartBars() ){
-                tradeable=true;
-            }
             boolean ruleHighestHigh = Parameters.symbol.get(id).getLastPrice() > this.getHighestHigh().get(id);
             boolean ruleLowestLow = Parameters.symbol.get(id).getLastPrice() < this.getLowestLow().get(id);
-            //boolean ruleCumVolumeLong = this.getCumVolume().get(id).get(this.getCumVolume().get(id).size() - 1) >= this.getLongVolume().get(id);
-            boolean ruleCumVolumeLong = this.getCumVolume().get(id).get(this.getCumVolume().get(id).size() - 1) >=0.05* Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput());
-           // boolean ruleCumVolumeShort = this.getCumVolume().get(id).get(this.getCumVolume().get(id).size() - 1) <= -param.getShortVolume().get(id);
+            boolean ruleCumVolumeLong = this.getCumVolume().get(id).get(this.getCumVolume().get(id).size() - 1) >= 0.05 * Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput());
             boolean ruleCumVolumeShort = this.getCumVolume().get(id).get(this.getCumVolume().get(id).size() - 1) <= Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput());
             boolean ruleSlopeLong = this.getSlope().get(id) > Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeLongMultiplier() / 375;
             boolean ruleSlopeShort = this.getSlope().get(id) < -Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeLongMultiplier() / 375;
             boolean ruleVolumeLong = this.getVolume().get(id) > this.getVolumeMA().get(id);
             boolean ruleVolumeShort = this.getVolume().get(id) > 2 * this.getVolumeMA().get(id);
+            generateOrders(id, ruleHighestHigh, ruleLowestLow, ruleCumVolumeLong, ruleCumVolumeShort, ruleSlopeLong, ruleSlopeShort, ruleVolumeLong, ruleVolumeShort);
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, e.toString());
+        }
+    }
 
-            if(ruleHighestHigh){
+    private synchronized void generateOrders(int id, boolean ruleHighestHigh, boolean ruleLowestLow, boolean ruleCumVolumeLong, boolean ruleCumVolumeShort, boolean ruleSlopeLong,
+            boolean ruleSlopeShort, boolean ruleVolumeLong, boolean ruleVolumeShort) {
+
+        try {
+            boolean tradeable = Integer.parseInt(Parameters.symbol.get(id).getAdditionalInput()) / (Parameters.symbol.get(id).getMinsize() * 375) > 6 && this.getCumVolume().get(id).size() > this.getStartBars();
+            if (this.getExposure() != 0 && this.getCumVolume().get(id).size() > this.getStartBars()) {
+                tradeable = true;
+            }
+            if (ruleHighestHigh) {
                 this.getBreachUpInBar().set(id, true);
-            } else if(ruleLowestLow){
+            } else if (ruleLowestLow) {
                 this.getBreachDownInBar().set(id, true);
             }
-            double breachup=((double)this.getBreachUp().get(id)+1)/((double)this.getBreachUp().get(id)+(double)this.getBreachDown().get(id)+1);
-            double breachdown=((double)this.getBreachDown().get(id)+1)/((double)this.getBreachUp().get(id)+(double)this.getBreachDown().get(id)+1);
-            
+            double breachup = ((double) this.getBreachUp().get(id) + 1) / ((double) this.getBreachUp().get(id) + (double) this.getBreachDown().get(id) + 1);
+            double breachdown = ((double) this.getBreachDown().get(id) + 1) / ((double) this.getBreachUp().get(id) + (double) this.getBreachDown().get(id) + 1);
+
             LOGGER.log(Level.FINEST, "," + "{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20}", new Object[]{
                 Parameters.symbol.get(id).getSymbol(), String.valueOf(this.getCumVolume().get(id).size()), this.getHighestHigh().get(id).toString(), this.getLowestLow().get(id).toString(), String.valueOf(Parameters.symbol.get(id).getLastPrice()), this.getVolume().get(id).toString(), this.getCumVolume().get(id).get(this.getCumVolume().get(id).size() - 1).toString(), this.getSlope().get(id).toString(), String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeLongMultiplier() / 375), this.getVolumeMA().get(id).toString(), this.getLongVolume().get(id).toString(), this.getShortVolume().get(id).toString(), DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss z", Parameters.symbol.get(id).getLastPriceTime()), ruleHighestHigh, ruleCumVolumeLong, ruleSlopeLong, ruleVolumeLong, ruleLowestLow, ruleCumVolumeShort, ruleSlopeShort, ruleVolumeShort
             });
 
 
-           if (tradeable && this.getNotionalPosition().get(id) == 0 && this.getCumVolume().get(id).size() >= this.getChannelDuration()) {
-            if (longOnly && ruleHighestHigh && ruleCumVolumeLong && ruleSlopeLong && ruleVolumeLong && this.getEndDate().compareTo(new Date()) > 0 && breachup>0.5) {
-                //Buy Condition
+            if (tradeable && this.getNotionalPosition().get(id) == 0 && this.getCumVolume().get(id).size() >= this.getChannelDuration()) {
+                if (longOnly && ruleHighestHigh && ruleCumVolumeLong && ruleSlopeLong && ruleVolumeLong && this.getEndDate().compareTo(new Date()) > 0 && breachup > 0.5) {
+                    //Buy Condition
                     this.getNotionalPosition().set(id, 1L);
                     LOGGER.log(Level.INFO, "Method:{0},Buy. Symbol:{1},LL:{2},LastPrice:{3},HH{4},Slope:{5},SlopeThreshold:{6},Volume:{7},VolumeMA:{8}",
-                       new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), this.getLowestLow().get(id).toString(), Parameters.symbol.get(id).getLastPrice(), this.getHighestHigh().get(id).toString(), this.getSlope().get(id).toString(), String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeLongMultiplier() / 375), this.getVolume().get(id).toString(), this.getVolumeMA().get(id).toString()
+                            new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), this.getLowestLow().get(id).toString(), Parameters.symbol.get(id).getLastPrice(), this.getHighestHigh().get(id).toString(), this.getSlope().get(id).toString(), String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeLongMultiplier() / 375), this.getVolume().get(id).toString(), this.getVolumeMA().get(id).toString()
                     });
-                    int size=this.getExposure()!=0?(int) (this.getExposure()/Parameters.symbol.get(id).getLastPrice()):Parameters.symbol.get(id).getMinsize();
-                    m.fireOrderEvent(Parameters.symbol.get(id), OrderSide.BUY, size, this.getHighestHigh().get(id)+Parameters.symbol.get(id).getAggression(), 0,"TurtleTrading",3);
-                } else if (shortOnly && ruleLowestLow && ruleCumVolumeShort && ruleSlopeShort && ruleVolumeShort && this.getEndDate().compareTo(new Date()) > 0 && breachdown>0.5) {
+                    int size = this.getExposure() != 0 ? (int) (this.getExposure() / Parameters.symbol.get(id).getLastPrice()) : Parameters.symbol.get(id).getMinsize();
+                    m.fireOrderEvent(Parameters.symbol.get(id), OrderSide.BUY, size, this.getHighestHigh().get(id) + Parameters.symbol.get(id).getAggression(), 0, "TurtleTrading", 3);
+                } else if (shortOnly && ruleLowestLow && ruleCumVolumeShort && ruleSlopeShort && ruleVolumeShort && this.getEndDate().compareTo(new Date()) > 0 && breachdown > 0.5) {
                     //Short condition
                     this.getNotionalPosition().set(id, -1L);
                     LOGGER.log(Level.INFO, "Method:{0},Short. Symbol:{1},LL:{2},LastPrice:{3},HH{4},Slope:{5},SlopeThreshold:{6},Volume:{7},VolumeMA:{8}",
                             new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), this.getLowestLow().get(id).toString(), Parameters.symbol.get(id).getLastPrice(), this.getHighestHigh().get(id).toString(), this.getSlope().get(id).toString(), String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeLongMultiplier() / 375), this.getVolume().get(id).toString(), this.getVolumeMA().get(id).toString()
                     });
-                    int size=this.getExposure()!=0?(int) (this.getExposure()/Parameters.symbol.get(id).getLastPrice()):Parameters.symbol.get(id).getMinsize();
-                    m.fireOrderEvent(Parameters.symbol.get(id), OrderSide.SHORT, size, this.getLowestLow().get(id)-Parameters.symbol.get(id).getAggression(), 0,"TurtleTrading",3);
+                    int size = this.getExposure() != 0 ? (int) (this.getExposure() / Parameters.symbol.get(id).getLastPrice()) : Parameters.symbol.get(id).getMinsize();
+                    m.fireOrderEvent(Parameters.symbol.get(id), OrderSide.SHORT, size, this.getLowestLow().get(id) - Parameters.symbol.get(id).getAggression(), 0, "TurtleTrading", 3);
                 }
             } else if (this.getNotionalPosition().get(id) == -1) {
                 if (ruleHighestHigh || System.currentTimeMillis() > this.getEndDate().getTime()) {
@@ -398,9 +429,9 @@ public class BeanTurtle implements Serializable,HistoricalBarListener, TradeList
                     LOGGER.log(Level.INFO, "Method:{0},Cover.Symbol:{1},LL:{2},LastPrice:{3},HH{4},Slope:{5},SlopeThreshold:{6},Volume:{7},VolumeMA:{8}",
                             new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), this.getLowestLow().get(id).toString(), Parameters.symbol.get(id).getLastPrice(), this.getHighestHigh().get(id).toString(), this.getSlope().get(id).toString(), String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeLongMultiplier() / 375), this.getVolume().get(id).toString(), this.getVolumeMA().get(id).toString()
                     });
-                   
-                   int size=this.getExposure()!=0?(int) (this.getExposure()/Parameters.symbol.get(id).getLastPrice()):Parameters.symbol.get(id).getMinsize();
-                    m.fireOrderEvent(Parameters.symbol.get(id), OrderSide.COVER, size, Parameters.symbol.get(id).getLastPrice(), Parameters.symbol.get(id).getLastPrice(),"TurtleTrading",3);
+
+                    int size = this.getExposure() != 0 ? (int) (this.getExposure() / Parameters.symbol.get(id).getLastPrice()) : Parameters.symbol.get(id).getMinsize();
+                    m.fireOrderEvent(Parameters.symbol.get(id), OrderSide.COVER, size, Parameters.symbol.get(id).getLastPrice(), Parameters.symbol.get(id).getLastPrice(), "TurtleTrading", 3);
                 }
 
             } else if (this.getNotionalPosition().get(id) == 1) {
@@ -409,8 +440,8 @@ public class BeanTurtle implements Serializable,HistoricalBarListener, TradeList
                     LOGGER.log(Level.INFO, "Method:{0},Sell.Symbol:{1},LL:{2},LastPrice:{3},HH{4},Slope:{5},SlopeThreshold:{6},Volume:{7},VolumeMA:{8}",
                             new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), this.getLowestLow().get(id).toString(), Parameters.symbol.get(id).getLastPrice(), this.getHighestHigh().get(id).toString(), this.getSlope().get(id).toString(), String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeLongMultiplier() / 375), this.getVolume().get(id).toString(), this.getVolumeMA().get(id).toString()
                     });
-                    int size=this.getExposure()!=0?(int) (this.getExposure()/Parameters.symbol.get(id).getLastPrice()):Parameters.symbol.get(id).getMinsize();
-                    m.fireOrderEvent(Parameters.symbol.get(id), OrderSide.SELL, size, Parameters.symbol.get(id).getLastPrice(), Parameters.symbol.get(id).getLastPrice(),"TurtleTrading",3);
+                    int size = this.getExposure() != 0 ? (int) (this.getExposure() / Parameters.symbol.get(id).getLastPrice()) : Parameters.symbol.get(id).getMinsize();
+                    m.fireOrderEvent(Parameters.symbol.get(id), OrderSide.SELL, size, Parameters.symbol.get(id).getLastPrice(), Parameters.symbol.get(id).getLastPrice(), "TurtleTrading", 3);
                 }
             }
 
@@ -419,8 +450,7 @@ public class BeanTurtle implements Serializable,HistoricalBarListener, TradeList
         }
     }
 
-    
-        /**
+    /**
      * @return the LOGGER
      */
     public static Logger getLOGGER() {
@@ -472,17 +502,17 @@ public class BeanTurtle implements Serializable,HistoricalBarListener, TradeList
     /**
      * @return the BarsCount
      */
-    public synchronized static HashMap<Integer,Integer> getBarsCount() {
+    public synchronized static HashMap<Integer, Integer> getBarsCount() {
         return BarsCount;
     }
 
     /**
      * @param aBarsCount the BarsCount to set
      */
-    public static void setBarsCount(HashMap<Integer,Integer> aBarsCount) {
+    public static void setBarsCount(HashMap<Integer, Integer> aBarsCount) {
         BarsCount = aBarsCount;
     }
-    
+
     /**
      * @return the cumVolume
      */
@@ -832,8 +862,4 @@ public class BeanTurtle implements Serializable,HistoricalBarListener, TradeList
     public synchronized void setShortOnly(Boolean shortOnly) {
         this.shortOnly = shortOnly;
     }
-
-    
-
-
 }
