@@ -190,7 +190,8 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
                 } else if (exPriceBarShort.get(id) && this.getNotionalPosition().get(id) == 0L && event.ohlc().getLow() < lowestLow.get(id)) {
                     //place sell order as the last bar had a lower low and other conditions were met.
                      LOGGER.log(Level.INFO, "Method:{0},Short Order.Symbol:{1}",new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol()});                    generateOrders(id, false, true, false, true, false, true, false, true);
-                    //generateOrders(id, ruleHighestHigh, ruleLowestLow, ruleCumVolumeLong, ruleCumVolumeShort, ruleSlopeLong, ruleSlopeShort, ruleVolumeLong, ruleVolumeShort);
+                    generateOrders(id, false, true, false, true, false, true, false, true);
+                     //generateOrders(id, ruleHighestHigh, ruleLowestLow, ruleCumVolumeLong, ruleCumVolumeShort, ruleSlopeLong, ruleSlopeShort, ruleVolumeLong, ruleVolumeShort);
                 }
                 //Similarly, check for squareoffs that were missed
                  if (this.getNotionalPosition().get(id) == 1L && event.ohlc().getLow() < lowestLow.get(id)) {
@@ -447,7 +448,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
                     });
 
                     int size = this.getExposure() != 0 ? (int) (this.getExposure() / Parameters.symbol.get(id).getLastPrice()) : Parameters.symbol.get(id).getMinsize();
-                    m.fireOrderEvent(Parameters.symbol.get(id), OrderSide.COVER, size, Parameters.symbol.get(id).getLastPrice(), Parameters.symbol.get(id).getLastPrice(), "TurtleTrading", 3);
+                    m.fireOrderEvent(Parameters.symbol.get(id), OrderSide.COVER, size, Parameters.symbol.get(id).getLastPrice(), 0, "TurtleTrading", 3);
                 }
 
             } else if (this.getNotionalPosition().get(id) == 1) {
@@ -457,7 +458,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
                             new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), this.getLowestLow().get(id).toString(), Parameters.symbol.get(id).getLastPrice(), this.getHighestHigh().get(id).toString(), this.getSlope().get(id).toString(), String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeLongMultiplier() / 375), this.getVolume().get(id).toString(), this.getVolumeMA().get(id).toString()
                     });
                     int size = this.getExposure() != 0 ? (int) (this.getExposure() / Parameters.symbol.get(id).getLastPrice()) : Parameters.symbol.get(id).getMinsize();
-                    m.fireOrderEvent(Parameters.symbol.get(id), OrderSide.SELL, size, Parameters.symbol.get(id).getLastPrice(), Parameters.symbol.get(id).getLastPrice(), "TurtleTrading", 3);
+                    m.fireOrderEvent(Parameters.symbol.get(id), OrderSide.SELL, size, Parameters.symbol.get(id).getLastPrice(), 0, "TurtleTrading", 3);
                 }
             }
 
