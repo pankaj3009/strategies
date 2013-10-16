@@ -1,0 +1,5 @@
+ip,port,clientID,purpose,rtMessageLimit,histMessageLimit,tickersLimit,strategy
+72.55.156.141,2502,11,Trading,48,10,90,none
+72.55.179.5,1740,11,Data,48,10,90,none
+72.55.179.5,8600,11,Data,48,10,90,none
+72.55.156.141,4830,11,Trading,5,10,0,"Guds,TurtleTrading"
