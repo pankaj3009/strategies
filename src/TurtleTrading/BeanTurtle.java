@@ -154,6 +154,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
         for (int i = 0; i < Parameters.symbol.size(); i++) {
             Parameters.symbol.get(i).getOneMinuteBar().addHistoricalBarListener(this);
             Parameters.symbol.get(i).getDailyBar().addHistoricalBarListener(this);
+            Parameters.symbol.get(i).getFiveSecondBars().addHistoricalBarListener(this);
         }
         Parameters.addTradeListener(this);
          FileHandler fileHandler;

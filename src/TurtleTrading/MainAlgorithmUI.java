@@ -184,6 +184,7 @@ private void StartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:e
            CsvBeanWriter writer = new CsvBeanWriter(file, CsvPreference.EXCEL_PREFERENCE);
              for (Map.Entry<Integer,OrderBean> orders : Parameters.connection.get(algo.getParamTurtle().getDisplay()).getOrders().entrySet()) {
                  writer.write(orders.getValue(), header,Parameters.getOrderProcessors());
+                 //writer.write(orders.getValue(), header);
              }
              writer.close();
            
