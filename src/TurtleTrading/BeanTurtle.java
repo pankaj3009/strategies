@@ -172,17 +172,10 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
 
     @Override
     public void barsReceived(HistoricalBarEvent event) {
-        //get the symbolbean
-        try {
-            //For one minute bars
-            if (event.ohlc().getPeriodicity() == EnumBarSize.OneMin) {
+        try{
+            if (event.ohlc().getPeriodicity() == EnumBarSize.FiveSec) {
                 int id = event.getSymbol().getSerialno() - 1;
-                this.getClose().set(id, event.ohlc().getClose());
-                int barno = event.barNumber();
-                logger.log(Level.INFO, "{0},{1},{2},{3},{4},{5},{6}", new Object[]{Parameters.symbol.get(id).getSymbol(), DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", event.ohlc().getOpenTime()), event.ohlc().getOpen(), event.ohlc().getHigh(), event.ohlc().getLow(), event.ohlc().getClose(), event.ohlc().getVolume()});
-                LOGGER.log(Level.FINEST, "Bar No:{0}, Date={1}, Symbol:{2},FirstBarTime:{3}, LastBarTime:{4}, LastKey-FirstKey:{5}",
-                        new Object[]{barno, DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", event.ohlc().getOpenTime()), Parameters.symbol.get(id).getSymbol(), DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", event.list().firstKey()), DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", event.list().lastKey()), (event.list().lastKey() - event.list().firstKey()) / (1000 * 60)});
-                //Was there a need to have a position, but no position exists?
+        //Was there a need to have a position, but no position exists?
                 if (exPriceBarLong.get(id) && this.getNotionalPosition().get(id) == 0L && event.ohlc().getHigh() > highestHigh.get(id)) {
                     //place buy order as the last bar had a higher high and other conditions were met.
                      LOGGER.log(Level.INFO, "Method:{0},Buy Order.Symbol:{1}",new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol()});
@@ -201,6 +194,20 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
                      LOGGER.log(Level.INFO, "Method:{0},Cover Order.Symbol:{1}",new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol()});
                      generateOrders(id, true, false, false, false, false, false, false, false);
                  }
+            }
+            } catch (Exception e){
+            
+        }
+        
+        try {
+            //For one minute bars
+            if (event.ohlc().getPeriodicity() == EnumBarSize.OneMin) {
+                int id = event.getSymbol().getSerialno() - 1;
+                this.getClose().set(id, event.ohlc().getClose());
+                int barno = event.barNumber();
+                logger.log(Level.INFO, "{0},{1},{2},{3},{4},{5},{6}", new Object[]{Parameters.symbol.get(id).getSymbol(), DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", event.ohlc().getOpenTime()), event.ohlc().getOpen(), event.ohlc().getHigh(), event.ohlc().getLow(), event.ohlc().getClose(), event.ohlc().getVolume()});
+                LOGGER.log(Level.FINEST, "Bar No:{0}, Date={1}, Symbol:{2},FirstBarTime:{3}, LastBarTime:{4}, LastKey-FirstKey:{5}",
+                        new Object[]{barno, DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", event.ohlc().getOpenTime()), Parameters.symbol.get(id).getSymbol(), DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", event.list().firstKey()), DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", event.list().lastKey()), (event.list().lastKey() - event.list().firstKey()) / (1000 * 60)});
                  
                 //Set cumVolume
                 SortedMap<Long, BeanOHLC> temp = new TreeMap<Long, BeanOHLC>();
@@ -292,8 +299,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
                         HH = HH > entry.getValue().getHigh() ? HH : entry.getValue().getHigh();
                         LL = LL < entry.getValue().getLow() && LL != 0 ? LL : entry.getValue().getLow();
                     }
- 
-                    this.getHighestHigh().set(id, HH);
+                     this.getHighestHigh().set(id, HH);
                     this.getLowestLow().set(id, LL);
                 }
                 //Set Slope
@@ -348,10 +354,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
                 } else {
                     exPriceBarShort.set(id, Boolean.FALSE);
                 }
-
-
-
-                logger.log(Level.INFO, "{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10}", new Object[]{
+               logger.log(Level.INFO, "{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10}", new Object[]{
                     Parameters.symbol.get(id).getSymbol(),
                     sdfDate.format(event.list().lastEntry().getKey()),
                     this.getHighestHigh().get(id).toString(),
