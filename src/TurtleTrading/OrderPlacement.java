@@ -146,54 +146,55 @@ public class OrderPlacement implements OrderListener, OrderStatusListener {
                 if (event.getRemaining() == 0) {
                     //completely filled
                     OrderSide tmpOrdSide = reverseLookup(event.getC(), event.getC().getOrdersSymbols().get(ind), orderid);
+                    updateFilledOrders(event.getC(), id, orderid, event.getFilled(), event.getAvgFillPrice(), event.getLastFillPrice());
+                    event.getC().getOrdersInProgress().remove(new Integer(orderid));
                     if ("TRAIL".compareTo(ob.getExitLogic()) == 0) {
                         Integer trailBuyOrderID = event.getC().getOrdersSymbols().get(ind).get(4);
                         Integer trailSellOrderID = event.getC().getOrdersSymbols().get(ind).get(5);
-                        updateFilledOrders(event.getC(), id, orderid, event.getFilled(), event.getAvgFillPrice(), event.getLastFillPrice());
-                        event.getC().getOrdersInProgress().remove(new Integer(orderid));
                         if (tmpOrdSide == OrderSide.BUY || tmpOrdSide == OrderSide.SHORT) {
                             //manageTrailingOrders(event.getC(), trailBuyOrderID + trailSellOrderID, id, event.getFilled(), tmpOrdSide, event.getAvgFillPrice(),ob.getOrderReference());
                         }
                     } else if ("MOC".compareTo(ob.getExitLogic()) == 0) {
                         Integer BuyOrderID = event.getC().getOrdersSymbols().get(ind).get(4);
                         Integer SellOrderID = event.getC().getOrdersSymbols().get(ind).get(5);
-                        updateFilledOrders(event.getC(), id, orderid, event.getFilled(), event.getAvgFillPrice(), event.getLastFillPrice());
-                        event.getC().getOrdersInProgress().remove(new Integer(orderid));
                         if (tmpOrdSide == OrderSide.BUY || tmpOrdSide == OrderSide.SHORT) {
                             manageMOCOrders(event.getC(), BuyOrderID + SellOrderID, id, event.getFilled(), tmpOrdSide, event.getAvgFillPrice(), ob.getOrderReference());
 
                         }
-                        
-                    } else if (event.getRemaining() > 0 && event.getAvgFillPrice() > 0 && !"Cancelled".equals(event.getStatus())) {
-                        // partial fill
-                        if ("TRAIL".compareTo(ob.getExitLogic()) == 0) {
-                            tmpOrdSide = reverseLookup(event.getC(), event.getC().getOrdersSymbols().get(ind), orderid);
-                            updatePartialFills(event.getC(), id, orderid, event.getFilled(), event.getAvgFillPrice(), event.getLastFillPrice());
-                            if (tmpOrdSide == OrderSide.BUY || tmpOrdSide == OrderSide.SHORT) {
-                                Integer trailBuyOrderID = event.getC().getOrdersSymbols().get(ind).get(4);
-                                Integer trailSellOrderID = event.getC().getOrdersSymbols().get(ind).get(5);
-                                //manageTrailingOrders(event.getC(), trailBuyOrderID + trailSellOrderID, id, event.getFilled(), tmpOrdSide, event.getAvgFillPrice(),ob.getOrderReference());
-                            }
-                        } else if ("MOC".compareTo(ob.getExitLogic()) == 0) {
-                            tmpOrdSide = reverseLookup(event.getC(), event.getC().getOrdersSymbols().get(ind), orderid);
-                            updatePartialFills(event.getC(), id, orderid, event.getFilled(), event.getAvgFillPrice(), event.getLastFillPrice());
-                            if (tmpOrdSide == OrderSide.BUY || tmpOrdSide == OrderSide.SHORT) {
-                                Integer BuyOrderID = event.getC().getOrdersSymbols().get(ind).get(4);
-                                Integer SellOrderID = event.getC().getOrdersSymbols().get(ind).get(5);
-                                manageMOCOrders(event.getC(), BuyOrderID + SellOrderID, id, event.getFilled(), tmpOrdSide, event.getAvgFillPrice(), ob.getOrderReference());
+                    }
 
 
-                            }
-                        } else if ("Cancelled".equals(event.getStatus())) {
-                            //cancelled
-                            updateCancelledOrders(event.getC(), id, orderid);
-                            event.getC().getOrdersInProgress().remove(new Integer(orderid));
+                } else if (event.getRemaining() > 0 && event.getAvgFillPrice() > 0 && !"Cancelled".equals(event.getStatus())) {
+                    // partial fill
+                    if ("TRAIL".compareTo(ob.getExitLogic()) == 0) {
+                        OrderSide tmpOrdSide = reverseLookup(event.getC(), event.getC().getOrdersSymbols().get(ind), orderid);
+                        updatePartialFills(event.getC(), id, orderid, event.getFilled(), event.getAvgFillPrice(), event.getLastFillPrice());
+                        if (tmpOrdSide == OrderSide.BUY || tmpOrdSide == OrderSide.SHORT) {
+                            Integer trailBuyOrderID = event.getC().getOrdersSymbols().get(ind).get(4);
+                            Integer trailSellOrderID = event.getC().getOrdersSymbols().get(ind).get(5);
+                            //manageTrailingOrders(event.getC(), trailBuyOrderID + trailSellOrderID, id, event.getFilled(), tmpOrdSide, event.getAvgFillPrice(),ob.getOrderReference());
+                        }
+                    } else if ("MOC".compareTo(ob.getExitLogic()) == 0) {
+                        OrderSide tmpOrdSide = reverseLookup(event.getC(), event.getC().getOrdersSymbols().get(ind), orderid);
+                        updatePartialFills(event.getC(), id, orderid, event.getFilled(), event.getAvgFillPrice(), event.getLastFillPrice());
+                        if (tmpOrdSide == OrderSide.BUY || tmpOrdSide == OrderSide.SHORT) {
+                            Integer BuyOrderID = event.getC().getOrdersSymbols().get(ind).get(4);
+                            Integer SellOrderID = event.getC().getOrdersSymbols().get(ind).get(5);
+                            manageMOCOrders(event.getC(), BuyOrderID + SellOrderID, id, event.getFilled(), tmpOrdSide, event.getAvgFillPrice(), ob.getOrderReference());
 
-                        } else if ("Submitted".equals(event.getStatus())) {
-                            updateAcknowledgement(event.getC(), id, orderid);
+
                         }
                     }
+                } else if ("Cancelled".equals(event.getStatus())) {
+                    //cancelled
+                    updateCancelledOrders(event.getC(), id, orderid);
+                    event.getC().getOrdersInProgress().remove(new Integer(orderid));
+
+                } else if ("Submitted".equals(event.getStatus())) {
+                    updateAcknowledgement(event.getC(), id, orderid);
                 }
+
+
             }
         } catch (Exception e) {
             logger.log(Level.SEVERE, e.toString());
@@ -405,7 +406,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener {
         ord.setFillSize(filled);
         ord.setFillPrice(avgFillPrice);
         ord.setStatus(EnumOrderStatus.CompleteFilled);
-        BeanPosition p = c.getPositions().get(ind) == null ? new BeanPosition():c.getPositions().get(ind);
+        BeanPosition p = c.getPositions().get(ind) == null ? new BeanPosition() : c.getPositions().get(ind);
         logger.log(Level.INFO, "Method:{0},Symbol:{1}, Incremental Fill Reported:{2},Total Fill={3},Position within Program={4}, Side={5}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), fill, filled, ord.getFillSize(), ord.getOrderSide()});
 
         //update position
@@ -471,7 +472,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener {
         ord.setStatus(EnumOrderStatus.PartialFilled);
         String strategy = ord.getOrderReference();
         Index ind = new Index(strategy, id);
-        BeanPosition p = c.getPositions().get(ind) == null ? new BeanPosition():c.getPositions().get(ind);
+        BeanPosition p = c.getPositions().get(ind) == null ? new BeanPosition() : c.getPositions().get(ind);
         //update position
         int origposition = p.getPosition();
         if (c.getOrders().get(orderID).getOrderSide() == OrderSide.SELL || c.getOrders().get(orderID).getOrderSide() == OrderSide.SHORT || c.getOrders().get(orderID).getOrderSide() == OrderSide.TRAILSELL) {
