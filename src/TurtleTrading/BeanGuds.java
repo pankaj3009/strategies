@@ -28,6 +28,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
+import java.util.Timer;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
 /**
@@ -51,6 +52,7 @@ public class BeanGuds implements Serializable, TradeListner {
     private final static Logger logger = Logger.getLogger(Algorithm.class.getName());
     private ArrayList<Boolean> openPrice;
     private String exit;
+    Timer preopenProcessing;
 
     public BeanGuds(MainAlgorithm m) {
         this.m = m;
@@ -98,9 +100,13 @@ public class BeanGuds implements Serializable, TradeListner {
             Logger.getLogger(BeanGuds.class.getName()).log(Level.SEVERE, null, ex);
         }
         calculateSD();
-        preOpenOrders();
+        preopenProcessing=new Timer();
+        long t=m.getPreopenDate().getTime();
+        Date tempDate=new Date(t+1*60000);// process one minute after preopen time.
+        preopenProcessing.schedule(new BeanGudsPreOpen(this), tempDate);
     }
 
+        
     private void calculateSD() {
         Connection connect = null;
         Statement statement = null;

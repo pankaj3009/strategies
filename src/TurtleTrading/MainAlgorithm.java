@@ -231,4 +231,11 @@ public class MainAlgorithm extends Algorithm  {
     public void setParamTurtle(BeanTurtle paramTurtle) {
         this.paramTurtle = paramTurtle;
     }
+
+    /**
+     * @return the preopenDate
+     */
+    public Date getPreopenDate() {
+        return preopenDate;
+    }
 }
