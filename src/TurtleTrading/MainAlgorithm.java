@@ -79,7 +79,39 @@ public class MainAlgorithm extends Algorithm  {
         for (BeanConnection c : Parameters.connection) {
             c.getWrapper().eClientSocket.reqCurrentTime();
         }
-        /*
+
+        //Populate Contract Details
+        
+        BeanConnection tempC = Parameters.connection.get(0);
+        for (BeanSymbol s : Parameters.symbol) {
+            tempC.getWrapper().getContractDetails(s,"");
+            System.out.print("ContractDetails Requested:" + s.getSymbol());
+        }
+
+        while (TWSConnection.mTotalSymbols > 0) {
+            //System.out.println(TWSConnection.mTotalSymbols);
+            //do nothing
+        }
+        //Request Market Data
+        List<BeanSymbol> filteredSymbols = new ArrayList();
+        for(BeanSymbol s : Parameters.symbol) {
+        if( "N".compareTo(s.getPreopen())==0){
+             filteredSymbols.add(s);
+        }
+}
+        int count = filteredSymbols.size();
+        int allocatedCapacity = 0;
+        for (BeanConnection c : Parameters.connection) {
+            //if ("Data".equals(c.getPurpose())) {
+            int connectionCapacity = c.getTickersLimit();
+            if (count > 0) {
+                m = new MarketData(c, allocatedCapacity, Math.min(count, connectionCapacity),filteredSymbols);
+                allocatedCapacity = allocatedCapacity + Math.min(count, connectionCapacity);
+                count = count - Math.min(count, connectionCapacity);
+                m.start();
+            }
+        }
+                
         
         System.setProperties(p);
         String currDateStr = DateUtil.getFormatedDate("yyyyMMdd", Parameters.connection.get(0).getConnectionTime());
@@ -99,35 +131,8 @@ public class MainAlgorithm extends Algorithm  {
         
         
         preopen=new Timer();
-        preopen.schedule(new MarketDataForPreOpen(), preopenDate);
-
-        */
-        //Populate Contract Details
+        preopen.schedule(new SnapShotPreOpenPrice(), preopenDate);       
         
-        BeanConnection tempC = Parameters.connection.get(0);
-        for (BeanSymbol s : Parameters.symbol) {
-            tempC.getWrapper().getContractDetails(s,"");
-            System.out.print("ContractDetails Requested:" + s.getSymbol());
-        }
-
-        while (TWSConnection.mTotalSymbols > 0) {
-            //System.out.println(TWSConnection.mTotalSymbols);
-            //do nothing
-        }
-        //Request Market Data
-        int count = Parameters.symbol.size();
-        int allocatedCapacity = 0;
-        for (BeanConnection c : Parameters.connection) {
-            //if ("Data".equals(c.getPurpose())) {
-            int connectionCapacity = c.getTickersLimit();
-            if (count > 0) {
-                m = new MarketData(c, allocatedCapacity, Math.min(count, connectionCapacity));
-                allocatedCapacity = allocatedCapacity + Math.min(count, connectionCapacity);
-                count = count - Math.min(count, connectionCapacity);
-                m.start();
-            }
-        }
-
         //ordManagement=new OrderPlacement(this);
         //initialize listners
         paramTurtle = new BeanTurtle(this);
