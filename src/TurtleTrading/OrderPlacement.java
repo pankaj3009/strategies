@@ -372,7 +372,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener {
             fill = -fill;
             logger.log(Level.FINEST, "Reversed fill sign as sell or short. Fill=" + fill);
         }
-        double realizedPL = (origposition + fill) == 0 && origposition != 0 ? -(origposition * p.getPrice() + fill * lastFillPrice) : p.getProfit();
+        double realizedPL = (origposition + fill) == 0 && origposition != 0 ? -(origposition * p.getPrice() + fill * lastFillPrice) +p.getProfit(): p.getProfit();
         double positionPrice = (origposition + fill) == 0 ? 0 : (p.getPosition() * p.getPrice() + fill * lastFillPrice) / (origposition + fill);
         logger.log(Level.INFO, "Method:{0},Symbol:{1},Position:{2},Position Price:{3},Realized P&L:{4}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), origposition + fill, positionPrice, realizedPL});
         p.setPrice(positionPrice);

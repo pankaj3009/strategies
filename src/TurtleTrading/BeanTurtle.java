@@ -177,11 +177,11 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
             if (event.ohlc().getPeriodicity() == EnumBarSize.FiveSec) {
                 int id = event.getSymbol().getSerialno() - 1;
         //Was there a need to have a position, but no position exists?
-                if (exPriceBarLong.get(id) && this.getNotionalPosition().get(id) == 0L && event.ohlc().getHigh() > highestHigh.get(id)) {
+                if (longOnly && exPriceBarLong.get(id) && this.getNotionalPosition().get(id) == 0L && event.ohlc().getHigh() > highestHigh.get(id)) {
                     //place buy order as the last bar had a higher high and other conditions were met.
                      LOGGER.log(Level.INFO, "Method:{0},Buy Order.Symbol:{1}",new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol()});
                     generateOrders(id, true, false, true, false, true, false, true, false);
-                } else if (exPriceBarShort.get(id) && this.getNotionalPosition().get(id) == 0L && event.ohlc().getLow() < lowestLow.get(id)) {
+                } else if (shortOnly && exPriceBarShort.get(id) && this.getNotionalPosition().get(id) == 0L && event.ohlc().getLow() < lowestLow.get(id)) {
                     //place sell order as the last bar had a lower low and other conditions were met.
                      LOGGER.log(Level.INFO, "Method:{0},Short Order.Symbol:{1}",new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol()});                    generateOrders(id, false, true, false, true, false, true, false, true);
                     generateOrders(id, false, true, false, true, false, true, false, true);
@@ -430,16 +430,16 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
                 if (longOnly && ruleHighestHigh && ruleCumVolumeLong && ruleSlopeLong && ruleVolumeLong && this.getEndDate().compareTo(new Date()) > 0 && breachup > 0.5) {
                     //Buy Condition
                     this.getNotionalPosition().set(id, 1L);
-                    LOGGER.log(Level.INFO, "Method:{0},Buy. Symbol:{1},LL:{2},LastPrice:{3},HH{4},Slope:{5},SlopeThreshold:{6},Volume:{7},VolumeMA:{8}",
-                            new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), this.getLowestLow().get(id).toString(), Parameters.symbol.get(id).getLastPrice(), this.getHighestHigh().get(id).toString(), this.getSlope().get(id).toString(), String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeLongMultiplier() / 375), this.getVolume().get(id).toString(), this.getVolumeMA().get(id).toString()
+                    LOGGER.log(Level.INFO, "Method:{0},Buy. Symbol:{1},LL:{2},LastPrice:{3},HH{4},Slope:{5},SlopeThreshold:{6},Volume:{7},VolumeMA:{8}, Breachup:{9},Breachdown:{10}",
+                            new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), this.getLowestLow().get(id).toString(), Parameters.symbol.get(id).getLastPrice(), this.getHighestHigh().get(id).toString(), this.getSlope().get(id).toString(), String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeLongMultiplier() / 375), this.getVolume().get(id).toString(), this.getVolumeMA().get(id).toString(),this.getBreachUp().get(id)+1,this.getBreachDown().get(id)
                     });
                     int size = this.getExposure() != 0 ? (int) (this.getExposure() / Parameters.symbol.get(id).getLastPrice()) : Parameters.symbol.get(id).getMinsize();
                     m.fireOrderEvent(Parameters.symbol.get(id), OrderSide.BUY, size, this.getHighestHigh().get(id) + Parameters.symbol.get(id).getAggression(), 0, "TurtleTrading", 3);
                 } else if (shortOnly && ruleLowestLow && ruleCumVolumeShort && ruleSlopeShort && ruleVolumeShort && this.getEndDate().compareTo(new Date()) > 0 && breachdown > 0.5) {
                     //Short condition
                     this.getNotionalPosition().set(id, -1L);
-                    LOGGER.log(Level.INFO, "Method:{0},Short. Symbol:{1},LL:{2},LastPrice:{3},HH{4},Slope:{5},SlopeThreshold:{6},Volume:{7},VolumeMA:{8}",
-                            new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), this.getLowestLow().get(id).toString(), Parameters.symbol.get(id).getLastPrice(), this.getHighestHigh().get(id).toString(), this.getSlope().get(id).toString(), String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeLongMultiplier() / 375), this.getVolume().get(id).toString(), this.getVolumeMA().get(id).toString()
+                    LOGGER.log(Level.INFO, "Method:{0},Short. Symbol:{1},LL:{2},LastPrice:{3},HH{4},Slope:{5},SlopeThreshold:{6},Volume:{7},VolumeMA:{8},Breachup:{9},Breachdown:{10}",
+                            new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), this.getLowestLow().get(id).toString(), Parameters.symbol.get(id).getLastPrice(), this.getHighestHigh().get(id).toString(), this.getSlope().get(id).toString(), String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeLongMultiplier() / 375), this.getVolume().get(id).toString(), this.getVolumeMA().get(id).toString(),this.getBreachUp().get(id),this.getBreachUp().get(id)+1
                     });
                     int size = this.getExposure() != 0 ? (int) (this.getExposure() / Parameters.symbol.get(id).getLastPrice()) : Parameters.symbol.get(id).getMinsize();
                     m.fireOrderEvent(Parameters.symbol.get(id), OrderSide.SHORT, size, this.getLowestLow().get(id) - Parameters.symbol.get(id).getAggression(), 0, "TurtleTrading", 3);
