@@ -65,6 +65,22 @@ public class MainAlgorithm extends Algorithm  {
         } catch (FileNotFoundException ex) {
             Logger.getLogger(BeanTurtle.class.getName()).log(Level.SEVERE, null, ex);
         }
+ 
+        
+        for (BeanConnection c : Parameters.connection) {
+            c.setWrapper(new TWSConnection(c));
+        }
+
+        for (BeanConnection c : Parameters.connection) {
+            c.getWrapper().connectToTWS();
+        }
+
+        //Synchronize clocks
+        for (BeanConnection c : Parameters.connection) {
+            c.getWrapper().eClientSocket.reqCurrentTime();
+        }
+        /*
+        
         System.setProperties(p);
         String currDateStr = DateUtil.getFormatedDate("yyyyMMdd", Parameters.connection.get(0).getConnectionTime());
         String preopenStr = currDateStr + " " + System.getProperty("PreOpenTime");
@@ -81,25 +97,11 @@ public class MainAlgorithm extends Algorithm  {
             preopenDate = DateUtil.addDays(preopenDate, -1); // we have moved beyond 12:00 am . adjust startdate to previous date
         }
         
-
-        
-        for (BeanConnection c : Parameters.connection) {
-            c.setWrapper(new TWSConnection(c));
-        }
-
-        for (BeanConnection c : Parameters.connection) {
-            c.getWrapper().connectToTWS();
-        }
-
-        //Synchronize clocks
-        for (BeanConnection c : Parameters.connection) {
-            c.getWrapper().eClientSocket.reqCurrentTime();
-        }
         
         preopen=new Timer();
         preopen.schedule(new MarketDataForPreOpen(), preopenDate);
 
-        
+        */
         //Populate Contract Details
         
         BeanConnection tempC = Parameters.connection.get(0);

@@ -149,19 +149,21 @@ public class OrderPlacement implements OrderListener, OrderStatusListener {
                     if ("TRAIL".compareTo(ob.getExitLogic()) == 0) {
                         Integer trailBuyOrderID = event.getC().getOrdersSymbols().get(ind).get(4);
                         Integer trailSellOrderID = event.getC().getOrdersSymbols().get(ind).get(5);
+                        updateFilledOrders(event.getC(), id, orderid, event.getFilled(), event.getAvgFillPrice(), event.getLastFillPrice());
+                        event.getC().getOrdersInProgress().remove(new Integer(orderid));
                         if (tmpOrdSide == OrderSide.BUY || tmpOrdSide == OrderSide.SHORT) {
                             //manageTrailingOrders(event.getC(), trailBuyOrderID + trailSellOrderID, id, event.getFilled(), tmpOrdSide, event.getAvgFillPrice(),ob.getOrderReference());
                         }
                     } else if ("MOC".compareTo(ob.getExitLogic()) == 0) {
                         Integer BuyOrderID = event.getC().getOrdersSymbols().get(ind).get(4);
                         Integer SellOrderID = event.getC().getOrdersSymbols().get(ind).get(5);
+                        updateFilledOrders(event.getC(), id, orderid, event.getFilled(), event.getAvgFillPrice(), event.getLastFillPrice());
+                        event.getC().getOrdersInProgress().remove(new Integer(orderid));
                         if (tmpOrdSide == OrderSide.BUY || tmpOrdSide == OrderSide.SHORT) {
                             manageMOCOrders(event.getC(), BuyOrderID + SellOrderID, id, event.getFilled(), tmpOrdSide, event.getAvgFillPrice(), ob.getOrderReference());
 
                         }
-                        updateFilledOrders(event.getC(), id, orderid, event.getFilled(), event.getAvgFillPrice(), event.getLastFillPrice());
-                        event.getC().getOrdersInProgress().remove(new Integer(orderid));
-
+                        
                     } else if (event.getRemaining() > 0 && event.getAvgFillPrice() > 0 && !"Cancelled".equals(event.getStatus())) {
                         // partial fill
                         if ("TRAIL".compareTo(ob.getExitLogic()) == 0) {
