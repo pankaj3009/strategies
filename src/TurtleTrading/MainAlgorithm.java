@@ -5,13 +5,18 @@
 package TurtleTrading;
 
 import incurrframework.*;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.List;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Properties;
 import java.util.SortedMap;
+import java.util.Timer;
 import java.util.TreeMap;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
@@ -35,14 +40,49 @@ public class MainAlgorithm extends Algorithm  {
     private BeanTurtle paramTurtle;
     private BeanGuds paramGuds;
     private OrderPlacement ordManagement;
-
+    private Date preopenDate;
+    private Date realtimeBarsDate;
+    private Date closeDate;
+    Timer preopen;
+    public static Boolean preOpenCompleted=false;
+    
     public MainAlgorithm(List<String> args) throws Exception {
         super(args); //this initializes the connection and symbols
-
+       
         // initialize anything else 
         //initialized wrappers
         //BoilerPlate
 
+        Properties p = new Properties(System.getProperties());
+        FileInputStream propFile;
+        try {
+            propFile = new FileInputStream("Master.properties");
+            try {
+                p.load(propFile);
+            } catch (IOException ex) {
+                Logger.getLogger(BeanTurtle.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(BeanTurtle.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        System.setProperties(p);
+        String currDateStr = DateUtil.getFormatedDate("yyyyMMdd", Parameters.connection.get(0).getConnectionTime());
+        String preopenStr = currDateStr + " " + System.getProperty("PreOpenTime");
+        String realtimebarsStr = currDateStr + " " + System.getProperty("RealTimeBarsTime");
+        String closeStr = currDateStr + " " + System.getProperty("CloseTime");
+        preopenDate = DateUtil.parseDate("yyyyMMdd HH:mm:ss", preopenStr);
+        realtimeBarsDate = DateUtil.parseDate("yyyyMMdd HH:mm:ss", realtimebarsStr);
+        closeDate = DateUtil.parseDate("yyyyMMdd HH:mm:ss", closeStr);
+        
+        if (closeDate.compareTo(preopenDate) < 0 && new Date().compareTo(preopenDate) > 0) {
+            //increase enddate by one calendar day
+            closeDate = DateUtil.addDays(closeDate, 1); //system date is > start date time. Therefore we have not crossed the 12:00 am barrier
+        } else if (closeDate.compareTo(preopenDate) < 0 && new Date().compareTo(preopenDate) < 0) {
+            preopenDate = DateUtil.addDays(preopenDate, -1); // we have moved beyond 12:00 am . adjust startdate to previous date
+        }
+        
+
+        
         for (BeanConnection c : Parameters.connection) {
             c.setWrapper(new TWSConnection(c));
         }
@@ -55,10 +95,16 @@ public class MainAlgorithm extends Algorithm  {
         for (BeanConnection c : Parameters.connection) {
             c.getWrapper().eClientSocket.reqCurrentTime();
         }
+        
+        preopen=new Timer();
+        preopen.schedule(new MarketDataForPreOpen(), preopenDate);
+
+        
         //Populate Contract Details
+        
         BeanConnection tempC = Parameters.connection.get(0);
         for (BeanSymbol s : Parameters.symbol) {
-            tempC.getWrapper().getContractDetails(s);
+            tempC.getWrapper().getContractDetails(s,"");
             System.out.print("ContractDetails Requested:" + s.getSymbol());
         }
 
@@ -106,8 +152,8 @@ public class MainAlgorithm extends Algorithm  {
 
     }
  
-    public void fireOrderEvent(BeanSymbol s, OrderSide side, int size, double lmtprice, double triggerprice, String ordReference, int expireTime) {
-        OrderEvent order = new OrderEvent(this, s, side, size, lmtprice, triggerprice,ordReference,expireTime);
+    public void fireOrderEvent(BeanSymbol s, OrderSide side, int size, double lmtprice, double triggerprice, String ordReference, int expireTime,String exitType) {
+        OrderEvent order = new OrderEvent(this, s, side, size, lmtprice, triggerprice,ordReference,expireTime,exitType);
         Iterator listeners = _listeners.iterator();
         while (listeners.hasNext()) {
             ((OrderListener) listeners.next()).orderReceived(order);
