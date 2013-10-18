@@ -215,7 +215,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
                 //Set cumVolume
                 SortedMap<Long, BeanOHLC> temp = new TreeMap<Long, BeanOHLC>();
                 int cumVolumeStartSize = this.getCumVolume().get(id).size();
-                //           LOGGER.log(Level.INFO, "CumVolume.get(id).size()={0}", size);
+                //LOGGER.log(Level.INFO, "CumVolume.get(id).size()={0}", size);
                 //check if bars are complete. If bars are not complete, send add to pending requests and exit.
                 String startTime = System.getProperty("StartTime");
                 SimpleDateFormat sdfDate = new SimpleDateFormat("HH:mm:ss");//dd/MM/yyyy
@@ -241,6 +241,12 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
                         int i = 0;
                         for (Map.Entry<Long, BeanOHLC> entry : event.list().entrySet()) {
                             BeanOHLC OHLC = entry.getValue();
+                            if(i==0 && OHLC.getClose() > Parameters.symbol.get(id).getClosePrice()){
+                                this.getCumVolume().get(id).add(OHLC.getVolume());
+                            }
+                            else if(i==0 && OHLC.getClose() < Parameters.symbol.get(id).getClosePrice()){
+                                this.getCumVolume().get(id).add(-OHLC.getVolume());
+                            }
                             if (OHLC.getClose() > priorClose && i > 0) {
                                 long tempVol = this.getCumVolume().get(id).get(i - 1) + OHLC.getVolume();
                                 this.getCumVolume().get(id).add(tempVol);

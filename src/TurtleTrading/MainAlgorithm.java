@@ -142,6 +142,7 @@ public class MainAlgorithm extends Algorithm  {
 
         //Attempt realtime bars in a new thread
         createAndShowGUI(this);
+        
         Thread t = new Thread(new HistoricalBars());
         t.setName("Historical Bars");
         t.start();

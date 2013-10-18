@@ -5,6 +5,7 @@
 package TurtleTrading;
 
 import incurrframework.Algorithm;
+import incurrframework.BeanSymbol;
 import incurrframework.DateUtil;
 import incurrframework.OrderSide;
 import incurrframework.Parameters;
@@ -45,6 +46,8 @@ public class BeanGuds implements Serializable, TradeListner {
     private ArrayList<Double> high = new <Double> ArrayList();  //algo parameter 
     private ArrayList<Double> lowThreshold = new <Double> ArrayList();  //algo parameter 
     private ArrayList<Double> highThreshold = new <Double> ArrayList();  //algo parameter 
+    private ArrayList<BeanSymbol> GUDSSymbols=new<BeanSymbol>ArrayList();
+    private ArrayList<Boolean>luckyOrdersPlaced=new<Boolean>ArrayList();
     private MainAlgorithm m;
     private Date startDate;
     private Date endDate;
@@ -89,9 +92,9 @@ public class BeanGuds implements Serializable, TradeListner {
             high.add(Double.MAX_VALUE);
             lowThreshold.add(Double.MIN_VALUE);
             highThreshold.add(Double.MAX_VALUE);
-//            histClose.put(Parameters.symbol.get(i).getSymbol()+"_FUT",new ArrayList<Double>());
-//            histVolume.put(Parameters.symbol.get(i).getSymbol()+"_FUT",new ArrayList<Long>());
-
+            GUDSSymbols.add(new BeanSymbol());
+            luckyOrdersPlaced.add(Boolean.FALSE);
+            
         }
         Parameters.addTradeListener(this);
         try {
@@ -161,7 +164,8 @@ public class BeanGuds implements Serializable, TradeListner {
                     }
                 }
                 rs.close();
-                List<Double> sublist = (List) returns.subList(returns.size() - 90, returns.size());
+                List<Double> sublist = returns.size()>90? returns.subList(returns.size() - 90, returns.size()):null;
+                if(sublist!=null){
                 double[] sample = new double[sublist.size()];
                 int i = 0;
                 DescriptiveStatistics stats = new DescriptiveStatistics();
@@ -170,21 +174,19 @@ public class BeanGuds implements Serializable, TradeListner {
                     stats.addValue(value);
                     i = i + 1;
                 }
-                standardDev.set(j, stats.getStandardDeviation());
+                getStandardDev().set(j, stats.getStandardDeviation());
                 low = histlow.get(histlow.size() - 1);
                 high = histhigh.get(histhigh.size() - 1);
-                lowThreshold.set(j, low * (1 - standardDev.get(j)));
-                highThreshold.set(j, high * (1 + standardDev.get(j)));
+                lowThreshold.set(j, low * (1 - getStandardDev().get(j)));
+                highThreshold.set(j, high * (1 + getStandardDev().get(j)));
+                GUDSSymbols.set(j, Parameters.symbol.get(j));
+            }
             }
         } catch (SQLException ex) {
             Logger.getLogger(BeanGuds.class.getName()).log(Level.SEVERE, null, ex);
         }
 
 
-    }
-
-    private void preOpenOrders(){
-        
     }
     
     @Override
@@ -193,15 +195,20 @@ public class BeanGuds implements Serializable, TradeListner {
         double lastPrice = Parameters.symbol.get(id).getLastPrice();
         if (!openPrice.get(id)) { //do if this is the open price
             openPrice.set(id, Boolean.TRUE);
+            //if(!luckyOrdersPlaced.get(id)){
+            if(true){
             //Short Signal
             if (lastPrice > highThreshold.get(id) || Parameters.symbol.get(id).getOpenPrice() > highThreshold.get(id)) {
-                m.fireOrderEvent(Parameters.symbol.get(id), OrderSide.SHORT, Parameters.symbol.get(id).getMinsize(), Math.round(highThreshold.get(id)), 0, "GUDS", 3, exit);
+                m.fireOrderEvent(Parameters.symbol.get(id), OrderSide.SHORT, Parameters.symbol.get(id).getMinsize(), Math.ceil(highThreshold.get(id)*20)/20, 0, "GUDS", 3, exit);
             }
             //Buy Signal
-            if (lastPrice < lowThreshold.get(id) || Parameters.symbol.get(id).getOpenPrice() < lowThreshold.get(id)) {
-                m.fireOrderEvent(Parameters.symbol.get(id), OrderSide.BUY, Parameters.symbol.get(id).getMinsize(), Math.round(lowThreshold.get(id)), 0, "GUDS", 3, exit);
+            else if (lastPrice < lowThreshold.get(id) || Parameters.symbol.get(id).getOpenPrice() < lowThreshold.get(id)) {
+                m.fireOrderEvent(Parameters.symbol.get(id), OrderSide.BUY, Parameters.symbol.get(id).getMinsize(), Math.ceil(lowThreshold.get(id)*20)/20, 0, "GUDS", 3, exit);
             }
-
+        } else if(!luckyOrdersPlaced.get(id)){
+        //amend orders and replace
+        
+        }
         }
 
     }
@@ -288,5 +295,47 @@ public class BeanGuds implements Serializable, TradeListner {
      */
     public void setEndDate(Date endDate) {
         this.endDate = endDate;
+    }
+
+    /**
+     * @return the GUDSSymbols
+     */
+    public ArrayList<BeanSymbol> getGUDSSymbols() {
+        return GUDSSymbols;
+    }
+
+    /**
+     * @param GUDSSymbols the GUDSSymbols to set
+     */
+    public void setGUDSSymbols(ArrayList<BeanSymbol> GUDSSymbols) {
+        this.GUDSSymbols = GUDSSymbols;
+    }
+
+    /**
+     * @return the standardDev
+     */
+    public ArrayList<Double> getStandardDev() {
+        return standardDev;
+    }
+
+    /**
+     * @param standardDev the standardDev to set
+     */
+    public void setStandardDev(ArrayList<Double> standardDev) {
+        this.standardDev = standardDev;
+    }
+
+    /**
+     * @return the luckyOrdersPlaced
+     */
+    public ArrayList<Boolean> getLuckyOrdersPlaced() {
+        return luckyOrdersPlaced;
+    }
+
+    /**
+     * @param luckyOrdersPlaced the luckyOrdersPlaced to set
+     */
+    public void setLuckyOrdersPlaced(ArrayList<Boolean> luckyOrdersPlaced) {
+        this.luckyOrdersPlaced = luckyOrdersPlaced;
     }
 }
