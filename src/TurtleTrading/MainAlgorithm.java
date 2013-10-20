@@ -131,7 +131,7 @@ public class MainAlgorithm extends Algorithm  {
         
         
         preopen=new Timer();
-        preopen.schedule(new SnapShotPreOpenPrice(), preopenDate);       
+       // preopen.schedule(new SnapShotPreOpenPrice(), preopenDate);       
         
         //ordManagement=new OrderPlacement(this);
         //initialize listners

@@ -242,10 +242,10 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
                         for (Map.Entry<Long, BeanOHLC> entry : event.list().entrySet()) {
                             BeanOHLC OHLC = entry.getValue();
                             if(i==0 && OHLC.getClose() > Parameters.symbol.get(id).getClosePrice()){
-                                this.getCumVolume().get(id).add(OHLC.getVolume());
+                                this.getCumVolume().get(id).set(0, OHLC.getVolume());
                             }
                             else if(i==0 && OHLC.getClose() < Parameters.symbol.get(id).getClosePrice()){
-                                this.getCumVolume().get(id).add(-OHLC.getVolume());
+                                this.getCumVolume().get(id).set(0, -OHLC.getVolume());
                             }
                             if (OHLC.getClose() > priorClose && i > 0) {
                                 long tempVol = this.getCumVolume().get(id).get(i - 1) + OHLC.getVolume();
