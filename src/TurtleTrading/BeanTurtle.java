@@ -326,11 +326,12 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
                     this.getSlope().set(id, tempSlope);
                 }
                 //set barupdown count
-                if (this.getBreachUpInBar().get(id)) {
+                if (this.getBreachUpInBar().get(id) &&this.getCumVolume().get(id).size() > this.getChannelDuration()) {
                     int breachup = this.getBreachUp().get(id);
                     this.getBreachUp().set(id, breachup + 1);
                     this.getBreachUpInBar().set(id, false);
-                } else if (this.getBreachDownInBar().get(id)) {
+                } 
+                if (this.getBreachDownInBar().get(id) && this.getCumVolume().get(id).size() > this.getChannelDuration()) {
                     int breachdown = this.getBreachUp().get(id);
                     this.getBreachDown().set(id, breachdown + 1);
                     this.getBreachDownInBar().set(id, false);
@@ -363,7 +364,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
                 } else {
                     exPriceBarShort.set(id, Boolean.FALSE);
                 }
-                logger.log(Level.INFO, "{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10}", new Object[]{
+                logger.log(Level.INFO, "{0},{1}, HH:{2}, LL:{3}, CumVol:{4}, LongVolCutoff:{5}, ShortVolCutoff:{6}, Slope:{7}, SlopeCutoff:{8}, BarVol:{9}, VolMA:{10}, BreachUp:{11}, BreachDown:{12}", new Object[]{
                     Parameters.symbol.get(id).getSymbol(),
                     sdfDate.format(event.list().lastEntry().getKey()),
                     this.getHighestHigh().get(id).toString(),
@@ -374,7 +375,9 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
                     this.getSlope().get(id).toString(),
                     String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeLongMultiplier() / 375).replace(",", ""),
                     this.getVolume().get(id).toString(),
-                    this.getVolumeMA().get(id).toString()
+                    this.getVolumeMA().get(id).toString(),
+                    this.getBreachUp().get(id),
+                    this.getBreachDown().get(id)
                 });
 
             } else if (event.ohlc().getPeriodicity() == EnumBarSize.Daily) {
@@ -423,7 +426,8 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
             }
             if (ruleHighestHigh) {
                 this.getBreachUpInBar().set(id, true);
-            } else if (ruleLowestLow) {
+            }
+            if (ruleLowestLow) {
                 this.getBreachDownInBar().set(id, true);
             }
             double breachup = ((double) this.getBreachUp().get(id) + 1) / ((double) this.getBreachUp().get(id) + (double) this.getBreachDown().get(id) + 1);
@@ -448,7 +452,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
             });
 
 
-            if (tradeable && this.getNotionalPosition().get(id) == 0 && this.getCumVolume().get(id).size() >= this.getChannelDuration()) {
+            if (tradeable && this.getNotionalPosition().get(id) == 0 && this.getCumVolume().get(id).size() > this.getChannelDuration()) {
                 if (longOnly && ruleHighestHigh && ruleCumVolumeLong && ruleSlopeLong && ruleVolumeLong && this.getEndDate().compareTo(new Date()) > 0 && breachup > 0.5) {
                     //Buy Condition
                     this.getNotionalPosition().set(id, 1L);
