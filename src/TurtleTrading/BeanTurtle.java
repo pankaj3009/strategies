@@ -428,9 +428,23 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
             }
             double breachup = ((double) this.getBreachUp().get(id) + 1) / ((double) this.getBreachUp().get(id) + (double) this.getBreachDown().get(id) + 1);
             double breachdown = ((double) this.getBreachDown().get(id) + 1) / ((double) this.getBreachUp().get(id) + (double) this.getBreachDown().get(id) + 1);
-
-            LOGGER.log(Level.FINEST, "," + "{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20}", new Object[]{
-                Parameters.symbol.get(id).getSymbol(), String.valueOf(this.getCumVolume().get(id).size()), this.getHighestHigh().get(id).toString(), this.getLowestLow().get(id).toString(), String.valueOf(Parameters.symbol.get(id).getLastPrice()), this.getVolume().get(id).toString(), this.getCumVolume().get(id).get(this.getCumVolume().get(id).size() - 1).toString(), this.getSlope().get(id).toString(), String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeLongMultiplier() / 375), this.getVolumeMA().get(id).toString(), this.getLongVolume().get(id).toString(), this.getShortVolume().get(id).toString(), DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss z", Parameters.symbol.get(id).getLastPriceTime()), ruleHighestHigh, ruleCumVolumeLong, ruleSlopeLong, ruleVolumeLong, ruleLowestLow, ruleCumVolumeShort, ruleSlopeShort, ruleVolumeShort
+            
+            LOGGER.log(Level.INFO, "," + "{0},CumVolume:{1}, HH:{2}, LL:{3}, LastPrice:{4}, Vol:{5}, CumVol:{6}, Slope:{7}, SlopeCutoff:{8},VolMA:{9}, LongVolCutoff:{10}, ShortVolCutOff:{11}, LastPriceTime:{12}, BreachUp:{13}, BreachDown:{14}", new Object[]{
+                Parameters.symbol.get(id).getSymbol(), 
+                String.valueOf(this.getCumVolume().get(id).size()), 
+                this.getHighestHigh().get(id).toString(), 
+                this.getLowestLow().get(id).toString(), 
+                String.valueOf(Parameters.symbol.get(id).getLastPrice()), 
+                this.getVolume().get(id).toString(), 
+                this.getCumVolume().get(id).get(this.getCumVolume().get(id).size() - 1).toString(), 
+                this.getSlope().get(id).toString(), 
+                String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeLongMultiplier() / 375), 
+                this.getVolumeMA().get(id).toString(), 
+                0.05 * Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()), 
+                Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()), 
+                DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss z", Parameters.symbol.get(id).getLastPriceTime()), 
+                this.getBreachUp().get(id),
+                this.getBreachDown().get(id)
             });
 
 
