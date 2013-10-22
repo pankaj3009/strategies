@@ -163,7 +163,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
             Parameters.symbol.get(i).getFiveSecondBars().addHistoricalBarListener(this);
         }
         Parameters.addTradeListener(this);
-        populateLastTradePrice();
+       
         FileHandler fileHandler;
 
         try {
@@ -176,6 +176,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
         } catch (SecurityException ex) {
             Logger.getLogger(BeanTurtle.class.getName()).log(Level.SEVERE, null, ex);
         }
+         populateLastTradePrice();
     }
 
     private void populateLastTradePrice() {
@@ -184,7 +185,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
         java.sql.Statement statement = null;
         PreparedStatement preparedStatement = null;
         ResultSet rs = null;
-        connect = DriverManager.getConnection("jdbc:mysql://72.55.79.5:3306/histdata", "root", "spark123");
+        connect = DriverManager.getConnection("jdbc:mysql://72.55.179.5:3306/histdata", "root", "spark123");
             //statement = connect.createStatement();
             for (int j = 0; j < Parameters.symbol.size(); j++) {
                 String name = Parameters.symbol.get(j).getSymbol() + "_FUT";
@@ -193,16 +194,19 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
                 rs = preparedStatement.executeQuery();
                 if(rs!=null){ 
                 while (rs.next()) {
-                    double tempPrice = rs.getDouble("close");
+                    double tempPrice = rs.getDouble("tickclose");
                     Parameters.symbol.get(j).setYesterdayLastPrice(tempPrice);
+                    LOGGER.log(Level.INFO, "Symbol:{0},YesterDay Close:{1}",new Object[]{Parameters.symbol.get(j).getSymbol(),tempPrice});
                  }
                 } else{
                     Parameters.symbol.get(j).setYesterdayLastPrice(Parameters.symbol.get(j).getClosePrice());
+                     LOGGER.log(Level.INFO, "Symbol:{0},Another YesterDay Close:{1}",new Object[]{Parameters.symbol.get(j).getSymbol(),rs.getDouble("tickclose")});
+          
                 }
 
     }}
         catch(Exception E){
-            
+            System.out.println("Error:"+E.toString());
         }
     }
     @Override
@@ -464,7 +468,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
             }
             double breachup = ((double) this.getBreachUp().get(id) + 1) / ((double) this.getBreachUp().get(id) + (double) this.getBreachDown().get(id) + 1);
             double breachdown = ((double) this.getBreachDown().get(id) + 1) / ((double) this.getBreachUp().get(id) + (double) this.getBreachDown().get(id) + 1);
-            
+            if(ruleHighestHigh||ruleLowestLow){
             LOGGER.log(Level.INFO, "," + "{0},CumVolume:{1}, HH:{2}, LL:{3}, LastPrice:{4}, Vol:{5}, CumVol:{6}, Slope:{7}, SlopeCutoff:{8},VolMA:{9}, LongVolCutoff:{10}, ShortVolCutOff:{11}, LastPriceTime:{12}, BreachUp:{13}, BreachDown:{14}", new Object[]{
                 Parameters.symbol.get(id).getSymbol(), 
                 String.valueOf(this.getCumVolume().get(id).size()), 
@@ -482,7 +486,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
                 this.getBreachUp().get(id),
                 this.getBreachDown().get(id)
             });
-
+            }
 
             if (tradeable && this.getNotionalPosition().get(id) == 0 && this.getCumVolume().get(id).size() > this.getChannelDuration()) {
                 if (longOnly && ruleHighestHigh && ruleCumVolumeLong && ruleSlopeLong && ruleVolumeLong && this.getEndDate().compareTo(new Date()) > 0 && breachup > 0.5) {
