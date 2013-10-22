@@ -24,6 +24,10 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Serializable;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -159,6 +163,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
             Parameters.symbol.get(i).getFiveSecondBars().addHistoricalBarListener(this);
         }
         Parameters.addTradeListener(this);
+        populateLastTradePrice();
         FileHandler fileHandler;
 
         try {
@@ -173,6 +178,33 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
         }
     }
 
+    private void populateLastTradePrice() {
+        try{
+        Connection connect = null;
+        java.sql.Statement statement = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet rs = null;
+        connect = DriverManager.getConnection("jdbc:mysql://localhost:3306/histdata", "root", "spark123");
+            //statement = connect.createStatement();
+            for (int j = 0; j < Parameters.symbol.size(); j++) {
+                String name = Parameters.symbol.get(j).getSymbol() + "_FUT";
+                preparedStatement = connect.prepareStatement("select * from dharasymb where name=? order by date desc LIMIT 1");
+                preparedStatement.setString(1, name);
+                rs = preparedStatement.executeQuery();
+                if(rs!=null){ 
+                while (rs.next()) {
+                    double tempPrice = rs.getDouble("close");
+                    Parameters.symbol.get(j).setYesterdayLastPrice(tempPrice);
+                 }
+                } else{
+                    Parameters.symbol.get(j).setYesterdayLastPrice(Parameters.symbol.get(j).getClosePrice());
+                }
+
+    }}
+        catch(Exception E){
+            
+        }
+    }
     @Override
     public void barsReceived(HistoricalBarEvent event) {
         try {
@@ -241,10 +273,10 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
                         int i = 0;
                         for (Map.Entry<Long, BeanOHLC> entry : event.list().entrySet()) {
                             BeanOHLC OHLC = entry.getValue();
-                            if(i==0 && OHLC.getClose() > Parameters.symbol.get(id).getClosePrice()){
+                            if(i==0 && OHLC.getClose() > Parameters.symbol.get(id).getYesterdayLastPrice()){
                                 this.getCumVolume().get(id).set(0, OHLC.getVolume());
                             }
-                            else if(i==0 && OHLC.getClose() < Parameters.symbol.get(id).getClosePrice()){
+                            else if(i==0 && OHLC.getClose() < Parameters.symbol.get(id).getYesterdayLastPrice()){
                                 this.getCumVolume().get(id).set(0, -OHLC.getVolume());
                             }
                             if (OHLC.getClose() > priorClose && i > 0) {
