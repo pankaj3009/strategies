@@ -184,7 +184,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
         java.sql.Statement statement = null;
         PreparedStatement preparedStatement = null;
         ResultSet rs = null;
-        connect = DriverManager.getConnection("jdbc:mysql://localhost:3306/histdata", "root", "spark123");
+        connect = DriverManager.getConnection("jdbc:mysql://72.55.79.5:3306/histdata", "root", "spark123");
             //statement = connect.createStatement();
             for (int j = 0; j < Parameters.symbol.size(); j++) {
                 String name = Parameters.symbol.get(j).getSymbol() + "_FUT";
