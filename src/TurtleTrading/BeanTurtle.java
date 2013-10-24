@@ -456,7 +456,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
             boolean ruleSlopeShort, boolean ruleVolumeLong, boolean ruleVolumeShort) {
 
         try {
-            boolean tradeable = Integer.parseInt(Parameters.symbol.get(id).getAdditionalInput()) / (Parameters.symbol.get(id).getMinsize() * 375) > 6 && this.getCumVolume().get(id).size() > this.getStartBars();
+            boolean tradeable = Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) / (Parameters.symbol.get(id).getMinsize() * 375) >= 6.0 && this.getCumVolume().get(id).size() > this.getStartBars();
             if (this.getExposure() != 0 && this.getCumVolume().get(id).size() > this.getStartBars()) {
                 tradeable = true;
             }
@@ -466,10 +466,10 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
             if (ruleLowestLow) {
                 this.getBreachDownInBar().set(id, true);
             }
-            double breachup = ((double) this.getBreachUp().get(id) + 1) / ((double) this.getBreachUp().get(id) + (double) this.getBreachDown().get(id) + 1);
-            double breachdown = ((double) this.getBreachDown().get(id) + 1) / ((double) this.getBreachUp().get(id) + (double) this.getBreachDown().get(id) + 1);
+            double breachup = ((double) this.getBreachUp().get(id) + 1) / ((double) this.getBreachUp().get(id) + (double) this.getBreachDown().get(id) + 1D);
+            double breachdown = ((double) this.getBreachDown().get(id) + 1) / ((double) this.getBreachUp().get(id) + (double) this.getBreachDown().get(id) + 1D);
             if(ruleHighestHigh||ruleLowestLow){
-            LOGGER.log(Level.INFO, "," + "{0},CumVolume:{1}, HH:{2}, LL:{3}, LastPrice:{4}, Vol:{5}, CumVol:{6}, Slope:{7}, SlopeCutoff:{8},VolMA:{9}, LongVolCutoff:{10}, ShortVolCutOff:{11}, LastPriceTime:{12}, BreachUp:{13}, BreachDown:{14}", new Object[]{
+            LOGGER.log(Level.INFO, "{0},CumVolume:{1}, HH:{2}, LL:{3}, LastPrice:{4}, Vol:{5}, CumVol:{6}, Slope:{7}, SlopeCutoff:{8},VolMA:{9}, LongVolCutoff:{10}, ShortVolCutOff:{11}, LastPriceTime:{12}, BreachUp:{13}, BreachDown:{14},{15},{16},{17},{18},{19},{20},{21},{22},{23},{24},{25},{26},{27},{28}", new Object[]{
                 Parameters.symbol.get(id).getSymbol(), 
                 String.valueOf(this.getCumVolume().get(id).size()), 
                 this.getHighestHigh().get(id).toString(), 
@@ -484,11 +484,25 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
                 Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()), 
                 DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss z", Parameters.symbol.get(id).getLastPriceTime()), 
                 this.getBreachUp().get(id),
-                this.getBreachDown().get(id)
+                this.getBreachDown().get(id),
+                tradeable,
+                this.getNotionalPosition().get(id),
+                longOnly,
+                ruleHighestHigh,
+                ruleCumVolumeLong,
+                ruleSlopeLong,
+                ruleVolumeLong,
+                breachup,
+                shortOnly,
+                ruleLowestLow,
+                ruleCumVolumeShort,
+                ruleSlopeShort,
+                ruleVolumeShort,
+                breachdown
             });
             }
 
-            if (tradeable && this.getNotionalPosition().get(id) == 0 && this.getCumVolume().get(id).size() > this.getChannelDuration()) {
+            if (tradeable && this.getNotionalPosition().get(id) == 0 && this.getCumVolume().get(id).size() >= this.getChannelDuration()) {
                 if (longOnly && ruleHighestHigh && ruleCumVolumeLong && ruleSlopeLong && ruleVolumeLong && this.getEndDate().compareTo(new Date()) > 0 && breachup > 0.5) {
                     //Buy Condition
                     this.getNotionalPosition().set(id, 1L);
