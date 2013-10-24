@@ -199,16 +199,19 @@ private void StartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:e
     private void cmdLongActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdLongActionPerformed
         algo.getParamTurtle().setLongOnly(true);
         algo.getParamTurtle().setShortOnly(false);
+         Logger.getLogger(MainAlgorithmUI.class.getName()).log(Level.INFO, "Set to Long Only");
     }//GEN-LAST:event_cmdLongActionPerformed
 
     private void cmdShortActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdShortActionPerformed
         algo.getParamTurtle().setLongOnly(false);
         algo.getParamTurtle().setShortOnly(true);
+        Logger.getLogger(MainAlgorithmUI.class.getName()).log(Level.INFO, "Set to Short Only");
     }//GEN-LAST:event_cmdShortActionPerformed
 
     private void cmdBothActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdBothActionPerformed
         algo.getParamTurtle().setLongOnly(true);
         algo.getParamTurtle().setShortOnly(true);
+        Logger.getLogger(MainAlgorithmUI.class.getName()).log(Level.INFO, "Set to Long and Short");
     }//GEN-LAST:event_cmdBothActionPerformed
 
     private void cmdPauseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdPauseActionPerformed
