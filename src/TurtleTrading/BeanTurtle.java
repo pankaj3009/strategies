@@ -368,7 +368,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
                     this.getBreachUpInBar().set(id, false);
                 } 
                 if (this.getBreachDownInBar().get(id) && this.getCumVolume().get(id).size() > this.getChannelDuration()) {
-                    int breachdown = this.getBreachUp().get(id);
+                    int breachdown = this.getBreachDown().get(id);
                     this.getBreachDown().set(id, breachdown + 1);
                     this.getBreachDownInBar().set(id, false);
                 }
