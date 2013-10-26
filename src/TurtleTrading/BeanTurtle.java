@@ -30,6 +30,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -99,6 +100,8 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
     private Boolean shortOnly = true;
     private ArrayList<Boolean> exPriceBarLong = new ArrayList();
     private ArrayList<Boolean> exPriceBarShort = new ArrayList();
+    private String symbols;
+    private List<String> tradeableSymbols=new ArrayList();
 
     public BeanTurtle(MainAlgorithm m) {
         this.m = m;
@@ -136,7 +139,8 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
         startBars = Integer.parseInt(System.getProperty("StartBars"));
         display = Integer.parseInt(System.getProperty("Display"));
         exit = System.getProperty("Exit");
-
+        this.symbols=System.getProperty("Symbols");
+        this.tradeableSymbols=Arrays.asList(this.symbols.split("\\s*,\\s*"));
         for (int i = 0; i < Parameters.symbol.size(); i++) {
             cumVolume.add(i, new ArrayList<Long>());
             cumVolume.get(i).add(0L);
@@ -211,6 +215,8 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
     }
     @Override
     public void barsReceived(HistoricalBarEvent event) {
+        int outsideid=event.getSymbol().getSerialno() - 1;
+        if(this.tradeableSymbols.contains(Parameters.symbol.get(outsideid).getSymbol())){
         try {
             if (event.ohlc().getPeriodicity() == EnumBarSize.FiveSec) {
                 int id = event.getSymbol().getSerialno() - 1;
@@ -431,6 +437,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "{0} Symbol: {1}", new Object[]{e.toString(), event.getSymbol().getSymbol()});
         }
+        }
     }
 
     @Override
@@ -438,6 +445,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
 
         try {
             int id = event.getSymbolID(); //here symbolID is with zero base.
+            if (this.tradeableSymbols.contains(Parameters.symbol.get(id).getSymbol())){
             boolean ruleHighestHigh = Parameters.symbol.get(id).getLastPrice() > this.getHighestHigh().get(id);
             boolean ruleLowestLow = Parameters.symbol.get(id).getLastPrice() < this.getLowestLow().get(id);
             boolean ruleCumVolumeLong = this.getCumVolume().get(id).get(this.getCumVolume().get(id).size() - 1) >= 0.05 * Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput());
@@ -450,8 +458,12 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
             ruleCumVolumeShort=true;
             ruleVolumeLong=true;
             ruleVolumeShort=true;
+            if(this.tradeableSymbols.contains(Parameters.symbol.get(id).getSymbol())){
             generateOrders(id, ruleHighestHigh, ruleLowestLow, ruleCumVolumeLong, ruleCumVolumeShort, ruleSlopeLong, ruleSlopeShort, ruleVolumeLong, ruleVolumeShort);
-        } catch (Exception e) {
+            }
+            }
+
+            } catch (Exception e) {
             LOGGER.log(Level.SEVERE, e.toString());
         }
     }
