@@ -262,7 +262,8 @@ public class OrderPlacement implements OrderListener, OrderStatusListener {
                         Index ind = new Index(ordb.getOrderReference(), tempID);
                         if (System.currentTimeMillis() > key + 60 * 1000) {
                             temp.add(key); //if > 60 seconds have passed then add the key to temp. This record will be deleted from orders to be retried queue.
-                        } else if (c.getPositions().get(ind) != null && c.getPositions().get(ind).getPosition() == 0 && zilchOpenOrders(c, tempID, ordb.getOrderReference())) {
+                        } else if (c.getPositions().get(ind) != null) {
+                            if( c.getPositions().get(ind).getPosition() == 0 && zilchOpenOrders(c, tempID, ordb.getOrderReference())) {
                             //update temp
                             temp.add(key);
                             //place orders
@@ -271,6 +272,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener {
                             logger.log(Level.INFO, "Method:{0}, Symbol:{1}, OrderID:{2}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(ordb.getSymbolID() - 1).getSymbol(), key});
                             c.getWrapper().placeOrder(c, tempID + 1, ordb.getOrderSide(), ord, con, ordb.getExitLogic());
                         }
+                    }
                     }
                     for (long ordersToBeDeleted : temp) {
                         logger.log(Level.INFO, "Symbol Deleted from retry attempt. Method:{0}, Symbol:{1}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(c.getOrdersToBeRetried().get(ordersToBeDeleted).getSymbolID() - 1).getSymbol()});
