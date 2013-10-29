@@ -23,7 +23,7 @@ import javax.swing.Timer;
  *
  * @author admin
  */
-public class OrderPlacement implements OrderListener, OrderStatusListener {
+public class OrderPlacement implements OrderListener, OrderStatusListener,TWSErrorListener {
 
     private MainAlgorithm a;
     private final static Logger logger = Logger.getLogger(DataBars.class.getName());
@@ -507,5 +507,13 @@ public class OrderPlacement implements OrderListener, OrderStatusListener {
     private synchronized void updateAcknowledgement(BeanConnection c, int id, int orderID) {
         OrderBean ord = c.getOrders().get(orderID);
         ord.setStatus(EnumOrderStatus.Acknowledged);
+    }
+
+    @Override
+    public void TWSErrorReceived(TWSErrorEvent event) {
+        if(event.getErrorCode()==201){
+                int id=event.getConnection().getOrders().get(event.getId()).getSymbolID()-1;
+            this.updateCancelledOrders(event.getConnection(), id, event.getId());
+        }
     }
 }
