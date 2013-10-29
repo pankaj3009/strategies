@@ -148,6 +148,8 @@ public class MainAlgorithm extends Algorithm  {
         t.start();
         t.join();
 
+//        TradingUtil.getDailyBarsFromOneMinCandle(2);
+        
         new RealTimeBars(getParamTurtle());
         //BoilerPlate Ends
 
