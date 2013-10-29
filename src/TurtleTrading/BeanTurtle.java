@@ -221,11 +221,11 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
             if (event.ohlc().getPeriodicity() == EnumBarSize.FiveSec) {
                 int id = event.getSymbol().getSerialno() - 1;
                 //Was there a need to have a position, but no position exists?
-                if (longOnly && exPriceBarLong.get(id) && this.getNotionalPosition().get(id) == 0L && event.ohlc().getHigh() > highestHigh.get(id)) {
+                if (exPriceBarLong.get(id) && this.getNotionalPosition().get(id) == 0L && event.ohlc().getHigh() > highestHigh.get(id)) {
                     //place buy order as the last bar had a higher high and other conditions were met.
                     LOGGER.log(Level.INFO, "Method:{0},Buy Order.Symbol:{1}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol()});
                     generateOrders(id, true, false, true, false, true, false, true, false);
-                } else if (shortOnly && exPriceBarShort.get(id) && this.getNotionalPosition().get(id) == 0L && event.ohlc().getLow() < lowestLow.get(id)) {
+                } else if (exPriceBarShort.get(id) && this.getNotionalPosition().get(id) == 0L && event.ohlc().getLow() < lowestLow.get(id)) {
                     //place sell order as the last bar had a lower low and other conditions were met.
                     LOGGER.log(Level.INFO, "Method:{0},Short Order.Symbol:{1}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol()});
                     generateOrders(id, false, true, false, true, false, true, false, true);
@@ -394,6 +394,10 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
                 boolean ruleSlopeShort = this.getSlope().get(id) < -Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeLongMultiplier() / 375;
                 boolean ruleVolumeLong = this.getVolume().get(id) > this.getVolumeMA().get(id);
                 boolean ruleVolumeShort = this.getVolume().get(id) > 2 * this.getVolumeMA().get(id);
+                ruleCumVolumeLong=true;
+                ruleCumVolumeShort=true;
+                ruleVolumeLong=true;
+                ruleVolumeShort=true;
 
                 if (ruleCumVolumeLong && ruleSlopeLong && ruleVolumeLong) {
                     exPriceBarLong.set(id, Boolean.TRUE);
