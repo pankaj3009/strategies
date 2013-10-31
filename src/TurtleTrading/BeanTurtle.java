@@ -224,20 +224,20 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
                 if (event.ohlc().getHigh() > highestHigh.get(id)) {
                     //place buy order as the last bar had a higher high and other conditions were met.
                     LOGGER.log(Level.INFO, "Method:{0},Buy Order.Symbol:{1}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol()});
-                    generateOrders(id, true, false, true, false, true, false, true, false);
+                    generateOrders(id, true, false, true, false, true, false, true, false,true);
                 } else if (event.ohlc().getLow() < lowestLow.get(id)) {
                     //place sell order as the last bar had a lower low and other conditions were met.
                     LOGGER.log(Level.INFO, "Method:{0},Short Order.Symbol:{1}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol()});
-                    generateOrders(id, false, true, false, true, false, true, false, true);
+                    generateOrders(id, false, true, false, true, false, true, false, true,true);
                     //generateOrders(id, ruleHighestHigh, ruleLowestLow, ruleCumVolumeLong, ruleCumVolumeShort, ruleSlopeLong, ruleSlopeShort, ruleVolumeLong, ruleVolumeShort);
                 }
                 //Similarly, check for squareoffs that were missed
                 if (this.getNotionalPosition().get(id) == 1L && event.ohlc().getLow() < lowestLow.get(id)) {
                     LOGGER.log(Level.INFO, "Method:{0},Sell Order.Symbol:{1}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol()});
-                    generateOrders(id, false, true, false, false, false, false, false, false);
+                    generateOrders(id, false, true, false, false, false, false, false, false,true);
                 } else if (this.getNotionalPosition().get(id) == -1L && event.ohlc().getHigh() > highestHigh.get(id)) {
                     LOGGER.log(Level.INFO, "Method:{0},Cover Order.Symbol:{1}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol()});
-                    generateOrders(id, true, false, false, false, false, false, false, false);
+                    generateOrders(id, true, false, false, false, false, false, false, false,true);
                 }
             }
         } catch (Exception e) {
@@ -462,7 +462,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
             ruleVolumeLong=true;
             ruleVolumeShort=true;
             if(this.tradeableSymbols.contains(Parameters.symbol.get(id).getSymbol())){
-            generateOrders(id, ruleHighestHigh, ruleLowestLow, ruleCumVolumeLong, ruleCumVolumeShort, ruleSlopeLong, ruleSlopeShort, ruleVolumeLong, ruleVolumeShort);
+            generateOrders(id, ruleHighestHigh, ruleLowestLow, ruleCumVolumeLong, ruleCumVolumeShort, ruleSlopeLong, ruleSlopeShort, ruleVolumeLong, ruleVolumeShort,false);
             }
             }
 
@@ -472,7 +472,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
     }
 
     private synchronized void generateOrders(int id, boolean ruleHighestHigh, boolean ruleLowestLow, boolean ruleCumVolumeLong, boolean ruleCumVolumeShort, boolean ruleSlopeLong,
-            boolean ruleSlopeShort, boolean ruleVolumeLong, boolean ruleVolumeShort) {
+            boolean ruleSlopeShort, boolean ruleVolumeLong, boolean ruleVolumeShort,boolean sourceBars) {
 
         try {
             boolean tradeable = Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) / (Parameters.symbol.get(id).getMinsize() * 375) >= 6.0 && this.getCumVolume().get(id).size() > this.getStartBars();
@@ -520,9 +520,9 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
                 breachdown
             });
             }
-
+            
             if (tradeable && this.getNotionalPosition().get(id) == 0 && this.getCumVolume().get(id).size() >= this.getChannelDuration()) {
-                if (longOnly && ruleHighestHigh && (exPriceBarLong.get(id) ||(ruleCumVolumeLong && ruleSlopeLong && ruleVolumeLong)) && this.getEndDate().compareTo(new Date()) > 0 && breachup > 0.5 && this.getBreachDown().get(id)>=1) {
+                if (longOnly && ruleHighestHigh && (exPriceBarLong.get(id) && sourceBars ||(!sourceBars && ruleCumVolumeLong && ruleSlopeLong && ruleVolumeLong)) && this.getEndDate().compareTo(new Date()) > 0 && breachup > 0.5 && this.getBreachDown().get(id)>=1) {
                     //Buy Condition
                     this.getNotionalPosition().set(id, 1L);
                     LOGGER.log(Level.INFO, "Method:{0},Buy. Symbol:{1},LL:{2},LastPrice:{3},HH{4},Slope:{5},SlopeThreshold:{6},Volume:{7},VolumeMA:{8}, Breachup:{9},Breachdown:{10}",
@@ -530,7 +530,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
                     });
                     int size = this.getExposure() != 0 ? (int) (this.getExposure() / Parameters.symbol.get(id).getLastPrice()) : Parameters.symbol.get(id).getMinsize();
                     m.fireOrderEvent(Parameters.symbol.get(id), OrderSide.BUY, size, this.getHighestHigh().get(id) + Parameters.symbol.get(id).getAggression(), 0, "TurtleTrading", 3, exit);
-                } else if (shortOnly && ruleLowestLow && (exPriceBarShort.get(id) ||(ruleCumVolumeShort && ruleSlopeShort && ruleVolumeShort )) && this.getEndDate().compareTo(new Date()) > 0 && breachdown > 0.5 && this.getBreachUp().get(id)>=1) {
+                } else if (shortOnly && ruleLowestLow && (exPriceBarShort.get(id) && sourceBars ||(!sourceBars && ruleCumVolumeShort && ruleSlopeShort && ruleVolumeShort )) && this.getEndDate().compareTo(new Date()) > 0 && breachdown > 0.5 && this.getBreachUp().get(id)>=1) {
                     //Short condition
                     this.getNotionalPosition().set(id, -1L);
                     LOGGER.log(Level.INFO, "Method:{0},Short. Symbol:{1},LL:{2},LastPrice:{3},HH{4},Slope:{5},SlopeThreshold:{6},Volume:{7},VolumeMA:{8},Breachup:{9},Breachdown:{10}",
@@ -560,7 +560,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
                     m.fireOrderEvent(Parameters.symbol.get(id), OrderSide.SELL, size, Parameters.symbol.get(id).getLastPrice(), 0, "TurtleTrading", 3, "");
                 }
             }
-
+        
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, e.toString());
         }
