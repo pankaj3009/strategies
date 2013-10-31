@@ -512,7 +512,8 @@ public class OrderPlacement implements OrderListener, OrderStatusListener,TWSErr
     @Override
     public void TWSErrorReceived(TWSErrorEvent event) {
         if(event.getErrorCode()==201){
-                int id=event.getConnection().getOrders().get(event.getId()).getSymbolID()-1;
+            int id=event.getConnection().getOrders().get(event.getId()).getSymbolID()-1;
+            logger.log(Level.INFO, "Method:{0},Symbol:{1}, ErrorCode:{2},OrderID={3},Message={4}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getErrorCode(), event.getId(), event.getErrorMessage()});
             this.updateCancelledOrders(event.getConnection(), id, event.getId());
         }
     }
