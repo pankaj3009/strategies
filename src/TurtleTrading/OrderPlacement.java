@@ -210,7 +210,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener,TWSErr
                         logger.log(Level.FINEST, "Expiration Time:{0},System Time:{1}", new Object[]{DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", c.getOrdersToBeCancelled().get(key)), DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", System.currentTimeMillis())});
                         if (c.getOrdersToBeCancelled().get(key) < System.currentTimeMillis()
                                 && ((c.getOrders().get(key).getStatus() != EnumOrderStatus.Acknowledged) || c.getOrders().get(key).getStatus() == EnumOrderStatus.Submitted || c.getOrders().get(key).getStatus() == EnumOrderStatus.PartialFilled)) {
-                            logger.log(Level.INFO, "Method:{0}, Symbol:{1}, OrderID:{2}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(c.getOrders().get(key).getSymbolID() - 1).getSymbol(), key});
+                            logger.log(Level.INFO, "cancelExpiredOrders Method:{0}, Symbol:{1}, OrderID:{2}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(c.getOrders().get(key).getSymbolID() - 1).getSymbol(), key});
                             //logger.log(Level.INFO,"Expired Order being cancelled. OrderID="+key);
                             c.getWrapper().cancelOrder(c, key);
                             if ((c.getOrders().get(key).getOrderSide() == OrderSide.BUY || c.getOrders().get(key).getOrderSide() == OrderSide.SHORT)
@@ -237,7 +237,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener,TWSErr
                     for (Integer key : c.getOrdersToBeFastTracked().keySet()) {
                         if (c.getOrdersToBeFastTracked().get(key) < System.currentTimeMillis()
                                 && (c.getOrders().get(key).getStatus() != EnumOrderStatus.CompleteFilled)) {
-                            logger.log(Level.INFO, "Method:{0}, Symbol:{1}, OrderID:{2}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(c.getOrders().get(key).getSymbolID() - 1).getSymbol(), key});
+                            logger.log(Level.INFO, "hastenCloseOut Method:{0}, Symbol:{1}, OrderID:{2}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(c.getOrders().get(key).getSymbolID() - 1).getSymbol(), key});
                             c.getWrapper().cancelOrder(c, key);
                             fastClose(c, key);
                             temp.add(key); //holds all orders that have now been cancelled
@@ -269,7 +269,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener,TWSErr
                             //place orders
                             Order ord = c.getWrapper().createOrder(ordb.getOrderSize(), ordb.getOrderSide(), ordb.getLimitPrice(), ordb.getTriggerPrice(), "DAY", Integer.parseInt(ordb.getExpireTime()), false, ordb.getOrderReference(), "");
                             Contract con = c.getWrapper().createContract(tempID);
-                            logger.log(Level.INFO, "Method:{0}, Symbol:{1}, OrderID:{2}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(ordb.getSymbolID() - 1).getSymbol(), key});
+                            logger.log(Level.INFO, "reattemptOrders Method:{0}, Symbol:{1}, OrderID:{2}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(ordb.getSymbolID() - 1).getSymbol(), key});
                             c.getWrapper().placeOrder(c, tempID + 1, ordb.getOrderSide(), ord, con, ordb.getExitLogic());
                         }
                     }

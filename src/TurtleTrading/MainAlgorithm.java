@@ -148,8 +148,13 @@ public class MainAlgorithm extends Algorithm  {
         t.start();
         t.join();
 
-//        TradingUtil.getDailyBarsFromOneMinCandle(2);
-        
+        /*
+        ArrayList<BeanOHLC> yestOHLC=TradingUtil.getDailyBarsFromOneMinCandle(3);
+        //update volume in Parameters.Symbol
+          for (int j = 0; j < Parameters.symbol.size(); j++){
+              Parameters.symbol.get(j).setAdditionalInput(Long.toString(yestOHLC.get(j).getVolume()));
+          }
+        */
         new RealTimeBars(getParamTurtle());
         //BoilerPlate Ends
 
