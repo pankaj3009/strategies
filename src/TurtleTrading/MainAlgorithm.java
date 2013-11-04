@@ -45,6 +45,7 @@ public class MainAlgorithm extends Algorithm  {
     private Date closeDate;
     Timer preopen;
     public static Boolean preOpenCompleted=false;
+    private BeanSwing paramSwing;
     
     public MainAlgorithm(List<String> args) throws Exception {
         super(args); //this initializes the connection and symbols
@@ -121,7 +122,8 @@ public class MainAlgorithm extends Algorithm  {
         preopenDate = DateUtil.parseDate("yyyyMMdd HH:mm:ss", preopenStr);
         realtimeBarsDate = DateUtil.parseDate("yyyyMMdd HH:mm:ss", realtimebarsStr);
         closeDate = DateUtil.parseDate("yyyyMMdd HH:mm:ss", closeStr);
-        
+        String historicalData=System.getProperty("HistoricalData");
+        String realTimeBars=System.getProperty("RealTimeBars");
         if (closeDate.compareTo(preopenDate) < 0 && new Date().compareTo(preopenDate) > 0) {
             //increase enddate by one calendar day
             closeDate = DateUtil.addDays(closeDate, 1); //system date is > start date time. Therefore we have not crossed the 12:00 am barrier
@@ -132,32 +134,33 @@ public class MainAlgorithm extends Algorithm  {
         
         preopen=new Timer();
        // preopen.schedule(new SnapShotPreOpenPrice(), preopenDate);       
-        
-        //ordManagement=new OrderPlacement(this);
         //initialize listners
         paramTurtle = new BeanTurtle(this);
         //paramGuds = new BeanGuds(this);
+        //paramSwing=new BeanSwing(this);
         ordManagement = new OrderPlacement(this);
 
 
         //Attempt realtime bars in a new thread
         createAndShowGUI(this);
-        
+        if(Boolean.valueOf(historicalData)){
         Thread t = new Thread(new HistoricalBars());
         t.setName("Historical Bars");
         t.start();
         t.join();
-
-        /*
-        ArrayList<BeanOHLC> yestOHLC=TradingUtil.getDailyBarsFromOneMinCandle(3);
-        //update volume in Parameters.Symbol
-          for (int j = 0; j < Parameters.symbol.size(); j++){
-              Parameters.symbol.get(j).setAdditionalInput(Long.toString(yestOHLC.get(j).getVolume()));
+        }
+        if(Boolean.valueOf(historicalData)){
+            for(BeanSymbol s: Parameters.symbol){
+        ArrayList<BeanOHLC> yestOHLC=TradingUtil.getDailyBarsFromOneMinCandle(3,s.getSymbol()+"_FUT");
+        s.setAdditionalInput(Long.toString(yestOHLC.get(yestOHLC.size()-1).getVolume()));
           }
-        */
+        }
+        
+        
+        if(Boolean.valueOf(realTimeBars)){
         new RealTimeBars(getParamTurtle());
         //BoilerPlate Ends
-
+        }
         
         LOGGER.log(Level.FINEST, ",Symbol" + "," + "BarNo" + "," + "HighestHigh" + "," + "LowestLow" + "," + "LastPrice" + "," + "Volume" + "," + "CumulativeVol" + "," + "VolumeSlope" + "," + "MinSlopeReqd" + "," + "MA" + "," + "LongVolume" + "," + "ShortVolume" + "," + "DateTime" + ","
                 + "ruleHighestHigh" + "," + "ruleCumVolumeLong" + "," + "ruleSlopeLong" + "," + "ruleVolumeLong" + "," + "ruleLowestLow" + ","
