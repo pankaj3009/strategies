@@ -124,6 +124,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener,TWSErr
                             ord.setLimitPrice(event.getLimitPrice());
                             ord.setTriggerPrice(event.getTriggerPrice());
                             ord.setExpireTime(Integer.toString(event.getExpireTime()));
+                            ord.setExitLogic(event.getExitType());
                             c.getOrdersToBeRetried().put(System.currentTimeMillis(), ord);
                         }
                     }
@@ -339,11 +340,11 @@ public class OrderPlacement implements OrderListener, OrderStatusListener,TWSErr
         Contract con = c.getWrapper().createContract(id);
         Order ord = new Order();
         if (position > 0) {
-            ord = c.getWrapper().createOrder(Math.abs(position), OrderSide.SELL, 0, 0, "DAY", 0, false, "SquareAllPositions", "");
+            ord = c.getWrapper().createOrder(Math.abs(position), OrderSide.SELL, 0, 0, "DAY", 0, false, strategy, "");
             logger.log(Level.FINEST, "Order Placed. Square on Error. Symbol ID={0}", new Object[]{Parameters.symbol.get(id).getSymbol()});
             c.getWrapper().placeOrder(c, id + 1, OrderSide.SELL, ord, con, "");
         } else if (position < 0) {
-            ord = c.getWrapper().createOrder(Math.abs(position), OrderSide.COVER, 0, 0, "DAY", 0, false, "SquareAllPositions", "");
+            ord = c.getWrapper().createOrder(Math.abs(position), OrderSide.COVER, 0, 0, "DAY", 0, false, strategy, "");
             logger.log(Level.FINEST, "Order Placed. Square on Error. Symbol ID={0}", new Object[]{Parameters.symbol.get(id + 1).getSymbol()});
             c.getWrapper().placeOrder(c, id + 1, OrderSide.COVER, ord, con, "");
         }
