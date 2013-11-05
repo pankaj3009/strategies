@@ -547,7 +547,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
                     });
 
                     int size = this.getExposure() != 0 ? (int) (this.getExposure() / Parameters.symbol.get(id).getLastPrice()) : Parameters.symbol.get(id).getMinsize();
-                    m.fireOrderEvent(Parameters.symbol.get(id), OrderSide.COVER, size, Parameters.symbol.get(id).getLastPrice(), 0, "TurtleTrading", 3, "");
+                    m.fireOrderEvent(Parameters.symbol.get(id), OrderSide.COVER, size, this.getHighestHigh().get(id), 0, "TurtleTrading", 3, "");
                 }
 
             } else if (this.getNotionalPosition().get(id) == 1) {
@@ -557,7 +557,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
                             new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), this.getLowestLow().get(id).toString(), Parameters.symbol.get(id).getLastPrice(), this.getHighestHigh().get(id).toString(), this.getSlope().get(id).toString(), String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeLongMultiplier() / 375), this.getVolume().get(id).toString(), this.getVolumeMA().get(id).toString()
                     });
                     int size = this.getExposure() != 0 ? (int) (this.getExposure() / Parameters.symbol.get(id).getLastPrice()) : Parameters.symbol.get(id).getMinsize();
-                    m.fireOrderEvent(Parameters.symbol.get(id), OrderSide.SELL, size, Parameters.symbol.get(id).getLastPrice(), 0, "TurtleTrading", 3, "");
+                    m.fireOrderEvent(Parameters.symbol.get(id), OrderSide.SELL, size, this.getLowestLow().get(id), 0, "TurtleTrading", 3, "");
                 }
             }
         
