@@ -151,8 +151,8 @@ public class MainAlgorithm extends Algorithm  {
         }
         if(!Boolean.valueOf(historicalData)){
             for(BeanSymbol s: Parameters.symbol){
-        ArrayList<BeanOHLC> yestOHLC=TradingUtil.getDailyBarsFromOneMinCandle(3,s.getSymbol()+"_FUT");
-        s.setAdditionalInput(Long.toString(yestOHLC.get(yestOHLC.size()-1).getVolume()));
+        ArrayList<BeanOHLC> yestOHLC=TradingUtil.getDailyBarsFromOneMinCandle(7,s.getSymbol()+"_FUT");
+        s.setAdditionalInput(Long.toString(yestOHLC.get(0).getVolume()));
           }
         }
         
