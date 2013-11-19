@@ -8,7 +8,7 @@ import incurrframework.*;
 import incurrframework.BeanOHLC;
 import incurrframework.BeanSymbol;
 import incurrframework.DateUtil;
-import incurrframework.OrderSide;
+import incurrframework.EnumOrderSide;
 import incurrframework.Parameters;
 import incurrframework.TradeEvent;
 import incurrframework.TradeListner;

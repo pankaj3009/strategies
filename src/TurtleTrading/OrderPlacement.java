@@ -56,12 +56,12 @@ public class OrderPlacement implements OrderListener, OrderStatusListener,TWSErr
                     Index ind = new Index(event.getOrdReference(), id);
                     int positions = c.getPositions().get(ind) == null ? 0 : c.getPositions().get(ind).getPosition();
                     if (positions == 0) {
-                        if (event.getSide() == OrderSide.BUY || event.getSide() == OrderSide.SHORT) {
+                        if (event.getSide() == EnumOrderSide.BUY || event.getSide() == EnumOrderSide.SHORT) {
                             //confirm current active order id is complete 
                             if (zilchOpenOrders(c, id, event.getOrdReference())) {
                                 Order ord = c.getWrapper().createOrder(event.getOrderSize(), event.getSide(), event.getLimitPrice(), event.getTriggerPrice(), "DAY", event.getExpireTime(), false, event.getOrdReference(), "");
                                 Contract con = c.getWrapper().createContract(id);
-                                logger.log(Level.INFO, "Method:{0},Action:Entry Order Placed, Symbol:{1}, Side={2}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getOrderSize()});
+                                logger.log(Level.INFO, "Method:{0},Action:Entry Order Placed, Symbol:{1}, Size={2}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getOrderSize()});
                                 int orderid = c.getWrapper().placeOrder(c, id + 1, event.getSide(), ord, con, event.getExitType());
                                 long tempexpire = System.currentTimeMillis() + event.getExpireTime() * 60 * 1000;
                                 c.getOrdersToBeCancelled().put(orderid, tempexpire);
@@ -81,7 +81,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener,TWSErr
                                 ord.setExpireTime(Integer.toString(event.getExpireTime()));
                                 c.getOrdersToBeRetried().put(System.currentTimeMillis(), ord);
                             }
-                        } else if (event.getSide() == OrderSide.SELL || event.getSide() == OrderSide.COVER) {
+                        } else if (event.getSide() == EnumOrderSide.SELL || event.getSide() == EnumOrderSide.COVER) {
                             //do nothing as position size=0. Original orders were not filled. 
                             logger.log(Level.INFO, "Method:{0},Action:No Entry Position. Cancel any open orders, Symbol:{1}, Side={2}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getOrderSize()});
                             //update missedorders list
@@ -96,9 +96,9 @@ public class OrderPlacement implements OrderListener, OrderStatusListener,TWSErr
 
                         //next loop processes when positions !=0
                     } else if (positions != 0) {
-                        if (event.getSide() == OrderSide.SELL || event.getSide() == OrderSide.COVER) {
+                        if (event.getSide() == EnumOrderSide.SELL || event.getSide() == EnumOrderSide.COVER) {
                             cancelOpenOrders(c, id, event.getOrdReference()); //as this is a squareoff condition, first cancel all open orders
-                            if ((event.getSide() == OrderSide.SELL && c.getPositions().get(ind).getPosition() > 0) || (event.getSide() == OrderSide.COVER && c.getPositions().get(ind).getPosition() < 0)) {
+                            if ((event.getSide() == EnumOrderSide.SELL && c.getPositions().get(ind).getPosition() > 0) || (event.getSide() == EnumOrderSide.COVER && c.getPositions().get(ind).getPosition() < 0)) {
                                 Order ord = c.getWrapper().createOrder(Math.abs(c.getPositions().get(ind).getPosition()), event.getSide(), event.getLimitPrice(), event.getTriggerPrice(), "DAY", event.getExpireTime(), false, event.getOrdReference(), "");
                                 Contract con = c.getWrapper().createContract(id);
                                 logger.log(Level.INFO, "Method:{0},Action:Exit Position, Symbol:{1}, Side={2}, position:{3}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getOrderSize(), positions});
@@ -110,7 +110,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener,TWSErr
                                 squareAllPositions(c, id, event.getOrdReference());
                                 logger.log(Level.INFO, "Method:{0},Action: Positions are inconsistent with state of orders. Square off positions, Symbol:{1}, Side:{2}, Positions:{3}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getOrderSize(), positions});
                             }
-                        } else if (event.getSide() == OrderSide.BUY || event.getSide() == OrderSide.SHORT) {
+                        } else if (event.getSide() == EnumOrderSide.BUY || event.getSide() == EnumOrderSide.SHORT) {
                             //This will happen if an earlier squareoff order is still not filled and we get a new entry
                             logger.log(Level.INFO, "Method:{0},Entry order received while position was not zero.Symbol:{1}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol()});
                             cancelOpenOrders(c, id, event.getOrdReference());
@@ -125,7 +125,9 @@ public class OrderPlacement implements OrderListener, OrderStatusListener,TWSErr
                             ord.setTriggerPrice(event.getTriggerPrice());
                             ord.setExpireTime(Integer.toString(event.getExpireTime()));
                             ord.setExitLogic(event.getExitType());
+                            ord.setOrderReference(event.getOrdReference());
                             c.getOrdersToBeRetried().put(System.currentTimeMillis(), ord);
+                             logger.log(Level.INFO, "Method:{0},Added requirement for OrdersToBeRetried for symbol{1}",new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol()});
                         }
                     }
                 }
@@ -146,19 +148,19 @@ public class OrderPlacement implements OrderListener, OrderStatusListener,TWSErr
                 Index ind = new Index(ob.getOrderReference(), id);
                 if (event.getRemaining() == 0) {
                     //completely filled
-                    OrderSide tmpOrdSide = reverseLookup(event.getC(), event.getC().getOrdersSymbols().get(ind), orderid);
+                    EnumOrderSide tmpOrdSide = reverseLookup(event.getC(), event.getC().getOrdersSymbols().get(ind), orderid);
                     updateFilledOrders(event.getC(), id, orderid, event.getFilled(), event.getAvgFillPrice(), event.getLastFillPrice());
                     event.getC().getOrdersInProgress().remove(new Integer(orderid));
                     if ("TRAIL".compareTo(ob.getExitLogic()) == 0) {
                         Integer trailBuyOrderID = event.getC().getOrdersSymbols().get(ind).get(4);
                         Integer trailSellOrderID = event.getC().getOrdersSymbols().get(ind).get(5);
-                        if (tmpOrdSide == OrderSide.BUY || tmpOrdSide == OrderSide.SHORT) {
+                        if (tmpOrdSide == EnumOrderSide.BUY || tmpOrdSide == EnumOrderSide.SHORT) {
                             //manageTrailingOrders(event.getC(), trailBuyOrderID + trailSellOrderID, id, event.getFilled(), tmpOrdSide, event.getAvgFillPrice(),ob.getOrderReference());
                         }
                     } else if ("MOC".compareTo(ob.getExitLogic()) == 0) {
                         Integer BuyOrderID = event.getC().getOrdersSymbols().get(ind).get(4);
                         Integer SellOrderID = event.getC().getOrdersSymbols().get(ind).get(5);
-                        if (tmpOrdSide == OrderSide.BUY || tmpOrdSide == OrderSide.SHORT) {
+                        if (tmpOrdSide == EnumOrderSide.BUY || tmpOrdSide == EnumOrderSide.SHORT) {
                             manageMOCOrders(event.getC(), BuyOrderID + SellOrderID, id, event.getFilled(), tmpOrdSide, event.getAvgFillPrice(), ob.getOrderReference());
 
                         }
@@ -168,17 +170,17 @@ public class OrderPlacement implements OrderListener, OrderStatusListener,TWSErr
                 } else if (event.getRemaining() > 0 && event.getAvgFillPrice() > 0 && !"Cancelled".equals(event.getStatus())) {
                     // partial fill
                     if ("TRAIL".compareTo(ob.getExitLogic()) == 0) {
-                        OrderSide tmpOrdSide = reverseLookup(event.getC(), event.getC().getOrdersSymbols().get(ind), orderid);
+                        EnumOrderSide tmpOrdSide = reverseLookup(event.getC(), event.getC().getOrdersSymbols().get(ind), orderid);
                         updatePartialFills(event.getC(), id, orderid, event.getFilled(), event.getAvgFillPrice(), event.getLastFillPrice());
-                        if (tmpOrdSide == OrderSide.BUY || tmpOrdSide == OrderSide.SHORT) {
+                        if (tmpOrdSide == EnumOrderSide.BUY || tmpOrdSide == EnumOrderSide.SHORT) {
                             Integer trailBuyOrderID = event.getC().getOrdersSymbols().get(ind).get(4);
                             Integer trailSellOrderID = event.getC().getOrdersSymbols().get(ind).get(5);
                             //manageTrailingOrders(event.getC(), trailBuyOrderID + trailSellOrderID, id, event.getFilled(), tmpOrdSide, event.getAvgFillPrice(),ob.getOrderReference());
                         }
                     } else if ("MOC".compareTo(ob.getExitLogic()) == 0) {
-                        OrderSide tmpOrdSide = reverseLookup(event.getC(), event.getC().getOrdersSymbols().get(ind), orderid);
+                        EnumOrderSide tmpOrdSide = reverseLookup(event.getC(), event.getC().getOrdersSymbols().get(ind), orderid);
                         updatePartialFills(event.getC(), id, orderid, event.getFilled(), event.getAvgFillPrice(), event.getLastFillPrice());
-                        if (tmpOrdSide == OrderSide.BUY || tmpOrdSide == OrderSide.SHORT) {
+                        if (tmpOrdSide == EnumOrderSide.BUY || tmpOrdSide == EnumOrderSide.SHORT) {
                             Integer BuyOrderID = event.getC().getOrdersSymbols().get(ind).get(4);
                             Integer SellOrderID = event.getC().getOrdersSymbols().get(ind).get(5);
                             manageMOCOrders(event.getC(), BuyOrderID + SellOrderID, id, event.getFilled(), tmpOrdSide, event.getAvgFillPrice(), ob.getOrderReference());
@@ -214,7 +216,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener,TWSErr
                             logger.log(Level.INFO, "cancelExpiredOrders Method:{0}, Symbol:{1}, OrderID:{2}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(c.getOrders().get(key).getSymbolID() - 1).getSymbol(), key});
                             //logger.log(Level.INFO,"Expired Order being cancelled. OrderID="+key);
                             c.getWrapper().cancelOrder(c, key);
-                            if ((c.getOrders().get(key).getOrderSide() == OrderSide.BUY || c.getOrders().get(key).getOrderSide() == OrderSide.SHORT)
+                            if ((c.getOrders().get(key).getOrderSide() == EnumOrderSide.BUY || c.getOrders().get(key).getOrderSide() == EnumOrderSide.SHORT)
                                     && (c.getOrders().get(key).getStatus() == EnumOrderStatus.CancelledNoFill || c.getOrders().get(key).getStatus() == EnumOrderStatus.CancelledPartialFill)) {
                                 c.getOrdersMissed().add(key);
                             }
@@ -263,7 +265,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener,TWSErr
                         Index ind = new Index(ordb.getOrderReference(), tempID);
                         if (System.currentTimeMillis() > key + 60 * 1000) {
                             temp.add(key); //if > 60 seconds have passed then add the key to temp. This record will be deleted from orders to be retried queue.
-                        } else if (c.getPositions().get(ind) != null) {
+                        } else if (c.getPositions().containsKey(ind) && c.getPositions().get(ind) != null) {
                             if( c.getPositions().get(ind).getPosition() == 0 && zilchOpenOrders(c, tempID, ordb.getOrderReference())) {
                             //update temp
                             temp.add(key);
@@ -285,13 +287,13 @@ public class OrderPlacement implements OrderListener, OrderStatusListener,TWSErr
         }
     };
 
-    private synchronized void manageTrailingOrders(BeanConnection c, int orderID, int id, int size, OrderSide underlyingSide, double fillprice, String ordReference) {
+    private synchronized void manageTrailingOrders(BeanConnection c, int orderID, int id, int size, EnumOrderSide underlyingSide, double fillprice, String ordReference) {
         if (orderID > 0) {
             //int tempid=c.getOrders().get(orderID).getSymbolID()-1;
             updateOrderAmount(c, orderID, size);
         } else {
             //place new trailbuy or trailsell order
-            OrderSide tmpOrderSide = underlyingSide == OrderSide.BUY ? OrderSide.TRAILSELL : OrderSide.TRAILBUY;
+            EnumOrderSide tmpOrderSide = underlyingSide == EnumOrderSide.BUY ? EnumOrderSide.TRAILSELL : EnumOrderSide.TRAILBUY;
             double tickSize = Double.parseDouble(a.getParamTurtle().getTickSize());
             double tmpTrailStop = ((int) (Parameters.symbol.get(id).getTrailstop() * fillprice / tickSize)) * tickSize;
             Order ord = c.getWrapper().createOrder(Math.abs(size), tmpOrderSide, 0, tmpTrailStop, "DAY", 0, true, ordReference, "");
@@ -302,13 +304,13 @@ public class OrderPlacement implements OrderListener, OrderStatusListener,TWSErr
 
     }
 
-    private synchronized void manageMOCOrders(BeanConnection c, int orderID, int id, int size, OrderSide underlyingSide, double fillprice, String ordReference) {
+    private synchronized void manageMOCOrders(BeanConnection c, int orderID, int id, int size, EnumOrderSide underlyingSide, double fillprice, String ordReference) {
         if (orderID > 0) {
             //int tempid=c.getOrders().get(orderID).getSymbolID()-1;
             updateOrderAmount(c, orderID, size);
         } else {
             //place new trailbuy or trailsell order
-            OrderSide tmpOrderSide = underlyingSide == OrderSide.BUY ? OrderSide.SELL : OrderSide.COVER;
+            EnumOrderSide tmpOrderSide = underlyingSide == EnumOrderSide.BUY ? EnumOrderSide.SELL : EnumOrderSide.COVER;
             Format formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             String validAfter = formatter.format(a.getParamGuds().getEndDate());
             Order ord = c.getWrapper().createOrder(Math.abs(size), tmpOrderSide, 0, 0, "DAY", 0, true, ordReference, validAfter);
@@ -320,7 +322,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener,TWSErr
     }
 
     private synchronized void updateOrderAmount(BeanConnection c, int orderid, int size) {
-        OrderSide ordSide = c.getOrders().get(orderid).getOrderSide();
+        EnumOrderSide ordSide = c.getOrders().get(orderid).getOrderSide();
         int id = c.getOrders().get(orderid).getSymbolID() - 1;
         logger.log(Level.INFO, "Method:{0}, Symbol:{1}, OrderID:{2}, Original Amount:{3}, New Amount:{4},OrderSide:{5}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), orderid, c.getOrders().get(orderid).getOrderSize(), size, c.getOrders().get(orderid).getOrderType()});
         //logger.log(Level.INFO,"Update Trailing Order. Symbol:{0},Order ID:{1}, New Trailing Order Amount:{2}, order Type:{3}",new Object[]{Parameters.symbol.get(id).getSymbol(),orderid,size,c.getOrders().get(orderid).getOrderType()});
@@ -340,13 +342,13 @@ public class OrderPlacement implements OrderListener, OrderStatusListener,TWSErr
         Contract con = c.getWrapper().createContract(id);
         Order ord = new Order();
         if (position > 0) {
-            ord = c.getWrapper().createOrder(Math.abs(position), OrderSide.SELL, 0, 0, "DAY", 0, false, strategy, "");
+            ord = c.getWrapper().createOrder(Math.abs(position), EnumOrderSide.SELL, 0, 0, "DAY", 0, false, strategy, "");
             logger.log(Level.FINEST, "Order Placed. Square on Error. Symbol ID={0}", new Object[]{Parameters.symbol.get(id).getSymbol()});
-            c.getWrapper().placeOrder(c, id + 1, OrderSide.SELL, ord, con, "");
+            c.getWrapper().placeOrder(c, id + 1, EnumOrderSide.SELL, ord, con, "");
         } else if (position < 0) {
-            ord = c.getWrapper().createOrder(Math.abs(position), OrderSide.COVER, 0, 0, "DAY", 0, false, strategy, "");
+            ord = c.getWrapper().createOrder(Math.abs(position), EnumOrderSide.COVER, 0, 0, "DAY", 0, false, strategy, "");
             logger.log(Level.FINEST, "Order Placed. Square on Error. Symbol ID={0}", new Object[]{Parameters.symbol.get(id + 1).getSymbol()});
-            c.getWrapper().placeOrder(c, id + 1, OrderSide.COVER, ord, con, "");
+            c.getWrapper().placeOrder(c, id + 1, EnumOrderSide.COVER, ord, con, "");
         }
         logger.log(Level.INFO, "Method:{0}, Symbol:{1}, OrderID:{2}, Position:{3}, OrderSide:{4}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), ord.m_orderId, position, ord.m_action});
     }
@@ -369,15 +371,24 @@ public class OrderPlacement implements OrderListener, OrderStatusListener,TWSErr
     private synchronized void cancelOpenOrders(BeanConnection c, int id, String strategy) {
         Index ind = new Index(strategy, id);
         ArrayList<Integer> tempArray = c.getOrdersSymbols().get(ind);
+        ArrayList<Integer> temp = new ArrayList();
         for (int orderID : tempArray) {
             if (orderID > 0) {
                 //if order exists and open ordType="Buy" or "Short"
                 //check an earlier cancellation request is not pending and if all ok then cancel
+                for (Integer key : c.getOrdersToBeFastTracked().keySet()){
+                    if (c.getOrdersToBeFastTracked().get(key)==orderID){
+                        temp.add(key);
+                    }
+                }
                 if (!c.getOrders().get(orderID).isCancelRequested()) {
                     logger.log(Level.INFO, "Method:{0}, Symbol:{1}, OrderID:{2}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(c.getOrders().get(orderID).getSymbolID() - 1).getSymbol(), orderID});
                     c.getWrapper().cancelOrder(c, orderID);
                 }
             }
+            for (int ordersToBeDeleted : temp) {
+                        c.getOrdersToBeFastTracked().remove(ordersToBeDeleted);
+                    }
 
         }
     }
@@ -414,7 +425,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener,TWSErr
 
         //update position
         int origposition = p.getPosition();
-        if (c.getOrders().get(orderID).getOrderSide() == OrderSide.SELL || c.getOrders().get(orderID).getOrderSide() == OrderSide.SHORT || c.getOrders().get(orderID).getOrderSide() == OrderSide.TRAILSELL) {
+        if (c.getOrders().get(orderID).getOrderSide() == EnumOrderSide.SELL || c.getOrders().get(orderID).getOrderSide() == EnumOrderSide.SHORT || c.getOrders().get(orderID).getOrderSide() == EnumOrderSide.TRAILSELL) {
             fill = -fill;
             logger.log(Level.FINEST, "Reversed fill sign as sell or short. Fill=" + fill);
         }
@@ -478,7 +489,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener,TWSErr
         BeanPosition p = c.getPositions().get(ind) == null ? new BeanPosition() : c.getPositions().get(ind);
         //update position
         int origposition = p.getPosition();
-        if (c.getOrders().get(orderID).getOrderSide() == OrderSide.SELL || c.getOrders().get(orderID).getOrderSide() == OrderSide.SHORT || c.getOrders().get(orderID).getOrderSide() == OrderSide.TRAILSELL) {
+        if (c.getOrders().get(orderID).getOrderSide() == EnumOrderSide.SELL || c.getOrders().get(orderID).getOrderSide() == EnumOrderSide.SHORT || c.getOrders().get(orderID).getOrderSide() == EnumOrderSide.TRAILSELL) {
             fill = -fill;
         }
         logger.log(Level.INFO, "Method:{0},Symbol:{1}, Incremental Fill Reported:{2},Total Fill={3},Position within Program={4}, Side={5}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), fill, filled, ord.getFillSize(), ord.getOrderSide()});
@@ -492,9 +503,9 @@ public class OrderPlacement implements OrderListener, OrderStatusListener,TWSErr
         return true;
     }
 
-    private synchronized OrderSide reverseLookup(BeanConnection c, ArrayList<Integer> arr, int orderid) {
+    private synchronized EnumOrderSide reverseLookup(BeanConnection c, ArrayList<Integer> arr, int orderid) {
 
-        OrderSide ordSide = OrderSide.UNDEFINED;
+        EnumOrderSide ordSide = EnumOrderSide.UNDEFINED;
         for (int i : arr) {
             if (i == orderid) {
                 ordSide = c.getOrders().get(orderid).getOrderSide();

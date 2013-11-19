@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.List;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Map;
@@ -46,6 +47,9 @@ public class MainAlgorithm extends Algorithm  {
     Timer preopen;
     public static Boolean preOpenCompleted=false;
     private BeanSwing paramSwing;
+    private List<String> strategies=new ArrayList();
+    private List<Double> maxPNL=new ArrayList();
+    private List<Double>minPNL=new ArrayList();
     
     public MainAlgorithm(List<String> args) throws Exception {
         super(args); //this initializes the connection and symbols
@@ -130,8 +134,12 @@ public class MainAlgorithm extends Algorithm  {
         } else if (closeDate.compareTo(preopenDate) < 0 && new Date().compareTo(preopenDate) < 0) {
             preopenDate = DateUtil.addDays(preopenDate, -1); // we have moved beyond 12:00 am . adjust startdate to previous date
         }
-        
-        
+        String tempstrategies = System.getProperty("StrategyCount");
+        this.setStrategies( Arrays.asList(tempstrategies.split("\\s*,\\s*")));
+         for (int i = 0; i < strategies.size(); i++) {
+          minPNL.add(0D);
+          maxPNL.add(0D);
+         }
         preopen=new Timer();
        // preopen.schedule(new SnapShotPreOpenPrice(), preopenDate);       
         //initialize listners
@@ -170,7 +178,7 @@ public class MainAlgorithm extends Algorithm  {
 
     }
  
-    public void fireOrderEvent(BeanSymbol s, OrderSide side, int size, double lmtprice, double triggerprice, String ordReference, int expireTime,String exitType) {
+    public void fireOrderEvent(BeanSymbol s, EnumOrderSide side, int size, double lmtprice, double triggerprice, String ordReference, int expireTime,String exitType) {
         OrderEvent order = new OrderEvent(this, s, side, size, lmtprice, triggerprice,ordReference,expireTime,exitType);
         Iterator listeners = _listeners.iterator();
         while (listeners.hasNext()) {
@@ -189,6 +197,7 @@ public class MainAlgorithm extends Algorithm  {
         frame1.setContentPane(newContentPane);
         //Display the window.
         frame1.pack();
+        frame1.setLocation(0, 0);
         frame1.setVisible(true);
         
         JFrame frame2 = new JFrame("Missed Orders");
@@ -200,6 +209,7 @@ public class MainAlgorithm extends Algorithm  {
         frame2.setContentPane(newContentPane2);
         //Display the window.
         frame2.pack();
+        frame2.setLocation(820, 142);
         frame2.setVisible(true);
         
         JFrame frame3 = new JFrame("Orders In Progress");
@@ -211,8 +221,18 @@ public class MainAlgorithm extends Algorithm  {
         frame3.setContentPane(newContentPane3);
         //Display the window.
         frame3.pack();
+        frame3.setLocation(819, 0);
         frame3.setVisible(true);
   
+        JFrame frame4 = new JFrame("PNL");
+        frame4.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        GUIPNLDashBoard newContentPane4 = new GUIPNLDashBoard(m);
+        newContentPane4.setOpaque(true); //content panes must be opaque
+        frame4.setContentPane(newContentPane4);
+        //Display the window.
+        frame4.pack();
+        frame4.setLocation(820, 415);
+        frame4.setVisible(true);
   }
 
     /**
@@ -249,4 +269,47 @@ public class MainAlgorithm extends Algorithm  {
     public Date getPreopenDate() {
         return preopenDate;
     }
+
+    /**
+     * @return the strategies
+     */
+    public List<String> getStrategies() {
+        return strategies;
+    }
+
+    /**
+     * @param strategies the strategies to set
+     */
+    public void setStrategies(List<String> strategies) {
+        this.strategies = strategies;
+    }
+
+    /**
+     * @return the maxPNL
+     */
+    public List<Double> getMaxPNL() {
+        return maxPNL;
+    }
+
+    /**
+     * @param maxPNL the maxPNL to set
+     */
+    public void setMaxPNL(List<Double> maxPNL) {
+        this.maxPNL = maxPNL;
+    }
+
+    /**
+     * @return the minPNL
+     */
+    public List<Double> getMinPNL() {
+        return minPNL;
+    }
+
+    /**
+     * @param minPNL the minPNL to set
+     */
+    public void setMinPNL(List<Double> minPNL) {
+        this.minPNL = minPNL;
+    }
+
 }
