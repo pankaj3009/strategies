@@ -184,9 +184,9 @@ public class OrderPlacement implements OrderListener, OrderStatusListener,TWSErr
                             Integer BuyOrderID = event.getC().getOrdersSymbols().get(ind).get(4);
                             Integer SellOrderID = event.getC().getOrdersSymbols().get(ind).get(5);
                             manageMOCOrders(event.getC(), BuyOrderID + SellOrderID, id, event.getFilled(), tmpOrdSide, event.getAvgFillPrice(), ob.getOrderReference());
-
-
-                        }
+               }
+                    } else{
+                        updatePartialFills(event.getC(), id, orderid, event.getFilled(), event.getAvgFillPrice(), event.getLastFillPrice());
                     }
                 } else if ("Cancelled".equals(event.getStatus())) {
                     //cancelled
@@ -196,8 +196,6 @@ public class OrderPlacement implements OrderListener, OrderStatusListener,TWSErr
                 } else if ("Submitted".equals(event.getStatus())) {
                     updateAcknowledgement(event.getC(), id, orderid);
                 }
-
-
             }
         } catch (Exception e) {
             logger.log(Level.SEVERE, e.toString());
@@ -343,11 +341,11 @@ public class OrderPlacement implements OrderListener, OrderStatusListener,TWSErr
         Order ord = new Order();
         if (position > 0) {
             ord = c.getWrapper().createOrder(Math.abs(position), EnumOrderSide.SELL, 0, 0, "DAY", 0, false, strategy, "");
-            logger.log(Level.FINEST, "Order Placed. Square on Error. Symbol ID={0}", new Object[]{Parameters.symbol.get(id).getSymbol()});
+            logger.log(Level.INFO, "Order Placed. Square on Error. Symbol ID={0}", new Object[]{Parameters.symbol.get(id).getSymbol()});
             c.getWrapper().placeOrder(c, id + 1, EnumOrderSide.SELL, ord, con, "");
         } else if (position < 0) {
             ord = c.getWrapper().createOrder(Math.abs(position), EnumOrderSide.COVER, 0, 0, "DAY", 0, false, strategy, "");
-            logger.log(Level.FINEST, "Order Placed. Square on Error. Symbol ID={0}", new Object[]{Parameters.symbol.get(id + 1).getSymbol()});
+            logger.log(Level.INFO, "Order Placed. Square on Error. Symbol ID={0}", new Object[]{Parameters.symbol.get(id + 1).getSymbol()});
             c.getWrapper().placeOrder(c, id + 1, EnumOrderSide.COVER, ord, con, "");
         }
         logger.log(Level.INFO, "Method:{0}, Symbol:{1}, OrderID:{2}, Position:{3}, OrderSide:{4}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), ord.m_orderId, position, ord.m_action});
@@ -377,8 +375,9 @@ public class OrderPlacement implements OrderListener, OrderStatusListener,TWSErr
                 //if order exists and open ordType="Buy" or "Short"
                 //check an earlier cancellation request is not pending and if all ok then cancel
                 for (Integer key : c.getOrdersToBeFastTracked().keySet()){
-                    if (c.getOrdersToBeFastTracked().get(key)==orderID){
+                    if (key==orderID){
                         temp.add(key);
+                        logger.log(Level.INFO, "Orders will be removed from fasttrack. Method:{0}, Symbol:{1}, OrderID:{2}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(c.getOrders().get(orderID).getSymbolID() - 1).getSymbol(), orderID});
                     }
                 }
                 if (!c.getOrders().get(orderID).isCancelRequested()) {
