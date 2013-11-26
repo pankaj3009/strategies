@@ -594,7 +594,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
                 }
             }
             //force close of all open positions, after closeTime
-            if (System.currentTimeMillis() > this.getEndDate().getTime()) {
+            if (System.currentTimeMillis() +3000> this.getEndDate().getTime()) { //i wait for 3 seconds as there could be a gap in clock synchronization
                 int symb=0; //symb replaces id in this loop
                 for(Long j: this.getNotionalPosition()){
                     if(j>0){
