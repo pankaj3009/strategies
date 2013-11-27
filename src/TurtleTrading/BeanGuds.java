@@ -7,7 +7,8 @@ package TurtleTrading;
 import incurrframework.Algorithm;
 import incurrframework.BeanSymbol;
 import incurrframework.DateUtil;
-import incurrframework.OrderSide;
+import incurrframework.EnumOrderIntent;
+import incurrframework.EnumOrderSide;
 import incurrframework.Parameters;
 import incurrframework.TradeEvent;
 import incurrframework.TradeListner;
@@ -199,11 +200,11 @@ public class BeanGuds implements Serializable, TradeListner {
             if(true){
             //Short Signal
             if (lastPrice > highThreshold.get(id) || Parameters.symbol.get(id).getOpenPrice() > highThreshold.get(id)) {
-                m.fireOrderEvent(Parameters.symbol.get(id), OrderSide.SHORT, Parameters.symbol.get(id).getMinsize(), Math.ceil(highThreshold.get(id)*20)/20, 0, "GUDS", 3, exit);
+                m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.SHORT, Parameters.symbol.get(id).getMinsize(), Math.ceil(highThreshold.get(id)*20)/20, 0, "GUDS", 3, exit,EnumOrderIntent.Init);
             }
             //Buy Signal
             else if (lastPrice < lowThreshold.get(id) || Parameters.symbol.get(id).getOpenPrice() < lowThreshold.get(id)) {
-                m.fireOrderEvent(Parameters.symbol.get(id), OrderSide.BUY, Parameters.symbol.get(id).getMinsize(), Math.ceil(lowThreshold.get(id)*20)/20, 0, "GUDS", 3, exit);
+                m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.BUY, Parameters.symbol.get(id).getMinsize(), Math.ceil(lowThreshold.get(id)*20)/20, 0, "GUDS", 3, exit,EnumOrderIntent.Init);
             }
         } else if(!luckyOrdersPlaced.get(id)){
         //amend orders and replace

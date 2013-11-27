@@ -5,7 +5,8 @@
 package TurtleTrading;
 
 import incurrframework.BeanSymbol;
-import incurrframework.OrderSide;
+import incurrframework.EnumOrderIntent;
+import incurrframework.EnumOrderSide;
 import incurrframework.Parameters;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -56,10 +57,10 @@ public class BeanGudsPreOpen extends TimerTask{
                 //place appropriate market open order
                 if(percentchange>0){
                     //place sell futures order
-              beanG.getM().fireOrderEvent(s, OrderSide.SHORT, s.getMinsize(), Math.ceil(s.getClosePrice()*(1+percentchange) * 20) / 20, 0, "GUDS", 6, "MOC");
+              beanG.getM().fireOrderEvent(s, EnumOrderSide.SHORT, s.getMinsize(), Math.ceil(s.getClosePrice()*(1+percentchange) * 20) / 20, 0, "GUDS", 6, "MOC",EnumOrderIntent.Init);
                 } else if (percentchange<0){
                     //place buy futures order
-                     beanG.getM().fireOrderEvent(s, OrderSide.SHORT, s.getMinsize(), Math.ceil(s.getClosePrice()*(1-percentchange) * 20) / 20, 0, "GUDS", 6, "MOC");
+                     beanG.getM().fireOrderEvent(s, EnumOrderSide.SHORT, s.getMinsize(), Math.ceil(s.getClosePrice()*(1-percentchange) * 20) / 20, 0, "GUDS", 6, "MOC",EnumOrderIntent.Init);
              
                 }
                 beanG.getLuckyOrdersPlaced().set(i, Boolean.TRUE);

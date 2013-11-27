@@ -40,6 +40,7 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
    static List<String> myList = new ArrayList<String>();
    public JList list;
    static public MainAlgorithm algo;
+   static String parameterFileName;
     /** Creates new form NewSwingGUI */
     public MainAlgorithmUI() {
         initComponents();
@@ -63,6 +64,7 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Swing");
+        setPreferredSize(new java.awt.Dimension(300, 200));
 
         Start.setText("Export Variables");
         Start.addActionListener(new java.awt.event.ActionListener() {
@@ -246,9 +248,15 @@ private void StartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:e
             java.util.logging.Logger.getLogger(MainAlgorithmUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
-//1. Add the parameters files to myList variable        
+//1. Add the parameters files to myList variable  
+        if(args.length==3){
+            myList.add(args[1]);
+        myList.add(args[2]);
+        parameterFileName=args[0];
+        
+        }else{
         myList.add("symbols.csv");
-        myList.add("connection.csv");
+        myList.add("connection.csv");}
 //        loadParam("Algo.properties");
         FileInputStream configFile = null;
         configFile = new FileInputStream("logging.properties");
@@ -260,7 +268,10 @@ private void StartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:e
         java.awt.EventQueue.invokeLater(new Runnable() {
            
             public void run() {
-                new MainAlgorithmUI().setVisible(true);
+                
+                MainAlgorithmUI startup=new MainAlgorithmUI();
+                startup.setLocation(0,465);
+                startup.setVisible(true);
             }
         });
     }
