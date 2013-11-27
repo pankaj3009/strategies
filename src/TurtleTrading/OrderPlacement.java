@@ -7,6 +7,18 @@ package TurtleTrading;
 import com.ib.client.Contract;
 import com.ib.client.Order;
 import incurrframework.*;
+import static incurrframework.EnumOrderSide.BUY;
+import static incurrframework.EnumOrderSide.COVER;
+import static incurrframework.EnumOrderSide.SELL;
+import static incurrframework.EnumOrderSide.SHORT;
+import static incurrframework.EnumOrderSide.TRAILBUY;
+import static incurrframework.EnumOrderSide.TRAILSELL;
+import static incurrframework.EnumOrderType.Limit;
+import static incurrframework.EnumOrderType.Market;
+import static incurrframework.EnumOrderType.Stop;
+import static incurrframework.EnumOrderType.StopLimit;
+import static incurrframework.EnumOrderType.Trail;
+import static incurrframework.EnumOrderType.TrailLimit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.Format;
@@ -48,30 +60,78 @@ public class OrderPlacement implements OrderListener, OrderStatusListener,TWSErr
         //for each connection eligible for trading
         // System.out.println(Thread.currentThread().getName());
         try {
-            int id = event.getSymbolBean().getSerialno() - 1;
-            logger.log(Level.FINEST, "OrderReceived. Symbol:{0}, OrderSide:{1}", new Object[]{Parameters.symbol.get(id).getSymbol(), event.getSide()});
-            for (BeanConnection c : Parameters.connection) {
-                if ("Trading".equals(c.getPurpose()) && c.getStrategy().contains(event.getOrdReference())) {
-                    //check if system is square && order id is to initiate
-                    Index ind = new Index(event.getOrdReference(), id);
-                    int positions = c.getPositions().get(ind) == null ? 0 : c.getPositions().get(ind).getPosition();
-                    if (positions == 0) {
-                        if (event.getSide() == EnumOrderSide.BUY || event.getSide() == EnumOrderSide.SHORT) {
-                            //confirm current active order id is complete 
-                            if (zilchOpenOrders(c, id, event.getOrdReference())) {
-                                Order ord = c.getWrapper().createOrder(event.getOrderSize(), event.getSide(), event.getLimitPrice(), event.getTriggerPrice(), "DAY", event.getExpireTime(), false, event.getOrdReference(), "");
-                                Contract con = c.getWrapper().createContract(id);
-                                logger.log(Level.INFO, "Method:{0},Action:Entry Order Placed, Symbol:{1}, Size={2}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getOrderSize()});
-                                int orderid = c.getWrapper().placeOrder(c, id + 1, event.getSide(), ord, con, event.getExitType());
-                                long tempexpire = System.currentTimeMillis() + event.getExpireTime() * 60 * 1000;
-                                c.getOrdersToBeCancelled().put(orderid, tempexpire);
-                                logger.log(Level.FINEST, "Expiration time in object getOrdersToBeCancelled=" + DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", tempexpire));
-                            } //else cancel open orders
-                            else {
-                                logger.log(Level.INFO, "Method:{0},Action:Open Orders Being Cancelled before Entry, Symbol:{1}, Side={2}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getOrderSize()});
+            if (event.getOrderIntent() == EnumOrderIntent.Init) {
+                int id = event.getSymbolBean().getSerialno() - 1;
+                logger.log(Level.FINEST, "OrderReceived. Symbol:{0}, OrderSide:{1}", new Object[]{Parameters.symbol.get(id).getSymbol(), event.getSide()});
+                for (BeanConnection c : Parameters.connection) {
+                    if ("Trading".equals(c.getPurpose()) && c.getStrategy().contains(event.getOrdReference())) {
+                        //check if system is square && order id is to initiate
+                        Index ind = new Index(event.getOrdReference(), id);
+                        int positions = c.getPositions().get(ind) == null ? 0 : c.getPositions().get(ind).getPosition();
+                        if (positions == 0) {
+                            if (event.getSide() == EnumOrderSide.BUY || event.getSide() == EnumOrderSide.SHORT) {
+                                //confirm current active order id is complete 
+                                if (zilchOpenOrders(c, id, event.getOrdReference())) {
+                                    Order ord = c.getWrapper().createOrder(event.getOrderSize(), event.getSide(), event.getLimitPrice(), event.getTriggerPrice(), "DAY", event.getExpireTime(), false, event.getOrdReference(), "");
+                                    Contract con = c.getWrapper().createContract(id);
+                                    logger.log(Level.INFO, "Method:{0},Action:Entry Order Placed, Symbol:{1}, Size={2}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getOrderSize()});
+                                    int orderid = c.getWrapper().placeOrder(c, id + 1, event.getSide(), ord, con, event.getExitType());
+                                    long tempexpire = System.currentTimeMillis() + event.getExpireTime() * 60 * 1000;
+                                    c.getOrdersToBeCancelled().put(orderid, tempexpire);
+                                    logger.log(Level.FINEST, "Expiration time in object getOrdersToBeCancelled=" + DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", tempexpire));
+                                } //else cancel open orders
+                                else {
+                                    logger.log(Level.INFO, "Method:{0},Action:Open Orders Being Cancelled before Entry, Symbol:{1}, Side={2}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getOrderSize()});
+                                    cancelOpenOrders(c, id, event.getOrdReference());
+                                    logger.log(Level.INFO, "Method:{0},Entry order received while orders were still active with zero position.Symbol:{1}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol()});
+                                    //Introduce Logic: Place orders when cancelation is successful
+                                    OrderBean ord = new OrderBean();
+                                    ord.setSymbolID(id + 1);
+                                    ord.setOrderSize(event.getOrderSize());
+                                    ord.setOrderSide(event.getSide());
+                                    ord.setLimitPrice(event.getLimitPrice());
+                                    ord.setTriggerPrice(event.getTriggerPrice());
+                                    ord.setExpireTime(Integer.toString(event.getExpireTime()));
+                                    c.getOrdersToBeRetried().put(System.currentTimeMillis(), ord);
+                                }
+                            } else if (event.getSide() == EnumOrderSide.SELL || event.getSide() == EnumOrderSide.COVER) {
+                                //do nothing as position size=0. Original orders were not filled. 
+                                logger.log(Level.INFO, "Method:{0},Action:No Entry Position. Cancel any open orders, Symbol:{1}, Side={2}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getOrderSize()});
+                                //update missedorders list
+                                //get orderid
+                                int orderid = c.getOrdersSymbols().get(ind).get(0) > 0 ? c.getOrdersSymbols().get(ind).get(0) : c.getOrdersSymbols().get(ind).get(2);
+                                logger.log(Level.INFO, "Method:{0},Action:Store orderid for removal from missed orders as exit order reported, Symbol:{1}, OrderID={2}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), orderid});
+                                if (c.getOrdersMissed().contains(new Integer(orderid))) {
+                                    c.getOrdersMissed().remove(new Integer(orderid));
+                                    logger.log(Level.INFO, "Method:{0},Action:Remove from missed orders as exit order reported, Symbol:{1}, OrderID={2}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), orderid});
+                                }
                                 cancelOpenOrders(c, id, event.getOrdReference());
-                                logger.log(Level.INFO, "Method:{0},Entry order received while orders were still active with zero position.Symbol:{1}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol()});
+
+                            }
+
+                            //next loop processes when positions !=0
+                        } else if (positions != 0) {
+                            if (event.getSide() == EnumOrderSide.SELL || event.getSide() == EnumOrderSide.COVER) {
+                                cancelOpenOrders(c, id, event.getOrdReference()); //as this is a squareoff condition, first cancel all open orders
+                                if ((event.getSide() == EnumOrderSide.SELL && c.getPositions().get(ind).getPosition() > 0) || (event.getSide() == EnumOrderSide.COVER && c.getPositions().get(ind).getPosition() < 0)) {
+                                    Order ord = c.getWrapper().createOrder(Math.abs(c.getPositions().get(ind).getPosition()), event.getSide(), event.getLimitPrice(), event.getTriggerPrice(), "DAY", event.getExpireTime(), false, event.getOrdReference(), "");
+                                    Contract con = c.getWrapper().createContract(id);
+                                    logger.log(Level.INFO, "Method:{0},Action:Exit Position, Symbol:{1}, Side={2}, position:{3}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getOrderSize(), positions});
+                                    int orderid = c.getWrapper().placeOrder(c, id + 1, event.getSide(), ord, con, event.getExitType());
+                                    c.getOrdersToBeFastTracked().put(orderid, System.currentTimeMillis() + event.getExpireTime() * 60 * 1000);
+                                } else {
+                                    //something is wrong in positions. Cancel all open orders and square all positions
+                                    cancelOpenOrders(c, id, event.getOrdReference());
+                                    squareAllPositions(c, id, event.getOrdReference());
+                                    logger.log(Level.INFO, "Method:{0},Action: Positions are inconsistent with state of orders. Square off positions, Symbol:{1}, Side:{2}, Positions:{3}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getOrderSize(), positions});
+                                }
+                            } else if (event.getSide() == EnumOrderSide.BUY || event.getSide() == EnumOrderSide.SHORT) {
+                                //This will happen if an earlier squareoff order is still not filled and we get a new entry
+                                logger.log(Level.INFO, "Method:{0},Entry order received while position was not zero.Symbol:{1}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol()});
+                                cancelOpenOrders(c, id, event.getOrdReference());
+                                squareAllPositions(c, id, event.getOrdReference());
                                 //Introduce Logic: Place orders when cancelation is successful
+
                                 OrderBean ord = new OrderBean();
                                 ord.setSymbolID(id + 1);
                                 ord.setOrderSize(event.getOrderSize());
@@ -79,57 +139,125 @@ public class OrderPlacement implements OrderListener, OrderStatusListener,TWSErr
                                 ord.setLimitPrice(event.getLimitPrice());
                                 ord.setTriggerPrice(event.getTriggerPrice());
                                 ord.setExpireTime(Integer.toString(event.getExpireTime()));
+                                ord.setExitLogic(event.getExitType());
+                                ord.setOrderReference(event.getOrdReference());
                                 c.getOrdersToBeRetried().put(System.currentTimeMillis(), ord);
+                                logger.log(Level.INFO, "Method:{0},Added requirement for OrdersToBeRetried for symbol{1}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol()});
                             }
-                        } else if (event.getSide() == EnumOrderSide.SELL || event.getSide() == EnumOrderSide.COVER) {
-                            //do nothing as position size=0. Original orders were not filled. 
-                            logger.log(Level.INFO, "Method:{0},Action:No Entry Position. Cancel any open orders, Symbol:{1}, Side={2}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getOrderSize()});
-                            //update missedorders list
-                            //get orderid
-                            int orderid = c.getOrdersSymbols().get(ind).get(0) > 0 ? c.getOrdersSymbols().get(ind).get(0) : c.getOrdersSymbols().get(ind).get(2);
-                            logger.log(Level.INFO, "Method:{0},Action:Store orderid for removal from missed orders as exit order reported, Symbol:{1}, OrderID={2}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), orderid});
-                            if (c.getOrdersMissed().contains(new Integer(orderid))) {
-                                c.getOrdersMissed().remove(new Integer(orderid));
-                                logger.log(Level.INFO, "Method:{0},Action:Remove from missed orders as exit order reported, Symbol:{1}, OrderID={2}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), orderid});
-                            }
-                            cancelOpenOrders(c, id, event.getOrdReference());
-
                         }
-
-                        //next loop processes when positions !=0
-                    } else if (positions != 0) {
-                        if (event.getSide() == EnumOrderSide.SELL || event.getSide() == EnumOrderSide.COVER) {
-                            cancelOpenOrders(c, id, event.getOrdReference()); //as this is a squareoff condition, first cancel all open orders
-                            if ((event.getSide() == EnumOrderSide.SELL && c.getPositions().get(ind).getPosition() > 0) || (event.getSide() == EnumOrderSide.COVER && c.getPositions().get(ind).getPosition() < 0)) {
-                                Order ord = c.getWrapper().createOrder(Math.abs(c.getPositions().get(ind).getPosition()), event.getSide(), event.getLimitPrice(), event.getTriggerPrice(), "DAY", event.getExpireTime(), false, event.getOrdReference(), "");
-                                Contract con = c.getWrapper().createContract(id);
-                                logger.log(Level.INFO, "Method:{0},Action:Exit Position, Symbol:{1}, Side={2}, position:{3}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getOrderSize(), positions});
-                                int orderid = c.getWrapper().placeOrder(c, id + 1, event.getSide(), ord, con, event.getExitType());
-                                c.getOrdersToBeFastTracked().put(orderid, System.currentTimeMillis() + event.getExpireTime() * 60 * 1000);
-                            } else {
-                                //something is wrong in positions. Cancel all open orders and square all positions
-                                cancelOpenOrders(c, id, event.getOrdReference());
-                                squareAllPositions(c, id, event.getOrdReference());
-                                logger.log(Level.INFO, "Method:{0},Action: Positions are inconsistent with state of orders. Square off positions, Symbol:{1}, Side:{2}, Positions:{3}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getOrderSize(), positions});
+                    }
+                }
+            } else if (event.getOrderIntent() == EnumOrderIntent.Amend) {
+                int id = event.getSymbolBean().getSerialno() - 1;
+                logger.log(Level.FINEST, "OrderReceived. Symbol:{0}, OrderSide:{1}", new Object[]{Parameters.symbol.get(id).getSymbol(), event.getSide()});
+                for (BeanConnection c : Parameters.connection) {
+                    if ("Trading".equals(c.getPurpose()) && c.getStrategy().contains(event.getOrdReference())) {
+                        //check if system is square && order id is to initiate
+                        Index ind = new Index(event.getOrdReference(), id);
+                        int positions = c.getPositions().get(ind) == null ? 0 : c.getPositions().get(ind).getPosition();
+                        int orderid = 0;
+                        switch (event.getSide()) {
+                            case BUY:
+                                orderid = c.getOrdersSymbols().get(ind).get(0);
+                                break;
+                            case SELL:
+                                orderid = c.getOrdersSymbols().get(ind).get(1);
+                                break;
+                            case SHORT:
+                                orderid = c.getOrdersSymbols().get(ind).get(2);
+                                break;
+                            case COVER:
+                                orderid = c.getOrdersSymbols().get(ind).get(3);
+                                break;
+                            case TRAILBUY:
+                                orderid = c.getOrdersSymbols().get(ind).get(4);
+                                break;
+                            case TRAILSELL:
+                                orderid = c.getOrdersSymbols().get(ind).get(5);
+                                break;
+                            default:
+                                break;
+                        }
+                        if (orderid > 0) { //order exists that can be amended.
+                            Order ord = new Order();
+                            ord = c.getWrapper().createOrderFromExisting(c, orderid);
+                            ord.m_orderId = orderid;
+                            ord.m_auxPrice = event.getTriggerPrice() > 0 ? event.getTriggerPrice() : 0;
+                            ord.m_lmtPrice = event.getLimitPrice() > 0 ? event.getLimitPrice() : 0;
+                            if (event.getSide() != EnumOrderSide.TRAILBUY || event.getSide() != EnumOrderSide.TRAILSELL) {
+                                if (event.getLimitPrice() > 0 & event.getTriggerPrice() == 0) {
+                                    ord.m_orderType = "LMT";
+                                    ord.m_lmtPrice = event.getLimitPrice();
+                                } else if (event.getLimitPrice() == 0 && event.getTriggerPrice() > 0 && (event.getSide() == EnumOrderSide.SELL || event.getSide() == EnumOrderSide.COVER)) {
+                                    ord.m_orderType = "STP";
+                                    ord.m_lmtPrice = event.getLimitPrice();
+                                    ord.m_auxPrice = event.getTriggerPrice();
+                                } else if (event.getLimitPrice() > 0 && event.getTriggerPrice() > 0) {
+                                    ord.m_orderType = "STP LMT";
+                                    ord.m_lmtPrice = event.getLimitPrice();
+                                    ord.m_auxPrice = event.getTriggerPrice();
+                                } else {
+                                    ord.m_orderType = "MKT";
+                                    ord.m_lmtPrice = 0;
+                                    ord.m_auxPrice = 0;
+                                }
                             }
-                        } else if (event.getSide() == EnumOrderSide.BUY || event.getSide() == EnumOrderSide.SHORT) {
-                            //This will happen if an earlier squareoff order is still not filled and we get a new entry
-                            logger.log(Level.INFO, "Method:{0},Entry order received while position was not zero.Symbol:{1}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol()});
-                            cancelOpenOrders(c, id, event.getOrdReference());
-                            squareAllPositions(c, id, event.getOrdReference());
-                            //Introduce Logic: Place orders when cancelation is successful
 
-                            OrderBean ord = new OrderBean();
-                            ord.setSymbolID(id + 1);
-                            ord.setOrderSize(event.getOrderSize());
-                            ord.setOrderSide(event.getSide());
-                            ord.setLimitPrice(event.getLimitPrice());
-                            ord.setTriggerPrice(event.getTriggerPrice());
-                            ord.setExpireTime(Integer.toString(event.getExpireTime()));
-                            ord.setExitLogic(event.getExitType());
-                            ord.setOrderReference(event.getOrdReference());
-                            c.getOrdersToBeRetried().put(System.currentTimeMillis(), ord);
-                             logger.log(Level.INFO, "Method:{0},Added requirement for OrdersToBeRetried for symbol{1}",new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol()});
+                            ord.m_totalQuantity = event.getOrderSize(); //pending: check for any fills on the original order
+                            if (event.getExpireTime() > 0) {
+                                long expirationTimeMS = System.currentTimeMillis() + event.getExpireTime() * 60 * 1000;
+                                //String expirationTime = DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss z", expirationTimeMS);
+                                String expirationTime = DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", expirationTimeMS);
+                                ord.m_goodTillDate = expirationTime;
+                                if (event.getExpireTime() != 0) {
+                                    ord.m_tif = "GTD";
+                                } else {
+                                    ord.m_tif = "DAY";
+                                }
+
+                            }
+                        } else
+                        {
+                            //no order to amend. Do nothing. Probably earlier order was filled. Write to log
+                            logger.log(Level.INFO, "No orders to amend Method:{0}, Symbol:{1}, Order Side:{2}, position:{3}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(),event.getSide(),positions});
+                            
+                        }
+                    }
+                }
+
+            } else if (event.getOrderIntent() == EnumOrderIntent.Cancel) {
+                int id = event.getSymbolBean().getSerialno() - 1;
+                logger.log(Level.FINEST, "OrderReceived. Symbol:{0}, OrderSide:{1}", new Object[]{Parameters.symbol.get(id).getSymbol(), event.getSide()});
+                for (BeanConnection c : Parameters.connection) {
+                    if ("Trading".equals(c.getPurpose()) && c.getStrategy().contains(event.getOrdReference())) {
+                        //check if system is square && order id is to initiate
+                        Index ind = new Index(event.getOrdReference(), id);
+                        int positions = c.getPositions().get(ind) == null ? 0 : c.getPositions().get(ind).getPosition();
+                        int orderid = 0;
+                        switch (event.getSide()) {
+                            case BUY:
+                                orderid = c.getOrdersSymbols().get(ind).get(0);
+                                break;
+                            case SELL:
+                                orderid = c.getOrdersSymbols().get(ind).get(1);
+                                break;
+                            case SHORT:
+                                orderid = c.getOrdersSymbols().get(ind).get(2);
+                                break;
+                            case COVER:
+                                orderid = c.getOrdersSymbols().get(ind).get(3);
+                                break;
+                            case TRAILBUY:
+                                orderid = c.getOrdersSymbols().get(ind).get(4);
+                                break;
+                            case TRAILSELL:
+                                orderid = c.getOrdersSymbols().get(ind).get(5);
+                                break;
+                            default:
+                                break;
+                        }
+                        if (orderid > 0) {
+                            c.getWrapper().cancelOrder(c, orderid);
                         }
                     }
                 }

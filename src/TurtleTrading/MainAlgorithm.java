@@ -178,8 +178,8 @@ public class MainAlgorithm extends Algorithm  {
 
     }
  
-    public void fireOrderEvent(BeanSymbol s, EnumOrderSide side, int size, double lmtprice, double triggerprice, String ordReference, int expireTime,String exitType) {
-        OrderEvent order = new OrderEvent(this, s, side, size, lmtprice, triggerprice,ordReference,expireTime,exitType);
+    public void fireOrderEvent(BeanSymbol s, EnumOrderSide side, int size, double lmtprice, double triggerprice, String ordReference, int expireTime,String exitType, EnumOrderIntent intent) {
+        OrderEvent order = new OrderEvent(this, s, side, size, lmtprice, triggerprice,ordReference,expireTime,exitType,intent);
         Iterator listeners = _listeners.iterator();
         while (listeners.hasNext()) {
             ((OrderListener) listeners.next()).orderReceived(order);
