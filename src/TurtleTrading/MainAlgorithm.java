@@ -135,12 +135,12 @@ public class MainAlgorithm extends Algorithm  {
         preopen=new Timer();
        // preopen.schedule(new SnapShotPreOpenPrice(), preopenDate);       
         //initialize listners
-        paramTurtle = new BeanTurtle(this);
+       // paramTurtle = new BeanTurtle(this);
         //paramGuds = new BeanGuds(this);
-        //paramSwing=new BeanSwing(this);
+        paramSwing=new BeanSwing(this);
         ordManagement = new OrderPlacement(this);
 
-
+       
         //Attempt realtime bars in a new thread
         createAndShowGUI(this);
         if(Boolean.valueOf(historicalData)){
@@ -165,9 +165,6 @@ public class MainAlgorithm extends Algorithm  {
         LOGGER.log(Level.FINEST, ",Symbol" + "," + "BarNo" + "," + "HighestHigh" + "," + "LowestLow" + "," + "LastPrice" + "," + "Volume" + "," + "CumulativeVol" + "," + "VolumeSlope" + "," + "MinSlopeReqd" + "," + "MA" + "," + "LongVolume" + "," + "ShortVolume" + "," + "DateTime" + ","
                 + "ruleHighestHigh" + "," + "ruleCumVolumeLong" + "," + "ruleSlopeLong" + "," + "ruleVolumeLong" + "," + "ruleLowestLow" + ","
                 + "ruleCumVolumeShort" + "," + "ruleSlopeShort" + "," + "ruleVolumeShort");
-
-        
-
     }
  
     public void fireOrderEvent(BeanSymbol s, OrderSide side, int size, double lmtprice, double triggerprice, String ordReference, int expireTime,String exitType) {
