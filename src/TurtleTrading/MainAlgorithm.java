@@ -143,9 +143,9 @@ public class MainAlgorithm extends Algorithm  {
         preopen=new Timer();
        // preopen.schedule(new SnapShotPreOpenPrice(), preopenDate);       
         //initialize listners
-       // paramTurtle = new BeanTurtle(this);
-        //paramGuds = new BeanGuds(this);
-        paramSwing=new BeanSwing(this);
+       paramTurtle = new BeanTurtle(this);
+       // paramGuds = new BeanGuds(this);
+       // paramSwing=new BeanSwing(this);
         ordManagement = new OrderPlacement(this);
 
        

@@ -180,6 +180,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
             longVolume.add(Parameters.symbol.get(i).getLongvolume());
             shortVolume.add(Parameters.symbol.get(i).getShortvolume());
             notionalPosition.add(0L);
+            advanceOrder.add(0L);
             breachUpInBar.add(Boolean.FALSE);
             breachDownInBar.add(Boolean.FALSE);
             breachUp.add(0);
@@ -437,6 +438,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
                     } else {
                         exPriceBarShort.set(id, Boolean.FALSE);
                     }
+                    placeAdvancedOrders(id);
                     logger.log(Level.INFO, "{0},{1}, HH:{2}, LL:{3}, CumVol:{4}, LongVolCutoff:{5}, ShortVolCutoff:{6}, Slope:{7}, SlopeCutoff:{8}, BarVol:{9}, VolMA:{10}, BreachUp:{11}, BreachDown:{12}", new Object[]{
                         Parameters.symbol.get(id).getSymbol(),
                         sdfDate.format(event.list().lastEntry().getKey()),
@@ -471,6 +473,121 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
         }
     }
    
+    public void placeAdvancedOrders(int id){
+                 //Place advance orders
+         double threshold = this.getHighestHigh().get(id) - this.getLowestLow().get(id) > 1 ? 0.5 : ( this.getHighestHigh().get(id) - this.getLowestLow().get(id)) / 2;
+        boolean tradeable = Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) / (Parameters.symbol.get(id).getMinsize() * 375) >= 6.0 && this.getCumVolume().get(id).size() > this.getStartBars();
+            
+         //Amend Entry Advance orders
+        if (notionalPosition.get(id) == 0 && getAdvanceOrder().get(id) == 1) { //advance order has been placed
+            if ((Parameters.symbol.get(id).getLastPrice() + threshold) > this.getHighestHigh().get(id)
+                    && (Parameters.symbol.get(id).getLastPrice() - threshold) > this.getHighestHigh().get(id)
+                    && this.getBreachUp().get(id) >= this.getBreachDown().get(id)
+                    && this.longOnly
+                    && exPriceBarLong.get(id) && this.getLastOrderDate().compareTo(new Date()) > 0 && this.getBreachUp().get(id)>=this.getBreachDown().get(id) && this.getBreachDown().get(id) >= 1
+                    ) {
+                //amend existing advance long order
+                LOGGER.log(Level.INFO,"Amend existing advance long order. {0}",new Object[]{Parameters.symbol.get(id).getSymbol()});
+                m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.BUY, Parameters.symbol.get(id).getMinsize(), this.getHighestHigh().get(id) + Parameters.symbol.get(id).getAggression(), this.getHighestHigh().get(id), "TurtleTrading", 0, exit, EnumOrderIntent.Amend);
+            } else {
+                //cancel order. There is no need for advance buy order.
+                LOGGER.log(Level.INFO,"cancel order. There is no need for advance buy order. {0}",new Object[]{Parameters.symbol.get(id).getSymbol()});
+                m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.BUY, Parameters.symbol.get(id).getMinsize(), this.getHighestHigh().get(id) + Parameters.symbol.get(id).getAggression(), this.getHighestHigh().get(id), "TurtleTrading", 0, exit, EnumOrderIntent.Cancel);
+                this.getAdvanceOrder().set(id, 0L);
+            }
+        }
+
+              
+        if (notionalPosition.get(id) == 0 && getAdvanceOrder().get(id) == -1) {
+            if ((Parameters.symbol.get(id).getLastPrice() - threshold) < this.getLowestLow().get(id)
+                    && (Parameters.symbol.get(id).getLastPrice() + threshold) < this.getHighestHigh().get(id)
+                    && this.getBreachDown().get(id) >= this.getBreachUp().get(id)
+                    && this.shortOnly
+                    && exPriceBarShort.get(id) && this.getLastOrderDate().compareTo(new Date()) > 0 && this.getBreachDown().get(id)>=this.getBreachUp().get(id) && this.getBreachUp().get(id) >= 1
+                    ) {
+                //amend existing advance short order
+                LOGGER.log(Level.INFO,"Amend existing advance short order. {0}",new Object[]{Parameters.symbol.get(id).getSymbol()});
+                m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.SHORT, Parameters.symbol.get(id).getMinsize(), this.getLowestLow().get(id) - Parameters.symbol.get(id).getAggression(), this.getLowestLow().get(id), "TurtleTrading", 0, exit, EnumOrderIntent.Amend);
+            } else {
+                //cancel order. There is no need for advance short order.
+                LOGGER.log(Level.INFO,"cancel order. There is no need for advance short order. {0}",new Object[]{Parameters.symbol.get(id).getSymbol()});
+                m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.SHORT, Parameters.symbol.get(id).getMinsize(), this.getLowestLow().get(id) - Parameters.symbol.get(id).getAggression(), this.getLowestLow().get(id), "TurtleTrading", 0, exit, EnumOrderIntent.Cancel);
+                this.getAdvanceOrder().set(id, 0L);
+            }
+        }
+        //amend advance sell order
+        if (notionalPosition.get(id) == 1 && getAdvanceOrder().get(id) == -1) { 
+            if ((Parameters.symbol.get(id).getLastPrice() - threshold) < this.getLowestLow().get(id)
+                    && (Parameters.symbol.get(id).getLastPrice() + threshold) < this.getHighestHigh().get(id)
+                    ) {
+                //amend existing advance sell order
+                LOGGER.log(Level.INFO,"Amend existing advance sell order. {0}",new Object[]{Parameters.symbol.get(id).getSymbol()});
+                m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.SELL, Parameters.symbol.get(id).getMinsize(), this.getLowestLow().get(id) - Parameters.symbol.get(id).getAggression(), this.getLowestLow().get(id), "TurtleTrading", 0, exit, EnumOrderIntent.Amend);
+            } else {
+                //cancel order. There is no need for advance sell order.
+                LOGGER.log(Level.INFO,"cancel order. There is no need for advance sell order. {0}",new Object[]{Parameters.symbol.get(id).getSymbol()});
+                m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.SELL, Parameters.symbol.get(id).getMinsize(), this.getLowestLow().get(id) - Parameters.symbol.get(id).getAggression(), this.getLowestLow().get(id), "TurtleTrading", 0, exit, EnumOrderIntent.Cancel);
+                this.getAdvanceOrder().set(id, 0L);
+            }
+        }
+        //amend advance cover order
+                if (notionalPosition.get(id) == -1 && getAdvanceOrder().get(id) == 1) {
+            if ((Parameters.symbol.get(id).getLastPrice() + threshold) > this.getHighestHigh().get(id)
+                    && (Parameters.symbol.get(id).getLastPrice() - threshold) > this.getLowestLow().get(id)
+                    ) {
+                //amend existing advance cover order
+                LOGGER.log(Level.INFO,"Amend existing advance cover order. {0}",new Object[]{Parameters.symbol.get(id).getSymbol()});
+                m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.COVER, Parameters.symbol.get(id).getMinsize(), this.getHighestHigh().get(id) + Parameters.symbol.get(id).getAggression(), this.getHighestHigh().get(id), "TurtleTrading", 0, exit, EnumOrderIntent.Amend);
+            } else {
+                //cancel order. There is no need for advance cover order.
+                LOGGER.log(Level.INFO,"cancel order. There is no need for advance cover order. {0}",new Object[]{Parameters.symbol.get(id).getSymbol()});
+                m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.COVER, Parameters.symbol.get(id).getMinsize(), this.getHighestHigh().get(id) + Parameters.symbol.get(id).getAggression(), this.getHighestHigh().get(id), "TurtleTrading", 0, exit, EnumOrderIntent.Cancel);
+                this.getAdvanceOrder().set(id, 0L);
+            }
+        }
+        //Place entry orders
+        if (tradeable && this.getNotionalPosition().get(id) == 0 && this.getCumVolume().get(id).size() >= this.getChannelDuration()) {
+                if (notionalPosition.get(id) == 0 && getAdvanceOrder().get(id) == 0 && longOnly && exPriceBarLong.get(id)  && this.getLastOrderDate().compareTo(new Date()) > 0 && this.getBreachUp().get(id)>=this.getBreachDown().get(id) && this.getBreachDown().get(id) >= 1) {
+                    if ((Parameters.symbol.get(id).getLastPrice() + threshold) > this.getHighestHigh().get(id)
+                    && (Parameters.symbol.get(id).getLastPrice() - threshold) > this.getHighestHigh().get(id)
+                    && this.longOnly) {
+                //place advance order to buy
+                this.getAdvanceOrder().set(id, 1L);
+                LOGGER.log(Level.INFO,"place advance order to buy. {0}",new Object[]{Parameters.symbol.get(id).getSymbol()});
+                m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.BUY, Parameters.symbol.get(id).getMinsize(), this.getHighestHigh().get(id) + Parameters.symbol.get(id).getAggression(), this.getHighestHigh().get(id), "TurtleTrading", 0, exit, EnumOrderIntent.Init);
+            }
+                } else if (notionalPosition.get(id) == 0 && getAdvanceOrder().get(id) == 0 && shortOnly && exPriceBarShort.get(id) && this.getLastOrderDate().compareTo(new Date()) > 0 && this.getBreachDown().get(id) >= this.getBreachUp().get(id) && this.getBreachUp().get(id) >= 1) {
+                    if ((Parameters.symbol.get(id).getLastPrice() - threshold) < this.getLowestLow().get(id)
+                    && (Parameters.symbol.get(id).getLastPrice() + threshold) < this.getHighestHigh().get(id)
+                    && this.shortOnly) {
+                //place advance order to short
+                this.getAdvanceOrder().set(id, -1L);
+                LOGGER.log(Level.INFO,"place advance order to short. {0}",new Object[]{Parameters.symbol.get(id).getSymbol()});
+                m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.SHORT, Parameters.symbol.get(id).getMinsize(), this.getLowestLow().get(id) - Parameters.symbol.get(id).getAggression(), this.getLowestLow().get(id), "TurtleTrading", 0, exit, EnumOrderIntent.Init);
+                    }
+                }
+        }
+        
+        //now place sell and cover advance orders
+        if (notionalPosition.get(id) == -1 && getAdvanceOrder().get(id) == 0) {
+            if ((Parameters.symbol.get(id).getLastPrice() + threshold) > this.getHighestHigh().get(id)
+                    && (Parameters.symbol.get(id).getLastPrice() - threshold) > this.getHighestHigh().get(id)) //place advance order to cover
+            {
+                this.getAdvanceOrder().set(id, 1L);
+            }
+            LOGGER.log(Level.INFO,"place advance order to cover. {0}",new Object[]{Parameters.symbol.get(id).getSymbol()});
+            m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.COVER, Parameters.symbol.get(id).getMinsize(), this.getHighestHigh().get(id) + Parameters.symbol.get(id).getAggression(), this.getHighestHigh().get(id), "TurtleTrading", 0, exit, EnumOrderIntent.Init);
+        }
+
+        if (notionalPosition.get(id) == 1 && getAdvanceOrder().get(id) == 0) {
+            if ((Parameters.symbol.get(id).getLastPrice() - threshold) < this.getLowestLow().get(id)) {
+                //place advance order to sell
+                LOGGER.log(Level.INFO,"place advance order to sell. {0}",new Object[]{Parameters.symbol.get(id).getSymbol()});
+                m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.SELL, Parameters.symbol.get(id).getMinsize(), this.getLowestLow().get(id) - Parameters.symbol.get(id).getAggression(), this.getLowestLow().get(id), "TurtleTrading", 0, exit, EnumOrderIntent.Init);
+                this.getAdvanceOrder().set(id, -1L);
+            }
+        }
+    }
     @Override
     public synchronized void tradeReceived(TradeEvent event) {
 
@@ -548,7 +665,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
                 });
             }
 
-            if (tradeable && this.getNotionalPosition().get(id) == 0 && this.getCumVolume().get(id).size() >= this.getChannelDuration()) {
+            if (tradeable && this.getNotionalPosition().get(id) == 0 && this.getCumVolume().get(id).size() >= this.getChannelDuration()) { //basic conditions met for testing entry
                 if (longOnly && ruleHighestHigh && (exPriceBarLong.get(id) && sourceBars || (!sourceBars && ruleCumVolumeLong && ruleSlopeLong && ruleVolumeLong)) && this.getLastOrderDate().compareTo(new Date()) > 0 && breachup > 0.5 && this.getBreachDown().get(id) >= 1) {
                     //Buy Condition
                     this.getNotionalPosition().set(id, 1L);
@@ -583,7 +700,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
                 this.advanceOrder.set(id, 0L);
          
                 }
-            } else if (this.getNotionalPosition().get(id) == -1) {
+            } else if (this.getNotionalPosition().get(id) == -1) { //position exists. Check for exit conditions for a short
                 if (ruleHighestHigh || System.currentTimeMillis() > this.getEndDate().getTime()) {
                     this.getNotionalPosition().set(id, 0L);
                     int size = this.getExposure() != 0 ? (int) (this.getExposure() / Parameters.symbol.get(id).getLastPrice()) : Parameters.symbol.get(id).getMinsize();
@@ -608,7 +725,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
                     }
                 }
 
-            } else if (this.getNotionalPosition().get(id) == 1) {
+            } else if (this.getNotionalPosition().get(id) == 1) { //position exists. Check for exit condition for long
                 if (ruleLowestLow || System.currentTimeMillis() > this.getEndDate().getTime()) {
                     this.getNotionalPosition().set(id, 0L);
                     int size = this.getExposure() != 0 ? (int) (this.getExposure() / Parameters.symbol.get(id).getLastPrice()) : Parameters.symbol.get(id).getMinsize();
@@ -633,80 +750,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
                     }
                 }
             }
-            
-         //Place advance orders
-         double threshold = this.getHighestHigh().get(id) - this.getLowestLow().get(id) > 1 ? 0.5 : ((int) (this.getHighestHigh().get(id) - this.getLowestLow().get(id)) / Double.parseDouble(tickSize)) * Double.parseDouble(tickSize);
-
-        //Amend Entry Advance orders
-        if (notionalPosition.get(id) == 0 && getAdvanceOrder().get(id) == 1) {
-            if ((Parameters.symbol.get(id).getLastPrice() + threshold) > this.getHighestHigh().get(id)
-                    && (Parameters.symbol.get(id).getLastPrice() - threshold) > this.getHighestHigh().get(id)
-                    && this.getBreachUp().get(id) >= this.getBreachDown().get(id)
-                    && this.longOnly) {
-                //amend existing advance long order
-                m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.BUY, Parameters.symbol.get(id).getMinsize(), this.getHighestHigh().get(id) + Parameters.symbol.get(id).getAggression(), this.getHighestHigh().get(id), "TurtleTrading", 0, exit, EnumOrderIntent.Amend);
-            } else {
-                //cancel order. There is no need for advance buy order.
-                m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.BUY, Parameters.symbol.get(id).getMinsize(), this.getHighestHigh().get(id) + Parameters.symbol.get(id).getAggression(), this.getHighestHigh().get(id), "TurtleTrading", 0, exit, EnumOrderIntent.Cancel);
-                this.getAdvanceOrder().set(id, 0L);
-            }
-        }
-
-              
-        if (notionalPosition.get(id) == 0 && getAdvanceOrder().get(id) == -1) {
-            if ((Parameters.symbol.get(id).getLastPrice() - threshold) < this.getLowestLow().get(id)
-                    && (Parameters.symbol.get(id).getLastPrice() + threshold) < this.getHighestHigh().get(id)
-                    && this.getBreachDown().get(id) >= this.getBreachUp().get(id)
-                    && this.shortOnly) {
-                //amend existing advance short order
-                m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.SHORT, Parameters.symbol.get(id).getMinsize(), this.getLowestLow().get(id) - Parameters.symbol.get(id).getAggression(), this.getLowestLow().get(id), "TurtleTrading", 0, exit, EnumOrderIntent.Amend);
-            } else {
-                //cancel order. There is no need for advance short order.
-                m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.SHORT, Parameters.symbol.get(id).getMinsize(), this.getLowestLow().get(id) - Parameters.symbol.get(id).getAggression(), this.getLowestLow().get(id), "TurtleTrading", 0, exit, EnumOrderIntent.Cancel);
-                this.getAdvanceOrder().set(id, 0L);
-            }
-        }
-        
-        //Place entry orders
-        if (tradeable && this.getNotionalPosition().get(id) == 0 && this.getCumVolume().get(id).size() >= this.getChannelDuration()) {
-                if (notionalPosition.get(id) == 0 && getAdvanceOrder().get(id) == 0 && longOnly && !ruleHighestHigh && (exPriceBarLong.get(id) && sourceBars || (!sourceBars && ruleCumVolumeLong && ruleSlopeLong && ruleVolumeLong)) && this.getLastOrderDate().compareTo(new Date()) > 0 && breachup > 0.5 && this.getBreachDown().get(id) >= 1) {
-                    if ((Parameters.symbol.get(id).getLastPrice() + threshold) > this.getHighestHigh().get(id)
-                    && (Parameters.symbol.get(id).getLastPrice() - threshold) > this.getHighestHigh().get(id)
-                    && this.getBreachUp().get(id) >= this.getBreachDown().get(id)
-                    && this.longOnly) {
-                //place advance order to buy
-                this.getAdvanceOrder().set(id, 1L);
-                m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.BUY, Parameters.symbol.get(id).getMinsize(), this.getHighestHigh().get(id) + Parameters.symbol.get(id).getAggression(), this.getHighestHigh().get(id), "TurtleTrading", 0, exit, EnumOrderIntent.Init);
-            }
-                } else if (notionalPosition.get(id) == 0 && getAdvanceOrder().get(id) == 0 && shortOnly && !ruleLowestLow && (exPriceBarShort.get(id) && sourceBars || (!sourceBars && ruleCumVolumeShort && ruleSlopeShort && ruleVolumeShort)) && this.getLastOrderDate().compareTo(new Date()) > 0 && breachdown > 0.5 && this.getBreachUp().get(id) >= 1) {
-                    if ((Parameters.symbol.get(id).getLastPrice() - threshold) < this.getLowestLow().get(id)
-                    && (Parameters.symbol.get(id).getLastPrice() + threshold) < this.getHighestHigh().get(id)
-                    && this.getBreachDown().get(id) >= this.getBreachUp().get(id)
-                    && this.shortOnly) {
-                //place advance order to sell
-                this.getAdvanceOrder().set(id, -1L);
-                m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.SHORT, Parameters.symbol.get(id).getMinsize(), this.getLowestLow().get(id) - Parameters.symbol.get(id).getAggression(), this.getLowestLow().get(id), "TurtleTrading", 0, exit, EnumOrderIntent.Init);
-                    }
-                }
-        }
-        
-        //now place sell and cover advance orders
-        if (notionalPosition.get(id) == -1 && getAdvanceOrder().get(id) == 0) {
-            if ((Parameters.symbol.get(id).getLastPrice() + threshold) > this.getHighestHigh().get(id)
-                    && (Parameters.symbol.get(id).getLastPrice() - threshold) > this.getHighestHigh().get(id)) //place advance order to cover
-            {
-                this.getAdvanceOrder().set(id, 1L);
-            }
-            m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.COVER, Parameters.symbol.get(id).getMinsize(), this.getHighestHigh().get(id) + Parameters.symbol.get(id).getAggression(), this.getHighestHigh().get(id), "TurtleTrading", 0, exit, EnumOrderIntent.Init);
-        }
-
-        if (notionalPosition.get(id) == 1 && getAdvanceOrder().get(id) == 0) {
-            if ((Parameters.symbol.get(id).getLastPrice() - threshold) < this.getLowestLow().get(id)) {
-                //place advance order to sell
-                m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.SELL, Parameters.symbol.get(id).getMinsize(), this.getLowestLow().get(id) - Parameters.symbol.get(id).getAggression(), this.getLowestLow().get(id), "TurtleTrading", 0, exit, EnumOrderIntent.Init);
-                this.getAdvanceOrder().set(id, -1L);
-            }
-        }   
+      
             //force close of all open positions, after closeTime
             if (System.currentTimeMillis() + 3000 > this.getEndDate().getTime()) { //i wait for 3 seconds as there could be a gap in clock synchronization
                 int symb = 0; //symb replaces id in this loop
