@@ -253,11 +253,11 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
                     //Was there a need to have a position, but no position exists?
                     if (event.ohlc().getHigh() > highestHigh.get(id)) {
                         //place buy order as the last bar had a higher high and other conditions were met.
-                        LOGGER.log(Level.INFO, "Method:{0},Buy Order.Symbol:{1}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol()});
+                        //LOGGER.log(Level.INFO, "Method:{0},Buy Order.Symbol:{1}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol()});
                         generateOrders(id, true, false, true, false, true, false, true, false, true);
                     } else if (event.ohlc().getLow() < lowestLow.get(id)) {
                         //place sell order as the last bar had a lower low and other conditions were met.
-                        LOGGER.log(Level.INFO, "Method:{0},Short Order.Symbol:{1}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol()});
+                        //LOGGER.log(Level.INFO, "Method:{0},Short Order.Symbol:{1}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol()});
                         generateOrders(id, false, true, false, true, false, true, false, true, true);
                         //generateOrders(id, ruleHighestHigh, ruleLowestLow, ruleCumVolumeLong, ruleCumVolumeShort, ruleSlopeLong, ruleSlopeShort, ruleVolumeLong, ruleVolumeShort);
                     }
@@ -549,7 +549,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
         if (tradeable && this.getNotionalPosition().get(id) == 0 && this.getCumVolume().get(id).size() >= this.getChannelDuration()) {
                 if (notionalPosition.get(id) == 0 && getAdvanceOrder().get(id) == 0 && longOnly && exPriceBarLong.get(id)  && this.getLastOrderDate().compareTo(new Date()) > 0 && this.getBreachUp().get(id)>=this.getBreachDown().get(id) && this.getBreachDown().get(id) >= 1) {
                     if ((Parameters.symbol.get(id).getLastPrice() + threshold) > this.getHighestHigh().get(id)
-                    && (Parameters.symbol.get(id).getLastPrice() - threshold) > this.getHighestHigh().get(id)
+                    && (Parameters.symbol.get(id).getLastPrice() - threshold) > this.getLowestLow().get(id)
                     && this.longOnly) {
                 //place advance order to buy
                 this.getAdvanceOrder().set(id, 1L);
@@ -574,10 +574,12 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
                     && (Parameters.symbol.get(id).getLastPrice() - threshold) > this.getHighestHigh().get(id)) //place advance order to cover
             {
                 this.getAdvanceOrder().set(id, 1L);
-            }
+            
             LOGGER.log(Level.INFO,"place advance order to cover. {0}",new Object[]{Parameters.symbol.get(id).getSymbol()});
             m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.COVER, Parameters.symbol.get(id).getMinsize(), this.getHighestHigh().get(id) + Parameters.symbol.get(id).getAggression(), this.getHighestHigh().get(id), "TurtleTrading", 0, exit, EnumOrderIntent.Init);
-        }
+            }
+            }
+            
 
         if (notionalPosition.get(id) == 1 && getAdvanceOrder().get(id) == 0) {
             if ((Parameters.symbol.get(id).getLastPrice() - threshold) < this.getLowestLow().get(id)) {
@@ -631,6 +633,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
             }
             double breachup = ((double) this.getBreachUp().get(id) + 1) / ((double) this.getBreachUp().get(id) + (double) this.getBreachDown().get(id) + 1D);
             double breachdown = ((double) this.getBreachDown().get(id) + 1) / ((double) this.getBreachUp().get(id) + (double) this.getBreachDown().get(id) + 1D);
+/*
             if (ruleHighestHigh || ruleLowestLow) {
                 LOGGER.log(Level.INFO, "{0},CumVolume:{1}, HH:{2}, LL:{3}, LastPrice:{4}, Vol:{5}, CumVol:{6}, Slope:{7}, SlopeCutoff:{8},VolMA:{9}, LongVolCutoff:{10}, ShortVolCutOff:{11}, LastPriceTime:{12}, BreachUp:{13}, BreachDown:{14},{15},{16},{17},{18},{19},{20},{21},{22},{23},{24},{25},{26},{27},{28}", new Object[]{
                     Parameters.symbol.get(id).getSymbol(),
@@ -664,7 +667,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
                     breachdown
                 });
             }
-
+*/
             if (tradeable && this.getNotionalPosition().get(id) == 0 && this.getCumVolume().get(id).size() >= this.getChannelDuration()) { //basic conditions met for testing entry
                 if (longOnly && ruleHighestHigh && (exPriceBarLong.get(id) && sourceBars || (!sourceBars && ruleCumVolumeLong && ruleSlopeLong && ruleVolumeLong)) && this.getLastOrderDate().compareTo(new Date()) > 0 && breachup > 0.5 && this.getBreachDown().get(id) >= 1) {
                     //Buy Condition
