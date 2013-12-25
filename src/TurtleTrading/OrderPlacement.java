@@ -77,9 +77,11 @@ public class OrderPlacement implements OrderListener, OrderStatusListener,TWSErr
                                 logger.log(Level.INFO, "Method:{0},Action:No Entry Position. Cancel any open orders, Symbol:{1}, Side={2}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getSide()});
                                 //update missedorders list
                                 int orderid = c.getOrdersSymbols().get(ind).get(0) > 0 ? c.getOrdersSymbols().get(ind).get(0) : c.getOrdersSymbols().get(ind).get(2);
-                                if (c.getOrdersMissed().contains(new Integer(orderid))) {
-                                    c.getOrdersMissed().remove(new Integer(orderid));
-                                    logger.log(Level.INFO, "Method:{0},Action:Remove from missed orders as exit order reported, Symbol:{1}, OrderID={2}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), orderid});
+                                for(int i: c.getOrdersMissed()){
+                                    if(c.getOrders().get(i).getSymbolID()==id+1){
+                                       c.getOrdersMissed().remove(new Integer(i)); 
+                                         logger.log(Level.INFO, "Method:{0},Action:Remove from missed orders as exit order reported, Symbol:{1}, OrderID={2}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), orderid});
+                                    }
                                 }
                             }
                         } else if (positions != 0 && zilchOpenOrders(c, id, event.getOrdReference())) {
