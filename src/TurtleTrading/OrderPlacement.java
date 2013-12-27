@@ -254,9 +254,13 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
             logger.log(Level.INFO, "{0}, Symbol:{1}, Order Side:{2},orderID:{3}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getSide(), orderid});
 
         } else {
+            //check if there is a case to retry orders
+            if((c.getOrdersSymbols().get(ind).get(0)>0 && event.getSide()==EnumOrderSide.SELL)||(c.getOrdersSymbols().get(ind).get(2)>0 && event.getSide()==EnumOrderSide.COVER)){
+                this.addOrdersToBeRetried(id, c, event);
+            } else{
             //no order to amend. Do nothing. Probably earlier order was filled. Write to log
             logger.log(Level.INFO, "No orders to amend Method:{0}, Symbol:{1}, Order Side:{2}, orderID:{3}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getSide(), orderid});
-
+            }
         }
     }
     
@@ -309,7 +313,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
              int tempID = c.getOrdersToBeRetried().get(key).getSymbolID() - 1;
              EnumOrderSide ordSide = c.getOrdersToBeRetried().get(key).getOrderSide();
              String ordRef=c.getOrdersToBeRetried().get(key).getOrderReference();
-             if(tempID==id && ordSide==event.getSide() && ordRef==event.getOrdReference() ){
+             if(tempID==id && ordSide==event.getSide() && ordRef.equals(event.getOrdReference()) ){
                  c.getOrdersToBeRetried().put(key, ord);
                  orderupdated=Boolean.TRUE;
                  logger.log(Level.INFO, "Method:{0},Updated OrdersToBeRetried for symbol{1}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol()});
