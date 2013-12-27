@@ -114,9 +114,11 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
                             } else if (event.getSide() == EnumOrderSide.SELL || event.getSide() == EnumOrderSide.COVER) {
                                 logger.log(Level.INFO, "Method:{0},Exit order received while position was zero with open orders.Symbol:{1}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol()});
                                 //check if this is a valid scenario. If yes proceed to place orders.
-                                
+                                if((c.getOrdersSymbols().get(ind).get(0)>0 && event.getSide()==EnumOrderSide.SELL)||(c.getOrdersSymbols().get(ind).get(2)>0 && event.getSide()==EnumOrderSide.COVER)){
+                                    addOrdersToBeRetried(id,c,event);
+                                } else { //not a valid scenario. cancel open orders
                                 this.cancelOpenOrders(c, id, event.getOrdReference());
-                                
+                                }
                             }
                         } else if (positions != 0 && !zilchOpenOrders(c, id, event.getOrdReference())) {
                             if (event.getSide() == EnumOrderSide.BUY || event.getSide() == EnumOrderSide.SHORT) {
@@ -291,6 +293,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
     }
 
     void addOrdersToBeRetried(int id, BeanConnection c, OrderEvent event) {
+     
         OrderBean ord = new OrderBean();
         ord.setSymbolID(id + 1);
         ord.setOrderSize(event.getOrderSize());
@@ -300,9 +303,23 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
         ord.setExpireTime(Integer.toString(event.getExpireTime()));
         ord.setExitLogic(event.getExitType());
         ord.setOrderReference(event.getOrdReference());
+        boolean orderupdated=Boolean.FALSE;
+         //if an existing order exists for the same id and side, it is amended to the new values
+         for (Long key : c.getOrdersToBeRetried().keySet()) {
+             int tempID = c.getOrdersToBeRetried().get(key).getSymbolID() - 1;
+             EnumOrderSide ordSide = c.getOrdersToBeRetried().get(key).getOrderSide();
+             String ordRef=c.getOrdersToBeRetried().get(key).getOrderReference();
+             if(tempID==id && ordSide==event.getSide() && ordRef==event.getOrdReference() ){
+                 c.getOrdersToBeRetried().put(key, ord);
+                 orderupdated=Boolean.TRUE;
+                 logger.log(Level.INFO, "Method:{0},Updated OrdersToBeRetried for symbol{1}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol()});
+                 break;
+             }
+         }
+         if(!orderupdated){
         c.getOrdersToBeRetried().put(System.currentTimeMillis(), ord);
         logger.log(Level.INFO, "Method:{0},Added requirement for OrdersToBeRetried for symbol{1}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol()});
-
+         }
     }
 
     @Override
@@ -429,10 +446,10 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
                         int tempID = c.getOrdersToBeRetried().get(key).getSymbolID() - 1;
                         OrderBean ordb = c.getOrdersToBeRetried().get(key);
                         Index ind = new Index(ordb.getOrderReference(), tempID);
-                        if (System.currentTimeMillis() > key + 60 * 1000) {
+                        if (System.currentTimeMillis() > key + 60 * 1000 && (ordb.getOrderSide()==EnumOrderSide.BUY||ordb.getOrderSide()==EnumOrderSide.SHORT)) { //only entry orders are deleted on ageing
                             temp.add(key); //if > 60 seconds have passed then add the key to temp. This record will be deleted from orders to be retried queue.
                         } else if (c.getPositions().containsKey(ind) && c.getPositions().get(ind) != null) {
-                            if (c.getPositions().get(ind).getPosition() == 0 && zilchOpenOrders(c, tempID, ordb.getOrderReference())) {
+                            if (c.getPositions().get(ind).getPosition() == 0 && zilchOpenOrders(c, tempID, ordb.getOrderReference())) { //exit orders will be placed only if there are no open entry orders
                                 //update temp
                                 temp.add(key);
                                 //place orders
