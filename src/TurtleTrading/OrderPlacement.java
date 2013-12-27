@@ -113,8 +113,10 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
 
                             } else if (event.getSide() == EnumOrderSide.SELL || event.getSide() == EnumOrderSide.COVER) {
                                 logger.log(Level.INFO, "Method:{0},Exit order received while position was zero with open orders.Symbol:{1}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol()});
+                                //check if this is a valid scenario. If yes proceed to place orders.
+                                
                                 this.cancelOpenOrders(c, id, event.getOrdReference());
-
+                                
                             }
                         } else if (positions != 0 && !zilchOpenOrders(c, id, event.getOrdReference())) {
                             if (event.getSide() == EnumOrderSide.BUY || event.getSide() == EnumOrderSide.SHORT) {
@@ -233,14 +235,15 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
 
             ord.m_totalQuantity = event.getOrderSize(); //pending: check for any fills on the original order
             if (event.getExpireTime() > 0) {
-                long expirationTimeMS = System.currentTimeMillis() + event.getExpireTime() * 60 * 1000;
+                //long expirationTimeMS = System.currentTimeMillis() + event.getExpireTime() * 60 * 1000;
                 //String expirationTime = DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss z", expirationTimeMS);
-                String expirationTime = DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", expirationTimeMS);
-                ord.m_goodTillDate = expirationTime;
+                //String expirationTime = DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", expirationTimeMS);
+                //ord.m_goodTillDate = expirationTime;
                 if (event.getExpireTime() != 0) {
-                    ord.m_tif = "GTD";
-                } else {
-                    ord.m_tif = "DAY";
+                long tempexpire = System.currentTimeMillis() + event.getExpireTime() * 60 * 1000;
+                c.getOrdersToBeCancelled().put(orderid, tempexpire);
+                logger.log(Level.FINEST, "Expiration time in object getOrdersToBeCancelled=" + DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", tempexpire));
+
                 }
 
             }
