@@ -379,6 +379,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
                     }
                 } else if ("Cancelled".equals(event.getStatus())) {
                     //cancelled
+                    logger.log(Level.INFO, "Method:{0},Symbol:{1},OrderID:{2}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), orderid});
                     updateCancelledOrders(event.getC(), id, orderid);
                     event.getC().getOrdersInProgress().remove(new Integer(orderid));
 
@@ -407,6 +408,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
                                     && (c.getOrders().get(key).getStatus() == EnumOrderStatus.CancelledNoFill || c.getOrders().get(key).getStatus() == EnumOrderStatus.CancelledPartialFill)) {
                                 c.getOrdersMissed().add(key);
                             }
+                            
                             temp.add(key); //holds all orders that have now been cancelled
                         }
                     }
@@ -453,13 +455,22 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
                         if (System.currentTimeMillis() > key + 60 * 1000 && (ordb.getOrderSide()==EnumOrderSide.BUY||ordb.getOrderSide()==EnumOrderSide.SHORT)) { //only entry orders are deleted on ageing
                             temp.add(key); //if > 60 seconds have passed then add the key to temp. This record will be deleted from orders to be retried queue.
                         } else if (c.getPositions().containsKey(ind) && c.getPositions().get(ind) != null) {
-                            if (c.getPositions().get(ind).getPosition() == 0 && zilchOpenOrders(c, tempID, ordb.getOrderReference())) { //exit orders will be placed only if there are no open entry orders
+                            if (c.getPositions().get(ind).getPosition() == 0 && zilchOpenOrders(c, tempID, ordb.getOrderReference()) && (ordb.getOrderSide()==EnumOrderSide.BUY||ordb.getOrderSide()==EnumOrderSide.SHORT)) { //entry orders will be placed only if there are no open orders
                                 //update temp
                                 temp.add(key);
                                 //place orders
                                 Order ord = c.getWrapper().createOrder(ordb.getOrderSize(), ordb.getOrderSide(), ordb.getLimitPrice(), ordb.getTriggerPrice(), "DAY", Integer.parseInt(ordb.getExpireTime()), false, ordb.getOrderReference(), "");
                                 Contract con = c.getWrapper().createContract(tempID);
-                                logger.log(Level.INFO, "reattemptOrders Method:{0}, Symbol:{1}, OrderID:{2}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(ordb.getSymbolID() - 1).getSymbol(), key});
+                                logger.log(Level.INFO, "reattempt Entry Orders Method:{0}, Symbol:{1}, OrderID:{2}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(ordb.getSymbolID() - 1).getSymbol(), key});
+                                c.getWrapper().placeOrder(c, tempID + 1, ordb.getOrderSide(), ord, con, ordb.getExitLogic());
+                            } else if (c.getPositions().get(ind).getPosition() == 0 && zilchOpenOrders(c, tempID, ordb.getOrderReference()) && (ordb.getOrderSide()==EnumOrderSide.SELL||ordb.getOrderSide()==EnumOrderSide.COVER)) { //delete exit order if no entry was filled
+                                 temp.add(key);
+                                  logger.log(Level.INFO, "add Exit Order for deletion as no entry was found:{0}, Symbol:{1}, OrderID:{2}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(ordb.getSymbolID() - 1).getSymbol(), key});
+                            } else if  (c.getPositions().get(ind).getPosition() != 0 && zilchOpenOrders(c, tempID, ordb.getOrderReference()) && (ordb.getOrderSide()==EnumOrderSide.SELL||ordb.getOrderSide()==EnumOrderSide.COVER)) {
+                                temp.add(key);
+                                Order ord = c.getWrapper().createOrder(ordb.getOrderSize(), ordb.getOrderSide(), ordb.getLimitPrice(), ordb.getTriggerPrice(), "DAY", Integer.parseInt(ordb.getExpireTime()), false, ordb.getOrderReference(), "");
+                                Contract con = c.getWrapper().createContract(tempID);
+                                logger.log(Level.INFO, "reattempt Exit Orders Method:{0}, Symbol:{1}, OrderID:{2}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(ordb.getSymbolID() - 1).getSymbol(), key});
                                 c.getWrapper().placeOrder(c, tempID + 1, ordb.getOrderSide(), ord, con, ordb.getExitLogic());
                             }
                         }
@@ -689,6 +700,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
             for (int i : orders) {
                 if (i == orderID) {
                     c.getOrdersSymbols().get(ind).set(count, 0);
+                    logger.log(Level.INFO, "Method:{0},Symbol:{1},OrderID:{2},Position in orderSymbols: {3}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), orderID, count});
                     return true;
                 }
                 count = count + 1;
