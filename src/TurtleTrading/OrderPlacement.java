@@ -250,9 +250,9 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
 
             }
             Contract con = c.getWrapper().createContract(id);
-            c.getWrapper().placeOrder(c, id + 1, event.getSide(), ord, con, event.getExitType());
             logger.log(Level.INFO, "{0}, Symbol:{1}, Order Side:{2},orderID:{3}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getSide(), orderid});
-
+            c.getWrapper().placeOrder(c, id + 1, event.getSide(), ord, con, event.getExitType());
+            
         } else {
             //check if there is a case to retry orders
             if((c.getOrdersSymbols().get(ind).get(0)>0 && event.getSide()==EnumOrderSide.SELL)||(c.getOrdersSymbols().get(ind).get(2)>0 && event.getSide()==EnumOrderSide.COVER)){
@@ -462,7 +462,9 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
                                 Order ord = c.getWrapper().createOrder(ordb.getOrderSize(), ordb.getOrderSide(), ordb.getLimitPrice(), ordb.getTriggerPrice(), "DAY", Integer.parseInt(ordb.getExpireTime()), false, ordb.getOrderReference(), "");
                                 Contract con = c.getWrapper().createContract(tempID);
                                 logger.log(Level.INFO, "reattempt Entry Orders Method:{0}, Symbol:{1}, OrderID:{2}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(ordb.getSymbolID() - 1).getSymbol(), key});
-                                c.getWrapper().placeOrder(c, tempID + 1, ordb.getOrderSide(), ord, con, ordb.getExitLogic());
+                                int orderid=c.getWrapper().placeOrder(c, tempID + 1, ordb.getOrderSide(), ord, con, ordb.getExitLogic());
+                                long tempexpire = System.currentTimeMillis() + 3 * 60 * 1000;
+                                c.getOrdersToBeCancelled().put(orderid, tempexpire);
                             } else if (c.getPositions().get(ind).getPosition() == 0 && zilchOpenOrders(c, tempID, ordb.getOrderReference()) && (ordb.getOrderSide()==EnumOrderSide.SELL||ordb.getOrderSide()==EnumOrderSide.COVER)) { //delete exit order if no entry was filled
                                  temp.add(key);
                                   logger.log(Level.INFO, "add Exit Order for deletion as no entry was found:{0}, Symbol:{1}, OrderID:{2}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(ordb.getSymbolID() - 1).getSymbol(), key});
