@@ -57,6 +57,9 @@ public class BeanGuds implements Serializable, TradeListner {
     private ArrayList<Boolean> openPrice;
     private String exit;
     Timer preopenProcessing;
+    private int maxOrderDuration;
+    private int dynamicOrderDuration;
+    private double maxSlippage;
 
     public BeanGuds(MainAlgorithm m) {
         this.m = m;
@@ -78,6 +81,9 @@ public class BeanGuds implements Serializable, TradeListner {
         String startDateStr = currDateStr + " " + System.getProperty("StartTime");
         String endDateStr = currDateStr + " " + System.getProperty("EndTime");
         String tickSize = System.getProperty("TickSize");
+        maxOrderDuration=Integer.parseInt(System.getProperty("MaxOrderDuration"));
+        dynamicOrderDuration=Integer.parseInt(System.getProperty("DynamicOrderDuration"));
+        maxSlippage=Double.parseDouble(System.getProperty("MaxSlippage"));
         startDate = DateUtil.parseDate("yyyyMMdd HH:mm:ss", startDateStr);
         endDate = DateUtil.parseDate("yyyyMMdd HH:mm:ss", endDateStr);
         exit = System.getProperty("Exit");
@@ -200,11 +206,11 @@ public class BeanGuds implements Serializable, TradeListner {
             if(true){
             //Short Signal
             if (lastPrice > highThreshold.get(id) || Parameters.symbol.get(id).getOpenPrice() > highThreshold.get(id)) {
-                m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.SHORT, Parameters.symbol.get(id).getMinsize(), Math.ceil(highThreshold.get(id)*20)/20, 0, "GUDS", 3, exit,EnumOrderIntent.Init);
+                m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.SHORT, Parameters.symbol.get(id).getMinsize(), Math.ceil(highThreshold.get(id)*20)/20, 0, "GUDS", 3, exit,EnumOrderIntent.Init,maxOrderDuration,dynamicOrderDuration,maxSlippage);
             }
             //Buy Signal
             else if (lastPrice < lowThreshold.get(id) || Parameters.symbol.get(id).getOpenPrice() < lowThreshold.get(id)) {
-                m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.BUY, Parameters.symbol.get(id).getMinsize(), Math.ceil(lowThreshold.get(id)*20)/20, 0, "GUDS", 3, exit,EnumOrderIntent.Init);
+                m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.BUY, Parameters.symbol.get(id).getMinsize(), Math.ceil(lowThreshold.get(id)*20)/20, 0, "GUDS", 3, exit,EnumOrderIntent.Init,maxOrderDuration,dynamicOrderDuration,maxSlippage);
             }
         } else if(!luckyOrdersPlaced.get(id)){
         //amend orders and replace
@@ -338,5 +344,47 @@ public class BeanGuds implements Serializable, TradeListner {
      */
     public void setLuckyOrdersPlaced(ArrayList<Boolean> luckyOrdersPlaced) {
         this.luckyOrdersPlaced = luckyOrdersPlaced;
+    }
+
+    /**
+     * @return the maxOrderDuration
+     */
+    public int getMaxOrderDuration() {
+        return maxOrderDuration;
+    }
+
+    /**
+     * @param maxOrderDuration the maxOrderDuration to set
+     */
+    public void setMaxOrderDuration(int maxOrderDuration) {
+        this.maxOrderDuration = maxOrderDuration;
+    }
+
+    /**
+     * @return the dynamicOrderDuration
+     */
+    public int getDynamicOrderDuration() {
+        return dynamicOrderDuration;
+    }
+
+    /**
+     * @param dynamicOrderDuration the dynamicOrderDuration to set
+     */
+    public void setDynamicOrderDuration(int dynamicOrderDuration) {
+        this.dynamicOrderDuration = dynamicOrderDuration;
+    }
+
+    /**
+     * @return the maxSlippage
+     */
+    public double getMaxSlippage() {
+        return maxSlippage;
+    }
+
+    /**
+     * @param maxSlippage the maxSlippage to set
+     */
+    public void setMaxSlippage(double maxSlippage) {
+        this.maxSlippage = maxSlippage;
     }
 }

@@ -50,6 +50,7 @@ public class MainAlgorithm extends Algorithm  {
     private List<String> strategies=new ArrayList();
     private List<Double> maxPNL=new ArrayList();
     private List<Double>minPNL=new ArrayList();
+
     
     public MainAlgorithm(List<String> args) throws Exception {
         super(args); //this initializes the connection and symbols
@@ -175,8 +176,8 @@ public class MainAlgorithm extends Algorithm  {
                 + "ruleCumVolumeShort" + "," + "ruleSlopeShort" + "," + "ruleVolumeShort");
     }
  
-    public void fireOrderEvent(BeanSymbol s, EnumOrderSide side, int size, double lmtprice, double triggerprice, String ordReference, int expireTime,String exitType, EnumOrderIntent intent) {
-        OrderEvent order = new OrderEvent(this, s, side, size, lmtprice, triggerprice,ordReference,expireTime,exitType,intent);
+    public void fireOrderEvent(BeanSymbol s, EnumOrderSide side, int size, double lmtprice, double triggerprice, String ordReference, int expireTime,String exitType, EnumOrderIntent intent,int maxorderduration, int dynamicorderduration, double maxslippage) {
+        OrderEvent order = new OrderEvent(this, s, side, size, lmtprice, triggerprice,ordReference,expireTime,exitType,intent,maxorderduration,dynamicorderduration,maxslippage);
         Iterator listeners = _listeners.iterator();
         while (listeners.hasNext()) {
             ((OrderListener) listeners.next()).orderReceived(order);

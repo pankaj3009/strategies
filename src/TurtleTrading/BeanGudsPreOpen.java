@@ -57,10 +57,10 @@ public class BeanGudsPreOpen extends TimerTask{
                 //place appropriate market open order
                 if(percentchange>0){
                     //place sell futures order
-              beanG.getM().fireOrderEvent(s, EnumOrderSide.SHORT, s.getMinsize(), Math.ceil(s.getClosePrice()*(1+percentchange) * 20) / 20, 0, "GUDS", 6, "MOC",EnumOrderIntent.Init);
+              beanG.getM().fireOrderEvent(s, EnumOrderSide.SHORT, s.getMinsize(), Math.ceil(s.getClosePrice()*(1+percentchange) * 20) / 20, 0, "GUDS", 6, "MOC",EnumOrderIntent.Init,beanG.getMaxOrderDuration(),beanG.getDynamicOrderDuration(),beanG.getMaxSlippage());
                 } else if (percentchange<0){
                     //place buy futures order
-                     beanG.getM().fireOrderEvent(s, EnumOrderSide.SHORT, s.getMinsize(), Math.ceil(s.getClosePrice()*(1-percentchange) * 20) / 20, 0, "GUDS", 6, "MOC",EnumOrderIntent.Init);
+                     beanG.getM().fireOrderEvent(s, EnumOrderSide.SHORT, s.getMinsize(), Math.ceil(s.getClosePrice()*(1-percentchange) * 20) / 20, 0, "GUDS", 6, "MOC",EnumOrderIntent.Init,beanG.getMaxOrderDuration(),beanG.getDynamicOrderDuration(),beanG.getMaxSlippage());
              
                 }
                 beanG.getLuckyOrdersPlaced().set(i, Boolean.TRUE);

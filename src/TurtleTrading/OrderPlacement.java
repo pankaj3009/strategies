@@ -35,11 +35,14 @@ import javax.swing.Timer;
  *
  * @author admin
  */
-public class OrderPlacement implements OrderListener, OrderStatusListener, TWSErrorListener {
+public class OrderPlacement implements OrderListener, OrderStatusListener, TWSErrorListener,BidAskListener {
 
     private MainAlgorithm a;
     private final static Logger logger = Logger.getLogger(DataBars.class.getName());
     final OrderPlacement parentorder=this;
+    private static HashMap<Integer,BeanOrderInformation> activeOrders=new HashMap(); //holds the cancellation time and order id
+
+    
     public OrderPlacement(MainAlgorithm o) {
         a = o;
 
@@ -47,6 +50,8 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
         MainAlgorithm.addOrderListner(this);
         for (BeanConnection c : Parameters.connection) {
             c.getWrapper().addOrderStatusListener(this);
+            c.getWrapper().addBidAskListener(this);
+            
         }
 
         //Initialize timers
@@ -57,6 +62,21 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
         //new Timer(2000,cancelTimeOrders).start();
     }
 
+        @Override
+    public void bidaskChanged(BidAskEvent event) {
+
+       
+      //if the symbol exists in ordersSymbols (order exists) && ordersToBeCancelled (the order has potential for dynamic management)
+       if(activeOrders.containsKey(event.getSymbolID())) {
+           BeanOrderInformation tempOrderInfo=activeOrders.get(event.getSymbolID());
+           if(tempOrderInfo.getExpireTime()-tempOrderInfo.getOrigEvent().getDynamicOrderDuration()*60*1000>System.currentTimeMillis()){
+               //amendement scenario is valid. Check for amendment
+               
+               
+           }
+       }
+    }
+    
     @Override
     public void orderReceived(OrderEvent event) {
         //for each connection eligible for trading
@@ -184,7 +204,8 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
         long tempexpire = System.currentTimeMillis() + event.getExpireTime() * 60 * 1000;
         //dont cancel if advance orders
         if (event.getExpireTime() != 0) {
-            c.getOrdersToBeCancelled().put(orderid, tempexpire);
+            c.getOrdersToBeCancelled().put(orderid, new BeanOrderInformation(id,c,orderid,tempexpire,event));
+            activeOrders.put(id, new BeanOrderInformation(id,c,orderid,tempexpire,event));
             logger.log(Level.FINEST, "Expiration time in object getOrdersToBeCancelled=" + DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", tempexpire));
         }
     }
@@ -197,7 +218,9 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
         logger.log(Level.INFO, "Method:{0},Action:Exit Position, Symbol:{1}, Side={2}, position:{3}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getOrderSize(), positions});
         int orderid = c.getWrapper().placeOrder(c, id + 1, event.getSide(), ord, con, event.getExitType());
         if (event.getExpireTime() != 0) {
-            c.getOrdersToBeFastTracked().put(orderid, System.currentTimeMillis() + event.getExpireTime() * 60 * 1000);
+            long tempexpire=System.currentTimeMillis() + event.getExpireTime() * 60 * 1000;
+            c.getOrdersToBeFastTracked().put(orderid, new BeanOrderInformation(id,c,orderid,tempexpire,event));
+            activeOrders.put(id, new BeanOrderInformation(id,c,orderid,tempexpire,event));
         }
     }
     
@@ -257,12 +280,14 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
                     switch(event.getSide()){
                         case BUY:
                         case SHORT:
-                            c.getOrdersToBeCancelled().put(orderid, tempexpire);
+                            c.getOrdersToBeCancelled().put(orderid, new BeanOrderInformation(id,c,orderid,tempexpire,event));
                             logger.log(Level.INFO, "Entry Order amendement placed in cancellation queue. Cancellation Time=" + DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", tempexpire));
+                            activeOrders.put(id, new BeanOrderInformation(id,c,orderid,tempexpire,event));
                             break;
                         case SELL:
                         case COVER:
-                            c.getOrdersToBeFastTracked().put(orderid, tempexpire);
+                            c.getOrdersToBeFastTracked().put(orderid, new BeanOrderInformation(id,c,orderid,tempexpire,event));
+                            activeOrders.put(id, new BeanOrderInformation(id,c,orderid,tempexpire,event));
                             logger.log(Level.INFO, "Exit Order amendment placed in fastrack queue. FastTrack Time=" + DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", tempexpire));
                        }
                 }
@@ -352,9 +377,10 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
             for (BeanConnection c : Parameters.connection) {
                 if (c.getOrdersToBeCancelled().size() > 0) {
                     ArrayList<Integer> temp = new ArrayList();
+                    ArrayList<Integer> symbols=new ArrayList();
                     for (Integer key : c.getOrdersToBeCancelled().keySet()) {
-                        logger.log(Level.FINEST, "Expiration Time:{0},System Time:{1}", new Object[]{DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", c.getOrdersToBeCancelled().get(key)), DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", System.currentTimeMillis())});
-                        if (c.getOrdersToBeCancelled().get(key) < System.currentTimeMillis()
+                        logger.log(Level.FINEST, "Expiration Time:{0},System Time:{1}", new Object[]{DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", c.getOrdersToBeCancelled().get(key).getExpireTime()), DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", System.currentTimeMillis())});
+                        if (c.getOrdersToBeCancelled().get(key).getExpireTime() < System.currentTimeMillis()
                                 && ((c.getOrders().get(key).getStatus() != EnumOrderStatus.Acknowledged) || c.getOrders().get(key).getStatus() == EnumOrderStatus.Submitted || c.getOrders().get(key).getStatus() == EnumOrderStatus.PartialFilled)) {
                             logger.log(Level.INFO, "cancelExpiredOrders Method:{0}, Symbol:{1}, OrderID:{2}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(c.getOrders().get(key).getSymbolID() - 1).getSymbol(), key});
                             //logger.log(Level.INFO,"Expired Order being cancelled. OrderID="+key);
@@ -365,11 +391,16 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
                             }
                             
                             temp.add(key); //holds all orders that have now been cancelled
+                            symbols.add(c.getOrdersToBeCancelled().get(key).getSymbolid());
                         }
                     }
                     for (int ordersToBeDeleted : temp) {
                         c.getOrdersToBeCancelled().remove(ordersToBeDeleted);
                         logger.log(Level.FINEST, "Expired Order being deleted from cancellation queue. OrderID=" + ordersToBeDeleted);
+                    }
+                        for (int symbolsToBeDeleted : symbols) {
+                        activeOrders.remove(symbolsToBeDeleted);
+                        logger.log(Level.FINEST, "Expired symbols being deleted from active orders queue. Symbol=" + symbolsToBeDeleted);
                     }
                 }
             }
@@ -382,18 +413,24 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
             for (BeanConnection c : Parameters.connection) {
                 if (c.getOrdersToBeFastTracked().size() > 0) {
                     ArrayList<Integer> temp = new ArrayList();
+                    ArrayList<Integer>symbols=new ArrayList();
                     for (Integer key : c.getOrdersToBeFastTracked().keySet()) {
-                        if (c.getOrdersToBeFastTracked().get(key) < System.currentTimeMillis()
+                        if (c.getOrdersToBeFastTracked().get(key).getExpireTime() < System.currentTimeMillis()
                                 && (c.getOrders().get(key).getStatus() != EnumOrderStatus.CompleteFilled)) {
                             logger.log(Level.INFO, "hastenCloseOut Method:{0}, Symbol:{1}, OrderID:{2}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(c.getOrders().get(key).getSymbolID() - 1).getSymbol(), key});
                             c.getWrapper().cancelOrder(c, key);
                             fastClose(c, key);
                             temp.add(key); //holds all orders that have now been cancelled
+                            symbols.add(c.getOrdersToBeFastTracked().get(key).getSymbolid());
                         }
                     }
                     for (int ordersToBeDeleted : temp) {
                         c.getOrdersToBeFastTracked().remove(ordersToBeDeleted);
                     }
+                    for (int symbolsToBeDeleted : symbols) {
+                        activeOrders.remove(symbolsToBeDeleted);
+                    }
+                    
                 }
             }
         }
@@ -618,6 +655,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
         Index ind = new Index(strategy, id);
         ArrayList<Integer> tempArray = c.getOrdersSymbols().get(ind);
         ArrayList<Integer> temp = new ArrayList();
+        ArrayList<Integer>symbols=new ArrayList();
         for (int orderID : tempArray) {
             if (orderID > 0) {
                 //if order exists and open ordType="Buy" or "Short"
@@ -625,6 +663,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
                 for (Integer key : c.getOrdersToBeFastTracked().keySet()) {
                     if (key == orderID) {
                         temp.add(key);
+                        symbols.add(c.getOrdersToBeFastTracked().get(key).getSymbolid());
                         logger.log(Level.INFO, "Orders will be removed from fasttrack. Method:{0}, Symbol:{1}, OrderID:{2}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(c.getOrders().get(orderID).getSymbolID() - 1).getSymbol(), orderID});
                     }
                 }
@@ -635,6 +674,9 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
             }
             for (int ordersToBeDeleted : temp) {
                 c.getOrdersToBeFastTracked().remove(ordersToBeDeleted);
+            }
+            for (int symbolsToBeDeleted : symbols) {
+                activeOrders.remove(symbolsToBeDeleted);
             }
 
         }
@@ -725,6 +767,9 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
         if(c.getOrdersToBeCancelled().containsKey(orderID)){
             c.getOrdersToBeCancelled().remove(orderID);
         }
+        if(activeOrders.containsKey(id)){
+            activeOrders.remove(id);
+        }
         return false;
 
     }
@@ -781,4 +826,5 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
             this.updateCancelledOrders(event.getConnection(), id, event.getId());
         }
     }
+
 }
