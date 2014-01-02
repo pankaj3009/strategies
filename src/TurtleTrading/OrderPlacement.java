@@ -356,7 +356,13 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
             //check if there is a case to retry orders
             if((c.getOrdersSymbols().get(ind).get(0)>0 && event.getSide()==EnumOrderSide.SELL)||(c.getOrdersSymbols().get(ind).get(2)>0 && event.getSide()==EnumOrderSide.COVER)){
                 this.addOrdersToBeRetried(id, c, event);
-            } else{
+            } else if(event.getSide()==EnumOrderSide.BUY||event.getSide()==EnumOrderSide.SHORT){ //if for some reason, there is no open order for entry, init entry is attempted
+                logger.log(Level.INFO, "Changed Amend intent to Init :{0}, Symbol:{1}, Order Side:{2}, orderID:{3}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getSide(), orderid});
+                event.setOrderIntent(EnumOrderIntent.Init);
+                parentorder.orderReceived(event);
+                
+            } 
+            else{
             //no order to amend. Do nothing. Probably earlier order was filled. Write to log
             logger.log(Level.INFO, "No orders to amend Method:{0}, Symbol:{1}, Order Side:{2}, orderID:{3}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getSide(), orderid});
             }
