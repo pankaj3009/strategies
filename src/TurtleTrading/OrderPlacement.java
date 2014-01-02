@@ -138,9 +138,22 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
                         String rule = Integer.toBinaryString(position) + Integer.toBinaryString(openorders) + Integer.toBinaryString(entry);
                         switch (rule) {
                             case "000"://position=0, no openorder=0, exit order as entry=0
+                                if(event.getSide()==EnumOrderSide.BUY||event.getSide()==EnumOrderSide.SHORT){
+                                logger.log(Level.INFO, "Method:{0},Case:000, Symbol:{1}, Size={2}, Side:{3}, Limit:{4}, Trigger:{5}, Expiration Time:{6}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getOrderSize(),event.getSide(),event.getLimitPrice(),event.getTriggerPrice(),event.getExpireTime()});
+                                processEntryOrder(id, c, event);}
+                                else{
+                                    logger.log(Level.INFO, "Method:{0},Error Case:000, Symbol:{1}, Size={2}, Side:{3}, Limit:{4}, Trigger:{5}, Expiration Time:{6}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getOrderSize(),event.getSide(),event.getLimitPrice(),event.getTriggerPrice(),event.getExpireTime()});
+                                
+                                }
+                                break;
                             case "001": //position=0, no openorder=0, entry order as entry=1
-                                logger.log(Level.INFO, "Method:{0},Case:000,001, Symbol:{1}, Size={2}, Side:{3}, Limit:{4}, Trigger:{5}, Expiration Time:{6}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getOrderSize(),event.getSide(),event.getLimitPrice(),event.getTriggerPrice(),event.getExpireTime()});
+                                if(event.getSide()==EnumOrderSide.SELL||event.getSide()==EnumOrderSide.COVER){
+                                logger.log(Level.INFO, "Method:{0},Case:001, Symbol:{1}, Size={2}, Side:{3}, Limit:{4}, Trigger:{5}, Expiration Time:{6}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getOrderSize(),event.getSide(),event.getLimitPrice(),event.getTriggerPrice(),event.getExpireTime()});
                                 processEntryOrder(id, c, event);
+                                } else{
+                                logger.log(Level.INFO, "Method:{0},Error Case:001, Symbol:{1}, Size={2}, Side:{3}, Limit:{4}, Trigger:{5}, Expiration Time:{6}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getOrderSize(),event.getSide(),event.getLimitPrice(),event.getTriggerPrice(),event.getExpireTime()});
+                                    
+                                }
                                 break;
                             case "100": //position=1, no open order=0, exit order 
                                 if ((signedPositions > 0 && event.getSide() == EnumOrderSide.SELL) || (signedPositions < 0 && event.getSide() == EnumOrderSide.COVER)) {
