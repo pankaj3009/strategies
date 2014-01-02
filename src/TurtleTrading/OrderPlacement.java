@@ -93,7 +93,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
                         Integer position = c.getPositions().get(ind) == null ? 0 : c.getPositions().get(ind).getPosition();
                         position = position > 0 ? 1 : 0;
                         int signedPositions = c.getPositions().get(ind) == null ? 0 : c.getPositions().get(ind).getPosition();
-                        Integer openorders = zilchOpenOrders(c, id, event.getOrdReference()) == Boolean.TRUE ? 1 : 0;
+                        Integer openorders = zilchOpenOrders(c, id, event.getOrdReference()) == Boolean.TRUE ? 0 : 1;
                         Integer entry = (event.getSide() == EnumOrderSide.BUY || event.getSide() == EnumOrderSide.SHORT) ? 1 : 0;
                         String rule = Integer.toBinaryString(position) + Integer.toBinaryString(openorders) + Integer.toBinaryString(entry);
                         switch (rule) {
