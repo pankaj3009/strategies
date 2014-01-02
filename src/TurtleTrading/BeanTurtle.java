@@ -258,21 +258,21 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
                 if (event.ohlc().getPeriodicity() == EnumBarSize.FiveSec) {
                     int id = event.getSymbol().getSerialno() - 1;
                     //Was there a need to have a position, but no position exists?
-                    if (event.ohlc().getHigh() > highestHigh.get(id)) {
+                    if (event.ohlc().getHigh() >= highestHigh.get(id)) {
                         //place buy order as the last bar had a higher high and other conditions were met.
                         //LOGGER.log(Level.INFO, "Method:{0},Buy Order.Symbol:{1}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol()});
                         generateOrders(id, true, false, true, false, true, false, true, false, true);
-                    } else if (event.ohlc().getLow() < lowestLow.get(id)) {
+                    } else if (event.ohlc().getLow() <= lowestLow.get(id)) {
                         //place sell order as the last bar had a lower low and other conditions were met.
                         //LOGGER.log(Level.INFO, "Method:{0},Short Order.Symbol:{1}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol()});
                         generateOrders(id, false, true, false, true, false, true, false, true, true);
                         //generateOrders(id, ruleHighestHigh, ruleLowestLow, ruleCumVolumeLong, ruleCumVolumeShort, ruleSlopeLong, ruleSlopeShort, ruleVolumeLong, ruleVolumeShort);
                     }
                     //Similarly, check for squareoffs that were missed
-                    if (this.getNotionalPosition().get(id) == 1L && event.ohlc().getLow() < lowestLow.get(id)) {
+                    if (this.getNotionalPosition().get(id) == 1L && event.ohlc().getLow() <= lowestLow.get(id)) {
                         LOGGER.log(Level.FINEST, "Method:{0},Sell Order.Symbol:{1}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol()});
                         generateOrders(id, false, true, false, false, false, false, false, false, true);
-                    } else if (this.getNotionalPosition().get(id) == -1L && event.ohlc().getHigh() > highestHigh.get(id)) {
+                    } else if (this.getNotionalPosition().get(id) == -1L && event.ohlc().getHigh() >= highestHigh.get(id)) {
                         LOGGER.log(Level.FINEST, "Method:{0},Cover Order.Symbol:{1}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol()});
                         generateOrders(id, true, false, false, false, false, false, false, false, true);
                     }
@@ -604,8 +604,8 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
         try {
             int id = event.getSymbolID(); //here symbolID is with zero base.
             if (this.tradeableSymbols.contains(Parameters.symbol.get(id).getSymbol())) {
-                boolean ruleHighestHigh = Parameters.symbol.get(id).getLastPrice() > this.getHighestHigh().get(id);
-                boolean ruleLowestLow = Parameters.symbol.get(id).getLastPrice() < this.getLowestLow().get(id);
+                boolean ruleHighestHigh = Parameters.symbol.get(id).getLastPrice() >= this.getHighestHigh().get(id);
+                boolean ruleLowestLow = Parameters.symbol.get(id).getLastPrice() <= this.getLowestLow().get(id);
                 boolean ruleCumVolumeLong = this.getCumVolume().get(id).get(this.getCumVolume().get(id).size() - 1) >= 0.05 * Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput());
                 boolean ruleCumVolumeShort = this.getCumVolume().get(id).get(this.getCumVolume().get(id).size() - 1) <= Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput());
                 boolean ruleSlopeLong = this.getSlope().get(id) > Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeLongMultiplier() / 375;
