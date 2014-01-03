@@ -138,16 +138,14 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
                         String rule = Integer.toBinaryString(position) + Integer.toBinaryString(openorders) + Integer.toBinaryString(entry);
                         switch (rule) {
                             case "000"://position=0, no openorder=0, exit order as entry=0
-                                if(event.getSide()==EnumOrderSide.BUY||event.getSide()==EnumOrderSide.SHORT){
-                                logger.log(Level.INFO, "Method:{0},Case:000, Symbol:{1}, Size={2}, Side:{3}, Limit:{4}, Trigger:{5}, Expiration Time:{6}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getOrderSize(),event.getSide(),event.getLimitPrice(),event.getTriggerPrice(),event.getExpireTime()});
-                                processEntryOrder(id, c, event);}
-                                else{
-                                    logger.log(Level.INFO, "Method:{0},Error Case:000, Symbol:{1}, Size={2}, Side:{3}, Limit:{4}, Trigger:{5}, Expiration Time:{6}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getOrderSize(),event.getSide(),event.getLimitPrice(),event.getTriggerPrice(),event.getExpireTime()});
-                                
-                                }
+                                //if(event.getSide()==EnumOrderSide.SELL||event.getSide()==EnumOrderSide.COVER){
+                                logger.log(Level.INFO, "Method:{0},Error Case:001, Symbol:{1}, Size={2}, Side:{3}, Limit:{4}, Trigger:{5}, Expiration Time:{6}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getOrderSize(),event.getSide(),event.getLimitPrice(),event.getTriggerPrice(),event.getExpireTime()});
+                                //logger.log(Level.INFO, "Method:{0},Case:000, Symbol:{1}, Size={2}, Side:{3}, Limit:{4}, Trigger:{5}, Expiration Time:{6}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getOrderSize(),event.getSide(),event.getLimitPrice(),event.getTriggerPrice(),event.getExpireTime()});
+                                //processEntryOrder(id, c, event);}
+                                //}
                                 break;
                             case "001": //position=0, no openorder=0, entry order as entry=1
-                                if(event.getSide()==EnumOrderSide.SELL||event.getSide()==EnumOrderSide.COVER){
+                                if(event.getSide()==EnumOrderSide.BUY||event.getSide()==EnumOrderSide.SHORT){
                                 logger.log(Level.INFO, "Method:{0},Case:001, Symbol:{1}, Size={2}, Side:{3}, Limit:{4}, Trigger:{5}, Expiration Time:{6}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getOrderSize(),event.getSide(),event.getLimitPrice(),event.getTriggerPrice(),event.getExpireTime()});
                                 processEntryOrder(id, c, event);
                                 } else{
@@ -252,7 +250,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
         
         Order ord = c.getWrapper().createOrder(event.getOrderSize(), event.getSide(), event.getLimitPrice(), event.getTriggerPrice(), "DAY", event.getExpireTime(), false, event.getOrdReference(), "");
         Contract con = c.getWrapper().createContract(id);
-        logger.log(Level.INFO, "Method:{0},Action:Entry Order Placed, Symbol:{1}, Size={2}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getOrderSize()});
+        logger.log(Level.INFO, "Method:{0},Action:Entry Order Placed, Symbol:{1}, Size={2}, limit price={3}, trigger price={4}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getOrderSize(),event.getLimitPrice(),event.getTriggerPrice()});
         int orderid = c.getWrapper().placeOrder(c, id + 1, event.getSide(), ord, con, event.getExitType());
         long tempexpire = System.currentTimeMillis() + event.getExpireTime() * 60 * 1000;
         //dont cancel if advance orders
@@ -268,7 +266,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
         int positions = Math.abs(c.getPositions().get(ind).getPosition());
         Order ord = c.getWrapper().createOrder(positions, event.getSide(), event.getLimitPrice(), event.getTriggerPrice(), "DAY", event.getExpireTime(), false, event.getOrdReference(), "");
         Contract con = c.getWrapper().createContract(id);
-        logger.log(Level.INFO, "Method:{0},Action:Exit Position, Symbol:{1}, Side={2}, position:{3}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getOrderSize(), positions});
+        logger.log(Level.INFO, "Method:{0},Action:Exit Position, Symbol:{1}, Side={2}, position:{3}, limit price={4}, trigger price={5}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getOrderSize(), positions,event.getLimitPrice(),event.getTriggerPrice()});
         int orderid = c.getWrapper().placeOrder(c, id + 1, event.getSide(), ord, con, event.getExitType());
         if (event.getExpireTime() != 0) {
             long tempexpire=System.currentTimeMillis() + event.getExpireTime() * 60 * 1000;
@@ -306,7 +304,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
             Order ord = new Order();
             ord = c.getWrapper().createOrderFromExisting(c, orderid);
             ord.m_orderId = orderid;
-            if(ord.m_auxPrice!=event.getTriggerPrice()||ord.m_lmtPrice!=event.getLimitPrice()||(ord.m_goodTillDate.compareTo("")==0&&event.getExpireTime()>0)){
+            if(ord.m_auxPrice!=event.getTriggerPrice()||ord.m_lmtPrice!=event.getLimitPrice()||(ord.m_goodTillDate==null && event.getExpireTime()>0)){
             ord.m_auxPrice = event.getTriggerPrice() > 0 ? event.getTriggerPrice() : 0;
             ord.m_lmtPrice = event.getLimitPrice() > 0 ? event.getLimitPrice() : 0;
             if (event.getSide() != EnumOrderSide.TRAILBUY || event.getSide() != EnumOrderSide.TRAILSELL) {
@@ -347,7 +345,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
                 }
             if (!(ord.m_auxPrice==event.getTriggerPrice()&&ord.m_lmtPrice==event.getLimitPrice())) {
             Contract con = c.getWrapper().createContract(id);
-            logger.log(Level.INFO, "{0}, Symbol:{1}, Order Side:{2},orderID:{3}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getSide(), orderid});
+            logger.log(Level.INFO, "{0}, Symbol:{1}, Order Side:{2},orderID:{3},limit price={4}, trigger price={5}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getSide(), orderid,event.getLimitPrice(),event.getTriggerPrice()});
             c.getWrapper().placeOrder(c, id + 1, event.getSide(), ord, con, event.getExitType());
              }
             }
