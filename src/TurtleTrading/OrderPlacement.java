@@ -111,7 +111,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
                    eventnew.setLimitPrice(newlimitprice);
                    eventnew.setOrderIntent(EnumOrderIntent.Amend);
                    logger.log(Level.INFO,"Method:{0}, Symbol:{1}, OrderID:{2}, Old Limit Price:{3}, New Limit Price:{4}, Method Exit Long Time:{5}",new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(),activeOrders.get(id).getOrderID(),limitprice,newlimitprice,System.currentTimeMillis()});
-                    parentorder.orderReceived(eventnew);
+                    orderReceived(eventnew);
                    }
            }
        }
