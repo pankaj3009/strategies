@@ -10,6 +10,7 @@
  */
 package TurtleTrading;
 
+import incurrframework.BeanConnection;
 import incurrframework.Parameters;
 import incurrframework.BeanSymbol;
 import incurrframework.OrderBean;
@@ -61,6 +62,7 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
         cmdShort = new javax.swing.JButton();
         cmdBoth = new javax.swing.JButton();
         cmdPause = new javax.swing.JButton();
+        cmdSquareAll = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Swing");
@@ -94,7 +96,7 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
             }
         });
 
-        cmdBoth.setText("Both");
+        cmdBoth.setText("Long and Short Trading");
         cmdBoth.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 cmdBothActionPerformed(evt);
@@ -108,26 +110,35 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
             }
         });
 
+        cmdSquareAll.setText("Square");
+        cmdSquareAll.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cmdSquareAllActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap(218, Short.MAX_VALUE)
-                .addComponent(Start)
-                .addGap(18, 18, 18)
-                .addComponent(ordStatus)
-                .addGap(318, 318, 318))
-            .addGroup(layout.createSequentialGroup()
                 .addGap(59, 59, 59)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(cmdPause, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(cmdBoth, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(cmdLong)
+                        .addComponent(Start, javax.swing.GroupLayout.PREFERRED_SIZE, 111, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
-                        .addComponent(cmdShort)))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addComponent(ordStatus))
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                        .addComponent(cmdBoth, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGroup(layout.createSequentialGroup()
+                            .addComponent(cmdLong)
+                            .addGap(18, 18, 18)
+                            .addComponent(cmdShort)))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(cmdPause)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(cmdSquareAll, javax.swing.GroupLayout.PREFERRED_SIZE, 78, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(477, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -143,7 +154,9 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(cmdBoth)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(cmdPause)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(cmdPause)
+                    .addComponent(cmdSquareAll))
                 .addContainerGap(347, Short.MAX_VALUE))
         );
 
@@ -220,6 +233,18 @@ private void StartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:e
         algo.getParamTurtle().setShortOnly(false);
     }//GEN-LAST:event_cmdPauseActionPerformed
 
+    private void cmdSquareAllActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdSquareAllActionPerformed
+        algo.getParamTurtle().setLongOnly(false);
+        algo.getParamTurtle().setShortOnly(false);
+        for (BeanConnection c : Parameters.connection) {
+            if ("Trading".equals(c.getPurpose()) && c.getStrategy().contains("TurtleTrading")) {
+                for (int id = 0; id < Parameters.symbol.size(); id++) {
+                    algo.ordManagement.cancelOpenOrders(c, id, "TurtleTrading");
+                    algo.ordManagement.squareAllPositions(c, id, "TurtleTrading");
+                }
+            }
+    }//GEN-LAST:event_cmdSquareAllActionPerformed
+    }
     
     
     /**
@@ -293,6 +318,7 @@ private void StartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:e
     private javax.swing.JButton cmdLong;
     private javax.swing.JButton cmdPause;
     private javax.swing.JButton cmdShort;
+    private javax.swing.JButton cmdSquareAll;
     private javax.swing.JButton ordStatus;
     // End of variables declaration//GEN-END:variables
 }

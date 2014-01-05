@@ -696,7 +696,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
 
     }
 
-    private synchronized void squareAllPositions(BeanConnection c, int id, String strategy) {
+    public synchronized void squareAllPositions(BeanConnection c, int id, String strategy) {
         Index ind = new Index(strategy, id);
         int position = c.getPositions().get(ind).getPosition();
         Contract con = c.getWrapper().createContract(id);
@@ -728,7 +728,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
         return zilchorders;
     }
 
-    private synchronized void cancelOpenOrders(BeanConnection c, int id, String strategy) {
+    public synchronized void cancelOpenOrders(BeanConnection c, int id, String strategy) {
         Index ind = new Index(strategy, id);
         ArrayList<Integer> tempArray = c.getOrdersSymbols().get(ind);
         ArrayList<Integer> temp = new ArrayList();

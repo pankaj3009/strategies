@@ -40,7 +40,7 @@ public class MainAlgorithm extends Algorithm  {
     public final static Logger logger=Logger.getLogger("KeyParameters");
     private BeanTurtle paramTurtle;
     private BeanGuds paramGuds;
-    private OrderPlacement ordManagement;
+    public OrderPlacement ordManagement;
     private Date preopenDate;
     private Date realtimeBarsDate;
     private Date closeDate;
