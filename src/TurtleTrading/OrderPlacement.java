@@ -102,10 +102,18 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
                switch (activeOrders.get(id).getOrigEvent().getSide()){
                    case BUY:
                    case COVER: 
+                       if(bidprice==limitprice){
+                           newlimitprice=0;
+                       }else{
                        newlimitprice=((int) (bidprice+((askprice-bidprice)*aggression) / tickSize)) * tickSize;
+                       }
                        break;
                    case SHORT:
-                   case SELL:newlimitprice=((int) ((askprice-(askprice-bidprice)*(1-aggression)) / tickSize)) * tickSize;
+                   case SELL:if(askprice==limitprice){
+                   newlimitprice=0;
+                   }
+                   else {newlimitprice=((int) ((askprice-(askprice-bidprice)*(1-aggression)) / tickSize)) * tickSize;
+                   }
                        break;
                }
                Boolean placeorder=(newlimitprice>0 && newlimitprice!=limitprice)?Boolean.TRUE:Boolean.FALSE;
