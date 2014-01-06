@@ -116,7 +116,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
                    }
                        break;
                }
-               Boolean placeorder=(newlimitprice>0 && newlimitprice!=limitprice)?Boolean.TRUE:Boolean.FALSE;
+               Boolean placeorder=(newlimitprice>0 && Math.abs(newlimitprice-limitprice)> tickSize)?Boolean.TRUE:Boolean.FALSE;
                if(placeorder){
                    OrderEvent eventnew=activeOrders.get(id).getOrigEvent();
                    eventnew.setLimitPrice(newlimitprice);
