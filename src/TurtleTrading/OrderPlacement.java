@@ -177,10 +177,16 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
                                 break;
                             case "010": //position=0, open order, exit order as entry=0
                                 if ((c.getOrdersSymbols().get(ind).get(0) > 0 && event.getSide() == EnumOrderSide.SELL) || (c.getOrdersSymbols().get(ind).get(2) > 0 && event.getSide() == EnumOrderSide.COVER)) {
-                                    logger.log(Level.INFO, "Method:{0},Case:010, Symbol:{1}, Size={2}, Side:{3}, Limit:{4}, Trigger:{5}, Expiration Time:{6}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getOrderSize(),event.getSide(),event.getLimitPrice(),event.getTriggerPrice(),event.getExpireTime()});
-                                    addOrdersToBeRetried(id, c, event); //what will happen if the entry orders were not filled?
+                                    logger.log(Level.INFO, "Method:{0},Case:010, Symbol:{1}, Size={2}, Side:{3}, Limit:{4}, Trigger:{5}, Expiration Time:{6}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getOrderSize(), event.getSide(), event.getLimitPrice(), event.getTriggerPrice(), event.getExpireTime()});
+                                    if (event.getExpireTime() > 0) {
+                                        //this is an exit order. Cancel open orders and square all positions
+                                        this.cancelOpenOrders(c, id, event.getOrdReference());
+                                        addOrdersToBeRetried(id, c, event);
+                                    } else {
+                                        addOrdersToBeRetried(id, c, event); //what will happen if the entry orders were not filled?
+                                    }
                                 } else { //not a valid scenario. cancel open orders
-                                    logger.log(Level.INFO, "Method:{0},Error Case:100, Symbol:{1}, Size={2}, Side:{3}, Limit:{4}, Trigger:{5}, Expiration Time:{6}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getOrderSize(),event.getSide(),event.getLimitPrice(),event.getTriggerPrice(),event.getExpireTime()});
+                                    logger.log(Level.INFO, "Method:{0},Error Case:100, Symbol:{1}, Size={2}, Side:{3}, Limit:{4}, Trigger:{5}, Expiration Time:{6}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getOrderSize(), event.getSide(), event.getLimitPrice(), event.getTriggerPrice(), event.getExpireTime()});
                                     this.cancelOpenOrders(c, id, event.getOrdReference());
                                 }
                                 break;
@@ -435,13 +441,13 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
              if(tempID==id && ordSide==event.getSide() && ordRef.equals(event.getOrdReference()) ){
                  c.getOrdersToBeRetried().put(key, event);
                  orderupdated=Boolean.TRUE;
-                 logger.log(Level.INFO, "Method:{0},Updated OrdersToBeRetried for symbol{1}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol()});
+                 logger.log(Level.INFO, "Method:{0},Updated OrdersToBeRetried for symbol: {1}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol()});
                  break;
              }
          }
          if(!orderupdated){
         c.getOrdersToBeRetried().put(System.currentTimeMillis(), event);
-        logger.log(Level.INFO, "Method:{0},Added requirement for OrdersToBeRetried for symbol {1}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol()});
+        logger.log(Level.INFO, "Method:{0},Added requirement for OrdersToBeRetried for symbol: {1}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol()});
          }
     }
 
