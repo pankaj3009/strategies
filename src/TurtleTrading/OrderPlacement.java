@@ -111,7 +111,8 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
                    case SELL:if(askprice==limitprice){
                    newlimitprice=0;
                    }
-                   else {newlimitprice=((int) ((askprice-(askprice-bidprice)*(1-aggression)) / tickSize)) * tickSize;
+                   else {
+                       newlimitprice=((int) ((askprice-(askprice-bidprice)*(1-aggression)) / tickSize)) * tickSize;
                    }
                        break;
                }
