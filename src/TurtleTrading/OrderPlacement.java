@@ -218,7 +218,8 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
                                 if (event.getExpireTime() != 0) {
                                     if ((c.getOrdersSymbols().get(ind).get(1) > 0 && event.getSide() == EnumOrderSide.SHORT) || (c.getOrdersSymbols().get(ind).get(3) > 0 && event.getSide() == EnumOrderSide.BUY)) {
                                         logger.log(Level.INFO, "Method:{0},Case:111, Symbol:{1}, Size={2}, Side:{3}, Limit:{4}, Trigger:{5}, Expiration Time:{6}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getOrderSize(),event.getSide(),event.getLimitPrice(),event.getTriggerPrice(),event.getExpireTime()});
-                                        this.fastClose(c, id);
+                                        int orderid=event.getSide() == EnumOrderSide.SHORT?c.getOrdersSymbols().get(ind).get(1):c.getOrdersSymbols().get(ind).get(3);
+                                        this.fastClose(c, orderid);
                                         this.processEntryOrder(id, c, event);
                                         //addOrdersToBeRetried(id,c,event); //what will happen if the entry orders were not filled?
                                     } else {
