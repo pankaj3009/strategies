@@ -598,7 +598,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
                     }
                 } else if ("Cancelled".equals(event.getStatus())) {
                     //cancelled
-                    logger.log(Level.INFO, "Method:{0},Symbol:{1},OrderID:{2}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), orderid});
+                    logger.log(Level.INFO, "Method:{0},Symbol:{1},OrderID:{2}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(),Parameters.symbol.get(id).getSymbol(), orderid});
                     updateCancelledOrders(event.getC(), id, orderid);
                     event.getC().getOrdersInProgress().remove(new Integer(orderid));
 
@@ -797,7 +797,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
             for (int i : orders) {
                 if (i == orderID) {
                     c.getOrdersSymbols().get(ind).set(count, 0);
-                    logger.log(Level.INFO, "Method:{0},Symbol:{1},OrderID:{2},Position in orderSymbols: {3}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), orderID, count});
+                    logger.log(Level.INFO, "Method:{0},Symbol:{1},OrderID:{2},Position in orderSymbols: {3}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(),Parameters.symbol.get(id).getSymbol(), orderID, count});
                     return true;
                 }
                 count = count + 1;
