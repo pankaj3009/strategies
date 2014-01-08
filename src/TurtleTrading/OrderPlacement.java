@@ -78,8 +78,8 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
                LinkedList<Double> e=new LinkedList();
                e=Parameters.symbol.get(id).getTradedPrices();
                int size=e.size();
-               int uptick=0;
-               int downtick=0;
+               double uptick=0;
+               double downtick=0;
                double aggression=0;
                
                if(size>1){
@@ -104,7 +104,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
                        if(bidprice==limitprice){
                            newlimitprice=0;
                        }else{
-                       newlimitprice=((int) (bidprice+((askprice-bidprice)*aggression) / tickSize)) * tickSize;
+                       newlimitprice=((int) ((bidprice+((askprice-bidprice)*aggression)) / tickSize)) * tickSize;
                        }
                        break;
                    case SHORT:
