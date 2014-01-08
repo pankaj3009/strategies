@@ -230,7 +230,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
                                     }
                                 } else if (event.getExpireTime() == 0) {
                                     //advance order. 
-                                    logger.log(Level.INFO, "Method:{0},Case:111, Symbol:{1}, Size={2}, Side:{3}, Limit:{4}, Trigger:{5}, Expiration Time:{6}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getOrderSize(),event.getSide(),event.getLimitPrice(),event.getTriggerPrice(),event.getExpireTime()});
+                                    logger.log(Level.INFO, "Method:{0},Expire Time=0. Case:111, Symbol:{1}, Size={2}, Side:{3}, Limit:{4}, Trigger:{5}, Expiration Time:{6}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getOrderSize(),event.getSide(),event.getLimitPrice(),event.getTriggerPrice(),event.getExpireTime()});
                                     addOrdersToBeRetried(id, c, event);
                                 }
                                 break;

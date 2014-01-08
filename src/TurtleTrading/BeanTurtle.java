@@ -484,7 +484,9 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
                  //Place advance orders
          double threshold = this.getHighestHigh().get(id) - this.getLowestLow().get(id) > 1 ? 0.5 : ( this.getHighestHigh().get(id) - this.getLowestLow().get(id)) / 2;
         boolean tradeable = Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) / (Parameters.symbol.get(id).getMinsize() * 375) >= 6.0 && this.getCumVolume().get(id).size() > this.getStartBars();
-            
+            if (this.getExposure() != 0 && this.getCumVolume().get(id).size() > this.getStartBars()) {
+                tradeable = true;
+            }
          //Amend Entry Advance orders
         if (notionalPosition.get(id) == 0 && getAdvanceOrder().get(id) == 1) { //advance order has been placed
             if ((Parameters.symbol.get(id).getLastPrice() + threshold) > this.getHighestHigh().get(id)
