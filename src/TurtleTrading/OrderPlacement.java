@@ -350,7 +350,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
                     //we will place the order in the cancelled/hastened queue only if it was not existing before
                     long tempexpire = System.currentTimeMillis() + event.getExpireTime() * 60 * 1000;
                     c.getOrdersToBeCancelled().put(orderid, new BeanOrderInformation(id, c, orderid, tempexpire, event));
-                    logger.log(Level.INFO, "Entry Order amendment placed in cancellation queue. Cancellation Time=" + DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", tempexpire));
+                    logger.log(Level.INFO, "Entry Order amendment placed in cancellation queue. Symbol:{0}, Cancellation Time: {2}",new Object[]{Parameters.symbol.get(id).getSymbol(), DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", tempexpire)});
                     activeOrders.put(id, new BeanOrderInformation(id, c, orderid, tempexpire, event));
                     //place orders if there is a change in limit price
                     if (event.getLimitPrice() != ord.m_lmtPrice) {
@@ -756,7 +756,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
         int origposition = p.getPosition();
         if (c.getOrders().get(orderID).getOrderSide() == EnumOrderSide.SELL || c.getOrders().get(orderID).getOrderSide() == EnumOrderSide.SHORT || c.getOrders().get(orderID).getOrderSide() == EnumOrderSide.TRAILSELL) {
             fill = -fill;
-            logger.log(Level.FINEST, "Reversed fill sign as sell or short. Fill=" + fill);
+            logger.log(Level.FINEST, "Reversed fill sign as sell or short. Symbol:{1}, Fill={2}",new Object[]{Parameters.symbol.get(id).getSymbol(),fill});
         }
         double realizedPL = (origposition + fill) == 0 && origposition != 0 ? -(origposition * p.getPrice() + fill * lastFillPrice) + p.getProfit() : p.getProfit();
         double positionPrice = (origposition + fill) == 0 ? 0 : (p.getPosition() * p.getPrice() + fill * lastFillPrice) / (origposition + fill);
