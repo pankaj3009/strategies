@@ -116,12 +116,12 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
                        break;
                }
                logger.log(Level.INFO,"Method:{0}, Symbol:{1}, OrderID:{2}, bidprice:{3}, askprice:{4}, aggression:{5}, limitprice:{6}, new limit price:{7}",new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(),activeOrders.get(id).getOrderID(),bidprice,askprice,aggression,limitprice,newlimitprice});
-               Boolean placeorder=(newlimitprice>0 && Math.abs(newlimitprice-limitprice)> tickSize)?Boolean.TRUE:Boolean.FALSE;
+               Boolean placeorder=newlimitprice>0 && (Math.abs(newlimitprice-limitprice)> tickSize?Boolean.TRUE:Boolean.FALSE) && Math.abs(newlimitprice-limitprice)<0.1*limitprice;
                if(placeorder){
                    OrderEvent eventnew=activeOrders.get(id).getOrigEvent();
                    eventnew.setLimitPrice(newlimitprice);
                    eventnew.setOrderIntent(EnumOrderIntent.Amend);
-                   logger.log(Level.INFO,"Order Amendedment Needed. Method:{0}, Symbol:{1}, OrderID:{2}",new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(),activeOrders.get(id).getOrderID()});
+                   logger.log(Level.INFO,"Order Amendment Needed. Method:{0}, Symbol:{1}, OrderID:{2}",new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(),activeOrders.get(id).getOrderID()});
                     orderReceived(eventnew);
                    }
            }
