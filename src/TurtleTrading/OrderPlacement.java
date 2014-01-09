@@ -378,8 +378,9 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
             int positions = c.getPositions().get(ind).getPosition();
             //Retry orders if there is an open BUY order and we get a corresponding sell. Same for COVER
             if ((c.getOrdersSymbols().get(ind).get(0) > 0 && event.getSide() == EnumOrderSide.SELL) || (c.getOrdersSymbols().get(ind).get(2) > 0 && event.getSide() == EnumOrderSide.COVER)) {
+                logger.log(Level.INFO, "Order to be retried:{0}, Symbol:{1}, Order Side:{2}, orderID:{3}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getSide(), orderid});
                 this.addOrdersToBeRetried(id, c, event);
-            } else if ((event.getSide() == EnumOrderSide.BUY && positions == 0) || (event.getSide() == EnumOrderSide.SHORT && positions == 0)) { //if for some reason, there is no open order for entry, init entry is attempted
+                } else if ((event.getSide() == EnumOrderSide.BUY && positions == 0) || (event.getSide() == EnumOrderSide.SHORT && positions == 0)) { //if for some reason, there is no open order for entry, init entry is attempted
                 logger.log(Level.INFO, "Changed Amend intent to Init :{0}, Symbol:{1}, Order Side:{2}, orderID:{3}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getSide(), orderid});
                 event.setOrderIntent(EnumOrderIntent.Init);
                 parentorder.orderReceived(event);
@@ -423,7 +424,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
     }
 
     void addOrdersToBeRetried(int id, BeanConnection c, OrderEvent event) {
-     
+        
         OrderBean ord = new OrderBean();
         ord.setSymbolID(id + 1);
         ord.setOrderSize(event.getOrderSize());
