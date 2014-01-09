@@ -351,7 +351,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
                     //we will place the order in the cancelled/hastened queue only if it was not existing before
                     long tempexpire = System.currentTimeMillis() + event.getExpireTime() * 60 * 1000;
                     c.getOrdersToBeCancelled().put(orderid, new BeanOrderInformation(id, c, orderid, tempexpire, event));
-                    logger.log(Level.INFO, "Entry Order amendment placed in cancellation queue. Symbol:{0}, Cancellation Time: {2}",new Object[]{Parameters.symbol.get(id).getSymbol(), DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", tempexpire)});
+                    logger.log(Level.INFO, "Entry Order amendment placed in cancellation queue. Symbol:{0}, Cancellation Time: {1}",new Object[]{Parameters.symbol.get(id).getSymbol(), DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", tempexpire)});
                     activeOrders.put(id, new BeanOrderInformation(id, c, orderid, tempexpire, event));
                     //place orders if there is a change in limit price
                     if (event.getLimitPrice() != ord.m_lmtPrice) {
@@ -364,16 +364,15 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
                     c.getOrders().get(orderid).setTriggerPrice(ord.m_auxPrice);
                     c.getOrders().get(orderid).setLimitPrice(ord.m_lmtPrice);
 
-                } else {  //update orders if advance orders or second amendment after expiration time added
-                    if (event.getLimitPrice() != ord.m_lmtPrice || event.getTriggerPrice() != ord.m_auxPrice) {
+                } else if (event.getLimitPrice() != ord.m_lmtPrice || event.getTriggerPrice() != ord.m_auxPrice) {
+                        //update orders if advance orders or second amendment after expiration time added
                         Contract con = c.getWrapper().createContract(id);
                         logger.log(Level.INFO, "{0}, Symbol:{1}, Order Side:{2},orderID:{3},limit price={4}, trigger price={5}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getSide(), orderid, event.getLimitPrice(), event.getTriggerPrice()});
                         c.getWrapper().placeOrder(c, id + 1, event.getSide(), ord, con, event.getExitType());
-                    }
-                    activeOrders.put(id, new BeanOrderInformation(id, c, orderid, event.getExpireTime(), event));
-                    c.getOrders().get(orderid).setTriggerPrice(ord.m_auxPrice);
-                    c.getOrders().get(orderid).setLimitPrice(ord.m_lmtPrice);
-                }
+                        activeOrders.put(id, new BeanOrderInformation(id, c, orderid, event.getExpireTime(), event));
+                        c.getOrders().get(orderid).setTriggerPrice(ord.m_auxPrice);
+                        c.getOrders().get(orderid).setLimitPrice(ord.m_lmtPrice);
+                    }               
             }
       } else {
             int positions = c.getPositions().get(ind).getPosition();
