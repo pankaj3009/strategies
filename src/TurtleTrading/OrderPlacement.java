@@ -137,7 +137,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
             //we first handle initial orders given by EnumOrderIntent=Init
             if (event.getOrderIntent() == EnumOrderIntent.Init) {
                 int id = event.getSymbolBean().getSerialno() - 1;
-                logger.log(Level.FINEST, "OrderReceived. Symbol:{0}, OrderSide:{1}", new Object[]{Parameters.symbol.get(id).getSymbol(), event.getSide()});
+                logger.log(Level.INFO, "OrderReceived Init. Symbol:{0}, OrderSide:{1}", new Object[]{Parameters.symbol.get(id).getSymbol(), event.getSide()});
                 for (BeanConnection c : Parameters.connection) {
                     if ("Trading".equals(c.getPurpose()) && c.getStrategy().contains(event.getOrdReference())) {
                         //check if system is square
@@ -244,7 +244,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
                 }
             } else if (event.getOrderIntent() == EnumOrderIntent.Amend) {
                 int id = event.getSymbolBean().getSerialno() - 1;
-                logger.log(Level.FINEST, "OrderReceived. Symbol:{0}, OrderSide:{1}", new Object[]{Parameters.symbol.get(id).getSymbol(), event.getSide()});
+                logger.log(Level.INFO, "OrderReceived Amend. Symbol:{0}, OrderSide:{1}", new Object[]{Parameters.symbol.get(id).getSymbol(), event.getSide()});
                 for (BeanConnection c : Parameters.connection) {
                     if ("Trading".equals(c.getPurpose()) && c.getStrategy().contains(event.getOrdReference())) {
                         processOrderAmend(id, c, event);
@@ -252,7 +252,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
                 }
             } else if (event.getOrderIntent() == EnumOrderIntent.Cancel) {
                 int id = event.getSymbolBean().getSerialno() - 1;
-                logger.log(Level.FINEST, "OrderReceived. Symbol:{0}, OrderSide:{1}", new Object[]{Parameters.symbol.get(id).getSymbol(), event.getSide()});
+                logger.log(Level.INFO, "OrderReceived Cancel. Symbol:{0}, OrderSide:{1}", new Object[]{Parameters.symbol.get(id).getSymbol(), event.getSide()});
                 for (BeanConnection c : Parameters.connection) {
                     if ("Trading".equals(c.getPurpose()) && c.getStrategy().contains(event.getOrdReference())) {
                         //check if system is square && order id is to initiate
@@ -364,7 +364,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
                     c.getOrders().get(orderid).setTriggerPrice(ord.m_auxPrice);
                     c.getOrders().get(orderid).setLimitPrice(ord.m_lmtPrice);
 
-                } else if (event.getLimitPrice() != ord.m_lmtPrice || event.getTriggerPrice() != ord.m_auxPrice) {
+                } else {
                         //update orders if advance orders or second amendment after expiration time added
                         Contract con = c.getWrapper().createContract(id);
                         logger.log(Level.INFO, "{0}, Symbol:{1}, Order Side:{2},orderID:{3},limit price={4}, trigger price={5}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getSide(), orderid, event.getLimitPrice(), event.getTriggerPrice()});
