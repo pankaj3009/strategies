@@ -662,7 +662,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
 
     public synchronized void squareAllPositions(BeanConnection c, int id, String strategy) {
         Index ind = new Index(strategy, id);
-        int position = c.getPositions().get(ind).getPosition();
+        int position=c.getPositions().get(ind) == null ? 0 : c.getPositions().get(ind).getPosition();
         Contract con = c.getWrapper().createContract(id);
         Order ord = new Order();
         if (position > 0) {
