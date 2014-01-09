@@ -483,8 +483,8 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
     public void placeAdvancedOrders(int id){
                  //Place advance orders
          double threshold = this.getHighestHigh().get(id) - this.getLowestLow().get(id) > 1 ? 0.5 : ( this.getHighestHigh().get(id) - this.getLowestLow().get(id)) / 2;
-        boolean tradeable = Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) / (Parameters.symbol.get(id).getMinsize() * 375) >= 6.0 && this.getCumVolume().get(id).size() > this.getStartBars();
-            if (this.getExposure() != 0 && this.getCumVolume().get(id).size() > this.getStartBars()) {
+        boolean tradeable = Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) / (Parameters.symbol.get(id).getMinsize() * 375) >= 6.0 && this.getCumVolume().get(id).size() > this.getStartBars() && Parameters.symbol.get(id).getLastPrice()>0;
+            if (this.getExposure() != 0 && this.getCumVolume().get(id).size() > this.getStartBars() && Parameters.symbol.get(id).getLastPrice()>0) {
                 tradeable = true;
   //              System.out.println("Tradeable:"+id);
             }
@@ -633,8 +633,8 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
     private synchronized void generateOrders(int id, boolean ruleHighestHigh, boolean ruleLowestLow, boolean ruleCumVolumeLong, boolean ruleCumVolumeShort, boolean ruleSlopeLong,
             boolean ruleSlopeShort, boolean ruleVolumeLong, boolean ruleVolumeShort, boolean sourceBars) {
         try {
-            boolean tradeable = Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) / (Parameters.symbol.get(id).getMinsize() * 375) >= 6.0 && this.getCumVolume().get(id).size() > this.getStartBars();
-            if (this.getExposure() != 0 && this.getCumVolume().get(id).size() > this.getStartBars()) {
+            boolean tradeable = Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) / (Parameters.symbol.get(id).getMinsize() * 375) >= 6.0 && this.getCumVolume().get(id).size() > this.getStartBars() && Parameters.symbol.get(id).getLastPrice()>0;
+            if (this.getExposure() != 0 && this.getCumVolume().get(id).size() > this.getStartBars() && Parameters.symbol.get(id).getLastPrice()>0) {
                 tradeable = true;
             }
             if (ruleHighestHigh && sourceBars) {
