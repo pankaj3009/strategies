@@ -494,7 +494,6 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
             if ((Parameters.symbol.get(id).getLastPrice() + threshold) > this.getHighestHigh().get(id)
                     && (Parameters.symbol.get(id).getLastPrice() - threshold) > this.getLowestLow().get(id)
                     && this.getBreachUp().get(id) >= this.getBreachDown().get(id)
-                    && this.longOnly
                     && exPriceBarLong.get(id) && this.getLastOrderDate().compareTo(new Date()) > 0 && this.getBreachUp().get(id)>=this.getBreachDown().get(id) && this.getBreachDown().get(id) >= 1
                     ) {
                 //amend existing advance long order
@@ -513,7 +512,6 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
             if ((Parameters.symbol.get(id).getLastPrice() - threshold) < this.getLowestLow().get(id)
                     && (Parameters.symbol.get(id).getLastPrice() + threshold) < this.getHighestHigh().get(id)
                     && this.getBreachDown().get(id) >= this.getBreachUp().get(id)
-                    && this.shortOnly
                     && exPriceBarShort.get(id) && this.getLastOrderDate().compareTo(new Date()) > 0 && this.getBreachDown().get(id)>=this.getBreachUp().get(id) && this.getBreachUp().get(id) >= 1
                     ) {
                 //amend existing advance short order
