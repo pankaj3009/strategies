@@ -285,7 +285,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
         int positions = Math.abs(c.getPositions().get(ind).getPosition());
         Order ord = c.getWrapper().createOrder(positions, event.getSide(), event.getLimitPrice(), event.getTriggerPrice(), "DAY", event.getExpireTime(), false, event.getOrdReference(), "");
         Contract con = c.getWrapper().createContract(id);
-        logger.log(Level.INFO, "Method:{0},Action:Exit Position, Symbol:{1}, Side={2}, position:{3}, limit price={4}, trigger price={5}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getOrderSize(), positions,event.getLimitPrice(),event.getTriggerPrice()});
+        logger.log(Level.INFO, "Method:{0},Action:Exit Position, Symbol:{1}, Side={2}, position:{3}, limit price={4}, trigger price={5}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getSide(), ord.m_totalQuantity,ord.m_lmtPrice,ord.m_auxPrice});
         int orderid = c.getWrapper().placeOrder(c, id + 1, event.getSide(), ord, con, event.getExitType());
         if (event.getExpireTime() != 0) {
             long tempexpire=System.currentTimeMillis() + event.getExpireTime() * 60 * 1000;
@@ -346,7 +346,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
                     }
                 }
 
-                ord.m_totalQuantity = event.getOrderSize(); //pending: check for any fills on the original order
+                ord.m_totalQuantity = c.getPositions().get(ind).getPosition(); //pending: check for any fills on the original order
                 if (event.getExpireTime() != 0 && (!(c.getOrdersToBeCancelled().containsKey(orderid) || c.getOrdersToBeFastTracked().containsKey(orderid)))) {
                     //we will place the order in the cancelled/hastened queue only if it was not existing before
                     long tempexpire = System.currentTimeMillis() + event.getExpireTime() * 60 * 1000;

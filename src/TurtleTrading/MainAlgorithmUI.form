@@ -31,7 +31,7 @@
               <EmptySpace min="-2" pref="59" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
                   <Group type="102" attributes="0">
-                      <Component id="Start" min="-2" pref="111" max="-2" attributes="0"/>
+                      <Component id="cmdExportVariables" min="-2" pref="111" max="-2" attributes="0"/>
                       <EmptySpace type="separate" max="-2" attributes="0"/>
                       <Component id="ordStatus" min="-2" max="-2" attributes="0"/>
                   </Group>
@@ -43,10 +43,13 @@
                           <Component id="cmdShort" min="-2" max="-2" attributes="0"/>
                       </Group>
                   </Group>
-                  <Group type="102" alignment="0" attributes="0">
-                      <Component id="cmdPause" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace max="-2" attributes="0"/>
-                      <Component id="cmdSquareAll" min="-2" pref="78" max="-2" attributes="0"/>
+                  <Group type="103" alignment="0" groupAlignment="1" max="-2" attributes="0">
+                      <Component id="cmdStart" alignment="0" max="32767" attributes="0"/>
+                      <Group type="102" alignment="0" attributes="0">
+                          <Component id="cmdPause" min="-2" max="-2" attributes="0"/>
+                          <EmptySpace max="-2" attributes="0"/>
+                          <Component id="cmdSquareAll" min="-2" pref="78" max="-2" attributes="0"/>
+                      </Group>
                   </Group>
               </Group>
               <EmptySpace pref="477" max="32767" attributes="0"/>
@@ -58,7 +61,7 @@
           <Group type="102" alignment="0" attributes="0">
               <EmptySpace min="-2" pref="24" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
-                  <Component id="Start" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="cmdExportVariables" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="ordStatus" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace type="unrelated" max="-2" attributes="0"/>
@@ -73,18 +76,20 @@
                   <Component id="cmdPause" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="cmdSquareAll" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
-              <EmptySpace pref="347" max="32767" attributes="0"/>
+              <EmptySpace type="unrelated" max="-2" attributes="0"/>
+              <Component id="cmdStart" min="-2" max="-2" attributes="0"/>
+              <EmptySpace pref="313" max="32767" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
   </Layout>
   <SubComponents>
-    <Component class="javax.swing.JButton" name="Start">
+    <Component class="javax.swing.JButton" name="cmdExportVariables">
       <Properties>
         <Property name="text" type="java.lang.String" value="Export Variables"/>
       </Properties>
       <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="StartActionPerformed"/>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="cmdExportVariablesActionPerformed"/>
       </Events>
     </Component>
     <Component class="javax.swing.JButton" name="ordStatus">
@@ -133,6 +138,14 @@
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="cmdSquareAllActionPerformed"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JButton" name="cmdStart">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="jButton1"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="cmdStartActionPerformed"/>
       </Events>
     </Component>
   </SubComponents>

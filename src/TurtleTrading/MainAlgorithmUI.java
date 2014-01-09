@@ -56,22 +56,23 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        Start = new javax.swing.JButton();
+        cmdExportVariables = new javax.swing.JButton();
         ordStatus = new javax.swing.JButton();
         cmdLong = new javax.swing.JButton();
         cmdShort = new javax.swing.JButton();
         cmdBoth = new javax.swing.JButton();
         cmdPause = new javax.swing.JButton();
         cmdSquareAll = new javax.swing.JButton();
+        cmdStart = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Swing");
         setPreferredSize(new java.awt.Dimension(300, 200));
 
-        Start.setText("Export Variables");
-        Start.addActionListener(new java.awt.event.ActionListener() {
+        cmdExportVariables.setText("Export Variables");
+        cmdExportVariables.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                StartActionPerformed(evt);
+                cmdExportVariablesActionPerformed(evt);
             }
         });
 
@@ -117,6 +118,13 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
             }
         });
 
+        cmdStart.setText("jButton1");
+        cmdStart.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cmdStartActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -125,7 +133,7 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
                 .addGap(59, 59, 59)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(Start, javax.swing.GroupLayout.PREFERRED_SIZE, 111, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(cmdExportVariables, javax.swing.GroupLayout.PREFERRED_SIZE, 111, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
                         .addComponent(ordStatus))
                     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
@@ -134,10 +142,12 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
                             .addComponent(cmdLong)
                             .addGap(18, 18, 18)
                             .addComponent(cmdShort)))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(cmdPause)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(cmdSquareAll, javax.swing.GroupLayout.PREFERRED_SIZE, 78, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                        .addComponent(cmdStart, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                            .addComponent(cmdPause)
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                            .addComponent(cmdSquareAll, javax.swing.GroupLayout.PREFERRED_SIZE, 78, javax.swing.GroupLayout.PREFERRED_SIZE))))
                 .addContainerGap(477, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -145,7 +155,7 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addGap(24, 24, 24)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(Start)
+                    .addComponent(cmdExportVariables)
                     .addComponent(ordStatus))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -157,13 +167,15 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(cmdPause)
                     .addComponent(cmdSquareAll))
-                .addContainerGap(347, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(cmdStart)
+                .addContainerGap(313, Short.MAX_VALUE))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-private void StartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_StartActionPerformed
+private void cmdExportVariablesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdExportVariablesActionPerformed
         //algo.run();
         //DataTable.setModel(MainAlgorithm.model1);
     XMLEncoder encoder1;
@@ -185,7 +197,7 @@ private void StartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:e
 
  
         
-}//GEN-LAST:event_StartActionPerformed
+}//GEN-LAST:event_cmdExportVariablesActionPerformed
 
     private void ordStatusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ordStatusActionPerformed
          FileWriter file;
@@ -245,6 +257,11 @@ private void StartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:e
             }
     }//GEN-LAST:event_cmdSquareAllActionPerformed
     }
+    
+    private void cmdStartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdStartActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_cmdStartActionPerformed
+    
     
     
     /**
@@ -313,12 +330,13 @@ private void StartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:e
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton Start;
     private javax.swing.JButton cmdBoth;
+    private javax.swing.JButton cmdExportVariables;
     private javax.swing.JButton cmdLong;
     private javax.swing.JButton cmdPause;
     private javax.swing.JButton cmdShort;
     private javax.swing.JButton cmdSquareAll;
+    private javax.swing.JButton cmdStart;
     private javax.swing.JButton ordStatus;
     // End of variables declaration//GEN-END:variables
 }
