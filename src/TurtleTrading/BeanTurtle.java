@@ -120,6 +120,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
     private int display;
     private Boolean longOnly = true;
     private Boolean shortOnly = true;
+    private Boolean aggression=true;
     private ArrayList<Boolean> exPriceBarLong = new ArrayList();
     private ArrayList<Boolean> exPriceBarShort = new ArrayList();
     private String symbols;
@@ -1276,5 +1277,19 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
      */
     public void setMaxSlippage(double maxSlippage) {
         this.maxSlippage = maxSlippage;
+    }
+
+    /**
+     * @return the aggression
+     */
+    public Boolean getAggression() {
+        return aggression;
+    }
+
+    /**
+     * @param aggression the aggression to set
+     */
+    public void setAggression(Boolean aggression) {
+        this.aggression = aggression;
     }
 }

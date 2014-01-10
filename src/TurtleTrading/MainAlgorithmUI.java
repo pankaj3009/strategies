@@ -64,6 +64,9 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
         cmdPause = new javax.swing.JButton();
         cmdSquareAll = new javax.swing.JButton();
         cmdStart = new javax.swing.JButton();
+        cmdAggressionDisable = new javax.swing.JButton();
+        cmdAggressionEnable = new javax.swing.JButton();
+        cmdReloadParam = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Swing");
@@ -111,17 +114,38 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
             }
         });
 
-        cmdSquareAll.setText("Square");
+        cmdSquareAll.setText("Square All");
         cmdSquareAll.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 cmdSquareAllActionPerformed(evt);
             }
         });
 
-        cmdStart.setText("jButton1");
+        cmdStart.setText("Start Program");
         cmdStart.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 cmdStartActionPerformed(evt);
+            }
+        });
+
+        cmdAggressionDisable.setText("Disable Aggro");
+        cmdAggressionDisable.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cmdAggressionDisableActionPerformed(evt);
+            }
+        });
+
+        cmdAggressionEnable.setText("Enable Aggro");
+        cmdAggressionEnable.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cmdAggressionEnableActionPerformed(evt);
+            }
+        });
+
+        cmdReloadParam.setText("Reload Parameters");
+        cmdReloadParam.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cmdReloadParamActionPerformed(evt);
             }
         });
 
@@ -143,6 +167,11 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
                             .addGap(18, 18, 18)
                             .addComponent(cmdShort)))
                     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                        .addComponent(cmdReloadParam, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                            .addComponent(cmdAggressionDisable)
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                            .addComponent(cmdAggressionEnable, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addComponent(cmdStart, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
                             .addComponent(cmdPause)
@@ -169,7 +198,13 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
                     .addComponent(cmdSquareAll))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(cmdStart)
-                .addContainerGap(313, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(cmdAggressionDisable)
+                    .addComponent(cmdAggressionEnable))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(cmdReloadParam)
+                .addContainerGap(250, Short.MAX_VALUE))
         );
 
         pack();
@@ -261,6 +296,18 @@ private void cmdExportVariablesActionPerformed(java.awt.event.ActionEvent evt) {
     private void cmdStartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdStartActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_cmdStartActionPerformed
+
+    private void cmdAggressionDisableActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdAggressionDisableActionPerformed
+        algo.getParamTurtle().setAggression(false);
+    }//GEN-LAST:event_cmdAggressionDisableActionPerformed
+
+    private void cmdAggressionEnableActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdAggressionEnableActionPerformed
+        algo.getParamTurtle().setAggression(true);
+    }//GEN-LAST:event_cmdAggressionEnableActionPerformed
+
+    private void cmdReloadParamActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdReloadParamActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_cmdReloadParamActionPerformed
     
     
     
@@ -330,10 +377,13 @@ private void cmdExportVariablesActionPerformed(java.awt.event.ActionEvent evt) {
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton cmdAggressionDisable;
+    private javax.swing.JButton cmdAggressionEnable;
     private javax.swing.JButton cmdBoth;
     private javax.swing.JButton cmdExportVariables;
     private javax.swing.JButton cmdLong;
     private javax.swing.JButton cmdPause;
+    private javax.swing.JButton cmdReloadParam;
     private javax.swing.JButton cmdShort;
     private javax.swing.JButton cmdSquareAll;
     private javax.swing.JButton cmdStart;

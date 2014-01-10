@@ -44,6 +44,12 @@
                       </Group>
                   </Group>
                   <Group type="103" alignment="0" groupAlignment="1" max="-2" attributes="0">
+                      <Component id="cmdReloadParam" alignment="0" max="32767" attributes="0"/>
+                      <Group type="102" alignment="0" attributes="0">
+                          <Component id="cmdAggressionDisable" min="-2" max="-2" attributes="0"/>
+                          <EmptySpace max="-2" attributes="0"/>
+                          <Component id="cmdAggressionEnable" max="32767" attributes="0"/>
+                      </Group>
                       <Component id="cmdStart" alignment="0" max="32767" attributes="0"/>
                       <Group type="102" alignment="0" attributes="0">
                           <Component id="cmdPause" min="-2" max="-2" attributes="0"/>
@@ -78,7 +84,14 @@
               </Group>
               <EmptySpace type="unrelated" max="-2" attributes="0"/>
               <Component id="cmdStart" min="-2" max="-2" attributes="0"/>
-              <EmptySpace pref="313" max="32767" attributes="0"/>
+              <EmptySpace type="unrelated" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="cmdAggressionDisable" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="cmdAggressionEnable" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace max="-2" attributes="0"/>
+              <Component id="cmdReloadParam" min="-2" max="-2" attributes="0"/>
+              <EmptySpace pref="250" max="32767" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -134,7 +147,7 @@
     </Component>
     <Component class="javax.swing.JButton" name="cmdSquareAll">
       <Properties>
-        <Property name="text" type="java.lang.String" value="Square"/>
+        <Property name="text" type="java.lang.String" value="Square All"/>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="cmdSquareAllActionPerformed"/>
@@ -142,10 +155,34 @@
     </Component>
     <Component class="javax.swing.JButton" name="cmdStart">
       <Properties>
-        <Property name="text" type="java.lang.String" value="jButton1"/>
+        <Property name="text" type="java.lang.String" value="Start Program"/>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="cmdStartActionPerformed"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JButton" name="cmdAggressionDisable">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Disable Aggro"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="cmdAggressionDisableActionPerformed"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JButton" name="cmdAggressionEnable">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Enable Aggro"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="cmdAggressionEnableActionPerformed"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JButton" name="cmdReloadParam">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Reload Parameters"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="cmdReloadParamActionPerformed"/>
       </Events>
     </Component>
   </SubComponents>

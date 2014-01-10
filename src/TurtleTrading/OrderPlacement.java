@@ -69,7 +69,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
         //if the symbol exists in ordersSymbols (order exists) && ordersToBeCancelled (the order has potential for dynamic management)
 
         int id = event.getSymbolID();
-        if (activeOrders.containsKey(id)) {
+        if (activeOrders.containsKey(id) && a.getParamTurtle().getAggression()) {
 
             BeanOrderInformation tempOrderInfo = activeOrders.get(id);
             if (tempOrderInfo.getExpireTime() - tempOrderInfo.getOrigEvent().getDynamicOrderDuration() * 60 * 1000 > System.currentTimeMillis()) {
@@ -291,6 +291,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
         logger.log(Level.INFO, "Method:{0},Action:Exit Position, Symbol:{1}, Side={2}, position:{3}, limit price={4}, trigger price={5}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getSide(), ord.m_totalQuantity, ord.m_lmtPrice, ord.m_auxPrice});
         int orderid = c.getWrapper().placeOrder(c, id + 1, event.getSide(), ord, con, event.getExitType());
         if (event.getExpireTime() != 0) {
+            logger.log(Level.INFO,"Method:{0},Action: Exit Position. Order placed in FastTrack Queue. Symbol:{1}, Side={2}, position:{3}",new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getSide(), ord.m_totalQuantity});
             long tempexpire = System.currentTimeMillis() + event.getExpireTime() * 60 * 1000;
             c.getOrdersToBeFastTracked().put(orderid, new BeanOrderInformation(id, c, orderid, tempexpire, event));
             activeOrders.put(id, new BeanOrderInformation(id, c, orderid, tempexpire, event));
