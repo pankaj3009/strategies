@@ -42,9 +42,9 @@ public class BeanTurtleClosing extends TimerTask {
                 "status", "orderSize", "fillSize", "fillPrice","cancelRequested", "positionsize", "limitPrice",
                 "triggerPrice","orderValidity","expireTime","orderReference","exitLogic"};
            CsvBeanWriter writer = new CsvBeanWriter(file, CsvPreference.EXCEL_PREFERENCE);
-           if(Parameters.connection.get(algo.getParamTurtle().getDisplay()).getOrders().size()>0){
-               
            
+           if(algo!=null){
+              
            for (Map.Entry<Integer,OrderBean> orders : Parameters.connection.get(algo.getParamTurtle().getDisplay()).getOrders().entrySet()) {
                  writer.write(orders.getValue(), header,Parameters.getOrderProcessors());
                  //writer.write(orders.getValue(), header);
@@ -61,15 +61,16 @@ public class BeanTurtleClosing extends TimerTask {
                 }
                 
              } 
-           }
-             writer.close();
+           writer.close();
+            System.out.println("Clean Exit after writing orders");
+            System.exit(0);
            
-       } catch (IOException ex) {
+           }
+             
+            } catch (IOException ex) {
            Logger.getLogger(MainAlgorithmUI.class.getName()).log(Level.SEVERE, null, ex);
        }
         //execute clean exit
-       System.out.println("Clean Exit after writing orders");
-       System.exit(0);
        
     }
     

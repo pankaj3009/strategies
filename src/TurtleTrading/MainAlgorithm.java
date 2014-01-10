@@ -42,7 +42,7 @@ public class MainAlgorithm extends Algorithm  {
     private BeanGuds paramGuds;
     public OrderPlacement ordManagement;
     private Date preopenDate;
-    private Date realtimeBarsDate;
+    private static Date startDate;
     private Date closeDate;
     Timer preopen;
     public static Boolean preOpenCompleted=false;
@@ -50,7 +50,8 @@ public class MainAlgorithm extends Algorithm  {
     private List<String> strategies=new ArrayList();
     private List<Double> maxPNL=new ArrayList();
     private List<Double>minPNL=new ArrayList();
-
+    private String historicalData;
+    private String realTimeBars;
     
     public MainAlgorithm(List<String> args) throws Exception {
         super(args); //this initializes the connection and symbols
@@ -59,12 +60,16 @@ public class MainAlgorithm extends Algorithm  {
         //initialized wrappers
         //BoilerPlate
 
-        Properties p = new Properties(System.getProperties());
-        FileInputStream propFile;
+        Properties pmaster = new Properties(System.getProperties());
+        Properties pstrategy=new Properties(System.getProperties());
+        FileInputStream propFileMaster;
+        FileInputStream propFileStrategy;
         try {
-            propFile = new FileInputStream("Master.properties");
+            propFileMaster = new FileInputStream("Master.properties");
+            propFileStrategy=new FileInputStream(args.get(0));
             try {
-                p.load(propFile);
+                pmaster.load(propFileMaster);
+                pstrategy.load(propFileStrategy);
             } catch (IOException ex) {
                 Logger.getLogger(BeanTurtle.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -97,6 +102,7 @@ public class MainAlgorithm extends Algorithm  {
         while (TWSConnection.mTotalSymbols > 0) {
             //System.out.println(TWSConnection.mTotalSymbols);
             //do nothing
+            MainAlgorithmUI.setMessage("Waiting for contract information to be retrieved");
         }
         //Request Market Data
         List<BeanSymbol> filteredSymbols = new ArrayList();
@@ -119,21 +125,28 @@ public class MainAlgorithm extends Algorithm  {
         }
                 
         
-        System.setProperties(p);
+        System.setProperties(pstrategy);
         String currDateStr = DateUtil.getFormatedDate("yyyyMMdd", Parameters.connection.get(0).getConnectionTime());
         String preopenStr = currDateStr + " " + System.getProperty("PreOpenTime");
+        String startDateStr=currDateStr + " " + System.getProperty("StartTime");
         String realtimebarsStr = currDateStr + " " + System.getProperty("RealTimeBarsTime");
         String closeStr = currDateStr + " " + System.getProperty("CloseTime");
         preopenDate = DateUtil.parseDate("yyyyMMdd HH:mm:ss", preopenStr);
-        realtimeBarsDate = DateUtil.parseDate("yyyyMMdd HH:mm:ss", realtimebarsStr);
+        startDate=DateUtil.parseDate("yyyyMMdd HH:mm:ss", startDateStr);
         closeDate = DateUtil.parseDate("yyyyMMdd HH:mm:ss", closeStr);
-        String historicalData=System.getProperty("HistoricalData");
-        String realTimeBars=System.getProperty("RealTimeBars");
-        if (closeDate.compareTo(preopenDate) < 0 && new Date().compareTo(preopenDate) > 0) {
+        System.setProperties(pmaster);
+        historicalData=System.getProperty("HistoricalData");
+        realTimeBars=System.getProperty("RealTimeBars");
+        if (closeDate.compareTo(preopenDate) < 0 && new Date().compareTo(closeDate) > 0) {
             //increase enddate by one calendar day
             closeDate = DateUtil.addDays(closeDate, 1); //system date is > start date time. Therefore we have not crossed the 12:00 am barrier
         } else if (closeDate.compareTo(preopenDate) < 0 && new Date().compareTo(preopenDate) < 0) {
             preopenDate = DateUtil.addDays(preopenDate, -1); // we have moved beyond 12:00 am . adjust startdate to previous date
+            startDate=DateUtil.addDays(startDate, -1);
+        } else if(new Date().compareTo(preopenDate)>0 && new Date().compareTo(closeDate)>0){
+            preopenDate=DateUtil.addDays(preopenDate, 1);
+            startDate=DateUtil.addDays(startDate, 1);
+            closeDate=DateUtil.addDays(closeDate, 1);
         }
         String tempstrategies = System.getProperty("StrategyCount");
         this.setStrategies( Arrays.asList(tempstrategies.split("\\s*,\\s*")));
@@ -152,12 +165,25 @@ public class MainAlgorithm extends Algorithm  {
        
         //Attempt realtime bars in a new thread
         createAndShowGUI(this);
-        if(Boolean.valueOf(historicalData)){
+        startDataCollection(historicalData,realTimeBars,startDate);
+        
+    }
+ 
+    public synchronized void startDataCollection(String historicalData, String realTimeBars,Date startDate){
+        
+            if(startDate.compareTo(new Date())<0){
+        try{
+            if(Boolean.valueOf(historicalData)){
         Thread t = new Thread(new HistoricalBars());
         t.setName("Historical Bars");
+        MainAlgorithmUI.setMessage("Starting request of Historical Data for yesterday");
         t.start();
         t.join();
         }
+        }catch (Exception e){
+            
+        }
+       
         if(!Boolean.valueOf(historicalData)){
             for(BeanSymbol s: Parameters.symbol){
         ArrayList<BeanOHLC> yestOHLC=TradingUtil.getDailyBarsFromOneMinCandle(7,s.getSymbol()+"_FUT");
@@ -167,6 +193,7 @@ public class MainAlgorithm extends Algorithm  {
         
         
         if(Boolean.valueOf(realTimeBars)){
+            MainAlgorithmUI.setMessage("Starting request of RealTime Bars");
         new RealTimeBars(getParamTurtle());
         //BoilerPlate Ends
         }
@@ -174,8 +201,13 @@ public class MainAlgorithm extends Algorithm  {
         LOGGER.log(Level.FINEST, ",Symbol" + "," + "BarNo" + "," + "HighestHigh" + "," + "LowestLow" + "," + "LastPrice" + "," + "Volume" + "," + "CumulativeVol" + "," + "VolumeSlope" + "," + "MinSlopeReqd" + "," + "MA" + "," + "LongVolume" + "," + "ShortVolume" + "," + "DateTime" + ","
                 + "ruleHighestHigh" + "," + "ruleCumVolumeLong" + "," + "ruleSlopeLong" + "," + "ruleVolumeLong" + "," + "ruleLowestLow" + ","
                 + "ruleCumVolumeShort" + "," + "ruleSlopeShort" + "," + "ruleVolumeShort");
-    }
- 
+            
+            }else{
+                MainAlgorithmUI.setMessage("Please Click Button 'Start Program' after the market open time");
+                
+            }
+        
+}
     public void fireOrderEvent(BeanSymbol s, EnumOrderSide side, int size, double lmtprice, double triggerprice, String ordReference, int expireTime,String exitType, EnumOrderIntent intent,int maxorderduration, int dynamicorderduration, double maxslippage) {
         OrderEvent order = new OrderEvent(this, s, side, size, lmtprice, triggerprice,ordReference,expireTime,exitType,intent,maxorderduration,dynamicorderduration,maxslippage);
         Iterator listeners = _listeners.iterator();
@@ -222,7 +254,7 @@ public class MainAlgorithm extends Algorithm  {
         frame3.setLocation(819, 0);
         frame3.setVisible(true);
   
-        JFrame frame4 = new JFrame("PNL");
+        JFrame frame4 = new JFrame("Total PNL");
         frame4.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         GUIPNLDashBoard newContentPane4 = new GUIPNLDashBoard(m);
         newContentPane4.setOpaque(true); //content panes must be opaque
@@ -308,6 +340,62 @@ public class MainAlgorithm extends Algorithm  {
      */
     public void setMinPNL(List<Double> minPNL) {
         this.minPNL = minPNL;
+    }
+
+    /**
+     * @return the startDate
+     */
+    public static Date getStartDate() {
+        return startDate;
+    }
+
+    /**
+     * @param startDate the startDate to set
+     */
+    public void setStartDate(Date startDate) {
+        this.startDate = startDate;
+    }
+
+    /**
+     * @return the historicalData
+     */
+    public String getHistoricalData() {
+        return historicalData;
+    }
+
+    /**
+     * @param historicalData the historicalData to set
+     */
+    public void setHistoricalData(String historicalData) {
+        this.historicalData = historicalData;
+    }
+
+    /**
+     * @return the realTimeBars
+     */
+    public String getRealTimeBars() {
+        return realTimeBars;
+    }
+
+    /**
+     * @param realTimeBars the realTimeBars to set
+     */
+    public void setRealTimeBars(String realTimeBars) {
+        this.realTimeBars = realTimeBars;
+    }
+
+    /**
+     * @return the closeDate
+     */
+    public Date getCloseDate() {
+        return closeDate;
+    }
+
+    /**
+     * @param closeDate the closeDate to set
+     */
+    public void setCloseDate(Date closeDate) {
+        this.closeDate = closeDate;
     }
 
 }

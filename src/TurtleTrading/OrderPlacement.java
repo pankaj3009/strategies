@@ -75,6 +75,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
             if (tempOrderInfo.getExpireTime() - tempOrderInfo.getOrigEvent().getDynamicOrderDuration() * 60 * 1000 > System.currentTimeMillis()) {
                 //amendement scenario is valid. 
                 //Check for level of agression
+                logger.log(Level.INFO, "Method:{0}, Symbol:{1}, OrderID:{2}, Expire Time: {3}, Dynamic Order Duration :{4}, Current Time:{5}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), activeOrders.get(id).getOrderID(),tempOrderInfo.getExpireTime(), tempOrderInfo.getOrigEvent().getDynamicOrderDuration() * 60 * 1000 ,System.currentTimeMillis() });
                 LinkedList<Double> e = new LinkedList();
                 e = Parameters.symbol.get(id).getTradedPrices();
                 int size = e.size();
@@ -120,7 +121,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
                         break;
                 }
                 logger.log(Level.INFO, "Method:{0}, Symbol:{1}, OrderID:{2}, bidprice:{3}, askprice:{4}, aggression:{5}, limitprice:{6}, new limit price:{7}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), activeOrders.get(id).getOrderID(), bidprice, askprice, aggression, limitprice, newlimitprice});
-                Boolean placeorder = newlimitprice > 0 && (Math.abs(newlimitprice - limitprice) > tickSize ? Boolean.TRUE : Boolean.FALSE) && Math.abs(newlimitprice - limitprice) < 0.1 * limitprice;
+                Boolean placeorder = newlimitprice > 0 && (Math.abs(newlimitprice - limitprice) > tickSize ? Boolean.TRUE : Boolean.FALSE) && Math.abs(newlimitprice - limitprice) < activeOrders.get(id).getOrigEvent().getMaxSlippage()/100 * limitprice ;
                 if (placeorder) {
                     OrderEvent eventnew = activeOrders.get(id).getOrigEvent();
                     eventnew.setLimitPrice(newlimitprice);
@@ -302,110 +303,113 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
         Index ind = new Index(event.getOrdReference(), id);
         int orderid = 0;
         int size = 0;
-        switch (event.getSide()) {
-            case BUY:
-                orderid = c.getOrdersSymbols().get(ind).get(0);
-                size = event.getOrderSize();
-                break;
-            case SELL:
-                orderid = c.getOrdersSymbols().get(ind).get(1);
-                size = event.getOrderSize();
-                break;
-            case SHORT:
-                orderid = c.getOrdersSymbols().get(ind).get(2);
-                if (orderid > 0) {
-                    size = c.getPositions().get(ind) == null ? event.getOrderSize() : c.getPositions().get(ind).getPosition();
-                }
-                break;
-            case COVER:
-                orderid = c.getOrdersSymbols().get(ind).get(3);
-                if (orderid > 0) {
-                    size = c.getPositions().get(ind) == null ? event.getOrderSize() : c.getPositions().get(ind).getPosition();
-                }
-                break;
-            case TRAILBUY:
-                orderid = c.getOrdersSymbols().get(ind).get(4);
-                if (orderid > 0) {
-                    size = c.getPositions().get(ind) == null ? event.getOrderSize() : c.getPositions().get(ind).getPosition();
-                }
-                break;
-            case TRAILSELL:
-                orderid = c.getOrdersSymbols().get(ind).get(5);
-                if (orderid > 0) {
-                    size = c.getPositions().get(ind) == null ? event.getOrderSize() : c.getPositions().get(ind).getPosition();
-                }
-                break;
-            default:
-                break;
-        }
-        if (orderid > 0) { //order exists that can be amended.
-            Order ord = new Order();
-            ord = c.getWrapper().createOrderFromExisting(c, orderid);
-            ord.m_orderId = orderid;
-            if (ord.m_auxPrice != event.getTriggerPrice() || ord.m_lmtPrice != event.getLimitPrice() || (ord.m_goodTillDate == null && event.getExpireTime() > 0)) {
-                //amendment is processed if limit or trigger price changes or if there is an expiration time added
-                ord.m_auxPrice = event.getTriggerPrice() > 0 ? event.getTriggerPrice() : 0;
-                ord.m_lmtPrice = event.getLimitPrice() > 0 ? event.getLimitPrice() : 0;
-                if (event.getSide() != EnumOrderSide.TRAILBUY || event.getSide() != EnumOrderSide.TRAILSELL) {
-                    if (event.getLimitPrice() > 0 & event.getTriggerPrice() == 0) {
-                        ord.m_orderType = "LMT";
-                        ord.m_lmtPrice = event.getLimitPrice();
-                    } else if (event.getLimitPrice() == 0 && event.getTriggerPrice() > 0 && (event.getSide() == EnumOrderSide.SELL || event.getSide() == EnumOrderSide.COVER)) {
-                        ord.m_orderType = "STP";
-                        ord.m_lmtPrice = event.getLimitPrice();
-                        ord.m_auxPrice = event.getTriggerPrice();
-                    } else if (event.getLimitPrice() > 0 && event.getTriggerPrice() > 0) {
-                        ord.m_orderType = "STP LMT";
-                        ord.m_lmtPrice = event.getLimitPrice();
-                        ord.m_auxPrice = event.getTriggerPrice();
-                    } else {
-                        ord.m_orderType = "MKT";
-                        ord.m_lmtPrice = 0;
-                        ord.m_auxPrice = 0;
+        if (c.getOrders().get(ind).getStatus() != EnumOrderStatus.Acknowledged || c.getOrders().get(ind).getStatus() != EnumOrderStatus.PartialFilled) {
+            switch (event.getSide()) {
+                case BUY:
+                    orderid = c.getOrdersSymbols().get(ind).get(0);
+                    size = event.getOrderSize();
+                    break;
+                case SELL:
+                    orderid = c.getOrdersSymbols().get(ind).get(1);
+                    size = event.getOrderSize();
+                    break;
+                case SHORT:
+                    orderid = c.getOrdersSymbols().get(ind).get(2);
+                    if (orderid > 0) {
+                        size = c.getPositions().get(ind) == null ? event.getOrderSize() : c.getPositions().get(ind).getPosition();
                     }
-                }
+                    break;
+                case COVER:
+                    orderid = c.getOrdersSymbols().get(ind).get(3);
+                    if (orderid > 0) {
+                        size = c.getPositions().get(ind) == null ? event.getOrderSize() : c.getPositions().get(ind).getPosition();
+                    }
+                    break;
+                case TRAILBUY:
+                    orderid = c.getOrdersSymbols().get(ind).get(4);
+                    if (orderid > 0) {
+                        size = c.getPositions().get(ind) == null ? event.getOrderSize() : c.getPositions().get(ind).getPosition();
+                    }
+                    break;
+                case TRAILSELL:
+                    orderid = c.getOrdersSymbols().get(ind).get(5);
+                    if (orderid > 0) {
+                        size = c.getPositions().get(ind) == null ? event.getOrderSize() : c.getPositions().get(ind).getPosition();
+                    }
+                    break;
+                default:
+                    break;
+            }
+            if (orderid > 0) { //order exists that can be amended.
+                Order ord = new Order();
+                ord = c.getWrapper().createOrderFromExisting(c, orderid);
+                ord.m_orderId = orderid;
+                if (ord.m_auxPrice != event.getTriggerPrice() || ord.m_lmtPrice != event.getLimitPrice() || (ord.m_goodTillDate == null && event.getExpireTime() > 0)) {
+                    //amendment is processed if limit or trigger price changes or if there is an expiration time added
+                    ord.m_auxPrice = event.getTriggerPrice() > 0 ? event.getTriggerPrice() : 0;
+                    ord.m_lmtPrice = event.getLimitPrice() > 0 ? event.getLimitPrice() : 0;
+                    if (event.getSide() != EnumOrderSide.TRAILBUY || event.getSide() != EnumOrderSide.TRAILSELL) {
+                        if (event.getLimitPrice() > 0 & event.getTriggerPrice() == 0) {
+                            ord.m_orderType = "LMT";
+                            ord.m_lmtPrice = event.getLimitPrice();
+                        } else if (event.getLimitPrice() == 0 && event.getTriggerPrice() > 0 && (event.getSide() == EnumOrderSide.SELL || event.getSide() == EnumOrderSide.COVER)) {
+                            ord.m_orderType = "STP";
+                            ord.m_lmtPrice = event.getLimitPrice();
+                            ord.m_auxPrice = event.getTriggerPrice();
+                        } else if (event.getLimitPrice() > 0 && event.getTriggerPrice() > 0) {
+                            ord.m_orderType = "STP LMT";
+                            ord.m_lmtPrice = event.getLimitPrice();
+                            ord.m_auxPrice = event.getTriggerPrice();
+                        } else {
+                            ord.m_orderType = "MKT";
+                            ord.m_lmtPrice = 0;
+                            ord.m_auxPrice = 0;
+                        }
+                    }
 
-                ord.m_totalQuantity = size;//pending: check for any fills on the original order
-                if (event.getExpireTime() != 0 && (!(c.getOrdersToBeCancelled().containsKey(orderid) || c.getOrdersToBeFastTracked().containsKey(orderid)))) {
-                    //we will place the order in the cancelled/hastened queue only if it was not existing before
-                    long tempexpire = System.currentTimeMillis() + event.getExpireTime() * 60 * 1000;
-                    c.getOrdersToBeCancelled().put(orderid, new BeanOrderInformation(id, c, orderid, tempexpire, event));
-                    logger.log(Level.INFO, "Entry Order amendment placed in cancellation queue. Symbol:{0}, Cancellation Time: {1}", new Object[]{Parameters.symbol.get(id).getSymbol(), DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", tempexpire)});
-                    activeOrders.put(id, new BeanOrderInformation(id, c, orderid, tempexpire, event));
-                    //place orders if there is a change in limit price
-                    if (event.getLimitPrice() != ord.m_lmtPrice) {
+                    ord.m_totalQuantity = size;//pending: check for any fills on the original order
+                    if (event.getExpireTime() != 0 && (!(c.getOrdersToBeCancelled().containsKey(orderid) || c.getOrdersToBeFastTracked().containsKey(orderid)))) {
+                        //we will place the order in the cancelled/hastened queue only if it was not existing before
+                        long tempexpire = System.currentTimeMillis() + event.getExpireTime() * 60 * 1000;
+                        c.getOrdersToBeCancelled().put(orderid, new BeanOrderInformation(id, c, orderid, tempexpire, event));
+                        logger.log(Level.INFO, "Entry Order amendment placed in cancellation queue. Symbol:{0}, Cancellation Time: {1}", new Object[]{Parameters.symbol.get(id).getSymbol(), DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", tempexpire)});
+                        activeOrders.put(id, new BeanOrderInformation(id, c, orderid, tempexpire, event));
+                        //place orders if there is a change in limit price
+                        if (event.getLimitPrice() != ord.m_lmtPrice) {
+                            Contract con = c.getWrapper().createContract(id);
+                            logger.log(Level.INFO, "{0}, Symbol:{1}, Order Side:{2},orderID:{3},limit price={4}, trigger price={5}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getSide(), orderid, event.getLimitPrice(), event.getTriggerPrice()});
+                            c.getWrapper().placeOrder(c, id + 1, event.getSide(), ord, con, event.getExitType());
+                        }
+                        //update orders information
+                        c.getOrders().get(orderid).setExpireTime(String.valueOf(tempexpire));
+                        c.getOrders().get(orderid).setTriggerPrice(ord.m_auxPrice);
+                        c.getOrders().get(orderid).setLimitPrice(ord.m_lmtPrice);
+
+                    } else {
+                        //update orders if advance orders or second amendment after expiration time added
                         Contract con = c.getWrapper().createContract(id);
                         logger.log(Level.INFO, "{0}, Symbol:{1}, Order Side:{2},orderID:{3},limit price={4}, trigger price={5}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getSide(), orderid, event.getLimitPrice(), event.getTriggerPrice()});
+                        ord.m_totalQuantity = size;
                         c.getWrapper().placeOrder(c, id + 1, event.getSide(), ord, con, event.getExitType());
+                        activeOrders.put(id, new BeanOrderInformation(id, c, orderid, event.getExpireTime(), event));
+                        c.getOrders().get(orderid).setTriggerPrice(ord.m_auxPrice);
+                        c.getOrders().get(orderid).setLimitPrice(ord.m_lmtPrice);
                     }
-                    //update orders information
-                    c.getOrders().get(orderid).setExpireTime(String.valueOf(tempexpire));
-                    c.getOrders().get(orderid).setTriggerPrice(ord.m_auxPrice);
-                    c.getOrders().get(orderid).setLimitPrice(ord.m_lmtPrice);
-
-                } else {
-                    //update orders if advance orders or second amendment after expiration time added
-                    Contract con = c.getWrapper().createContract(id);
-                    logger.log(Level.INFO, "{0}, Symbol:{1}, Order Side:{2},orderID:{3},limit price={4}, trigger price={5}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getSide(), orderid, event.getLimitPrice(), event.getTriggerPrice()});
-                    c.getWrapper().placeOrder(c, id + 1, event.getSide(), ord, con, event.getExitType());
-                    activeOrders.put(id, new BeanOrderInformation(id, c, orderid, event.getExpireTime(), event));
-                    c.getOrders().get(orderid).setTriggerPrice(ord.m_auxPrice);
-                    c.getOrders().get(orderid).setLimitPrice(ord.m_lmtPrice);
                 }
-            }
-        } else {
-            int positions = c.getPositions().get(ind).getPosition();
-            //Retry orders if there is an open BUY order and we get a corresponding sell. Same for COVER
-            if ((c.getOrdersSymbols().get(ind).get(0) > 0 && event.getSide() == EnumOrderSide.SELL) || (c.getOrdersSymbols().get(ind).get(2) > 0 && event.getSide() == EnumOrderSide.COVER)) {
-                logger.log(Level.INFO, "Order to be retried:{0}, Symbol:{1}, Order Side:{2}, orderID:{3}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getSide(), orderid});
-                this.addOrdersToBeRetried(id, c, event);
-            } else if ((event.getSide() == EnumOrderSide.BUY && positions == 0) || (event.getSide() == EnumOrderSide.SHORT && positions == 0)) { //if for some reason, there is no open order for entry, init entry is attempted
-                logger.log(Level.INFO, "Changed Amend intent to Init :{0}, Symbol:{1}, Order Side:{2}, orderID:{3}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getSide(), orderid});
-                event.setOrderIntent(EnumOrderIntent.Init);
-                parentorder.orderReceived(event);
             } else {
-                //no order to amend. Do nothing. Probably earlier order was filled. Write to log
-                logger.log(Level.INFO, "No orders to amend Method:{0}, Symbol:{1}, Order Side:{2}, orderID:{3}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getSide(), orderid});
+                int positions = c.getPositions().get(ind).getPosition();
+                //Retry orders if there is an open BUY order and we get a corresponding sell. Same for COVER
+                if ((c.getOrdersSymbols().get(ind).get(0) > 0 && event.getSide() == EnumOrderSide.SELL) || (c.getOrdersSymbols().get(ind).get(2) > 0 && event.getSide() == EnumOrderSide.COVER)) {
+                    logger.log(Level.INFO, "Order to be retried:{0}, Symbol:{1}, Order Side:{2}, orderID:{3}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getSide(), orderid});
+                    this.addOrdersToBeRetried(id, c, event);
+                } else if ((event.getSide() == EnumOrderSide.BUY && positions == 0) || (event.getSide() == EnumOrderSide.SHORT && positions == 0)) { //if for some reason, there is no open order for entry, init entry is attempted
+                    logger.log(Level.INFO, "Changed Amend intent to Init :{0}, Symbol:{1}, Order Side:{2}, orderID:{3}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getSide(), orderid});
+                    event.setOrderIntent(EnumOrderIntent.Init);
+                    parentorder.orderReceived(event);
+                } else {
+                    //no order to amend. Do nothing. Probably earlier order was filled. Write to log
+                    logger.log(Level.INFO, "No orders to amend Method:{0}, Symbol:{1}, Order Side:{2}, orderID:{3}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getSide(), orderid});
+                }
             }
         }
     }
@@ -480,8 +484,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
                     ArrayList<Integer> symbols = new ArrayList();
                     for (Integer key : c.getOrdersToBeCancelled().keySet()) {
                         logger.log(Level.FINEST, "Expiration Time:{0},System Time:{1}", new Object[]{DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", c.getOrdersToBeCancelled().get(key).getExpireTime()), DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", System.currentTimeMillis())});
-                        if (c.getOrdersToBeCancelled().get(key).getExpireTime() < System.currentTimeMillis()
-                                && ((c.getOrders().get(key).getStatus() != EnumOrderStatus.Acknowledged) || c.getOrders().get(key).getStatus() == EnumOrderStatus.Submitted || c.getOrders().get(key).getStatus() == EnumOrderStatus.PartialFilled)) {
+                        if (c.getOrdersToBeCancelled().get(key).getExpireTime() < System.currentTimeMillis()) {
                             logger.log(Level.INFO, "cancelExpiredOrders Method:{0}, Symbol:{1}, OrderID:{2}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(c.getOrders().get(key).getSymbolID() - 1).getSymbol(), key});
                             //logger.log(Level.INFO,"Expired Order being cancelled. OrderID="+key);
                             c.getWrapper().cancelOrder(c, key);

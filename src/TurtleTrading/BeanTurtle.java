@@ -69,6 +69,20 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
     }
 
     /**
+     * @return the endDate
+     */
+    public static Date getEndDate() {
+        return endDate;
+    }
+
+    /**
+     * @param aEndDate the endDate to set
+     */
+    public static void setEndDate(Date aEndDate) {
+        endDate = aEndDate;
+    }
+
+    /**
      * @return the tickSize
      */
     public String getTickSize() {
@@ -81,7 +95,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
     public void setTickSize(String aTickSize) {
         tickSize = aTickSize;
     }
-    private MainAlgorithm m;
+    public MainAlgorithm m;
     private ArrayList<ArrayList<Long>> cumVolume = new ArrayList<ArrayList<Long>>();
     private ArrayList<Double> highestHigh = new <Double> ArrayList();  //algo parameter 
     private ArrayList<Double> lowestLow = new <Double> ArrayList(); //algo parameter 
@@ -94,10 +108,11 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
     private ArrayList<Long> shortVolume = new ArrayList();
     private ArrayList<Long> notionalPosition = new ArrayList();
     private ArrayList<Long> advanceOrder = new ArrayList();
-    private static Date startDate;
-    private static Date endDate;
-    private static Date closeDate;
+    //private static Date startDate;
+    //private static Date endDate;
+    //private static Date closeDate;
     private static Date lastOrderDate;
+    private static Date endDate;
     private int channelDuration;
     private int regressionLookBack;
     private double volumeSlopeLongMultiplier;
@@ -130,50 +145,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
     public BeanTurtle(MainAlgorithm m) {
         this.m = m;
         queueHistRequests = new ConcurrentLinkedQueue(temp);
-        Properties p = new Properties(System.getProperties());
-        FileInputStream propFile;
-        try {
-            propFile = new FileInputStream(MainAlgorithmUI.parameterFileName);
-            try {
-                p.load(propFile);
-            } catch (IOException ex) {
-                Logger.getLogger(BeanTurtle.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(BeanTurtle.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        System.setProperties(p);
-        String currDateStr = DateUtil.getFormatedDate("yyyyMMdd", Parameters.connection.get(0).getConnectionTime());
-        String startDateStr = currDateStr + " " + System.getProperty("StartTime");
-        String endDateStr = currDateStr + " " + System.getProperty("EndTime");
-        String closeDateStr = currDateStr + " " + System.getProperty("CloseTime");
-        String lastOrderDateStr=currDateStr + " " + System.getProperty("LastOrderTime");
-        tickSize = System.getProperty("TickSize");
-        startDate = DateUtil.parseDate("yyyyMMdd HH:mm:ss", startDateStr);
-        endDate = DateUtil.parseDate("yyyyMMdd HH:mm:ss", endDateStr);
-        closeDate=DateUtil.parseDate("yyyyMMdd HH:mm:ss", closeDateStr);
-        lastOrderDate=DateUtil.parseDate("yyyyMMdd HH:mm:ss", lastOrderDateStr);
-        maxOrderDuration=Integer.parseInt(System.getProperty("MaxOrderDuration"));
-        dynamicOrderDuration=Integer.parseInt(System.getProperty("DynamicOrderDuration"));
-        maxSlippage=Double.parseDouble(System.getProperty("MaxSlippage"));
-        
-        if (endDate.compareTo(startDate) < 0 && new Date().compareTo(startDate) > 0) {
-            //increase enddate by one calendar day
-            endDate = DateUtil.addDays(endDate, 1); //system date is > start date time. Therefore we have not crossed the 12:00 am barrier
-            closeDate=DateUtil.addDays(closeDate,1);
-            lastOrderDate=DateUtil.addDays(lastOrderDate,1);
-        } else if (endDate.compareTo(startDate) < 0 && new Date().compareTo(startDate) < 0) {
-            startDate = DateUtil.addDays(startDate, -1); // we have moved beyond 12:00 am . adjust startdate to previous date
-        }
-        channelDuration = Integer.parseInt(System.getProperty("ChannelDuration"));
-        volumeSlopeLongMultiplier = Double.parseDouble(System.getProperty("VolSlopeMultLong"));
-        //volumeSlopeShortMultipler = Double.parseDouble(System.getProperty("VolSlopeMultLong"));
-        regressionLookBack = Integer.parseInt(System.getProperty("RegressionLookBack"));
-        exposure = Double.parseDouble(System.getProperty("Exposure"));
-        startBars = Integer.parseInt(System.getProperty("StartBars"));
-        display = Integer.parseInt(System.getProperty("Display"));
-        exit = System.getProperty("Exit");
-        this.symbols = System.getProperty("Symbols");
+        loadParameters();
         this.tradeableSymbols = Arrays.asList(this.symbols.split("\\s*,\\s*"));
         for (int i = 0; i < Parameters.symbol.size(); i++) {
             cumVolume.add(i, new ArrayList<Long>());
@@ -217,7 +189,55 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
         }
         populateLastTradePrice();
         closeProcessing=new Timer();
-        closeProcessing.schedule(new BeanTurtleClosing(this), closeDate);
+        closeProcessing.schedule(new BeanTurtleClosing(this), m.getCloseDate());
+    }
+    
+    public void loadParameters(){
+        Properties p = new Properties(System.getProperties());
+        FileInputStream propFile;
+        try {
+            propFile = new FileInputStream(MainAlgorithmUI.parameterFileName);
+            try {
+                p.load(propFile);
+            } catch (IOException ex) {
+                Logger.getLogger(BeanTurtle.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(BeanTurtle.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        System.setProperties(p);
+        /*
+        String startDateStr = currDateStr + " " + System.getProperty("StartTime");
+        String closeDateStr = currDateStr + " " + System.getProperty("CloseTime");
+        startDate = DateUtil.parseDate("yyyyMMdd HH:mm:ss", startDateStr);
+        closeDate=DateUtil.parseDate("yyyyMMdd HH:mm:ss", closeDateStr);
+        */
+        String currDateStr = DateUtil.getFormatedDate("yyyyMMdd", Parameters.connection.get(0).getConnectionTime());
+        String lastOrderDateStr=currDateStr + " " + System.getProperty("LastOrderTime");
+        String endDateStr = currDateStr + " " + System.getProperty("EndTime");
+        lastOrderDate=DateUtil.parseDate("yyyyMMdd HH:mm:ss", lastOrderDateStr);
+        setEndDate(DateUtil.parseDate("yyyyMMdd HH:mm:ss", endDateStr));
+        tickSize = System.getProperty("TickSize");
+        maxOrderDuration=Integer.parseInt(System.getProperty("MaxOrderDuration"));
+        dynamicOrderDuration=Integer.parseInt(System.getProperty("DynamicOrderDuration"));
+        maxSlippage=Double.parseDouble(System.getProperty("MaxSlippage"));
+        
+        if (m.getCloseDate().compareTo(m.getStartDate()) < 0 && new Date().compareTo(m.getCloseDate()) > 0) {
+            //increase enddate by one calendar day
+            lastOrderDate=DateUtil.addDays(lastOrderDate,1);
+            endDate=DateUtil.addDays(endDate, 1);
+        } else if (endDate.compareTo(m.getStartDate()) < 0 && new Date().compareTo(m.getStartDate()) < 0) {
+
+        }
+        channelDuration = Integer.parseInt(System.getProperty("ChannelDuration"));
+        volumeSlopeLongMultiplier = Double.parseDouble(System.getProperty("VolSlopeMultLong"));
+        //volumeSlopeShortMultipler = Double.parseDouble(System.getProperty("VolSlopeMultLong"));
+        regressionLookBack = Integer.parseInt(System.getProperty("RegressionLookBack"));
+        exposure = Double.parseDouble(System.getProperty("Exposure"));
+        startBars = Integer.parseInt(System.getProperty("StartBars"));
+        display = Integer.parseInt(System.getProperty("Display"));
+        exit = System.getProperty("Exit");
+        this.symbols = System.getProperty("Symbols");        
     }
 
     private void populateLastTradePrice() {
@@ -283,7 +303,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
 
             try {
                 //For one minute bars
-                if (event.ohlc().getPeriodicity() == EnumBarSize.OneMin && this.getStartDate().compareTo(new Date()) < 0) {
+                if (event.ohlc().getPeriodicity() == EnumBarSize.OneMin && m.getStartDate().compareTo(new Date()) < 0) {
                     int id = event.getSymbol().getSerialno() - 1;
                     this.getClose().set(id, event.ohlc().getClose());
                     int barno = event.barNumber();
@@ -715,7 +735,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
          
                 }
             } else if (this.getNotionalPosition().get(id) == -1) { //position exists. Check for exit conditions for a short
-                if (ruleHighestHigh || System.currentTimeMillis() > this.getEndDate().getTime()) {
+                if (ruleHighestHigh || System.currentTimeMillis() > endDate.getTime()) {
                     this.getNotionalPosition().set(id, 0L);
                     int size = this.getExposure() != 0 ? (int) (this.getExposure() / Parameters.symbol.get(id).getLastPrice()) : Parameters.symbol.get(id).getMinsize();
                     LOGGER.log(Level.INFO, "Method:{0},Cover.Symbol:{1},LL:{2},LastPrice:{3},HH{4},Slope:{5},SlopeThreshold:{6},Volume:{7},VolumeMA:{8}",
@@ -731,7 +751,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
                             m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.COVER, size, this.getHighestHigh().get(id), 0, "TurtleTrading", maxOrderDuration, "", EnumOrderIntent.Init,maxOrderDuration,dynamicOrderDuration,maxSlippage);
                         }
                         this.getAdvanceOrder().set(id, 0L);
-                    } else if (System.currentTimeMillis() > this.getEndDate().getTime()) {
+                    } else if (System.currentTimeMillis() > endDate.getTime()) {
                         m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.COVER, size, this.getHighestHigh().get(id), 0, "TurtleTrading", maxOrderDuration, "", EnumOrderIntent.Cancel,maxOrderDuration,dynamicOrderDuration,maxSlippage);
                         m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.COVER, size, this.getClose().get(id), 0, "TurtleTrading", maxOrderDuration, "", EnumOrderIntent.Init,maxOrderDuration,dynamicOrderDuration,maxSlippage);
                         this.advanceOrder.set(id, 0L);
@@ -740,7 +760,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
                 }
 
             } else if (this.getNotionalPosition().get(id) == 1) { //position exists. Check for exit condition for long
-                if (ruleLowestLow || System.currentTimeMillis() > this.getEndDate().getTime()) {
+                if (ruleLowestLow || System.currentTimeMillis() > endDate.getTime()) {
                     this.getNotionalPosition().set(id, 0L);
                     int size = this.getExposure() != 0 ? (int) (this.getExposure() / Parameters.symbol.get(id).getLastPrice()) : Parameters.symbol.get(id).getMinsize();
                     LOGGER.log(Level.INFO, "Method:{0},Sell.Symbol:{1},LL:{2},LastPrice:{3},HH{4},Slope:{5},SlopeThreshold:{6},Volume:{7},VolumeMA:{8}",
@@ -756,7 +776,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
                             m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.SELL, size, this.getLowestLow().get(id), 0, "TurtleTrading", maxOrderDuration, "", EnumOrderIntent.Init,maxOrderDuration,dynamicOrderDuration,maxSlippage);
                         }
                         this.getAdvanceOrder().set(id, 0L);
-                    } else if (System.currentTimeMillis() > this.getEndDate().getTime()) {
+                    } else if (System.currentTimeMillis() > endDate.getTime()) {
                         m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.SELL, size, this.getLowestLow().get(id), 0, "TurtleTrading", maxOrderDuration, "", EnumOrderIntent.Cancel,maxOrderDuration,dynamicOrderDuration,maxSlippage);
                         m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.SELL, size, this.getClose().get(id), 0, "TurtleTrading", maxOrderDuration, "", EnumOrderIntent.Init,maxOrderDuration,dynamicOrderDuration,maxSlippage);
                         this.advanceOrder.set(id, 0L);
@@ -766,7 +786,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
             }
       
             //force close of all open positions, after closeTime
-            if (System.currentTimeMillis() + 3000 > this.getEndDate().getTime()) { //i wait for 3 seconds as there could be a gap in clock synchronization
+            if (System.currentTimeMillis() + 3000 > endDate.getTime()) { //i wait for 3 seconds as there could be a gap in clock synchronization
                 int symb = 0; //symb replaces id in this loop
                 for (Long j : this.getNotionalPosition()) {
                     if (j > 0) {
@@ -1012,35 +1032,6 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
     public synchronized void setNotionalPosition(ArrayList<Long> notionalPosition) {
         this.notionalPosition = notionalPosition;
     }
-
-    /**
-     * @return the startDate
-     */
-    static public Date getStartDate() {
-        return startDate;
-    }
-
-    /**
-     * @param startDate the startDate to set
-     */
-    public void setStartDate(Date startDate) {
-        startDate = startDate;
-    }
-
-    /**
-     * @return the endDate
-     */
-    static public Date getEndDate() {
-        return endDate;
-    }
-
-    /**
-     * @param endDate the endDate to set
-     */
-    public void setEndDate(Date endDate) {
-        endDate = endDate;
-    }
-
     /**
      * @return the channelDuration
      */
