@@ -33,6 +33,7 @@ import java.sql.ResultSet;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -221,14 +222,17 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
         maxOrderDuration=Integer.parseInt(System.getProperty("MaxOrderDuration"));
         dynamicOrderDuration=Integer.parseInt(System.getProperty("DynamicOrderDuration"));
         maxSlippage=Double.parseDouble(System.getProperty("MaxSlippage"));
-        
-        if (m.getCloseDate().compareTo(m.getStartDate()) < 0 && new Date().compareTo(m.getCloseDate()) > 0) {
+        Calendar closeDateCal = Calendar.getInstance();
+        closeDateCal.setTime(m.getCloseDate());
+        Calendar startDateCal = Calendar.getInstance();
+        startDateCal.setTime(m.getStartDate());
+        int dayClose = closeDateCal.get(Calendar.DAY_OF_MONTH);
+        int dayStart= startDateCal.get(Calendar.DAY_OF_MONTH);
+        if (dayClose>dayStart) {
             //increase enddate by one calendar day
             lastOrderDate=DateUtil.addDays(lastOrderDate,1);
             endDate=DateUtil.addDays(endDate, 1);
-        } else if (endDate.compareTo(m.getStartDate()) < 0 && new Date().compareTo(m.getStartDate()) < 0) {
-
-        }
+        } 
         channelDuration = Integer.parseInt(System.getProperty("ChannelDuration"));
         volumeSlopeLongMultiplier = Double.parseDouble(System.getProperty("VolSlopeMultLong"));
         //volumeSlopeShortMultipler = Double.parseDouble(System.getProperty("VolSlopeMultLong"));
