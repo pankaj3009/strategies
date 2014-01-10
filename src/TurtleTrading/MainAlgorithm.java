@@ -52,6 +52,7 @@ public class MainAlgorithm extends Algorithm  {
     private List<Double>minPNL=new ArrayList();
     private String historicalData;
     private String realTimeBars;
+    private boolean marketDataNotStarted=true;
     
     public MainAlgorithm(List<String> args) throws Exception {
         super(args); //this initializes the connection and symbols
@@ -193,8 +194,10 @@ public class MainAlgorithm extends Algorithm  {
  
     public synchronized void startDataCollection(String historicalData, String realTimeBars,Date startDate){
         
-      if(startDate.compareTo(new Date())<0){
+      if(startDate.compareTo(new Date())<0 && marketDataNotStarted){
         if(Boolean.valueOf(realTimeBars)){
+            marketDataNotStarted=false;
+            MainAlgorithmUI.disableStartButton();
             MainAlgorithmUI.setMessage("Starting request of RealTime Bars");
         new RealTimeBars(getParamTurtle());
         //BoilerPlate Ends

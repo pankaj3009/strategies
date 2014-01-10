@@ -257,6 +257,10 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
     }//GEN-LAST:event_cmdSquareAllActionPerformed
     }
     
+    public static void disableStartButton(){
+        cmdStart.setEnabled(false);
+    }
+    
     private void cmdStartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdStartActionPerformed
         algo.startDataCollection(algo.getHistoricalData(), algo.getRealTimeBars(),MainAlgorithm.getStartDate());
     }//GEN-LAST:event_cmdStartActionPerformed
@@ -354,7 +358,7 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
     private javax.swing.JButton cmdRegister;
     private javax.swing.JButton cmdShort;
     private javax.swing.JButton cmdSquareAll;
-    private javax.swing.JButton cmdStart;
+    private static javax.swing.JButton cmdStart;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private static javax.swing.JLabel lblIBMessage;
