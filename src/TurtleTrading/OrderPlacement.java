@@ -303,7 +303,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
         Index ind = new Index(event.getOrdReference(), id);
         int orderid = 0;
         int size = 0;
-        if (c.getOrders().get(ind).getStatus() != EnumOrderStatus.Acknowledged || c.getOrders().get(ind).getStatus() != EnumOrderStatus.PartialFilled) {
+        if (c.getOrders().get(id).getStatus() != EnumOrderStatus.Acknowledged || c.getOrders().get(ind).getStatus() != EnumOrderStatus.PartialFilled) {
             switch (event.getSide()) {
                 case BUY:
                     orderid = c.getOrdersSymbols().get(ind).get(0);
