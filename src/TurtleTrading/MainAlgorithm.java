@@ -165,14 +165,8 @@ public class MainAlgorithm extends Algorithm  {
        
         //Attempt realtime bars in a new thread
         createAndShowGUI(this);
-        startDataCollection(historicalData,realTimeBars,startDate);
-        
-    }
- 
-    public synchronized void startDataCollection(String historicalData, String realTimeBars,Date startDate){
-        
-            if(startDate.compareTo(new Date())<0){
-        try{
+        //get historical data - this can be done before start time, assuming the program is started next day
+                try{
             if(Boolean.valueOf(historicalData)){
         Thread t = new Thread(new HistoricalBars());
         t.setName("Historical Bars");
@@ -192,6 +186,14 @@ public class MainAlgorithm extends Algorithm  {
         }
         
         
+        
+        startDataCollection(historicalData,realTimeBars,startDate);
+        
+    }
+ 
+    public synchronized void startDataCollection(String historicalData, String realTimeBars,Date startDate){
+        
+      if(startDate.compareTo(new Date())<0){
         if(Boolean.valueOf(realTimeBars)){
             MainAlgorithmUI.setMessage("Starting request of RealTime Bars");
         new RealTimeBars(getParamTurtle());
