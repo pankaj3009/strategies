@@ -303,7 +303,6 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
         Index ind = new Index(event.getOrdReference(), id);
         int orderid = 0;
         int size = 0;
-        if (c.getOrders().get(id).getStatus() != EnumOrderStatus.Acknowledged || c.getOrders().get(ind).getStatus() != EnumOrderStatus.PartialFilled) {
             switch (event.getSide()) {
                 case BUY:
                     orderid = c.getOrdersSymbols().get(ind).get(0);
@@ -340,7 +339,9 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
                 default:
                     break;
             }
-            if (orderid > 0) { //order exists that can be amended.
+            logger.log(Level.INFO, "Method:{0}, Symbol:{1}, Order Side:{2}, orderID:{3}, Order Status:{4}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getSide(), orderid,orderid>0?c.getOrders().get(orderid).getStatus():"NA"});
+                    
+            if (orderid > 0 && (c.getOrders().get(orderid).getStatus() == EnumOrderStatus.Acknowledged || c.getOrders().get(orderid).getStatus() == EnumOrderStatus.PartialFilled)) { //order exists that can be amended.
                 Order ord = new Order();
                 ord = c.getWrapper().createOrderFromExisting(c, orderid);
                 ord.m_orderId = orderid;
@@ -411,7 +412,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
                     logger.log(Level.INFO, "No orders to amend Method:{0}, Symbol:{1}, Order Side:{2}, orderID:{3}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getSide(), orderid});
                 }
             }
-        }
+        
     }
 
     void processOrderCancel(int id, BeanConnection c, OrderEvent event) {

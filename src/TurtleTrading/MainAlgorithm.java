@@ -53,6 +53,7 @@ public class MainAlgorithm extends Algorithm  {
     private String historicalData;
     private String realTimeBars;
     private boolean marketDataNotStarted=true;
+    private String realAccountTrading="False";
     
     public MainAlgorithm(List<String> args) throws Exception {
         super(args); //this initializes the connection and symbols
@@ -77,7 +78,7 @@ public class MainAlgorithm extends Algorithm  {
         } catch (FileNotFoundException ex) {
             Logger.getLogger(BeanTurtle.class.getName()).log(Level.SEVERE, null, ex);
         }
- 
+        
         
         for (BeanConnection c : Parameters.connection) {
             c.setWrapper(new TWSConnection(c));
@@ -92,6 +93,23 @@ public class MainAlgorithm extends Algorithm  {
             c.getWrapper().eClientSocket.reqCurrentTime();
         }
 
+        //check license
+        
+        //Request account numbers. Store account code + Trading requests
+        
+        System.setProperties(pstrategy);
+        realAccountTrading =System.getProperty("RealAccountTrading");
+        //Request Account Updates for each account in connection.csv
+        if(Boolean.valueOf(realAccountTrading)){
+            //check license for each real account setup with strategy
+            //If license is accepted, do nothing
+            //If license fails, write to GUI. Update tradeable variable. 
+        } else { //setup for paper trading
+            //check no real account is setup for trading
+            //check license for paper trading
+            //if license fails, write to GUI. update tradeable variable
+         }
+        
         //Populate Contract Details
         
         BeanConnection tempC = Parameters.connection.get(0);
