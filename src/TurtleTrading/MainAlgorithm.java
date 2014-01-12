@@ -123,8 +123,10 @@ public class MainAlgorithm extends Algorithm  {
          //check license for paper trading
          //make url call here to retrieve expiration date and decrypt
          String macID=TradingUtil.populateMACID();
+         String ip=TradingUtil.getPublicIPAddress();
+         String registrationkey=macID.compareTo("")==0?ip:macID;
          String testurl=String.format("http://incurrency.com:8888/license");
-         Document doc=Jsoup.connect(testurl).data("macid",macID).post();
+         Document doc=Jsoup.connect(testurl).data("macid",registrationkey).post();
          String expiry=URLDecoder.decode(doc.getElementsByTag("Body").get(0).text(),"UTF-8");
          Date temp=new SimpleDateFormat("dd/MM/yyyy").parse(expiry);
          if(temp.compareTo(new Date())>0){
