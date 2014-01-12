@@ -8,6 +8,7 @@ import incurrframework.*;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.URLDecoder;
 import java.util.List;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -25,6 +26,9 @@ import java.util.logging.Logger;
 import javax.swing.JFrame;
 import org.apache.commons.math3.stat.descriptive.*;
 import org.apache.commons.math3.stat.regression.*;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
 
 /**
  *
@@ -54,6 +58,7 @@ public class MainAlgorithm extends Algorithm  {
     private String realTimeBars;
     private boolean marketDataNotStarted=true;
     private String realAccountTrading="False";
+    private boolean license=false;
     
     public MainAlgorithm(List<String> args) throws Exception {
         super(args); //this initializes the connection and symbols
@@ -100,18 +105,41 @@ public class MainAlgorithm extends Algorithm  {
         System.setProperties(pstrategy);
         realAccountTrading =System.getProperty("RealAccountTrading");
         //Request Account Updates for each account in connection.csv
+      
         if(Boolean.valueOf(realAccountTrading)){
             //check license for each real account setup with strategy
             //If license is accepted, do nothing
             //If license fails, write to GUI. Update tradeable variable. 
         } else { //setup for paper trading
-            //check no real account is setup for trading
-            //check license for paper trading
-            //if license fails, write to GUI. update tradeable variable
+           //check no real account is setup for trading
+            /* Add this section after accountupdates are fixed
+         for (BeanConnection c : Parameters.connection){
+            if(c.getAccountName().substring(0, 1).compareTo("U")!=0 && c.getPurpose().compareTo("None")!=0){
+                MainAlgorithmUI.setMessage("Please check connection parameters. This account is not setup for real-account trading");
+                license=false;
+            }
+        }
+        */
+         //check license for paper trading
+         //make url call here to retrieve expiration date and decrypt
+         String macID=TradingUtil.populateMACID();
+         String testurl=String.format("http://incurrency.com:8888/license");
+         Document doc=Jsoup.connect(testurl).data("macid",macID).post();
+         String expiry=URLDecoder.decode(doc.getElementsByTag("Body").get(0).text(),"UTF-8");
+         Date temp=new SimpleDateFormat("dd/MM/yyyy").parse(expiry);
+         if(temp.compareTo(new Date())>0){
+             license=true;
+         }
+         //if license fails, write to GUI. update tradeable variable
+        
+         }
+         if(!license){
+             MainAlgorithmUI.setMessage("No License. Please register or contact license@incurrency.com");
          }
         
         //Populate Contract Details
         
+         if(license){
         BeanConnection tempC = Parameters.connection.get(0);
         for (BeanSymbol s : Parameters.symbol) {
             tempC.getWrapper().getContractDetails(s,"");
@@ -208,6 +236,7 @@ public class MainAlgorithm extends Algorithm  {
         
         startDataCollection(historicalData,realTimeBars,startDate);
         
+    }
     }
  
     public synchronized void startDataCollection(String historicalData, String realTimeBars,Date startDate){
