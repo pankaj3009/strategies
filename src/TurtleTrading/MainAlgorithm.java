@@ -125,7 +125,7 @@ public class MainAlgorithm extends Algorithm  {
          String macID=TradingUtil.populateMACID();
          String ip=TradingUtil.getPublicIPAddress();
          String registrationkey=macID.compareTo("")==0?ip:macID;
-         String testurl=String.format("http://incurrency.com:8888/license");
+         String testurl=String.format("http://www.incurrency.com:8888/license");
          Document doc=Jsoup.connect(testurl).data("macid",registrationkey).post();
          String expiry=URLDecoder.decode(doc.getElementsByTag("Body").get(0).text(),"UTF-8");
          Date temp=new SimpleDateFormat("dd/MM/yyyy").parse(expiry);
