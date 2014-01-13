@@ -15,6 +15,7 @@ import incurrframework.BeanConnection;
 import incurrframework.Registration;
 import incurrframework.Parameters;
 import incurrframework.BeanSymbol;
+import incurrframework.Index;
 import incurrframework.OrderBean;
 import java.beans.XMLEncoder;
 import java.io.BufferedOutputStream;
@@ -304,7 +305,8 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
         for (BeanConnection c : Parameters.connection) {
             if ("Trading".equals(c.getPurpose()) && c.getStrategy().contains("TurtleTrading")) {
                 for (int id = 0; id < Parameters.symbol.size(); id++) {
-                    if(c.getPositions().get(id)!=null){
+                    Index ind = new Index("TurtleTrading", id);
+                    if(c.getPositions().get(ind)!=null){
                         if(c.getPositions().get(id).getPosition()>0){
                             algo.ordManagement.cancelOpenOrders(c, id, "TurtleTrading");
                             algo.ordManagement.squareAllPositions(c, id, "TurtleTrading");
@@ -320,7 +322,8 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
         for (BeanConnection c : Parameters.connection) {
             if ("Trading".equals(c.getPurpose()) && c.getStrategy().contains("TurtleTrading")) {
                 for (int id = 0; id < Parameters.symbol.size(); id++) {
-                    if(c.getPositions().get(id)!=null){
+                    Index ind = new Index("TurtleTrading", id);
+                    if(c.getPositions().get(ind)!=null){
                         if(c.getPositions().get(id).getPosition()<0){
                             algo.ordManagement.cancelOpenOrders(c, id, "TurtleTrading");
                             algo.ordManagement.squareAllPositions(c, id, "TurtleTrading");
