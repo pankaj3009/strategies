@@ -72,7 +72,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
         if (activeOrders.containsKey(id) && a.getParamTurtle().getAggression()) {
 
             BeanOrderInformation tempOrderInfo = activeOrders.get(id);
-            if (tempOrderInfo.getExpireTime() - tempOrderInfo.getOrigEvent().getDynamicOrderDuration() * 60 * 1000 > System.currentTimeMillis()) {
+            if (tempOrderInfo.getExpireTime() - System.currentTimeMillis() < tempOrderInfo.getOrigEvent().getDynamicOrderDuration() * 60 * 1000 ) {
                 //amendement scenario is valid. 
                 //Check for level of agression
                 logger.log(Level.INFO, "Method:{0}, Symbol:{1}, OrderID:{2}, Expire Time: {3}, Dynamic Order Duration :{4}, Current Time:{5}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), activeOrders.get(id).getOrderID(),tempOrderInfo.getExpireTime(), tempOrderInfo.getOrigEvent().getDynamicOrderDuration() * 60 * 1000 ,System.currentTimeMillis() });
@@ -121,7 +121,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
                         break;
                 }
                 logger.log(Level.INFO, "Method:{0}, Symbol:{1}, OrderID:{2}, bidprice:{3}, askprice:{4}, aggression:{5}, limitprice:{6}, new limit price:{7}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), activeOrders.get(id).getOrderID(), bidprice, askprice, aggression, limitprice, newlimitprice});
-                Boolean placeorder = newlimitprice > 0 && (Math.abs(newlimitprice - limitprice) > tickSize ? Boolean.TRUE : Boolean.FALSE) && Math.abs(newlimitprice - limitprice) < activeOrders.get(id).getOrigEvent().getMaxSlippage()/100 * limitprice ;
+                Boolean placeorder = newlimitprice > 0 && (Math.abs(newlimitprice - limitprice) > tickSize ? Boolean.TRUE : Boolean.FALSE) && Math.abs(newlimitprice - limitprice) < 0.1*limitprice ;
                 if (placeorder) {
                     OrderEvent eventnew = activeOrders.get(id).getOrigEvent();
                     eventnew.setLimitPrice(newlimitprice);
@@ -525,6 +525,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
                             c.getWrapper().cancelOrder(c, key);
                             boi.getOrigEvent().setLimitPrice(0);
                             boi.getOrigEvent().setTriggerPrice(0);
+                            boi.getOrigEvent().setOrderIntent(EnumOrderIntent.Init);
                             parentorder.addOrdersToBeRetried(boi.getSymbolid(), c, boi.getOrigEvent());
                             //fastClose(c, key);
                             temp.add(key); //holds all orders that have now been cancelled
