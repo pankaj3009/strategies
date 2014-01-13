@@ -13,6 +13,7 @@ import java.util.List;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Map;
@@ -59,6 +60,9 @@ public class MainAlgorithm extends Algorithm  {
     private boolean marketDataNotStarted=true;
     private String realAccountTrading="False";
     private boolean license=false;
+    private String accounts="";
+    private String macID;
+    private Date expiryDate;
     
     public MainAlgorithm(List<String> args) throws Exception {
         super(args); //this initializes the connection and symbols
@@ -105,11 +109,48 @@ public class MainAlgorithm extends Algorithm  {
         System.setProperties(pstrategy);
         realAccountTrading =System.getProperty("RealAccountTrading");
         //Request Account Updates for each account in connection.csv
-      
+        
+        for(BeanConnection c:Parameters.connection){
+            c.getWrapper().getAccountUpdates();
+            c.setAccountName(c.getWrapper().getAccountIDSync().take());
+        }
+        
         if(Boolean.valueOf(realAccountTrading)){
-            //check license for each real account setup with strategy
-            //If license is accepted, do nothing
-            //If license fails, write to GUI. Update tradeable variable. 
+        for(BeanConnection c:Parameters.connection){//check license for each real account setup with strategy
+            if("Trading".equals(c.getPurpose()) && c.getStrategy().contains("TurtleTrading")){
+                String account=c.getAccountName();
+                macID=TradingUtil.populateMACID();
+                 if (accounts.compareTo("")==0){
+                          accounts=account;
+                      }else{
+                          accounts=accounts+","+account;
+                      }   
+        }
+        }
+        expiryDate=TradingUtil.getExpiryDate(macID, accounts,Boolean.valueOf(realAccountTrading));
+        
+        }else {
+            for(BeanConnection c:Parameters.connection){            //check license for each real account setup with strategy
+            if("Trading".equals(c.getPurpose()) && c.getStrategy().contains("TurtleTrading")){
+                String account=c.getAccountName();
+                macID=TradingUtil.populateMACID();
+                  if (account.substring(0,1).compareTo("D")==0){
+                      if (accounts.compareTo("")==0){
+                          accounts=account;
+                      }else{
+                          accounts=accounts+","+account;
+                      }
+                  }
+            }
+            }
+            expiryDate=TradingUtil.getExpiryDate(macID, accounts,Boolean.valueOf(realAccountTrading));
+        }
+         if(expiryDate.compareTo(new Date())>0){
+             license=true;
+         }
+        /*
+            //If license is accepted, set license variable to true;
+            //If license fails write to GUI
         } else { //setup for paper trading
            //check no real account is setup for trading
             /* Add this section after accountupdates are fixed
@@ -119,7 +160,7 @@ public class MainAlgorithm extends Algorithm  {
                 license=false;
             }
         }
-        */
+        
          //check license for paper trading
          //make url call here to retrieve expiration date and decrypt
          String macID=TradingUtil.populateMACID();
@@ -135,8 +176,12 @@ public class MainAlgorithm extends Algorithm  {
          //if license fails, write to GUI. update tradeable variable
         
          }
+        */
          if(!license){
              MainAlgorithmUI.setMessage("No License. Please register or contact license@incurrency.com");
+             MainAlgorithmUI.displayRegistration(true);
+         } else{
+            MainAlgorithmUI.displayRegistration(false);
          }
         
         //Populate Contract Details

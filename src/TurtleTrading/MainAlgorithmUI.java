@@ -75,7 +75,7 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
         cmdExitShorts = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setTitle("Swing");
+        setTitle("Intra-Day Turtle (IDT)");
         setPreferredSize(new java.awt.Dimension(800, 250));
 
         cmdLong.setText("Long only");
@@ -136,11 +136,11 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
 
         jLabel1.setText("Program message:");
 
-        lblMessage.setText("Last Message...");
+        lblMessage.setText("Please ensure TWS/Gateway is running before starting this program");
 
         jLabel2.setText("IB API message:");
 
-        lblIBMessage.setText("Last Message...");
+        lblIBMessage.setText("...");
 
         cmdRegister.setText("Register");
         cmdRegister.addActionListener(new java.awt.event.ActionListener() {
@@ -208,10 +208,10 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
                     .addComponent(jLabel1)
                     .addComponent(lblMessage))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel2)
-                    .addComponent(lblIBMessage))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(lblIBMessage)
+                    .addComponent(jLabel2, javax.swing.GroupLayout.Alignment.TRAILING))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addGap(1, 1, 1)
@@ -233,7 +233,7 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
                             .addComponent(cmdAggressionDisable)
                             .addComponent(cmdAggressionEnable)))
                     .addComponent(cmdRegister, javax.swing.GroupLayout.PREFERRED_SIZE, 134, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(301, 301, 301))
+                .addGap(306, 306, 306))
         );
 
         pack();
@@ -336,8 +336,12 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
     }
     
    public static synchronized void setIBMessage(String message) {
-        lblIBMessage.setText(message);
+        lblIBMessage.setText("<html>"+message+"</html>");
     }
+   
+   public static synchronized void displayRegistration(boolean display){
+       cmdRegister.setVisible(display);
+   }
     
     /**
      * @param args the command line arguments
@@ -385,6 +389,8 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
                 
                 MainAlgorithmUI startup=new MainAlgorithmUI();
                 startup.setLocation(0,465);
+                MainAlgorithmUI.displayRegistration(false);
+                MainAlgorithmUI.disableStartButton();
                 startup.setVisible(true);
             }
             });
@@ -411,7 +417,7 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
     private javax.swing.JButton cmdExitShorts;
     private javax.swing.JButton cmdLong;
     private javax.swing.JButton cmdPause;
-    private javax.swing.JButton cmdRegister;
+    private static javax.swing.JButton cmdRegister;
     private javax.swing.JButton cmdShort;
     private javax.swing.JButton cmdSquareAll;
     private static javax.swing.JButton cmdStart;
