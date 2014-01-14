@@ -233,15 +233,7 @@ public class MainAlgorithm extends Algorithm  {
        // paramGuds = new BeanGuds(this);
        // paramSwing=new BeanSwing(this);
         ordManagement = new OrderPlacement(this);
-        MainAlgorithmUI.setPauseTrading(true);
-        MainAlgorithmUI.setcmdLong(true);
-        MainAlgorithmUI.setcmdShort(true);
-        MainAlgorithmUI.setcmdBoth(true);
-        MainAlgorithmUI.setcmdExitShorts(true);
-        MainAlgorithmUI.setcmdExitLongs(true);
-        MainAlgorithmUI.setcmdSquareAll(true);
-        MainAlgorithmUI.setcmdAggressionDisable(true);
-        MainAlgorithmUI.setcmdAggressionEnable(true);
+
        
         //Attempt realtime bars in a new thread
         createAndShowGUI(this);
@@ -277,6 +269,15 @@ public class MainAlgorithm extends Algorithm  {
       if(startDate.compareTo(new Date())<0 && marketDataNotStarted){
           MainAlgorithmUI.setStart(false);
           MainAlgorithmUI.setPauseTrading(true);
+        MainAlgorithmUI.setPauseTrading(true);
+        MainAlgorithmUI.setcmdLong(true);
+        MainAlgorithmUI.setcmdShort(true);
+        MainAlgorithmUI.setcmdBoth(true);
+        MainAlgorithmUI.setcmdExitShorts(true);
+        MainAlgorithmUI.setcmdExitLongs(true);
+        MainAlgorithmUI.setcmdSquareAll(true);
+        MainAlgorithmUI.setcmdAggressionDisable(true);
+        MainAlgorithmUI.setcmdAggressionEnable(true);
         if(Boolean.valueOf(realTimeBars)){
             marketDataNotStarted=false;
             MainAlgorithmUI.setStart(false);
