@@ -106,7 +106,7 @@ public class MainAlgorithm extends Algorithm  {
         
         //Request account numbers. Store account code + Trading requests
         
-        System.setProperties(pstrategy);
+        System.setProperties(pmaster);
         realAccountTrading =System.getProperty("RealAccountTrading");
         //Request Account Updates for each account in connection.csv
         
