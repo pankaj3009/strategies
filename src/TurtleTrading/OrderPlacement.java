@@ -186,8 +186,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
                                     if (event.getExpireTime() > 0) {
                                         //this is an exit order. Cancel open orders and square all positions
                                         this.cancelOpenOrders(c, id, event.getOrdReference());
-                                        processExitOrder(id, c, event); //i am placing exit orders withtout checking cancellation status....
-                                        //addOrdersToBeRetried(id, c, event); commented out pending satisfactory resolution
+                                        addOrdersToBeRetried(id, c, event); 
                                     } else {
                                         addOrdersToBeRetried(id, c, event); //what will happen if the entry orders were not filled?
                                     }
@@ -287,7 +286,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
 
     void processExitOrder(int id, BeanConnection c, OrderEvent event) {
         Index ind = new Index(event.getOrdReference(), id);
-        int positions = Math.abs(c.getPositions().get(ind).getPosition());
+        int positions = c.getPositions().get(ind)==null?0:Math.abs(c.getPositions().get(ind).getPosition());
         Order ord = c.getWrapper().createOrder(positions, event.getSide(), event.getLimitPrice(), event.getTriggerPrice(), "DAY", event.getExpireTime(), false, event.getOrdReference(), "");
         Contract con = c.getWrapper().createContract(id);
         logger.log(Level.INFO, "Method:{0},Action:Exit Position, Symbol:{1}, Side={2}, position:{3}, limit price={4}, trigger price={5}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getSide(), ord.m_totalQuantity, ord.m_lmtPrice, ord.m_auxPrice});
@@ -393,18 +392,20 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
                         logger.log(Level.INFO, "{0}, Symbol:{1}, Order Side:{2},orderID:{3},limit price={4}, trigger price={5}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getSide(), orderid, event.getLimitPrice(), event.getTriggerPrice()});
                         ord.m_totalQuantity = size;
                         c.getWrapper().placeOrder(c, id + 1, event.getSide(), ord, con, event.getExitType());
+                        if(event.getExpireTime()!=0){
                         activeOrders.put(id, new BeanOrderInformation(id, c, orderid, event.getExpireTime(), event));
+                        }
                         c.getOrders().get(orderid).setTriggerPrice(ord.m_auxPrice);
                         c.getOrders().get(orderid).setLimitPrice(ord.m_lmtPrice);
                     }
                 }
             } else {
-                int positions = c.getPositions().get(ind).getPosition();
+                int positions = c.getPositions().get(ind)==null?0:c.getPositions().get(ind).getPosition();
                 //Retry orders if there is an open BUY order and we get a corresponding sell. Same for COVER
                 if ((c.getOrdersSymbols().get(ind).get(0) > 0 && event.getSide() == EnumOrderSide.SELL) || (c.getOrdersSymbols().get(ind).get(2) > 0 && event.getSide() == EnumOrderSide.COVER)) {
                     logger.log(Level.INFO, "Order to be retried:{0}, Symbol:{1}, Order Side:{2}, orderID:{3}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getSide(), orderid});
                     this.addOrdersToBeRetried(id, c, event);
-                } else if ((event.getSide() == EnumOrderSide.BUY && positions == 0) || (event.getSide() == EnumOrderSide.SHORT && positions == 0)) { //if for some reason, there is no open order for entry, init entry is attempted
+                } else if ((event.getSide() == EnumOrderSide.BUY && positions == 0 &&c.getOrdersSymbols().get(ind).get(0)==0 ) || (event.getSide() == EnumOrderSide.SHORT && positions == 0 && c.getOrdersSymbols().get(ind).get(2)==0)) { //if for some reason, there is no open order for entry and zero position, init entry is attempted
                     logger.log(Level.INFO, "Changed Amend intent to Init :{0}, Symbol:{1}, Order Side:{2}, orderID:{3}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getSide(), orderid});
                     event.setOrderIntent(EnumOrderIntent.Init);
                     parentorder.orderReceived(event);
@@ -550,14 +551,19 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
             for (BeanConnection c : Parameters.connection) {
                 if (c.getOrdersToBeRetried().size() > 0) {
                     ArrayList<Long> temp = new ArrayList();
+                    ArrayList<OrderEvent>eventsToBeProcessed=new ArrayList();
                     for (Long key : c.getOrdersToBeRetried().keySet()) {
                         OrderEvent ordb = c.getOrdersToBeRetried().get(key);
-                        parentorder.orderReceived(ordb);
+                        eventsToBeProcessed.add(ordb);
+                        //parentorder.orderReceived(ordb);
                         temp.add(key);
                     }
                     for (long ordersToBeDeleted : temp) {
                         logger.log(Level.INFO, "Symbol Deleted from retry attempt. Method:{0}, Symbol:{1}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(c.getOrdersToBeRetried().get(ordersToBeDeleted).getSymbolBean().getSerialno() - 1).getSymbol()});
                         c.getOrdersToBeRetried().remove(ordersToBeDeleted);
+                    }
+                    for(OrderEvent event:eventsToBeProcessed){
+                        parentorder.orderReceived(event);
                     }
                 }
             }

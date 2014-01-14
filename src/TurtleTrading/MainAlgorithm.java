@@ -37,9 +37,6 @@ import org.jsoup.select.Elements;
  */
 public class MainAlgorithm extends Algorithm  {
 
-    /**
-     * @return the param
-     */
     public MarketData m;
     public final static Logger LOGGER = Logger.getLogger(Algorithm.class.getName());
     public final static Logger logger=Logger.getLogger("KeyParameters");
@@ -63,6 +60,7 @@ public class MainAlgorithm extends Algorithm  {
     private String accounts="";
     private String macID;
     private Date expiryDate;
+    private static String collectTicks;
     
     public MainAlgorithm(List<String> args) throws Exception {
         super(args); //this initializes the connection and symbols
@@ -115,6 +113,11 @@ public class MainAlgorithm extends Algorithm  {
             c.setAccountName(c.getWrapper().getAccountIDSync().take());
         }
         
+        for(BeanConnection c:Parameters.connection){
+            c.getWrapper().cancelAccountUpdates();
+        }
+    
+        
         if(Boolean.valueOf(realAccountTrading)){
         for(BeanConnection c:Parameters.connection){//check license for each real account setup with strategy
             if("Trading".equals(c.getPurpose()) && c.getStrategy().contains("IDT")){
@@ -148,35 +151,7 @@ public class MainAlgorithm extends Algorithm  {
          if(expiryDate.compareTo(new Date())>0){
              license=true;
          }
-        /*
-            //If license is accepted, set license variable to true;
-            //If license fails write to GUI
-        } else { //setup for paper trading
-           //check no real account is setup for trading
-            /* Add this section after accountupdates are fixed
-         for (BeanConnection c : Parameters.connection){
-            if(c.getAccountName().substring(0, 1).compareTo("U")!=0 && c.getPurpose().compareTo("None")!=0){
-                MainAlgorithmUI.setMessage("Please check connection parameters. This account is not setup for real-account trading");
-                license=false;
-            }
-        }
         
-         //check license for paper trading
-         //make url call here to retrieve expiration date and decrypt
-         String macID=TradingUtil.populateMACID();
-         String ip=TradingUtil.getPublicIPAddress();
-         String registrationkey=macID.compareTo("")==0?ip:macID;
-         String testurl=String.format("http://www.incurrency.com:8888/license");
-         Document doc=Jsoup.connect(testurl).data("macid",registrationkey).post();
-         String expiry=URLDecoder.decode(doc.getElementsByTag("Body").get(0).text(),"UTF-8");
-         Date temp=new SimpleDateFormat("dd/MM/yyyy").parse(expiry);
-         if(temp.compareTo(new Date())>0){
-             license=true;
-         }
-         //if license fails, write to GUI. update tradeable variable
-        
-         }
-        */
          if(!license){
              MainAlgorithmUI.setMessage("No License. Please register or contact license@incurrency.com");
              MainAlgorithmUI.displayRegistration(true);
@@ -233,6 +208,7 @@ public class MainAlgorithm extends Algorithm  {
         System.setProperties(pmaster);
         historicalData=System.getProperty("HistoricalData");
         realTimeBars=System.getProperty("RealTimeBars");
+        collectTicks=System.getProperty("CollectTickData");
         if (closeDate.compareTo(preopenDate) < 0 && new Date().compareTo(closeDate) > 0) {
             //increase enddate by one calendar day
             closeDate = DateUtil.addDays(closeDate, 1); //system date is > start date time. Therefore we have not crossed the 12:00 am barrier
@@ -501,4 +477,17 @@ public class MainAlgorithm extends Algorithm  {
         this.closeDate = closeDate;
     }
 
+        /**
+     * @return the collectTicks
+     */
+    public static String getCollectTicks() {
+        return collectTicks;
+    }
+
+    /**
+     * @param aCollectTicks the collectTicks to set
+     */
+    public static void setCollectTicks(String aCollectTicks) {
+        collectTicks = aCollectTicks;
+    }
 }
