@@ -186,7 +186,8 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
                                     if (event.getExpireTime() > 0) {
                                         //this is an exit order. Cancel open orders and square all positions
                                         this.cancelOpenOrders(c, id, event.getOrdReference());
-                                        addOrdersToBeRetried(id, c, event);
+                                        processExitOrder(id, c, event); //i am placing exit orders withtout checking cancellation status....
+                                        //addOrdersToBeRetried(id, c, event); commented out pending satisfactory resolution
                                     } else {
                                         addOrdersToBeRetried(id, c, event); //what will happen if the entry orders were not filled?
                                     }
