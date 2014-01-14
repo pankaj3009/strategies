@@ -112,11 +112,7 @@ public class MainAlgorithm extends Algorithm  {
             c.getWrapper().getAccountUpdates();
             c.setAccountName(c.getWrapper().getAccountIDSync().take());
         }
-        
-        for(BeanConnection c:Parameters.connection){
-            c.getWrapper().cancelAccountUpdates();
-        }
-    
+  
         
         if(Boolean.valueOf(realAccountTrading)){
         for(BeanConnection c:Parameters.connection){//check license for each real account setup with strategy
