@@ -117,7 +117,7 @@ public class MainAlgorithm extends Algorithm  {
         
         if(Boolean.valueOf(realAccountTrading)){
         for(BeanConnection c:Parameters.connection){//check license for each real account setup with strategy
-            if("Trading".equals(c.getPurpose()) && c.getStrategy().contains("TurtleTrading")){
+            if("Trading".equals(c.getPurpose()) && c.getStrategy().contains("IDT")){
                 String account=c.getAccountName();
                 macID=TradingUtil.populateMACID();
                  if (accounts.compareTo("")==0){
@@ -131,7 +131,7 @@ public class MainAlgorithm extends Algorithm  {
         
         }else {
             for(BeanConnection c:Parameters.connection){            //check license for each real account setup with strategy
-            if("Trading".equals(c.getPurpose()) && c.getStrategy().contains("TurtleTrading")){
+            if("Trading".equals(c.getPurpose()) && c.getStrategy().contains("IDT")){
                 String account=c.getAccountName();
                 macID=TradingUtil.populateMACID();
                   if (account.substring(0,1).compareTo("D")==0){
@@ -182,6 +182,8 @@ public class MainAlgorithm extends Algorithm  {
              MainAlgorithmUI.displayRegistration(true);
          } else{
             MainAlgorithmUI.displayRegistration(false);
+            MainAlgorithmUI.setStart(true);
+            
          }
         
         //Populate Contract Details
@@ -289,9 +291,11 @@ public class MainAlgorithm extends Algorithm  {
     public synchronized void startDataCollection(String historicalData, String realTimeBars,Date startDate){
         
       if(startDate.compareTo(new Date())<0 && marketDataNotStarted){
+          MainAlgorithmUI.setStart(false);
+          MainAlgorithmUI.setPauseTrading(true);
         if(Boolean.valueOf(realTimeBars)){
             marketDataNotStarted=false;
-            MainAlgorithmUI.disableStartButton();
+            MainAlgorithmUI.setStart(false);
             MainAlgorithmUI.setMessage("Starting request of RealTime Bars");
         new RealTimeBars(getParamTurtle());
         //BoilerPlate Ends

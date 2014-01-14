@@ -77,7 +77,6 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Intra-Day Turtle (IDT)");
-        setPreferredSize(new java.awt.Dimension(800, 250));
 
         cmdLong.setText("Long only");
         cmdLong.addActionListener(new java.awt.event.ActionListener() {
@@ -269,17 +268,17 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
         algo.getParamTurtle().setLongOnly(false);
         algo.getParamTurtle().setShortOnly(false);
         for (BeanConnection c : Parameters.connection) {
-            if ("Trading".equals(c.getPurpose()) && c.getStrategy().contains("TurtleTrading")) {
+            if ("Trading".equals(c.getPurpose()) && c.getStrategy().contains("IDT")) {
                 for (int id = 0; id < Parameters.symbol.size(); id++) {
-                    algo.ordManagement.cancelOpenOrders(c, id, "TurtleTrading");
-                    algo.ordManagement.squareAllPositions(c, id, "TurtleTrading");
+                    algo.ordManagement.cancelOpenOrders(c, id, "IDT");
+                    algo.ordManagement.squareAllPositions(c, id, "IDT");
                 }
             }
     }//GEN-LAST:event_cmdSquareAllActionPerformed
     }
     
-    public static void disableStartButton(){
-        cmdStart.setEnabled(false);
+    public static void setStart(boolean status){
+        cmdStart.setEnabled(status);
     }
     
     private void cmdStartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdStartActionPerformed
@@ -303,13 +302,13 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
     private void cmdExitLongsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdExitLongsActionPerformed
         algo.getParamTurtle().setLongOnly(false);
         for (BeanConnection c : Parameters.connection) {
-            if ("Trading".equals(c.getPurpose()) && c.getStrategy().contains("TurtleTrading")) {
+            if ("Trading".equals(c.getPurpose()) && c.getStrategy().contains("IDT")) {
                 for (int id = 0; id < Parameters.symbol.size(); id++) {
-                    Index ind = new Index("TurtleTrading", id);
+                    Index ind = new Index("IDT", id);
                     if(c.getPositions().get(ind)!=null){
                         if(c.getPositions().get(id).getPosition()>0){
-                            algo.ordManagement.cancelOpenOrders(c, id, "TurtleTrading");
-                            algo.ordManagement.squareAllPositions(c, id, "TurtleTrading");
+                            algo.ordManagement.cancelOpenOrders(c, id, "IDT");
+                            algo.ordManagement.squareAllPositions(c, id, "IDT");
                         }
                     }
                 }
@@ -320,13 +319,13 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
     private void cmdExitShortsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdExitShortsActionPerformed
         algo.getParamTurtle().setShortOnly(false);
         for (BeanConnection c : Parameters.connection) {
-            if ("Trading".equals(c.getPurpose()) && c.getStrategy().contains("TurtleTrading")) {
+            if ("Trading".equals(c.getPurpose()) && c.getStrategy().contains("IDT")) {
                 for (int id = 0; id < Parameters.symbol.size(); id++) {
-                    Index ind = new Index("TurtleTrading", id);
+                    Index ind = new Index("IDT", id);
                     if(c.getPositions().get(ind)!=null){
                         if(c.getPositions().get(id).getPosition()<0){
-                            algo.ordManagement.cancelOpenOrders(c, id, "TurtleTrading");
-                            algo.ordManagement.squareAllPositions(c, id, "TurtleTrading");
+                            algo.ordManagement.cancelOpenOrders(c, id, "IDT");
+                            algo.ordManagement.squareAllPositions(c, id, "IDT");
                         }
                     }
                 }
@@ -393,12 +392,16 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
                 MainAlgorithmUI startup=new MainAlgorithmUI();
                 startup.setLocation(0,465);
                 MainAlgorithmUI.displayRegistration(false);
-                MainAlgorithmUI.disableStartButton();
+                MainAlgorithmUI.setStart(false);
                 startup.setVisible(true);
             }
             });
             algo=new MainAlgorithm(myList);
         /* Create and display the form */
+    }
+    
+    static public void setPauseTrading(boolean status){
+        MainAlgorithmUI.cmdPause.setEnabled(status);
     }
     
     static private void loadParam(String param){
@@ -419,7 +422,7 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
     private javax.swing.JButton cmdExitLongs;
     private javax.swing.JButton cmdExitShorts;
     private javax.swing.JButton cmdLong;
-    private javax.swing.JButton cmdPause;
+    private static javax.swing.JButton cmdPause;
     private static javax.swing.JButton cmdRegister;
     private javax.swing.JButton cmdShort;
     private javax.swing.JButton cmdSquareAll;
