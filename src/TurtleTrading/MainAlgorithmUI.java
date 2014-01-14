@@ -244,12 +244,14 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
     private void cmdLongActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdLongActionPerformed
         algo.getParamTurtle().setLongOnly(true);
         algo.getParamTurtle().setShortOnly(false);
+        MainAlgorithmUI.setMessage("Long Only mode initiated.");
          Logger.getLogger(MainAlgorithmUI.class.getName()).log(Level.INFO, "Set to Long Only");
     }//GEN-LAST:event_cmdLongActionPerformed
 
     private void cmdShortActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdShortActionPerformed
         algo.getParamTurtle().setLongOnly(false);
         algo.getParamTurtle().setShortOnly(true);
+        MainAlgorithmUI.setMessage("Short Only mode initiated.");
         Logger.getLogger(MainAlgorithmUI.class.getName()).log(Level.INFO, "Set to Short Only");
     }//GEN-LAST:event_cmdShortActionPerformed
 
@@ -262,6 +264,8 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
     private void cmdPauseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdPauseActionPerformed
         algo.getParamTurtle().setLongOnly(false);
         algo.getParamTurtle().setShortOnly(false);
+        MainAlgorithmUI.setMessage("Program Paused.");
+        Logger.getLogger(MainAlgorithmUI.class.getName()).log(Level.INFO, "Program Paused");
     }//GEN-LAST:event_cmdPauseActionPerformed
 
     private void cmdSquareAllActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdSquareAllActionPerformed
@@ -275,7 +279,9 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
                 }
             }
     }//GEN-LAST:event_cmdSquareAllActionPerformed
+  Logger.getLogger(MainAlgorithmUI.class.getName()).log(Level.INFO, "Square All Positions initiated");
     }
+    
     
     public static void setStart(boolean status){
         cmdStart.setEnabled(status);
@@ -287,10 +293,14 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
 
     private void cmdAggressionDisableActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdAggressionDisableActionPerformed
         algo.getParamTurtle().setAggression(false);
+        MainAlgorithmUI.setMessage("Passive Orders in play");
+        Logger.getLogger(MainAlgorithmUI.class.getName()).log(Level.INFO, "Passive Orders in play");
     }//GEN-LAST:event_cmdAggressionDisableActionPerformed
 
     private void cmdAggressionEnableActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdAggressionEnableActionPerformed
         algo.getParamTurtle().setAggression(true);
+        MainAlgorithmUI.setMessage("Aggressive Orders in play");
+        Logger.getLogger(MainAlgorithmUI.class.getName()).log(Level.INFO, "Active Orders in play");
     }//GEN-LAST:event_cmdAggressionEnableActionPerformed
 
     private void cmdRegisterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdRegisterActionPerformed
@@ -313,7 +323,8 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
                     }
                 }
             }
-        } 
+        }
+        Logger.getLogger(MainAlgorithmUI.class.getName()).log(Level.INFO, "Exit Long positions");
     }//GEN-LAST:event_cmdExitLongsActionPerformed
 
     private void cmdExitShortsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdExitShortsActionPerformed
@@ -331,6 +342,7 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
                 }
             }
         } 
+        Logger.getLogger(MainAlgorithmUI.class.getName()).log(Level.INFO, "Exit Short Positions");
     }//GEN-LAST:event_cmdExitShortsActionPerformed
     
     public static synchronized void setMessage(String message) {
@@ -393,6 +405,16 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
                 startup.setLocation(0,465);
                 MainAlgorithmUI.displayRegistration(false);
                 MainAlgorithmUI.setStart(false);
+                MainAlgorithmUI.setPauseTrading(false);
+                MainAlgorithmUI.setcmdLong(false);
+                MainAlgorithmUI.setcmdShort(false);
+                MainAlgorithmUI.setcmdBoth(false);
+                MainAlgorithmUI.setcmdExitShorts(false);
+                MainAlgorithmUI.setcmdExitLongs(false);
+                MainAlgorithmUI.setcmdSquareAll(false);
+                MainAlgorithmUI.setcmdAggressionDisable(false);
+                MainAlgorithmUI.setcmdAggressionEnable(false);
+                
                 startup.setVisible(true);
             }
             });
@@ -402,6 +424,31 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
     
     static public void setPauseTrading(boolean status){
         MainAlgorithmUI.cmdPause.setEnabled(status);
+    }
+    
+    static public void setcmdLong(boolean status){
+        MainAlgorithmUI.cmdLong.setEnabled(status);
+    }
+    static public void setcmdShort(boolean status){
+        MainAlgorithmUI.cmdShort.setEnabled(status);
+    }
+    static public void setcmdBoth(boolean status){
+        MainAlgorithmUI.cmdBoth.setEnabled(status);
+    }
+    static public void setcmdExitShorts(boolean status){
+        MainAlgorithmUI.cmdExitShorts.setEnabled(status);
+    }
+    static public void setcmdExitLongs(boolean status){
+        MainAlgorithmUI.cmdExitLongs.setEnabled(status);
+    }
+    static public void setcmdSquareAll(boolean status){
+        MainAlgorithmUI.cmdSquareAll.setEnabled(status);
+    }
+    static public void setcmdAggressionDisable(boolean status){
+        MainAlgorithmUI.cmdAggressionDisable.setEnabled(status);
+    }
+    static public void setcmdAggressionEnable(boolean status){
+        MainAlgorithmUI.cmdAggressionEnable.setEnabled(status);
     }
     
     static private void loadParam(String param){
@@ -416,16 +463,16 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton cmdAggressionDisable;
-    private javax.swing.JButton cmdAggressionEnable;
-    private javax.swing.JButton cmdBoth;
-    private javax.swing.JButton cmdExitLongs;
-    private javax.swing.JButton cmdExitShorts;
-    private javax.swing.JButton cmdLong;
+    private static javax.swing.JButton cmdAggressionDisable;
+    private static javax.swing.JButton cmdAggressionEnable;
+    private static javax.swing.JButton cmdBoth;
+    private static javax.swing.JButton cmdExitLongs;
+    private static javax.swing.JButton cmdExitShorts;
+    private static javax.swing.JButton cmdLong;
     private static javax.swing.JButton cmdPause;
     private static javax.swing.JButton cmdRegister;
-    private javax.swing.JButton cmdShort;
-    private javax.swing.JButton cmdSquareAll;
+    private static javax.swing.JButton cmdShort;
+    private static javax.swing.JButton cmdSquareAll;
     private static javax.swing.JButton cmdStart;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;

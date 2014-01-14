@@ -58,7 +58,7 @@ public class MainAlgorithm extends Algorithm  {
     private String realAccountTrading="False";
     private boolean license=false;
     private String accounts="";
-    private String macID;
+    private String macID="";
     private Date expiryDate;
     private static String collectTicks;
     
@@ -233,7 +233,15 @@ public class MainAlgorithm extends Algorithm  {
        // paramGuds = new BeanGuds(this);
        // paramSwing=new BeanSwing(this);
         ordManagement = new OrderPlacement(this);
-
+        MainAlgorithmUI.setPauseTrading(true);
+        MainAlgorithmUI.setcmdLong(true);
+        MainAlgorithmUI.setcmdShort(true);
+        MainAlgorithmUI.setcmdBoth(true);
+        MainAlgorithmUI.setcmdExitShorts(true);
+        MainAlgorithmUI.setcmdExitLongs(true);
+        MainAlgorithmUI.setcmdSquareAll(true);
+        MainAlgorithmUI.setcmdAggressionDisable(true);
+        MainAlgorithmUI.setcmdAggressionEnable(true);
        
         //Attempt realtime bars in a new thread
         createAndShowGUI(this);
