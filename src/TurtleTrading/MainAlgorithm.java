@@ -157,7 +157,7 @@ public class MainAlgorithm extends Algorithm  {
              MainAlgorithmUI.displayRegistration(true);
          } else{
             MainAlgorithmUI.displayRegistration(false);
-            MainAlgorithmUI.setStart(true);
+            
             
          }
         
@@ -258,7 +258,7 @@ public class MainAlgorithm extends Algorithm  {
         }
         
         
-        
+        MainAlgorithmUI.setStart(true);
         startDataCollection(historicalData,realTimeBars,startDate);
         
     }
