@@ -72,14 +72,14 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
     private double volumeSlopeLongMultiplier;
     private int maxOrderDuration;
     private int dynamicOrderDuration;
-    private double maxSlippage;
+    private double maxSlippage=0;
     private static final Logger LOGGER = Logger.getLogger(Algorithm.class.getName());
     private static ConcurrentHashMap queue = new <Integer, PendingHistoricalRequests> ConcurrentHashMap();
     private static ConcurrentLinkedQueue queueHistRequests = new ConcurrentLinkedQueue(new ArrayList<PendingHistoricalRequests>());
     private static ArrayList<PendingHistoricalRequests> temp = new ArrayList<PendingHistoricalRequests>();
     private static HashMap<Integer, Integer> BarsCount = new HashMap();
     private String tickSize;
-    private String exit;
+    private String exit="TBD";
     private ArrayList<Boolean> breachUpInBar = new ArrayList();
     private ArrayList<Boolean> breachDownInBar = new ArrayList();
     private ArrayList<Integer> breachUp = new ArrayList();
@@ -95,6 +95,8 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
     private String symbols;
     private List<String> tradeableSymbols = new ArrayList();
     Timer closeProcessing;
+    private double maVolumeLong;
+    private double maVolumeShort;
 
     public BeanTurtle(MainAlgorithm m) {
         this.m = m;
@@ -168,7 +170,10 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
         tickSize = System.getProperty("TickSize");
         maxOrderDuration = Integer.parseInt(System.getProperty("MaxOrderDuration"));
         dynamicOrderDuration = Integer.parseInt(System.getProperty("DynamicOrderDuration"));
-        maxSlippage = Double.parseDouble(System.getProperty("MaxSlippage"));
+        maVolumeLong=Double.parseDouble(System.getProperty("MAVolumeLong"));
+        maVolumeShort=Double.parseDouble(System.getProperty("MAVolumeShort"));
+                
+        //maxSlippage = Double.parseDouble(System.getProperty("MaxSlippage"));
         Calendar closeDateCal = Calendar.getInstance();
         closeDateCal.setTime(m.getCloseDate());
         Calendar startDateCal = Calendar.getInstance();
@@ -187,7 +192,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
         exposure = Double.parseDouble(System.getProperty("Exposure"));
         startBars = Integer.parseInt(System.getProperty("StartBars"));
         display = Integer.parseInt(System.getProperty("Display"));
-        exit = System.getProperty("Exit");
+        //exit = System.getProperty("Exit");
         this.symbols = System.getProperty("Symbols");
     }
 
@@ -397,12 +402,12 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
                     boolean ruleCumVolumeShort = this.getCumVolume().get(id).get(this.getCumVolume().get(id).size() - 1) <= Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput());
                     boolean ruleSlopeLong = this.getSlope().get(id) > Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeLongMultiplier() / 375;
                     boolean ruleSlopeShort = this.getSlope().get(id) < -Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeLongMultiplier() / 375;
-                    boolean ruleVolumeLong = this.getVolume().get(id) > this.getVolumeMA().get(id);
-                    boolean ruleVolumeShort = this.getVolume().get(id) > 2 * this.getVolumeMA().get(id);
+                    boolean ruleVolumeLong = this.getVolume().get(id) > maVolumeLong*this.getVolumeMA().get(id);
+                    boolean ruleVolumeShort = this.getVolume().get(id) > maVolumeShort * this.getVolumeMA().get(id);
                     ruleCumVolumeLong = true;
                     ruleCumVolumeShort = true;
-                    ruleVolumeLong = true;
-                    ruleVolumeShort = true;
+                    //ruleVolumeLong = true;
+                    //ruleVolumeShort = true;
 
                     if (ruleCumVolumeLong && ruleSlopeLong && ruleVolumeLong) {
                         exPriceBarLong.set(id, Boolean.TRUE);
@@ -577,12 +582,12 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
                 boolean ruleCumVolumeShort = this.getCumVolume().get(id).get(this.getCumVolume().get(id).size() - 1) <= Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput());
                 boolean ruleSlopeLong = this.getSlope().get(id) > Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeLongMultiplier() / 375;
                 boolean ruleSlopeShort = this.getSlope().get(id) < -Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeLongMultiplier() / 375;
-                boolean ruleVolumeLong = this.getVolume().get(id) > this.getVolumeMA().get(id);
-                boolean ruleVolumeShort = this.getVolume().get(id) > 2 * this.getVolumeMA().get(id);
+                boolean ruleVolumeLong = this.getVolume().get(id) > maVolumeLong*this.getVolumeMA().get(id);
+                boolean ruleVolumeShort = this.getVolume().get(id) > maVolumeShort* this.getVolumeMA().get(id);
                 ruleCumVolumeLong = true;
                 ruleCumVolumeShort = true;
-                ruleVolumeLong = true;
-                ruleVolumeShort = true;
+                //ruleVolumeLong = true;
+                //ruleVolumeShort = true;
                 if (this.tradeableSymbols.contains(Parameters.symbol.get(id).getSymbol())) {
                     generateOrders(id, ruleHighestHigh, ruleLowestLow, ruleCumVolumeLong, ruleCumVolumeShort, ruleSlopeLong, ruleSlopeShort, ruleVolumeLong, ruleVolumeShort, false);
                 }
@@ -1269,5 +1274,33 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
      */
     public void setTickSize(String aTickSize) {
         tickSize = aTickSize;
+    }
+
+    /**
+     * @return the maVolumeLong
+     */
+    public double getMaVolumeLong() {
+        return maVolumeLong;
+    }
+
+    /**
+     * @param maVolumeLong the maVolumeLong to set
+     */
+    public void setMaVolumeLong(double maVolumeLong) {
+        this.maVolumeLong = maVolumeLong;
+    }
+
+    /**
+     * @return the maVolumeShort
+     */
+    public double getMaVolumeShort() {
+        return maVolumeShort;
+    }
+
+    /**
+     * @param maVolumeShort the maVolumeShort to set
+     */
+    public void setMaVolumeShort(double maVolumeShort) {
+        this.maVolumeShort = maVolumeShort;
     }
 }

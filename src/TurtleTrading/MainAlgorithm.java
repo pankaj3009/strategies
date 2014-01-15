@@ -176,6 +176,9 @@ public class MainAlgorithm extends Algorithm  {
             MainAlgorithmUI.setMessage("Waiting for contract information to be retrieved");
         }
         //Request Market Data
+        
+        Thread.sleep(1000);
+        
         List<BeanSymbol> filteredSymbols = new ArrayList();
         for(BeanSymbol s : Parameters.symbol) {
         if( "N".compareTo(s.getPreopen())==0){
