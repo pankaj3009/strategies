@@ -696,7 +696,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
             ord.m_orderId = c.getWrapper().placeOrder(c, id + 1, EnumOrderSide.SELL, ord, con, "");
         } else if (position < 0) {
             ord = c.getWrapper().createOrder(Math.abs(position), EnumOrderSide.COVER, 0, 0, "DAY", 0, false, strategy, "");
-            logger.log(Level.INFO, "Order Placed. Square on Error. Symbol ID={0}", new Object[]{Parameters.symbol.get(id + 1).getSymbol()});
+            logger.log(Level.INFO, "Order Placed. Square on Error. Symbol ID={0}", new Object[]{Parameters.symbol.get(id).getSymbol()});
             ord.m_orderId = c.getWrapper().placeOrder(c, id + 1, EnumOrderSide.COVER, ord, con, "");
         }
         logger.log(Level.INFO, "Method:{0}, Symbol:{1}, OrderID:{2}, Position:{3}, OrderSide:{4}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), ord.m_orderId, position, ord.m_action});

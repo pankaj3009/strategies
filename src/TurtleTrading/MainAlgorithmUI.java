@@ -258,6 +258,7 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
     private void cmdBothActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdBothActionPerformed
         algo.getParamTurtle().setLongOnly(true);
         algo.getParamTurtle().setShortOnly(true);
+        MainAlgorithmUI.setMessage("Both Long and Short modes initiated.");
         Logger.getLogger(MainAlgorithmUI.class.getName()).log(Level.INFO, "Set to Long and Short");
     }//GEN-LAST:event_cmdBothActionPerformed
 
@@ -271,6 +272,7 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
     private void cmdSquareAllActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdSquareAllActionPerformed
         algo.getParamTurtle().setLongOnly(false);
         algo.getParamTurtle().setShortOnly(false);
+        Logger.getLogger(MainAlgorithmUI.class.getName()).log(Level.INFO, "Program Paused");
         for (BeanConnection c : Parameters.connection) {
             if ("Trading".equals(c.getPurpose()) && c.getStrategy().contains("IDT")) {
                 for (int id = 0; id < Parameters.symbol.size(); id++) {
@@ -311,12 +313,13 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
 
     private void cmdExitLongsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdExitLongsActionPerformed
         algo.getParamTurtle().setLongOnly(false);
+        Logger.getLogger(MainAlgorithmUI.class.getName()).log(Level.INFO, "Set to Short Only");
         for (BeanConnection c : Parameters.connection) {
             if ("Trading".equals(c.getPurpose()) && c.getStrategy().contains("IDT")) {
                 for (int id = 0; id < Parameters.symbol.size(); id++) {
                     Index ind = new Index("IDT", id);
                     if(c.getPositions().get(ind)!=null){
-                        if(c.getPositions().get(id).getPosition()>0){
+                        if(c.getPositions().get(ind).getPosition()>0){
                             algo.ordManagement.cancelOpenOrders(c, id, "IDT");
                             algo.ordManagement.squareAllPositions(c, id, "IDT");
                         }
@@ -329,12 +332,13 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
 
     private void cmdExitShortsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdExitShortsActionPerformed
         algo.getParamTurtle().setShortOnly(false);
+        Logger.getLogger(MainAlgorithmUI.class.getName()).log(Level.INFO, "Set to Long Only");
         for (BeanConnection c : Parameters.connection) {
             if ("Trading".equals(c.getPurpose()) && c.getStrategy().contains("IDT")) {
                 for (int id = 0; id < Parameters.symbol.size(); id++) {
                     Index ind = new Index("IDT", id);
                     if(c.getPositions().get(ind)!=null){
-                        if(c.getPositions().get(id).getPosition()<0){
+                        if(c.getPositions().get(ind).getPosition()<0){
                             algo.ordManagement.cancelOpenOrders(c, id, "IDT");
                             algo.ordManagement.squareAllPositions(c, id, "IDT");
                         }
