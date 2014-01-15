@@ -1,2 +1,0 @@
-1. Stop placing orders after a given time. Introduce parameter.
-2. Ensure orders placed on market close are executed before market closes.
