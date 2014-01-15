@@ -70,6 +70,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
     private int channelDuration;
     private int regressionLookBack;
     private double volumeSlopeLongMultiplier;
+    private double volumeSlopeShortMultipler;
     private int maxOrderDuration;
     private int dynamicOrderDuration;
     private double maxSlippage=0;
@@ -187,7 +188,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
         }
         channelDuration = Integer.parseInt(System.getProperty("ChannelDuration"));
         volumeSlopeLongMultiplier = Double.parseDouble(System.getProperty("VolSlopeMultLong"));
-        //volumeSlopeShortMultipler = Double.parseDouble(System.getProperty("VolSlopeMultLong"));
+        setVolumeSlopeShortMultipler(Double.parseDouble(System.getProperty("VolSlopeMultShort")));
         regressionLookBack = Integer.parseInt(System.getProperty("RegressionLookBack"));
         exposure = Double.parseDouble(System.getProperty("Exposure"));
         startBars = Integer.parseInt(System.getProperty("StartBars"));
@@ -581,7 +582,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
                 boolean ruleCumVolumeLong = this.getCumVolume().get(id).get(this.getCumVolume().get(id).size() - 1) >= 0.05 * Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput());
                 boolean ruleCumVolumeShort = this.getCumVolume().get(id).get(this.getCumVolume().get(id).size() - 1) <= Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput());
                 boolean ruleSlopeLong = this.getSlope().get(id) > Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeLongMultiplier() / 375;
-                boolean ruleSlopeShort = this.getSlope().get(id) < -Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeLongMultiplier() / 375;
+                boolean ruleSlopeShort = this.getSlope().get(id) < -Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeShortMultipler() / 375;
                 boolean ruleVolumeLong = this.getVolume().get(id) > maVolumeLong*this.getVolumeMA().get(id);
                 boolean ruleVolumeShort = this.getVolume().get(id) > maVolumeShort* this.getVolumeMA().get(id);
                 ruleCumVolumeLong = true;
@@ -1302,5 +1303,19 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
      */
     public void setMaVolumeShort(double maVolumeShort) {
         this.maVolumeShort = maVolumeShort;
+    }
+
+    /**
+     * @return the volumeSlopeShortMultipler
+     */
+    public double getVolumeSlopeShortMultipler() {
+        return volumeSlopeShortMultipler;
+    }
+
+    /**
+     * @param volumeSlopeShortMultipler the volumeSlopeShortMultipler to set
+     */
+    public void setVolumeSlopeShortMultipler(double volumeSlopeShortMultipler) {
+        this.volumeSlopeShortMultipler = volumeSlopeShortMultipler;
     }
 }

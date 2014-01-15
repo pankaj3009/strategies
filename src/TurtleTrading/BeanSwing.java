@@ -8,12 +8,9 @@ import incurrframework.*;
 import incurrframework.BeanOHLC;
 import incurrframework.BeanSymbol;
 import incurrframework.DateUtil;
-import incurrframework.EnumOrderSide;
 import incurrframework.Parameters;
 import incurrframework.TradeEvent;
 import incurrframework.TradeListner;
-import incurrframework.TradingUtil;
-import java.beans.*;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -23,17 +20,9 @@ import java.util.Date;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.Collections;
-import java.util.List;
 import java.util.Timer;
-import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
+
 
 /**
  *

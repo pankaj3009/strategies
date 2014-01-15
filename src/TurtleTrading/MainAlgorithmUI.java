@@ -14,27 +14,17 @@ package TurtleTrading;
 import incurrframework.BeanConnection;
 import incurrframework.Registration;
 import incurrframework.Parameters;
-import incurrframework.BeanSymbol;
 import incurrframework.Index;
-import incurrframework.OrderBean;
-import java.beans.XMLEncoder;
-import java.io.BufferedOutputStream;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
-import javax.swing.*;
-import org.supercsv.io.CsvBeanWriter;
-import org.supercsv.prefs.CsvPreference;
+import javax.swing.JList;
+
 
 /**
  *

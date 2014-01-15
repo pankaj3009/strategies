@@ -8,28 +8,16 @@ import incurrframework.*;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.URLDecoder;
 import java.util.List;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Properties;
-import java.util.SortedMap;
 import java.util.Timer;
-import java.util.TreeMap;
-import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFrame;
-import org.apache.commons.math3.stat.descriptive.*;
-import org.apache.commons.math3.stat.regression.*;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.select.Elements;
 
 /**
  *
