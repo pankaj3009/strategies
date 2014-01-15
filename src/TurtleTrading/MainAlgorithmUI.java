@@ -272,6 +272,7 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
     private void cmdSquareAllActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdSquareAllActionPerformed
         algo.getParamTurtle().setLongOnly(false);
         algo.getParamTurtle().setShortOnly(false);
+        MainAlgorithmUI.setMessage("Program Paused.");
         Logger.getLogger(MainAlgorithmUI.class.getName()).log(Level.INFO, "Program Paused");
         for (BeanConnection c : Parameters.connection) {
             if ("Trading".equals(c.getPurpose()) && c.getStrategy().contains("IDT")) {
@@ -313,6 +314,7 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
 
     private void cmdExitLongsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdExitLongsActionPerformed
         algo.getParamTurtle().setLongOnly(false);
+        MainAlgorithmUI.setMessage("Short Only Mode.");
         Logger.getLogger(MainAlgorithmUI.class.getName()).log(Level.INFO, "Set to Short Only");
         for (BeanConnection c : Parameters.connection) {
             if ("Trading".equals(c.getPurpose()) && c.getStrategy().contains("IDT")) {
@@ -332,6 +334,7 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
 
     private void cmdExitShortsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdExitShortsActionPerformed
         algo.getParamTurtle().setShortOnly(false);
+        MainAlgorithmUI.setMessage("Long Only Mode.");
         Logger.getLogger(MainAlgorithmUI.class.getName()).log(Level.INFO, "Set to Long Only");
         for (BeanConnection c : Parameters.connection) {
             if ("Trading".equals(c.getPurpose()) && c.getStrategy().contains("IDT")) {
@@ -388,15 +391,29 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
         }
         //</editor-fold>
 //1. Add the parameters files to myList variable  
-        if(args.length==3){
+        if(args.length==4){
         myList.add(args[0]);
         myList.add(args[1]);
         myList.add(args[2]);
+        myList.add(args[3]);
         parameterFileName=args[0];
-        
-        }else{
+        }
+        else if(args.length==3){
+        myList.add(args[0]);
+        myList.add(args[1]);
+        myList.add(args[2]);
+        myList.add("Master.properties");
+        parameterFileName=args[0];
+            
+        }
+        else{
+        myList.add("IDT.properties");
         myList.add("symbols.csv");
-        myList.add("connection.csv");}
+        myList.add("connection.csv");
+        myList.add("Master.properties");
+        parameterFileName="IDT.properties";
+        }
+        
 //        loadParam("Algo.properties");
         FileInputStream configFile = null;
         configFile = new FileInputStream("logging.properties");

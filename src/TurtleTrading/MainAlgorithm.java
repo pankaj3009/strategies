@@ -74,7 +74,7 @@ public class MainAlgorithm extends Algorithm  {
         FileInputStream propFileMaster;
         FileInputStream propFileStrategy;
         try {
-            propFileMaster = new FileInputStream("Master.properties");
+            propFileMaster = new FileInputStream(args.get(3));
             propFileStrategy=new FileInputStream(args.get(0));
             try {
                 pmaster.load(propFileMaster);
@@ -111,6 +111,10 @@ public class MainAlgorithm extends Algorithm  {
         for(BeanConnection c:Parameters.connection){
             c.getWrapper().getAccountUpdates();
             c.setAccountName(c.getWrapper().getAccountIDSync().take());
+        }
+        
+        for(BeanConnection c:Parameters.connection){
+            c.getWrapper().cancelAccountUpdates();
         }
   
         
