@@ -555,6 +555,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
                         c.getOrdersToBeRetried().remove(ordersToBeDeleted);
                     }
                     for(OrderEvent event:eventsToBeProcessed){
+                        logger.log(Level.INFO,"Symbol Added to retry attempt. Method:Reattempt Orders, Symbol: {0}",new Object[]{event.getSymbolBean().getSymbol()});
                         parentorder.orderReceived(event);
                     }
                 }
