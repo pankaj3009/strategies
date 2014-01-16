@@ -66,7 +66,7 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
         cmdExitShorts = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setTitle("Intra-Day Turtle (IDT)");
+        setTitle("Intra-Day Turtle (IDT) Version:1.000");
 
         cmdLong.setText("Long only");
         cmdLong.addActionListener(new java.awt.event.ActionListener() {
