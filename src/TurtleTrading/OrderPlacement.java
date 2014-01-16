@@ -615,7 +615,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
                     } else {
                         updatePartialFills(event.getC(), id, orderid, event.getFilled(), event.getAvgFillPrice(), event.getLastFillPrice());
                     }
-                } else if ("Cancelled".equals(event.getStatus())) {
+                } else if ("Cancelled".equals(event.getStatus())||"Inactive".equals(event.getStatus())) {
                     //cancelled
                     logger.log(Level.INFO, "Method:{0},Symbol:{1},OrderID:{2}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), orderid});
                     updateCancelledOrders(event.getC(), id, orderid);
@@ -822,6 +822,9 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
                 count = count + 1;
             }
         }
+        //Remove orders from Orders in progress list
+        c.getOrdersInProgress().remove(orderID);
+        
         //Delete orders from expired orders list
         if (c.getOrdersToBeCancelled().containsKey(orderID)) {
             c.getOrdersToBeCancelled().remove(orderID);

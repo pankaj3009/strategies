@@ -102,12 +102,18 @@ public class MainAlgorithm extends Algorithm  {
         }
         
         for(BeanConnection c:Parameters.connection){
+            System.out.print("Going to cancel account updated");
             c.getWrapper().cancelAccountUpdates();
+            System.out.println("Account updates cancelled");
         }
+        MainAlgorithmUI.setIBMessage("");
   
-        
+       System.out.println(Boolean.valueOf(realAccountTrading));
         if(Boolean.valueOf(realAccountTrading)){
         for(BeanConnection c:Parameters.connection){//check license for each real account setup with strategy
+            System.out.println("Purpose Real: "+"Trading".equals(c.getPurpose()));
+            System.out.println("Contains Real: "+c.getStrategy().contains("IDT"));
+            System.out.println("Account:"+c.getAccountName());
             if("Trading".equals(c.getPurpose()) && c.getStrategy().contains("IDT")){
                 String account=c.getAccountName();
                 macID=TradingUtil.populateMACID();
@@ -121,8 +127,11 @@ public class MainAlgorithm extends Algorithm  {
         expiryDate=TradingUtil.getExpiryDate(macID, accounts,Boolean.valueOf(realAccountTrading));
         
         }else {
-            for(BeanConnection c:Parameters.connection){            //check license for each real account setup with strategy
-            if("Trading".equals(c.getPurpose()) && c.getStrategy().contains("IDT")){
+            for(BeanConnection c:Parameters.connection){ //check license for each real account setup with strategy
+            System.out.println("Purpose Paper: "+"Trading".equals(c.getPurpose()));
+            System.out.println("Contains Paper: "+c.getStrategy().contains("IDT"));
+            System.out.println("Account:"+c.getAccountName());
+                if("Trading".equals(c.getPurpose()) && c.getStrategy().contains("IDT")){
                 String account=c.getAccountName();
                 macID=TradingUtil.populateMACID();
                   if (account.substring(0,1).compareTo("D")==0){
