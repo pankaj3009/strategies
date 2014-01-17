@@ -546,6 +546,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
                     ArrayList<OrderEvent>eventsToBeProcessed=new ArrayList();
                     for (Long key : c.getOrdersToBeRetried().keySet()) {
                         OrderEvent ordb = c.getOrdersToBeRetried().get(key);
+                        logger.log(Level.INFO, "Symbol being processed for reattempt. Method:{0}, Symbol:{1}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), ordb.getSymbolBean().getSymbol()});
                         eventsToBeProcessed.add(ordb);
                         //parentorder.orderReceived(ordb);
                         temp.add(key);
