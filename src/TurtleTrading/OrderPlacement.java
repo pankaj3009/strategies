@@ -818,7 +818,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
             }
         }
         //Remove orders from Orders in progress list
-        c.getOrdersInProgress().remove(orderID);
+        c.getOrdersInProgress().remove(new Integer(orderID));
         
         //Delete orders from expired orders list
         if (c.getOrdersToBeCancelled().containsKey(orderID)) {
