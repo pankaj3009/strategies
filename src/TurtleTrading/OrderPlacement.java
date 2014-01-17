@@ -216,6 +216,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
                                     if ((c.getOrdersSymbols().get(ind).get(1) > 0 && event.getSide() == EnumOrderSide.SHORT) || (c.getOrdersSymbols().get(ind).get(3) > 0 && event.getSide() == EnumOrderSide.BUY)) {
                                         logger.log(Level.INFO, "Method:{0},Case:111, Symbol:{1}, Size={2}, Side:{3}, Limit:{4}, Trigger:{5}, Expiration Time:{6}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getOrderSize(), event.getSide(), event.getLimitPrice(), event.getTriggerPrice(), event.getExpireTime()});
                                         int orderid = event.getSide() == EnumOrderSide.SHORT ? c.getOrdersSymbols().get(ind).get(1) : c.getOrdersSymbols().get(ind).get(3);
+                                        this.cancelOpenOrders(c, id,event.getOrdReference());
                                         this.fastClose(c, orderid);
                                         this.processEntryOrder(id, c, event);
                                         //addOrdersToBeRetried(id,c,event); //what will happen if the entry orders were not filled?
@@ -302,31 +303,24 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
                     break;
                 case SELL:
                     orderid = c.getOrdersSymbols().get(ind).get(1);
-                    size = event.getOrderSize();
+                    size = c.getPositions().get(ind) == null ? 0 : c.getPositions().get(ind).getPosition();
                     break;
                 case SHORT:
                     orderid = c.getOrdersSymbols().get(ind).get(2);
-                    if (orderid > 0) {
-                        size = c.getPositions().get(ind) == null ? event.getOrderSize() : c.getPositions().get(ind).getPosition();
-                    }
+                    size = event.getOrderSize();
                     break;
                 case COVER:
                     orderid = c.getOrdersSymbols().get(ind).get(3);
-                    if (orderid > 0) {
-                        size = c.getPositions().get(ind) == null ? event.getOrderSize() : c.getPositions().get(ind).getPosition();
-                    }
+                    size = c.getPositions().get(ind) == null ? 0 : c.getPositions().get(ind).getPosition();
+                   
                     break;
                 case TRAILBUY:
                     orderid = c.getOrdersSymbols().get(ind).get(4);
-                    if (orderid > 0) {
-                        size = c.getPositions().get(ind) == null ? event.getOrderSize() : c.getPositions().get(ind).getPosition();
-                    }
+                    size = c.getPositions().get(ind) == null ? 0 : c.getPositions().get(ind).getPosition();
                     break;
                 case TRAILSELL:
                     orderid = c.getOrdersSymbols().get(ind).get(5);
-                    if (orderid > 0) {
-                        size = c.getPositions().get(ind) == null ? event.getOrderSize() : c.getPositions().get(ind).getPosition();
-                    }
+                    size = c.getPositions().get(ind) == null ? 0 : c.getPositions().get(ind).getPosition();
                     break;
                 default:
                     break;
