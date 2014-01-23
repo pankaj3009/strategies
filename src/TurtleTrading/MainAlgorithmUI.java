@@ -35,6 +35,7 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
    public JList list;
    static public MainAlgorithm algo;
    static String parameterFileName;
+   static public boolean headless=true;
     /** Creates new form NewSwingGUI */
     public MainAlgorithmUI() {
         initComponents();
@@ -411,7 +412,7 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
         java.awt.EventQueue.invokeLater(new Runnable() {
            
             public void run() {
-                
+                if(!headless){
                 MainAlgorithmUI startup=new MainAlgorithmUI();
                 startup.setLocation(0,465);
                 MainAlgorithmUI.displayRegistration(false);
@@ -425,11 +426,16 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
                 MainAlgorithmUI.setcmdSquareAll(false);
                 MainAlgorithmUI.setcmdAggressionDisable(false);
                 MainAlgorithmUI.setcmdAggressionEnable(false);
-                
                 startup.setVisible(true);
+                }
             }
             });
-            algo=new MainAlgorithm(myList);
+            String[] temp=new String[myList.size()];
+            for(int i=0;i<myList.size();i++){
+                temp[i]=myList.get(i);
+            }
+            //algo=new MainAlgorithm(temp);
+            new FundamentalDataCollector(temp);
         /* Create and display the form */
     }
     

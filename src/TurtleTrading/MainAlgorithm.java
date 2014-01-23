@@ -50,7 +50,7 @@ public class MainAlgorithm extends Algorithm  {
     private Date expiryDate;
     private static String collectTicks;
     
-    public MainAlgorithm(List<String> args) throws Exception {
+    public MainAlgorithm(String[] args) throws Exception {
         super(args); //this initializes the connection and symbols
        
         // initialize anything else 
@@ -62,8 +62,8 @@ public class MainAlgorithm extends Algorithm  {
         FileInputStream propFileMaster;
         FileInputStream propFileStrategy;
         try {
-            propFileMaster = new FileInputStream(args.get(3));
-            propFileStrategy=new FileInputStream(args.get(0));
+            propFileMaster = new FileInputStream(args[3]);
+            propFileStrategy=new FileInputStream(args[0]);
             try {
                 pmaster.load(propFileMaster);
                 pstrategy.load(propFileStrategy);
@@ -106,7 +106,9 @@ public class MainAlgorithm extends Algorithm  {
             c.getWrapper().cancelAccountUpdates();
             System.out.println("Account updates cancelled");
         }
-        MainAlgorithmUI.setIBMessage("");
+         if(!MainAlgorithmUI.headless){
+             MainAlgorithmUI.setIBMessage("");
+         }
   
        System.out.println(Boolean.valueOf(realAccountTrading));
         if(Boolean.valueOf(realAccountTrading)){
@@ -150,10 +152,16 @@ public class MainAlgorithm extends Algorithm  {
          }
         
          if(!license){
-             MainAlgorithmUI.setMessage("No License. Please register or contact license@incurrency.com");
-             MainAlgorithmUI.displayRegistration(true);
+              if(!MainAlgorithmUI.headless){
+                  MainAlgorithmUI.setMessage("No License. Please register or contact license@incurrency.com");
+              }
+              if(!MainAlgorithmUI.headless){
+                  MainAlgorithmUI.displayRegistration(true);
+              }
          } else{
-            MainAlgorithmUI.displayRegistration(false);
+             if(!MainAlgorithmUI.headless){
+                 MainAlgorithmUI.displayRegistration(false);
+             }
             
             
          }
@@ -170,8 +178,22 @@ public class MainAlgorithm extends Algorithm  {
         while (TWSConnection.mTotalSymbols > 0) {
             //System.out.println(TWSConnection.mTotalSymbols);
             //do nothing
-            MainAlgorithmUI.setMessage("Waiting for contract information to be retrieved");
+             if(!MainAlgorithmUI.headless){
+                 MainAlgorithmUI.setMessage("Waiting for contract information to be retrieved");
+             }
         }
+        
+        ArrayList <Boolean> arrayID=new ArrayList();
+        for(BeanSymbol s: Parameters.symbol){
+               arrayID.add(s.isStatus());
+         }
+        
+        for(int i=0;i<arrayID.size();i++){
+            if(!arrayID.get(i)){ //if status is false, remove the symbol
+                Parameters.symbol.remove(i);
+            }
+        }
+        
         //Request Market Data
         
         Thread.sleep(1000);
@@ -236,13 +258,17 @@ public class MainAlgorithm extends Algorithm  {
 
        
         //Attempt realtime bars in a new thread
-        createAndShowGUI(this);
+        if(!MainAlgorithmUI.headless){
+            createAndShowGUI(this);
+        }
         //get historical data - this can be done before start time, assuming the program is started next day
                 try{
             if(Boolean.valueOf(historicalData)){
         Thread t = new Thread(new HistoricalBars());
         t.setName("Historical Bars");
-        MainAlgorithmUI.setMessage("Starting request of Historical Data for yesterday");
+         if(!MainAlgorithmUI.headless){
+             MainAlgorithmUI.setMessage("Starting request of Historical Data for yesterday");
+         }
         t.start();
         t.join();
         }
@@ -258,7 +284,9 @@ public class MainAlgorithm extends Algorithm  {
         }
         
         
-        MainAlgorithmUI.setStart(true);
+        if(!MainAlgorithmUI.headless){
+            MainAlgorithmUI.setStart(true);
+        }
         startDataCollection(historicalData,realTimeBars,startDate);
         
     }
@@ -267,7 +295,8 @@ public class MainAlgorithm extends Algorithm  {
     public synchronized void startDataCollection(String historicalData, String realTimeBars,Date startDate){
         
       if(startDate.compareTo(new Date())<0 && marketDataNotStarted){
-          MainAlgorithmUI.setStart(false);
+          if(!MainAlgorithmUI.headless){
+              MainAlgorithmUI.setStart(false);
           MainAlgorithmUI.setPauseTrading(true);
         MainAlgorithmUI.setPauseTrading(true);
         MainAlgorithmUI.setcmdLong(true);
@@ -278,10 +307,13 @@ public class MainAlgorithm extends Algorithm  {
         MainAlgorithmUI.setcmdSquareAll(true);
         MainAlgorithmUI.setcmdAggressionDisable(true);
         MainAlgorithmUI.setcmdAggressionEnable(true);
+          }
         if(Boolean.valueOf(realTimeBars)){
             marketDataNotStarted=false;
+            if(!MainAlgorithmUI.headless){
             MainAlgorithmUI.setStart(false);
             MainAlgorithmUI.setMessage("Starting request of RealTime Bars");
+            }
         new RealTimeBars(getParamTurtle());
         //BoilerPlate Ends
         }
@@ -291,7 +323,9 @@ public class MainAlgorithm extends Algorithm  {
                 + "ruleCumVolumeShort" + "," + "ruleSlopeShort" + "," + "ruleVolumeShort");
             
             }else{
-                MainAlgorithmUI.setMessage("Please Click Button 'Start Program' after the market open time");
+                if(!MainAlgorithmUI.headless){
+                    MainAlgorithmUI.setMessage("Please Click Button 'Start Program' after the market open time");
+                }
                 
             }
         
