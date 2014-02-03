@@ -326,7 +326,8 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
                 break;
         }
         logger.log(Level.INFO, "Method:{0}, Symbol:{1}, Order Side:{2}, orderID:{3}, Order Status:{4}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getSide(), orderid, orderid > 0 ? c.getOrders().get(orderid).getStatus() : "NA"});
-
+        size=Math.abs(size);
+        
         if (orderid > 0 && (c.getOrders().get(orderid).getStatus() == EnumOrderStatus.Acknowledged || c.getOrders().get(orderid).getStatus() == EnumOrderStatus.PartialFilled)) { //order exists that can be amended.
             Order ord = new Order();
             ord = c.getWrapper().createOrderFromExisting(c, orderid);
@@ -770,7 +771,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
         ord.m_orderType = "MKT";
         ord.m_totalQuantity = origOrder.getOrderSize() - origOrder.getFillSize();
         Contract con = c.getWrapper().createContract(symbolID - 1);
-        logger.log(Level.INFO, "Method:{0}, Symbol:{1}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(symbolID - 1).getSymbol()});
+        logger.log(Level.INFO, "Method:{0}, Symbol:{1}, Original Order ID:{2}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(symbolID - 1).getSymbol(),orderID});
         c.getWrapper().placeOrder(c, symbolID, origOrder.getOrderSide(), ord, con, origOrder.getExitLogic());
     }
 
