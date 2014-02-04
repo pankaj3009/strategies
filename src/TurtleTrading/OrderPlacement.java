@@ -498,7 +498,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
                             //logger.log(Level.INFO,"Expired Order being cancelled. OrderID="+key);
                             c.getWrapper().cancelOrder(c, key);
                             if ((c.getOrders().get(key).getOrderSide() == EnumOrderSide.BUY || c.getOrders().get(key).getOrderSide() == EnumOrderSide.SHORT)
-                                    && (c.getOrders().get(key).getStatus() == EnumOrderStatus.CancelledNoFill || c.getOrders().get(key).getStatus() == EnumOrderStatus.CancelledPartialFill)) {
+                                    && (c.getOrders().get(key).getStatus() != EnumOrderStatus.CompleteFilled )) {
                                 c.getOrdersMissed().add(key);
                             }
 
