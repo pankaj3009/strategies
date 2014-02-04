@@ -49,7 +49,7 @@ public class MainAlgorithm extends Algorithm  {
     private String macID="";
     private Date expiryDate;
     private static String collectTicks;
-    private double profitTarget;
+    private static double profitTarget;
     
     public MainAlgorithm(List<String> args) throws Exception {
         super(args); //this initializes the connection and symbols
@@ -506,14 +506,14 @@ public class MainAlgorithm extends Algorithm  {
     /**
      * @return the profitTarget
      */
-    public synchronized double getProfitTarget() {
+    public static synchronized double getProfitTarget() {
         return profitTarget;
     }
 
     /**
      * @param profitTarget the profitTarget to set
      */
-    public synchronized void setProfitTarget(double profitTarget) {
-        this.profitTarget = profitTarget;
+    public static synchronized void setProfitTarget(double profitTarget) {
+        MainAlgorithm.profitTarget = profitTarget;
     }
 }
