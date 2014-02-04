@@ -16,6 +16,7 @@ import incurrframework.HistoricalBarListener;
 import incurrframework.EnumOrderSide;
 import incurrframework.Parameters;
 import incurrframework.PendingHistoricalRequests;
+import incurrframework.ProfitLossManager;
 import incurrframework.TradeEvent;
 import incurrframework.TradeListner;
 import java.io.FileInputStream;
@@ -99,6 +100,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
     private double maVolumeLong;
     private double maVolumeShort;
     private boolean advanceOrders;
+    private ProfitLossManager plmanager=new ProfitLossManager();
 
     public BeanTurtle(MainAlgorithm m) {
         this.m = m;
@@ -1324,4 +1326,4 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
     public void setVolumeSlopeShortMultipler(double volumeSlopeShortMultipler) {
         this.volumeSlopeShortMultipler = volumeSlopeShortMultipler;
     }
-}
+    }

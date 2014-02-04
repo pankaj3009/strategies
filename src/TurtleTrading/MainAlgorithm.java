@@ -49,6 +49,7 @@ public class MainAlgorithm extends Algorithm  {
     private String macID="";
     private Date expiryDate;
     private static String collectTicks;
+    private double profitTarget;
     
     public MainAlgorithm(List<String> args) throws Exception {
         super(args); //this initializes the connection and symbols
@@ -205,6 +206,8 @@ public class MainAlgorithm extends Algorithm  {
         preopenDate = DateUtil.parseDate("yyyyMMdd HH:mm:ss", preopenStr);
         startDate=DateUtil.parseDate("yyyyMMdd HH:mm:ss", startDateStr);
         closeDate = DateUtil.parseDate("yyyyMMdd HH:mm:ss", closeStr);
+        setProfitTarget(Double.parseDouble(System.getProperty("ProfitTarget")));
+        MainAlgorithmUI.setProfitTarget(getProfitTarget());
         System.setProperties(pmaster);
         historicalData=System.getProperty("HistoricalData");
         realTimeBars=System.getProperty("RealTimeBars");
@@ -498,5 +501,19 @@ public class MainAlgorithm extends Algorithm  {
      */
     public static void setCollectTicks(String aCollectTicks) {
         collectTicks = aCollectTicks;
+    }
+
+    /**
+     * @return the profitTarget
+     */
+    public synchronized double getProfitTarget() {
+        return profitTarget;
+    }
+
+    /**
+     * @param profitTarget the profitTarget to set
+     */
+    public synchronized void setProfitTarget(double profitTarget) {
+        this.profitTarget = profitTarget;
     }
 }
