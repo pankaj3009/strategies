@@ -67,6 +67,7 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
         jLabel3 = new javax.swing.JLabel();
         txtProfitTarget = new javax.swing.JTextField();
         cmdUpdateProfitTgt = new javax.swing.JButton();
+        lblProfitTaken = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Intra-Day Turtle (IDT) Version:1.000");
@@ -167,6 +168,8 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
             }
         });
 
+        lblProfitTaken.setText("0");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -193,11 +196,13 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
                                     .addComponent(cmdShort, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)))
                             .addComponent(cmdStart, javax.swing.GroupLayout.PREFERRED_SIZE, 201, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(cmdExitLongs, javax.swing.GroupLayout.PREFERRED_SIZE, 98, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                                 .addGroup(layout.createSequentialGroup()
                                     .addComponent(jLabel3)
                                     .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                    .addComponent(txtProfitTarget, javax.swing.GroupLayout.PREFERRED_SIZE, 127, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addComponent(txtProfitTarget, javax.swing.GroupLayout.PREFERRED_SIZE, 54, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                    .addComponent(lblProfitTaken, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                                 .addComponent(cmdAggressionDisable, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 198, javax.swing.GroupLayout.PREFERRED_SIZE)))
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addGroup(layout.createSequentialGroup()
@@ -251,7 +256,8 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel3)
                     .addComponent(txtProfitTarget, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(cmdUpdateProfitTgt))
+                    .addComponent(cmdUpdateProfitTgt)
+                    .addComponent(lblProfitTaken))
                 .addContainerGap())
         );
 
@@ -372,11 +378,15 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
     }//GEN-LAST:event_cmdExitShortsActionPerformed
 
     private void cmdUpdateProfitTgtActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdUpdateProfitTgtActionPerformed
-        algo.setProfitTarget(Double.parseDouble(this.txtProfitTarget.getText()));
+        algo.setProfitTarget(Double.parseDouble(MainAlgorithmUI.txtProfitTarget.getText()));
     }//GEN-LAST:event_cmdUpdateProfitTgtActionPerformed
     
     public static synchronized void setMessage(String message) {
         lblMessage.setText(message);
+    }
+    
+    public static synchronized void setProfitTaken(String value){
+        lblProfitTaken.setText(value);
     }
     
     public static synchronized void setProfitTarget(double profit){
@@ -452,6 +462,8 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
                 MainAlgorithmUI startup=new MainAlgorithmUI();
                 startup.setLocation(0,465);
                 MainAlgorithmUI.displayRegistration(false);
+                cmdUpdateProfitTgt.setVisible(false);
+                txtProfitTarget.setVisible(false);
                 MainAlgorithmUI.setStart(false);
                 MainAlgorithmUI.setPauseTrading(false);
                 MainAlgorithmUI.setcmdLong(false);
@@ -467,6 +479,9 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
             }
             });
             algo=new MainAlgorithm(myList);
+            cmdUpdateProfitTgt.setVisible(true);
+            txtProfitTarget.setVisible(true);
+            
         /* Create and display the form */
     }
     
@@ -522,12 +537,13 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
     private static javax.swing.JButton cmdShort;
     private static javax.swing.JButton cmdSquareAll;
     private static javax.swing.JButton cmdStart;
-    private javax.swing.JButton cmdUpdateProfitTgt;
+    private static javax.swing.JButton cmdUpdateProfitTgt;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private static javax.swing.JLabel lblIBMessage;
     private static javax.swing.JLabel lblMessage;
+    private static javax.swing.JLabel lblProfitTaken;
     private static javax.swing.JTextField txtProfitTarget;
     // End of variables declaration//GEN-END:variables
 }

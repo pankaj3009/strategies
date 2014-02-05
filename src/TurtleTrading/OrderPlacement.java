@@ -183,7 +183,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
                                         addOrdersToBeRetried(id, c, event); //what will happen if the entry orders were not filled?
                                     }
                                 } else { //not a valid scenario. cancel open orders
-                                    logger.log(Level.INFO, "Method:{0},Error Case:100, Symbol:{1}, Size={2}, Side:{3}, Limit:{4}, Trigger:{5}, Expiration Time:{6}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getOrderSize(), event.getSide(), event.getLimitPrice(), event.getTriggerPrice(), event.getExpireTime()});
+                                    logger.log(Level.INFO, "Method:{0},Error Case:010, Symbol:{1}, Size={2}, Side:{3}, Limit:{4}, Trigger:{5}, Expiration Time:{6}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), event.getOrderSize(), event.getSide(), event.getLimitPrice(), event.getTriggerPrice(), event.getExpireTime()});
                                     this.cancelOpenOrders(c, id, event.getOrdReference());
                                 }
                                 break;
