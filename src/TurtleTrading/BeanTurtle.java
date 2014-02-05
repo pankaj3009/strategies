@@ -100,7 +100,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
     private double maVolumeLong;
     private double maVolumeShort;
     private boolean advanceOrders;
-    private ProfitLossManager plmanager=new ProfitLossManager();
+    private ProfitLossManager plmanager;
 
     public BeanTurtle(MainAlgorithm m) {
         this.m = m;
@@ -134,7 +134,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
             Parameters.symbol.get(i).getFiveSecondBars().addHistoricalBarListener(this);
         }
         Parameters.addTradeListener(this);
-
+        plmanager=new ProfitLossManager();
         FileHandler fileHandler;
 
         try {
