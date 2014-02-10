@@ -452,6 +452,9 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
             c.getWrapper().cancelOrder(c, orderid);
             logger.log(Level.INFO, "Orders Cancelled via request:{0}, Symbol:{1}, OrderID:{2}, Order Side:{3}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(id).getSymbol(), orderid, event.getSide()});
 
+        } else if (c.getOrdersToBeRetried().containsKey(ind)){
+            //removed orders from retry queue if they have been cancelled.   
+            c.getOrdersToBeRetried().remove(ind);
         }
     }
 
