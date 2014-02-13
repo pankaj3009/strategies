@@ -24,6 +24,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Timer;
 
+
 /**
  *
  * @author admin
@@ -44,7 +45,6 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
         for (BeanConnection c : Parameters.connection) {
             c.getWrapper().addOrderStatusListener(this);
             c.getWrapper().addBidAskListener(this);
-
         }
 
         //Initialize timers
@@ -52,8 +52,8 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
         new Timer(2000, hastenCloseOut).start();
         new Timer(10000, reattemptOrders).start();
 
-        //new Timer(2000,cancelTimeOrders).start();
-    }
+        
+        }
 
     @Override
     public void bidaskChanged(BidAskEvent event) {

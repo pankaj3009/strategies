@@ -229,6 +229,10 @@ public class MainAlgorithm extends Algorithm  {
           minPNL.add(0D);
           maxPNL.add(0D);
          }
+        boolean flip=Boolean.valueOf(System.getProperty("Flip"));
+        for( BeanConnection c: Parameters.connection){
+            c.getWrapper().setFlip(flip);
+        }
         preopen=new Timer();
        // preopen.schedule(new SnapShotPreOpenPrice(), preopenDate);       
         //initialize listners
