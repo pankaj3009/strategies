@@ -395,7 +395,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
             }
         } else {
             int positions = c.getPositions().get(ind) == null ? 0 : c.getPositions().get(ind).getPosition();
-            if (event.getExpireTime() != 0 && (!(c.getOrdersToBeCancelled().containsKey(orderid) || c.getOrdersToBeFastTracked().containsKey(orderid)))) {
+            if (event.getExpireTime() != 0 && orderid>0 && (!(c.getOrdersToBeCancelled().containsKey(orderid) || c.getOrdersToBeFastTracked().containsKey(orderid)))) {
                 //we will place the order in the cancelled/hastened queue only if it was not existing before
                 long tempexpire = System.currentTimeMillis() + event.getExpireTime() * 60 * 1000;
                 if (event.getSide() == EnumOrderSide.BUY || event.getSide() == EnumOrderSide.SHORT) {
