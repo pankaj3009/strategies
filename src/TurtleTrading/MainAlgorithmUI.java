@@ -434,8 +434,8 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
             for(int i=0;i<myList.size();i++){
                 temp[i]=myList.get(i);
             }
-            //algo=new MainAlgorithm(temp);
-            new FundamentalDataCollector(temp);
+            algo=new MainAlgorithm(temp);
+            //new FundamentalDataCollector(temp);
         /* Create and display the form */
     }
     

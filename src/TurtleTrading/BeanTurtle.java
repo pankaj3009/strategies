@@ -6,6 +6,7 @@ package TurtleTrading;
 
 import static TurtleTrading.MainAlgorithm.logger;
 import incurrframework.Algorithm;
+import incurrframework.BeanConnection;
 import incurrframework.BeanOHLC;
 import incurrframework.BeanSymbol;
 import incurrframework.DateUtil;
@@ -130,7 +131,10 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
             Parameters.symbol.get(i).getDailyBar().addHistoricalBarListener(this);
             Parameters.symbol.get(i).getFiveSecondBars().addHistoricalBarListener(this);
         }
-        Parameters.addTradeListener(this);
+        for (BeanConnection c : Parameters.connection){
+            c.getWrapper().addTradeListener(this);
+        }
+        
 
         FileHandler fileHandler;
 

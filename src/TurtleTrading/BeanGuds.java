@@ -102,7 +102,9 @@ public class BeanGuds implements Serializable, TradeListner {
             luckyOrdersPlaced.add(Boolean.FALSE);
             
         }
-        Parameters.addTradeListener(this);
+                for (int i=0;i<Parameters.connection.size();i++){
+            Parameters.connection.get(i).getWrapper().addTradeListener(this);
+        }
         try {
             Class.forName("com.mysql.jdbc.Driver");
         } catch (ClassNotFoundException ex) {

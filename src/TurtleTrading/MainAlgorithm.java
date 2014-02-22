@@ -4,6 +4,7 @@
  */
 package TurtleTrading;
 
+import com.adr.ADR;
 import incurrframework.*;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -11,12 +12,14 @@ import java.io.IOException;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Properties;
 import java.util.Timer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import javax.swing.JFrame;
 
 /**
@@ -42,6 +45,7 @@ public class MainAlgorithm extends Algorithm  {
     private List<Double>minPNL=new ArrayList();
     private String historicalData;
     private String realTimeBars;
+    private String mySQL;
     private boolean marketDataNotStarted=true;
     private String realAccountTrading="False";
     private boolean license=false;
@@ -193,7 +197,14 @@ public class MainAlgorithm extends Algorithm  {
                 Parameters.symbol.remove(i);
             }
         }
-        
+         ArrayList<BeanSymbol> adrList=new ArrayList();
+        //populate adrList with symbols needed for ADR
+        for(BeanSymbol s: Parameters.symbol){
+            if (Pattern.compile(Pattern.quote("ADR"), Pattern.CASE_INSENSITIVE).matcher(s.getStrategy()).find()){
+                adrList.add(s);
+            }
+        }
+        ADR adr =new ADR(adrList);
         //Request Market Data
         
         Thread.sleep(1000);
@@ -204,6 +215,7 @@ public class MainAlgorithm extends Algorithm  {
              filteredSymbols.add(s);
         }
 }
+        Collections.sort(filteredSymbols,new BeanSymbolCompare());
         int count = filteredSymbols.size();
         int allocatedCapacity = 0;
         for (BeanConnection c : Parameters.connection) {
@@ -230,6 +242,7 @@ public class MainAlgorithm extends Algorithm  {
         System.setProperties(pmaster);
         historicalData=System.getProperty("HistoricalData");
         realTimeBars=System.getProperty("RealTimeBars");
+        mySQL=System.getProperty("MySQL");
         collectTicks=System.getProperty("CollectTickData");
         if (closeDate.compareTo(preopenDate) < 0 && new Date().compareTo(closeDate) > 0) {
             //increase enddate by one calendar day
@@ -251,10 +264,10 @@ public class MainAlgorithm extends Algorithm  {
         preopen=new Timer();
        // preopen.schedule(new SnapShotPreOpenPrice(), preopenDate);       
         //initialize listners
-       paramTurtle = new BeanTurtle(this);
+       //paramTurtle = new BeanTurtle(this);
        // paramGuds = new BeanGuds(this);
        // paramSwing=new BeanSwing(this);
-        ordManagement = new OrderPlacement(this);
+        //ordManagement = new OrderPlacement(this);
 
        
         //Attempt realtime bars in a new thread
@@ -276,7 +289,7 @@ public class MainAlgorithm extends Algorithm  {
             
         }
        
-        if(!Boolean.valueOf(historicalData)){
+        if(Boolean.valueOf(mySQL)){
             for(BeanSymbol s: Parameters.symbol){
         ArrayList<BeanOHLC> yestOHLC=TradingUtil.getDailyBarsFromOneMinCandle(7,s.getSymbol()+"_FUT");
         s.setAdditionalInput(Long.toString(yestOHLC.get(0).getVolume()));
