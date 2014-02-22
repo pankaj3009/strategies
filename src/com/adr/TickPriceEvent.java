@@ -5,31 +5,28 @@
 
 package com.adr;
 
-import incurrframework.EnumTickType;
-
 /**
  *
  * @author Admin
  */
 public class TickPriceEvent {
-    private int mTickerId = 0;
-    private EnumTickType mField = EnumTickType.NULL;
-    private double mPrice = 0.0;
-
+    private int tickerID = 0;
+    private int field = 0;
+    private double price = 0.0;
 
     /*
      * Constructor
      */
-    public TickPriceEvent(int id, EnumTickType type, double price)
+    public TickPriceEvent(int id, int type, double price)
     {
-        mTickerId = id;
-        mField = type;
-        mPrice = price;
+        tickerID = id;
+        field = type;
+        this.price = price;
     }
     
-    public int getTickerID() {return mTickerId;};
+    public int getTickerID() {return tickerID;};
     
-    public double getPrice() {return mPrice;};
+    public double getPrice() {return price;};
 
-    public EnumTickType getField() {return mField;}
+    public int getField() {return field;}
 }

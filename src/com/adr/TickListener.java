@@ -13,7 +13,7 @@ import java.text.DecimalFormat;
  *
  * @author Admin
  */
-public class LastPriceListner implements UpdateListener{
+public class TickListener implements UpdateListener{
 
     public void update(EventBean[] newEvents, EventBean[] oldEvents) {
 
@@ -25,9 +25,15 @@ public class LastPriceListner implements UpdateListener{
         Long pTicks =  (Long) newEvents[0].get("pTicks");
         Long nTicks =  (Long) newEvents[0].get("nTicks");
         Long uChg = tTicks - (pTicks + nTicks);
+        long pVolume= newEvents[0].get("pLastSize")==null? 0:Math.round((double)newEvents[0].get("pLastSize"));
+        long nVolume= newEvents[0].get("nLastSize")==null?0:Math.round((double) newEvents[0].get("nLastSize"));
+        long tVolume= newEvents[0].get("tLastSize")==null?0:Math.round((double) newEvents[0].get("tLastSize"));
+ 
         double adr = pTicks;
         if (tTicks > 0) adr = (double)pTicks/tTicks;
-        String message = "TotalTicks: " + tTicks + " (+)Ticks: " + pTicks + " (-)Ticks: " + nTicks + " Unchanged: " + uChg;
+        String message = "Tick: TotalTicks: " + tTicks + " (+)Ticks: " + pTicks + " (-)Ticks: " + nTicks + " Unchanged: " + uChg;
+        message += " (+)Vol: "+pVolume+" (-)Vol:"+nVolume+" Tot LastSize:"+ tVolume;
+        System.out.println(message);
         //System.out.println("Listner update: " + message);
         //MarketApp.setADRLP(df.format(adr), message); //ADR Tick
     }
