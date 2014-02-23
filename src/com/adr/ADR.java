@@ -26,6 +26,7 @@ public class ADR implements TradeListner{
     
     private EventProcessor mEsperEvtProcessor = null;
     HashMap<Integer,BeanSymbol> symbols=new HashMap();
+    static com.server.RateServer adrServer= new com.server.RateServer(5556);
 
     public ADR(ArrayList<BeanSymbol> symb){
         mEsperEvtProcessor = new EventProcessor();
