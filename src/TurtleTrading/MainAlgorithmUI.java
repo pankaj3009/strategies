@@ -35,7 +35,7 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
    public JList list;
    static public MainAlgorithm algo;
    static String parameterFileName;
-   static public boolean headless=true;
+   static public boolean headless=false;
     /** Creates new form NewSwingGUI */
     public MainAlgorithmUI() {
         initComponents();
