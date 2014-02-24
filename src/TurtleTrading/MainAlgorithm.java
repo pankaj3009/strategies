@@ -28,7 +28,8 @@ import javax.swing.JFrame;
  */
 public class MainAlgorithm extends Algorithm  {
 
-    public MarketData m;
+    //public MarketData m;
+    //public MarketData mSnap;
     public final static Logger LOGGER = Logger.getLogger(Algorithm.class.getName());
     public final static Logger logger=Logger.getLogger("KeyParameters");
     private BeanTurtle paramTurtle;
@@ -222,13 +223,19 @@ public class MainAlgorithm extends Algorithm  {
             //if ("Data".equals(c.getPurpose())) {
             int connectionCapacity = c.getTickersLimit();
             if (count > 0) {
-                m = new MarketData(c, allocatedCapacity, Math.min(count, connectionCapacity),filteredSymbols);
+                MarketData m = new MarketData(c, allocatedCapacity, Math.min(count, connectionCapacity),filteredSymbols);
                 allocatedCapacity = allocatedCapacity + Math.min(count, connectionCapacity);
                 count = count - Math.min(count, connectionCapacity);
                 m.start();
             }
         }
-                
+        //If there are symbols left, request snapshot. Distribute across accounts
+         for (BeanConnection c : Parameters.connection) {
+             int snapshotcount=count/Parameters.connection.size();
+             MarketData msnap = new MarketData(c, allocatedCapacity, snapshotcount,filteredSymbols);
+            msnap.setSnapshot(true);
+            msnap.start();
+         }       
         
         System.setProperties(pstrategy);
         String currDateStr = DateUtil.getFormatedDate("yyyyMMdd", Parameters.connection.get(0).getConnectionTime());
