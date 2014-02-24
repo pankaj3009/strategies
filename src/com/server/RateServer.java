@@ -19,9 +19,9 @@ public class RateServer {
         //publisher.bind("ipc://weather");
      }
      
-     public boolean send(String topic, String message){
+     public void send(String topic, String message){
          publisher.sendMore(topic);
-         return publisher.send(message);
+         publisher.send(message,0);
      }
      
 }

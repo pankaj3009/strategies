@@ -34,12 +34,12 @@ public class ADRListener implements UpdateListener{
         if (tTicks > 0) adr = (double)pTicks/tTicks;
         String message = "ADR: TotalMoves: " + tTicks + " (+)Advances: " + pTicks + " (-)Declines: " + nTicks + " Unchanged: " + uChg +" Advancing Volume: "+pVolume +" Declining Volume: "+nVolume+ " Total Volume: "+tVolume;
         long now =new Date().getTime();
-        ADR.adrServer.send("IND:CUS:ALL",0+","+now+","+pTicks );
-        ADR.adrServer.send("IND:CUS:ALL",1+","+now+","+nTicks );
-        ADR.adrServer.send("IND:CUS:ALL",2+","+now+","+tTicks );
-        ADR.adrServer.send("IND:CUS:ALL",3+","+now+","+pVolume );
-        ADR.adrServer.send("IND:CUS:ALL",4+","+now+","+nVolume );
-        ADR.adrServer.send("IND:CUS:ALL",5+","+now+","+tVolume );
+        ADR.adrServer.send("IND-CUS-ALL",0+","+now+","+pTicks);
+        ADR.adrServer.send("IND-CUS-ALL",1+","+now+","+nTicks );
+        ADR.adrServer.send("IND-CUS-ALL",2+","+now+","+tTicks );
+        ADR.adrServer.send("IND-CUS-ALL",3+","+now+","+pVolume );
+        ADR.adrServer.send("IND-CUS-ALL",4+","+now+","+nVolume );
+        ADR.adrServer.send("IND-CUS-ALL",5+","+now+","+tVolume );
         
         System.out.println(message);
         //System.out.println("Listner update: " + message);
