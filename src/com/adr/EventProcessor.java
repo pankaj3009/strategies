@@ -125,16 +125,24 @@ public class EventProcessor implements ActionListener {
         result = epRuntime.executeQuery(query);
         TradingUtil.writeToFile("Tick.csv", "tickerID,Price,lPrice,lastSize,lLastSize\n");
         for (EventBean row : result.getArray()) {
-            TradingUtil.writeToFile("Tick.csv", row.get("tickerID").toString()+","+row.get("price").toString()+","+
-                    row.get("lPrice").toString()+","+row.get("lastSize").toString()+","+row.get("lLastSize").toString()+"\n");
+            String tickerID=row.get("tickerID")!=null?row.get("tickerID").toString():"";
+            String price=row.get("price")!=null?row.get("price").toString():"";
+            String lPrice=row.get("lPrice")!=null?row.get("lPrice").toString():"";
+            String lastSize=row.get("lastSize")!=null?row.get("lastSize").toString():"";
+            String lLastSize=row.get("lLastSize")!=null?row.get("lLastSize").toString():"";
+            TradingUtil.writeToFile("Tick.csv", tickerID+","+price+","+lPrice+","+lastSize+","+lLastSize+"\n");
             //write ADR
             query="select * from LastPrice";
             result = epRuntime.executeQuery(query);
              TradingUtil.writeToFile("ADR.csv", "tickerID,lastPrice,closePrice,lastSize,volume\n");
              for (EventBean ADRrow : result.getArray()) {
-                  TradingUtil.writeToFile("Tick.csv", ADRrow.get("tickerID").toString()+","+ADRrow.get("lastPrice").toString()+","+
-                    ADRrow.get("closePrice").toString()+","+ADRrow.get("lastSize").toString()+","+ADRrow.get("volume").toString()+"\n");
-
+            tickerID=ADRrow.get("tickerID")!=null?ADRrow.get("tickerID").toString():"";
+            String lastPrice=ADRrow.get("lastPrice")!=null?ADRrow.get("lastPrice").toString():"";
+            String closePrice=ADRrow.get("closePrice")!=null?ADRrow.get("closePrice").toString():"";
+            lastSize=ADRrow.get("lastSize")!=null?ADRrow.get("lastSize").toString():"";
+            String volume=ADRrow.get("volume")!=null?ADRrow.get("volume").toString():"";
+            TradingUtil.writeToFile("Tick.csv", tickerID+","+lastPrice+","+closePrice+","+lastSize+","+volume+"\n");
+                    
              }
        }
         }
