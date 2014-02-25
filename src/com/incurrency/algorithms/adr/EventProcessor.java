@@ -120,6 +120,12 @@ public class EventProcessor implements ActionListener {
     
     }
     
+    public void actionPerformed(ActionEvent e){
+        ADR.adrServer.close();
+        
+    }
+    
+    /*
     	public void actionPerformed(ActionEvent e) {
         EPRuntime epRuntime = esperEngine.getEPRuntime();        
         System.out.println("PriceWin aggregation output");
@@ -150,7 +156,7 @@ public class EventProcessor implements ActionListener {
              }
        }
         
-        
+      */  
         public void debugFireTickQuery(){
         EPRuntime epRuntime = esperEngine.getEPRuntime();        
         System.out.println("PriceWin aggregation output");
