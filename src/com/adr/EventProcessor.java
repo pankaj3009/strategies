@@ -96,8 +96,8 @@ public class EventProcessor implements ActionListener {
         statement = esperEngine.getEPAdministrator().createEPL(stmt);
 
         // Create the statement to calculate tick as count(+symbs)/count(-symbs) since last price for each ticker
-        stmt = "select count(*, price > lPrice) as pTicks,sum(lastSize, price > lPrice) as pLastSize, count(*, price < lPrice) as nTicks,sum(all lastSize, price < lPrice) as nLastSize, ";
-        stmt += "count(*) as tTicks, sum(lastSize) as tLastSize from LastPriceWin ";
+        stmt = "select count(*, price > lPrice) as pTicks,sum(lastSize, price > lPrice) as pLastSize, count(*, price < lPrice) as nTicks,sum(lastSize, price < lPrice) as nLastSize, ";
+        stmt += "count(*,price=lPrice) as uTicks, sum(lastSize,price=lPrice) as uLastSize, count(*) as tTicks, sum(lastSize) as tLastSize from LastPriceWin ";
         statement = esperEngine.getEPAdministrator().createEPL(stmt);
         statement.addListener(new TickListener());
         

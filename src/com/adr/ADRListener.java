@@ -41,7 +41,7 @@ public class ADRListener implements UpdateListener{
         ADR.adrServer.send("IND-CUS-ALL",4+","+now+","+nVolume );
         ADR.adrServer.send("IND-CUS-ALL",5+","+now+","+tVolume );
         
-        System.out.println(message);
+       // System.out.println(message);
         //System.out.println("Listner update: " + message);
 //        MarketApp.setADRLC(df.format(adr), message); //ADR Market
     }

@@ -25,14 +25,15 @@ public class TickListener implements UpdateListener{
         Long tTicks = (Long) newEvents[0].get("tTicks");
         Long pTicks =  (Long) newEvents[0].get("pTicks");
         Long nTicks =  (Long) newEvents[0].get("nTicks");
-        Long uChg = tTicks - (pTicks + nTicks);
+        Long uTicks =   (Long) newEvents[0].get("uTicks");
         long pVolume= newEvents[0].get("pLastSize")==null? 0:Math.round((double)newEvents[0].get("pLastSize"));
         long nVolume= newEvents[0].get("nLastSize")==null?0:Math.round((double) newEvents[0].get("nLastSize"));
         long tVolume= newEvents[0].get("tLastSize")==null?0:Math.round((double) newEvents[0].get("tLastSize"));
+        long uVolume= newEvents[0].get("uLastSize")==null?0:Math.round((double) newEvents[0].get("uLastSize"));
  
         double adr = pTicks;
         if (tTicks > 0) adr = (double)pTicks/tTicks;
-        String message = "Tick: TotalTicks: " + tTicks + " (+)Ticks: " + pTicks + " (-)Ticks: " + nTicks + " Unchanged: " + uChg;
+        String message = "Tick: TotalTicks: " + tTicks + " (+)Ticks: " + pTicks + " (-)Ticks: " + nTicks + " Unchanged: " + uTicks;
         message += " (+)Vol: "+pVolume+" (-)Vol:"+nVolume+" Tot LastSize:"+ tVolume;
                 long now =new Date().getTime();
         ADR.adrServer.send("IND:CUS:ALL",6+","+now+","+pTicks );
@@ -41,7 +42,10 @@ public class TickListener implements UpdateListener{
         ADR.adrServer.send("IND:CUS:ALL",9+","+now+","+pVolume );
         ADR.adrServer.send("IND:CUS:ALL",10+","+now+","+nVolume );
         ADR.adrServer.send("IND:CUS:ALL",11+","+now+","+tVolume );
-        System.out.println(message);
+        ADR.adrServer.send("IND:CUS:ALL",12+","+now+","+uTicks );
+        ADR.adrServer.send("IND:CUS:ALL",13+","+now+","+uVolume );
+        
+        //System.out.println(message);
         //System.out.println("Listner update: " + message);
         //MarketApp.setADRLP(df.format(adr), message); //ADR Tick
     }
