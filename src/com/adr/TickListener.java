@@ -36,14 +36,14 @@ public class TickListener implements UpdateListener{
         String message = "Tick: TotalTicks: " + tTicks + " (+)Ticks: " + pTicks + " (-)Ticks: " + nTicks + " Unchanged: " + uTicks;
         message += " (+)Vol: "+pVolume+" (-)Vol:"+nVolume+" Tot LastSize:"+ tVolume;
                 long now =new Date().getTime();
-        ADR.adrServer.send("IND:CUS:ALL",6+","+now+","+pTicks );
-        ADR.adrServer.send("IND:CUS:ALL",7+","+now+","+nTicks );
-        ADR.adrServer.send("IND:CUS:ALL",8+","+now+","+tTicks );
-        ADR.adrServer.send("IND:CUS:ALL",9+","+now+","+pVolume );
-        ADR.adrServer.send("IND:CUS:ALL",10+","+now+","+nVolume );
-        ADR.adrServer.send("IND:CUS:ALL",11+","+now+","+tVolume );
-        ADR.adrServer.send("IND:CUS:ALL",12+","+now+","+uTicks );
-        ADR.adrServer.send("IND:CUS:ALL",13+","+now+","+uVolume );
+        ADR.adrServer.send("IND:CUS:ALL",6+","+now+","+pTicks +"ADR");
+        ADR.adrServer.send("IND:CUS:ALL",7+","+now+","+nTicks +"ADR" );
+        ADR.adrServer.send("IND:CUS:ALL",8+","+now+","+tTicks +"ADR");
+        ADR.adrServer.send("IND:CUS:ALL",9+","+now+","+pVolume +"ADR" );
+        ADR.adrServer.send("IND:CUS:ALL",10+","+now+","+nVolume +"ADR");
+        ADR.adrServer.send("IND:CUS:ALL",11+","+now+","+tVolume +"ADR" );
+        ADR.adrServer.send("IND:CUS:ALL",12+","+now+","+uTicks +"ADR");
+        ADR.adrServer.send("IND:CUS:ALL",13+","+now+","+uVolume +"ADR");
         
         //System.out.println(message);
         //System.out.println("Listner update: " + message);
