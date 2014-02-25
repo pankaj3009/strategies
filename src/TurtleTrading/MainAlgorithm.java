@@ -18,7 +18,8 @@ import java.util.Timer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFrame;
-
+import com.RatesClient.Subscribe;
+import incurrframework.ADRRates;
 /**
  *
  * @author admin
@@ -196,6 +197,8 @@ public class MainAlgorithm extends Algorithm  {
             }
         }
                 
+        ADRRates rates=new ADRRates();
+        Subscribe prices=new Subscribe("103.250.184.15:5556");
         
         System.setProperties(pstrategy);
         String currDateStr = DateUtil.getFormatedDate("yyyyMMdd", Parameters.connection.get(0).getConnectionTime());
