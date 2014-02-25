@@ -122,7 +122,6 @@ public class EventProcessor implements ActionListener {
         System.out.println("PriceWin aggregation output");
         String query="select * from LastPriceWin";
         EPOnDemandQueryResult result = epRuntime.executeQuery(query);
-        result = epRuntime.executeQuery(query);
         TradingUtil.writeToFile("Tick.csv", "tickerID,Price,lPrice,lastSize,lLastSize\n");
         for (EventBean row : result.getArray()) {
             String tickerID=row.get("tickerID")!=null?row.get("tickerID").toString():"";
@@ -131,21 +130,23 @@ public class EventProcessor implements ActionListener {
             String lastSize=row.get("lastSize")!=null?row.get("lastSize").toString():"";
             String lLastSize=row.get("lLastSize")!=null?row.get("lLastSize").toString():"";
             TradingUtil.writeToFile("Tick.csv", tickerID+","+price+","+lPrice+","+lastSize+","+lLastSize+"\n");
-            //write ADR
-            query="select * from LastPrice";
-            result = epRuntime.executeQuery(query);
+        }
+        
+        //write ADR
+            query="select * from PriceWin";
+            EPOnDemandQueryResult result2 = epRuntime.executeQuery(query);
              TradingUtil.writeToFile("ADR.csv", "tickerID,lastPrice,closePrice,lastSize,volume\n");
-             for (EventBean ADRrow : result.getArray()) {
-            tickerID=ADRrow.get("tickerID")!=null?ADRrow.get("tickerID").toString():"";
+             for (EventBean ADRrow : result2.getArray()) {
+            String tickerID=ADRrow.get("tickerID")!=null?ADRrow.get("tickerID").toString():"";
             String lastPrice=ADRrow.get("lastPrice")!=null?ADRrow.get("lastPrice").toString():"";
             String closePrice=ADRrow.get("closePrice")!=null?ADRrow.get("closePrice").toString():"";
-            lastSize=ADRrow.get("lastSize")!=null?ADRrow.get("lastSize").toString():"";
+            String lastSize=ADRrow.get("lastSize")!=null?ADRrow.get("lastSize").toString():"";
             String volume=ADRrow.get("volume")!=null?ADRrow.get("volume").toString():"";
-            TradingUtil.writeToFile("Tick.csv", tickerID+","+lastPrice+","+closePrice+","+lastSize+","+volume+"\n");
+            TradingUtil.writeToFile("ADR.csv", tickerID+","+lastPrice+","+closePrice+","+lastSize+","+volume+"\n");
                     
              }
        }
-        }
+        
         
         public void debugFireTickQuery(){
         EPRuntime epRuntime = esperEngine.getEPRuntime();        
