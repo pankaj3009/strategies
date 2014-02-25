@@ -12,6 +12,7 @@ import com.espertech.esper.client.EPServiceProvider;
 import com.espertech.esper.client.EPServiceProviderManager;
 import com.espertech.esper.client.EPStatement;
 import com.espertech.esper.client.EventBean;
+import incurrframework.TradingUtil;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -135,12 +136,25 @@ public class EventProcessor implements ActionListener {
         String query="select * from LastPriceWin";
         EPOnDemandQueryResult result = epRuntime.executeQuery(query);
         result = epRuntime.executeQuery(query);
+        TradingUtil.writeToFile("Tick.csv", "tickerID,Price,lPrice,lastSize,lLastSize\n");
         for (EventBean row : result.getArray()) {
+            TradingUtil.writeToFile("Tick.csv", row.get("tickerID").toString()+","+row.get("price").toString()+","+
+                    row.get("lPrice").toString()+","+row.get("lastSize").toString()+","+row.get("lLastSize").toString()+"\n");
+            //write ADR
+            query="select * from LastPrice";
+            result = epRuntime.executeQuery(query);
+             TradingUtil.writeToFile("ADR.csv", "tickerID,lastPrice,closePrice,lastSize,volume\n");
+             for (EventBean ADRrow : result.getArray()) {
+                  TradingUtil.writeToFile("Tick.csv", ADRrow.get("tickerID").toString()+","+ADRrow.get("lastPrice").toString()+","+
+                    ADRrow.get("closePrice").toString()+","+ADRrow.get("lastSize").toString()+","+ADRrow.get("volume").toString()+"\n");
+
+             }
+            /*            
             System.out.println("tickerID=" + row.get("tickerID"));
             System.out.println("Price=" + row.get("price"));
             System.out.println("lPrice=" + row.get("lPrice"));
             System.out.println("lastSize=" + row.get("lastSize"));
-            System.out.println("lLastSize=" + row.get("lLastSize"));
+            System.out.println("lLastSize=" + row.get("lLastSize"));*/
 	}
         }
         
