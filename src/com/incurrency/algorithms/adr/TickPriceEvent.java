@@ -3,7 +3,9 @@
  * and open the template in the editor.
  */
 
-package com.adr;
+package com.incurrency.algorithms.adr;
+
+import java.util.logging.Logger;
 
 /**
  *
@@ -13,6 +15,7 @@ public class TickPriceEvent {
     private int tickerID = 0;
     private int field = 0;
     private double price = 0.0;
+    private static final Logger logger = Logger.getLogger(TickPriceEvent.class.getName());
 
     /*
      * Constructor

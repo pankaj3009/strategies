@@ -2,10 +2,29 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package TurtleTrading;
+package com.incurrency.algorithms.turtle;
 
-import com.adr.ADR;
-import incurrframework.*;
+import com.incurrency.framework.BeanOHLC;
+import com.incurrency.framework.GUIMissedOrders;
+import com.incurrency.framework.Algorithm;
+import com.incurrency.framework.GUIDashBoard;
+import com.incurrency.framework.DateUtil;
+import com.incurrency.framework.OrderEvent;
+import com.incurrency.framework.BeanConnection;
+import com.incurrency.framework.GUIInProgressOrders;
+import com.incurrency.framework.TradingUtil;
+import com.incurrency.framework.Parameters;
+import com.incurrency.framework.TWSConnection;
+import com.incurrency.framework.MarketData;
+import com.incurrency.framework.RealTimeBars;
+import com.incurrency.framework.BeanSymbol;
+import com.incurrency.framework.EnumOrderIntent;
+import com.incurrency.framework.BeanSymbolCompare;
+import com.incurrency.framework.OrderListener;
+import com.incurrency.framework.HistoricalBars;
+import com.incurrency.framework.GUIPNLDashBoard;
+import com.incurrency.framework.EnumOrderSide;
+import com.incurrency.algorithms.adr.ADR;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -31,7 +50,6 @@ public class MainAlgorithm extends Algorithm  {
     //public MarketData m;
     //public MarketData mSnap;
     public final static Logger LOGGER = Logger.getLogger(Algorithm.class.getName());
-    public final static Logger logger=Logger.getLogger("KeyParameters");
     private BeanTurtle paramTurtle;
     private BeanGuds paramGuds;
     public OrderPlacement ordManagement;

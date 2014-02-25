@@ -2,15 +2,17 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package TurtleTrading;
+package com.incurrency.algorithms.turtle;
 
-import incurrframework.*;
-import incurrframework.BeanOHLC;
-import incurrframework.BeanSymbol;
-import incurrframework.DateUtil;
-import incurrframework.Parameters;
-import incurrframework.TradeEvent;
-import incurrframework.TradeListner;
+import com.incurrency.framework.TradingUtil;
+import com.incurrency.framework.Algorithm;
+import com.incurrency.framework.OHLCCompare;
+import com.incurrency.framework.BeanOHLC;
+import com.incurrency.framework.BeanSymbol;
+import com.incurrency.framework.DateUtil;
+import com.incurrency.framework.Parameters;
+import com.incurrency.framework.TradeEvent;
+import com.incurrency.framework.TradeListner;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;

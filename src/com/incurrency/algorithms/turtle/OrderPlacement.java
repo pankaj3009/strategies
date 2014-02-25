@@ -2,17 +2,36 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package TurtleTrading;
+package com.incurrency.algorithms.turtle;
 
+import com.incurrency.framework.Index;
+import com.incurrency.framework.OrderStatusListener;
+import com.incurrency.framework.OrderBean;
+import com.incurrency.framework.OrderEvent;
+import com.incurrency.framework.DateUtil;
+import com.incurrency.framework.BeanConnection;
+import com.incurrency.framework.DataBars;
+import com.incurrency.framework.BidAskEvent;
+import com.incurrency.framework.BeanOrderInformation;
+import com.incurrency.framework.Parameters;
+import com.incurrency.framework.EnumOrderType;
+import com.incurrency.framework.EnumOrderStatus;
+import com.incurrency.framework.TWSErrorListener;
+import com.incurrency.framework.TWSErrorEvent;
+import com.incurrency.framework.EnumOrderIntent;
+import com.incurrency.framework.BeanPosition;
+import com.incurrency.framework.BidAskListener;
+import com.incurrency.framework.OrderListener;
+import com.incurrency.framework.EnumOrderSide;
+import com.incurrency.framework.OrderStatusEvent;
 import com.ib.client.Contract;
 import com.ib.client.Order;
-import incurrframework.*;
-import static incurrframework.EnumOrderSide.BUY;
-import static incurrframework.EnumOrderSide.COVER;
-import static incurrframework.EnumOrderSide.SELL;
-import static incurrframework.EnumOrderSide.SHORT;
-import static incurrframework.EnumOrderSide.TRAILBUY;
-import static incurrframework.EnumOrderSide.TRAILSELL;
+import static com.incurrency.framework.EnumOrderSide.BUY;
+import static com.incurrency.framework.EnumOrderSide.COVER;
+import static com.incurrency.framework.EnumOrderSide.SELL;
+import static com.incurrency.framework.EnumOrderSide.SHORT;
+import static com.incurrency.framework.EnumOrderSide.TRAILBUY;
+import static com.incurrency.framework.EnumOrderSide.TRAILSELL;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.Format;

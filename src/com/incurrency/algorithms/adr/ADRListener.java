@@ -3,11 +3,12 @@
  * and open the template in the editor.
  */
 
-package com.adr;
+package com.incurrency.algorithms.adr;
 import com.espertech.esper.client.UpdateListener;
 import com.espertech.esper.client.EventBean;
 import java.text.DecimalFormat;
 import java.util.Date;
+import java.util.logging.Logger;
 //import com.incur.client.strat.MarketApp;
 
 /*
@@ -16,6 +17,8 @@ import java.util.Date;
  */
 public class ADRListener implements UpdateListener{
 
+    private static final Logger logger = Logger.getLogger(ADRListener.class.getName());
+    
     public void update(EventBean[] newEvents, EventBean[] oldEvents) {
 
         DecimalFormat df = new DecimalFormat("0.00");

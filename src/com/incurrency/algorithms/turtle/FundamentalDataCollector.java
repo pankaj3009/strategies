@@ -2,16 +2,16 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package TurtleTrading;
+package com.incurrency.algorithms.turtle;
 
-import incurrframework.Algorithm;
-import incurrframework.BeanConnection;
-import incurrframework.BeanSymbol;
-import incurrframework.FundamentalData;
-import incurrframework.FundamentalDataEvent;
-import incurrframework.FundamentalDataListener;
-import incurrframework.Parameters;
-import incurrframework.TWSConnection;
+import com.incurrency.framework.Algorithm;
+import com.incurrency.framework.BeanConnection;
+import com.incurrency.framework.BeanSymbol;
+import com.incurrency.framework.FundamentalData;
+import com.incurrency.framework.FundamentalDataEvent;
+import com.incurrency.framework.FundamentalDataListener;
+import com.incurrency.framework.Parameters;
+import com.incurrency.framework.TWSConnection;
 import java.util.ArrayList;
 
     

@@ -8,13 +8,13 @@
  *
  * Created on 09-Aug-2013, 10:05:09
  */
-package TurtleTrading;
+package com.incurrency.algorithms.turtle;
 
 
-import incurrframework.BeanConnection;
-import incurrframework.Registration;
-import incurrframework.Parameters;
-import incurrframework.Index;
+import com.incurrency.framework.BeanConnection;
+import com.incurrency.framework.Registration;
+import com.incurrency.framework.Parameters;
+import com.incurrency.framework.Index;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;

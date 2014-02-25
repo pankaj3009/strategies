@@ -2,16 +2,17 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.adr;
+package com.incurrency.algorithms.adr;
 
-import incurrframework.BeanConnection;
-import incurrframework.BeanSymbol;
-import incurrframework.EnumTickType;
-import incurrframework.Parameters;
-import incurrframework.TradeEvent;
-import incurrframework.TradeListner;
+import com.incurrency.framework.Algorithm;
+import com.incurrency.framework.BeanConnection;
+import com.incurrency.framework.BeanSymbol;
+import com.incurrency.framework.Parameters;
+import com.incurrency.framework.TradeEvent;
+import com.incurrency.framework.TradeListner;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.logging.Logger;
 
 /**
  * Generates ADR, Tick , TRIN 
@@ -26,8 +27,9 @@ public class ADR implements TradeListner{
     
     private EventProcessor mEsperEvtProcessor = null;
     HashMap<Integer,BeanSymbol> symbols=new HashMap();
-    static com.server.RateServer adrServer= new com.server.RateServer(5556);
-
+    static com.incurrency.framework.rateserver.RateServer adrServer= new com.incurrency.framework.rateserver.RateServer(5556);
+    private static final Logger logger = Logger.getLogger(ADR.class.getName());
+    
     public ADR(ArrayList<BeanSymbol> symb){
         mEsperEvtProcessor = new EventProcessor();
         for(BeanSymbol s: symb){

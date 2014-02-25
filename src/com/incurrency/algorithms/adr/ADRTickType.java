@@ -2,11 +2,15 @@
  * TickType.java
  *
  */
-package com.adr;
+package com.incurrency.algorithms.adr;
 
 import com.ib.client.*;
+import java.util.logging.Logger;
+
 
 public class ADRTickType {
+
+    private static final Logger logger = Logger.getLogger(ADRTickType.class.getName());
     // constants - tick types
     public static final int D_ADVANCE       = 0;
     public static final int D_DECLINE       = 1;

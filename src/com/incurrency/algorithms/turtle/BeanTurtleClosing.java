@@ -2,13 +2,13 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package TurtleTrading;
+package com.incurrency.algorithms.turtle;
 
-import static TurtleTrading.MainAlgorithmUI.algo;
-import incurrframework.BeanEODTradeRecord;
-import incurrframework.EnumOrderStatus;
-import incurrframework.OrderBean;
-import incurrframework.Parameters;
+import static com.incurrency.algorithms.turtle.MainAlgorithmUI.algo;
+import com.incurrency.framework.BeanEODTradeRecord;
+import com.incurrency.framework.EnumOrderStatus;
+import com.incurrency.framework.OrderBean;
+import com.incurrency.framework.Parameters;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Map;

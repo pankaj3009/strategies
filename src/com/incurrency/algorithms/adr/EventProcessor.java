@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 
-package com.adr;
+package com.incurrency.algorithms.adr;
 
 import com.espertech.esper.client.Configuration;
 import com.espertech.esper.client.EPOnDemandQueryResult;
@@ -12,10 +12,11 @@ import com.espertech.esper.client.EPServiceProvider;
 import com.espertech.esper.client.EPServiceProviderManager;
 import com.espertech.esper.client.EPStatement;
 import com.espertech.esper.client.EventBean;
-import incurrframework.TradingUtil;
+import com.incurrency.framework.TradingUtil;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.logging.Logger;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
@@ -26,12 +27,14 @@ import javax.swing.WindowConstants;
 public class EventProcessor implements ActionListener {
 
     private EPServiceProvider esperEngine;
+    private static final Logger logger = Logger.getLogger(EventProcessor.class.getName());
+    
     public  EventProcessor()
     {
         // Register event class alias for simplicity
         Configuration config = new Configuration();
 //        config.addEventType("TickPrice", "com.adr.TickPriceEvent");
-       config.addEventType("TickPrice", com.adr.TickPriceEvent.class);
+       config.addEventType("TickPrice", com.incurrency.algorithms.adr.TickPriceEvent.class);
 
         // Get an engine instance
         esperEngine = EPServiceProviderManager.getDefaultProvider(config);

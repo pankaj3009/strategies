@@ -2,12 +2,12 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package TurtleTrading;
+package com.incurrency.algorithms.turtle;
 
-import incurrframework.BeanSymbol;
-import incurrframework.EnumOrderIntent;
-import incurrframework.EnumOrderSide;
-import incurrframework.Parameters;
+import com.incurrency.framework.BeanSymbol;
+import com.incurrency.framework.EnumOrderIntent;
+import com.incurrency.framework.EnumOrderSide;
+import com.incurrency.framework.Parameters;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;

@@ -2,16 +2,16 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package TurtleTrading;
+package com.incurrency.algorithms.turtle;
 
-import incurrframework.Algorithm;
-import incurrframework.BeanSymbol;
-import incurrframework.DateUtil;
-import incurrframework.EnumOrderIntent;
-import incurrframework.EnumOrderSide;
-import incurrframework.Parameters;
-import incurrframework.TradeEvent;
-import incurrframework.TradeListner;
+import com.incurrency.framework.Algorithm;
+import com.incurrency.framework.BeanSymbol;
+import com.incurrency.framework.DateUtil;
+import com.incurrency.framework.EnumOrderIntent;
+import com.incurrency.framework.EnumOrderSide;
+import com.incurrency.framework.Parameters;
+import com.incurrency.framework.TradeEvent;
+import com.incurrency.framework.TradeListner;
 import java.beans.*;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
