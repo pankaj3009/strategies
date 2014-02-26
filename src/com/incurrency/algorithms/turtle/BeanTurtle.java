@@ -74,7 +74,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
     private int maxOrderDuration;
     private int dynamicOrderDuration;
     private double maxSlippage=0;
-    private static final Logger logger = Logger.getLogger(Algorithm.class.getName());
+    private static final Logger logger = Logger.getLogger(BeanTurtle.class.getName());
     private static ConcurrentHashMap queue = new <Integer, PendingHistoricalRequests> ConcurrentHashMap();
     private static ConcurrentLinkedQueue queueHistRequests = new ConcurrentLinkedQueue(new ArrayList<PendingHistoricalRequests>());
     private static ArrayList<PendingHistoricalRequests> temp = new ArrayList<PendingHistoricalRequests>();
@@ -147,10 +147,10 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
             try {
                 p.load(propFile);
             } catch (IOException ex) {
-                Logger.getLogger(BeanTurtle.class.getName()).log(Level.SEVERE, null, ex);
+                logger.log(Level.SEVERE, null, ex);
             }
         } catch (FileNotFoundException ex) {
-            Logger.getLogger(BeanTurtle.class.getName()).log(Level.SEVERE, null, ex);
+            logger.log(Level.SEVERE, null, ex);
         }
         System.setProperties(p);
         String currDateStr = DateUtil.getFormatedDate("yyyyMMdd", Parameters.connection.get(0).getConnectionTime());
@@ -212,8 +212,8 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
                 }
 
             }
-        } catch (Exception E) {
-            System.out.println("Error:" + E.toString());
+        } catch (Exception e) {
+            logger.log(Level.SEVERE,null,e);
         }
     }
 
@@ -245,6 +245,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
                     }
                 }
             } catch (Exception e) {
+                logger.log(Level.SEVERE,null,e);
             }
 
             try {
@@ -440,7 +441,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
 
 
             } catch (Exception e) {
-                logger.log(Level.SEVERE, "{0} Symbol: {1}", new Object[]{e.toString(), event.getSymbol().getSymbol()});
+                logger.log(Level.SEVERE, null,e);
             }
         }
     }
@@ -584,7 +585,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
             }
 
         } catch (Exception e) {
-            logger.log(Level.SEVERE, e.toString());
+            logger.log(Level.SEVERE, null,e);
         }
     }
 
@@ -751,7 +752,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
 
 
         } catch (Exception e) {
-            logger.log(Level.SEVERE, e.toString());
+            logger.log(Level.SEVERE, null,e);
         }
     }
 

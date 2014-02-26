@@ -12,6 +12,7 @@ package com.incurrency.algorithms.turtle;
 
 
 import com.incurrency.framework.BeanConnection;
+import com.incurrency.framework.DateUtil;
 import com.incurrency.framework.Registration;
 import com.incurrency.framework.Parameters;
 import com.incurrency.framework.Index;
@@ -36,6 +37,7 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
    static public MainAlgorithm algo;
    static String parameterFileName;
    static public boolean headless=false;
+   private static final Logger logger=Logger.getLogger(MainAlgorithmUI.class.getName());
     /** Creates new form NewSwingGUI */
     public MainAlgorithmUI() {
         initComponents();
@@ -372,13 +374,13 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(MainAlgorithmUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+           logger.log(Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(MainAlgorithmUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            logger.log(Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(MainAlgorithmUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            logger.log(Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(MainAlgorithmUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+           logger.log(Level.SEVERE, null, ex);
         }
         //</editor-fold>
 //1. Add the parameters files to myList variable  
@@ -475,7 +477,7 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
          
         }
         catch(IOException e){
-             e.printStackTrace();
+            logger.log(Level.SEVERE,null,e);
         }
     }
     

@@ -40,6 +40,7 @@ public class EventProcessor implements ActionListener {
         esperEngine = EPServiceProviderManager.getDefaultProvider(config);
    //     String test=TickPriceEvent.class.getName();
   //      esperEngine.getEPAdministrator().getConfiguration().addEventType("TickPrice", TickPriceEvent.class);
+        //Make sure the following jars are in classpath. 1.CGILIB, 2.ANTLR
         esperEngine.initialize();
         System.out.println("Esper engine= " + esperEngine.toString());
 

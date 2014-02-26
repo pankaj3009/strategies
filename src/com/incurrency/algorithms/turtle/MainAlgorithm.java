@@ -49,7 +49,7 @@ public class MainAlgorithm extends Algorithm  {
 
     //public MarketData m;
     //public MarketData mSnap;
-    public final static Logger LOGGER = Logger.getLogger(Algorithm.class.getName());
+    public final static Logger logger = Logger.getLogger(MainAlgorithm.class.getName());
     private BeanTurtle paramTurtle;
     private BeanGuds paramGuds;
     public OrderPlacement ordManagement;
@@ -91,10 +91,10 @@ public class MainAlgorithm extends Algorithm  {
                 pmaster.load(propFileMaster);
                 pstrategy.load(propFileStrategy);
             } catch (IOException ex) {
-                Logger.getLogger(BeanTurtle.class.getName()).log(Level.SEVERE, null, ex);
+                logger.log(Level.SEVERE, null, ex);
             }
         } catch (FileNotFoundException ex) {
-            Logger.getLogger(BeanTurtle.class.getName()).log(Level.SEVERE, null, ex);
+            logger.log(Level.SEVERE, null, ex);
         }
         
         
@@ -311,7 +311,7 @@ public class MainAlgorithm extends Algorithm  {
         t.join();
         }
         }catch (Exception e){
-            
+            logger.log(Level.SEVERE,null,e);
         }
        
         if(Boolean.valueOf(mySQL)){
@@ -356,7 +356,7 @@ public class MainAlgorithm extends Algorithm  {
         //BoilerPlate Ends
         }
         
-        LOGGER.log(Level.FINEST, ",Symbol" + "," + "BarNo" + "," + "HighestHigh" + "," + "LowestLow" + "," + "LastPrice" + "," + "Volume" + "," + "CumulativeVol" + "," + "VolumeSlope" + "," + "MinSlopeReqd" + "," + "MA" + "," + "LongVolume" + "," + "ShortVolume" + "," + "DateTime" + ","
+        logger.log(Level.FINEST, ",Symbol" + "," + "BarNo" + "," + "HighestHigh" + "," + "LowestLow" + "," + "LastPrice" + "," + "Volume" + "," + "CumulativeVol" + "," + "VolumeSlope" + "," + "MinSlopeReqd" + "," + "MA" + "," + "LongVolume" + "," + "ShortVolume" + "," + "DateTime" + ","
                 + "ruleHighestHigh" + "," + "ruleCumVolumeLong" + "," + "ruleSlopeLong" + "," + "ruleVolumeLong" + "," + "ruleLowestLow" + ","
                 + "ruleCumVolumeShort" + "," + "ruleSlopeShort" + "," + "ruleVolumeShort");
             
