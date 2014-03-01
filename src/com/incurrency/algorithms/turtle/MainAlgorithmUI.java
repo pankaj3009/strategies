@@ -67,6 +67,10 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
         cmdRegister = new javax.swing.JButton();
         cmdExitLongs = new javax.swing.JButton();
         cmdExitShorts = new javax.swing.JButton();
+        jLabel3 = new javax.swing.JLabel();
+        txtProfitTarget = new javax.swing.JTextField();
+        cmdUpdateProfitTgt = new javax.swing.JButton();
+        lblProfitTaken = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Intra-Day Turtle (IDT) Version:1.000");
@@ -156,6 +160,19 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
             }
         });
 
+        jLabel3.setText("Profit Target");
+
+        txtProfitTarget.setText("..");
+
+        cmdUpdateProfitTgt.setText("Update Profit Tgt");
+        cmdUpdateProfitTgt.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cmdUpdateProfitTgtActionPerformed(evt);
+            }
+        });
+
+        lblProfitTaken.setText("0");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -182,13 +199,25 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
                                     .addComponent(cmdShort, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)))
                             .addComponent(cmdStart, javax.swing.GroupLayout.PREFERRED_SIZE, 201, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(cmdExitLongs, javax.swing.GroupLayout.PREFERRED_SIZE, 98, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(cmdAggressionDisable, javax.swing.GroupLayout.PREFERRED_SIZE, 198, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(18, 18, 18)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(cmdSquareAll, javax.swing.GroupLayout.PREFERRED_SIZE, 174, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(cmdBoth, javax.swing.GroupLayout.PREFERRED_SIZE, 174, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(cmdPause, javax.swing.GroupLayout.PREFERRED_SIZE, 174, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(cmdAggressionEnable, javax.swing.GroupLayout.PREFERRED_SIZE, 174, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                .addGroup(layout.createSequentialGroup()
+                                    .addComponent(jLabel3)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                    .addComponent(txtProfitTarget, javax.swing.GroupLayout.PREFERRED_SIZE, 54, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                    .addComponent(lblProfitTaken, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                .addComponent(cmdAggressionDisable, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 198, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(18, 18, 18)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                    .addComponent(cmdSquareAll, javax.swing.GroupLayout.DEFAULT_SIZE, 174, Short.MAX_VALUE)
+                                    .addComponent(cmdBoth, javax.swing.GroupLayout.DEFAULT_SIZE, 174, Short.MAX_VALUE)
+                                    .addComponent(cmdPause, javax.swing.GroupLayout.DEFAULT_SIZE, 174, Short.MAX_VALUE)
+                                    .addComponent(cmdAggressionEnable, javax.swing.GroupLayout.DEFAULT_SIZE, 174, Short.MAX_VALUE)))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(18, 18, 18)
+                                .addComponent(cmdUpdateProfitTgt, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                         .addGap(18, 18, 18)
                         .addComponent(cmdRegister, javax.swing.GroupLayout.PREFERRED_SIZE, 133, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addGap(230, 230, 230))
@@ -226,7 +255,13 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
                             .addComponent(cmdAggressionDisable)
                             .addComponent(cmdAggressionEnable)))
                     .addComponent(cmdRegister, javax.swing.GroupLayout.PREFERRED_SIZE, 134, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(306, 306, 306))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel3)
+                    .addComponent(txtProfitTarget, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(cmdUpdateProfitTgt)
+                    .addComponent(lblProfitTaken))
+                .addContainerGap())
         );
 
         pack();
@@ -344,9 +379,21 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
         } 
         Logger.getLogger(MainAlgorithmUI.class.getName()).log(Level.INFO, "Exit Short Positions");
     }//GEN-LAST:event_cmdExitShortsActionPerformed
+
+    private void cmdUpdateProfitTgtActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdUpdateProfitTgtActionPerformed
+        algo.setProfitTarget(Double.parseDouble(MainAlgorithmUI.txtProfitTarget.getText()));
+    }//GEN-LAST:event_cmdUpdateProfitTgtActionPerformed
     
     public static synchronized void setMessage(String message) {
         lblMessage.setText(message);
+    }
+    
+    public static synchronized void setProfitTaken(String value){
+        lblProfitTaken.setText(value);
+    }
+    
+    public static synchronized void setProfitTarget(double profit){
+        txtProfitTarget.setText(Double.toString(profit));
     }
     
    public static synchronized void setIBMessage(String message) {
@@ -418,6 +465,8 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
                 MainAlgorithmUI startup=new MainAlgorithmUI();
                 startup.setLocation(0,465);
                 MainAlgorithmUI.displayRegistration(false);
+                cmdUpdateProfitTgt.setVisible(false);
+                txtProfitTarget.setVisible(false);
                 MainAlgorithmUI.setStart(false);
                 MainAlgorithmUI.setPauseTrading(false);
                 MainAlgorithmUI.setcmdLong(false);
@@ -437,7 +486,9 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
                 temp[i]=myList.get(i);
             }
             algo=new MainAlgorithm(temp);
-            //new FundamentalDataCollector(temp);
+            cmdUpdateProfitTgt.setVisible(true);
+            txtProfitTarget.setVisible(true);
+            
         /* Create and display the form */
     }
     
@@ -493,9 +544,13 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
     private static javax.swing.JButton cmdShort;
     private static javax.swing.JButton cmdSquareAll;
     private static javax.swing.JButton cmdStart;
+    private static javax.swing.JButton cmdUpdateProfitTgt;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
     private static javax.swing.JLabel lblIBMessage;
     private static javax.swing.JLabel lblMessage;
+    private static javax.swing.JLabel lblProfitTaken;
+    private static javax.swing.JTextField txtProfitTarget;
     // End of variables declaration//GEN-END:variables
 }

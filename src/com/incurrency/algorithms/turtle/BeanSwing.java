@@ -5,8 +5,8 @@
 package com.incurrency.algorithms.turtle;
 
 import com.incurrency.framework.TradingUtil;
-import com.incurrency.framework.Algorithm;
 import com.incurrency.framework.OHLCCompare;
+import com.incurrency.framework.Algorithm;
 import com.incurrency.framework.BeanOHLC;
 import com.incurrency.framework.BeanSymbol;
 import com.incurrency.framework.DateUtil;

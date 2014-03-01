@@ -51,14 +51,31 @@
                           </Group>
                           <Component id="cmdStart" alignment="0" min="-2" pref="201" max="-2" attributes="0"/>
                           <Component id="cmdExitLongs" min="-2" pref="98" max="-2" attributes="0"/>
-                          <Component id="cmdAggressionDisable" alignment="0" min="-2" pref="198" max="-2" attributes="0"/>
+                          <Group type="103" alignment="0" groupAlignment="1" max="-2" attributes="0">
+                              <Group type="102" alignment="1" attributes="0">
+                                  <Component id="jLabel3" min="-2" max="-2" attributes="0"/>
+                                  <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                                  <Component id="txtProfitTarget" min="-2" pref="54" max="-2" attributes="0"/>
+                                  <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                                  <Component id="lblProfitTaken" max="32767" attributes="0"/>
+                              </Group>
+                              <Component id="cmdAggressionDisable" alignment="0" min="-2" pref="198" max="-2" attributes="0"/>
+                          </Group>
                       </Group>
-                      <EmptySpace min="-2" pref="18" max="-2" attributes="0"/>
-                      <Group type="103" groupAlignment="1" attributes="0">
-                          <Component id="cmdSquareAll" min="-2" pref="174" max="-2" attributes="0"/>
-                          <Component id="cmdBoth" min="-2" pref="174" max="-2" attributes="0"/>
-                          <Component id="cmdPause" alignment="1" min="-2" pref="174" max="-2" attributes="0"/>
-                          <Component id="cmdAggressionEnable" alignment="1" min="-2" pref="174" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="0" max="-2" attributes="0">
+                          <Group type="102" attributes="0">
+                              <EmptySpace min="-2" pref="18" max="-2" attributes="0"/>
+                              <Group type="103" groupAlignment="1" attributes="0">
+                                  <Component id="cmdSquareAll" pref="174" max="32767" attributes="0"/>
+                                  <Component id="cmdBoth" pref="174" max="32767" attributes="0"/>
+                                  <Component id="cmdPause" pref="174" max="32767" attributes="0"/>
+                                  <Component id="cmdAggressionEnable" pref="174" max="32767" attributes="0"/>
+                              </Group>
+                          </Group>
+                          <Group type="102" attributes="0">
+                              <EmptySpace type="separate" max="-2" attributes="0"/>
+                              <Component id="cmdUpdateProfitTgt" max="32767" attributes="0"/>
+                          </Group>
                       </Group>
                       <EmptySpace type="separate" max="-2" attributes="0"/>
                       <Component id="cmdRegister" min="-2" pref="133" max="-2" attributes="0"/>
@@ -109,7 +126,14 @@
                   </Group>
                   <Component id="cmdRegister" alignment="0" min="-2" pref="134" max="-2" attributes="0"/>
               </Group>
-              <EmptySpace min="-2" pref="306" max="-2" attributes="0"/>
+              <EmptySpace type="unrelated" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="jLabel3" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="txtProfitTarget" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="cmdUpdateProfitTgt" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="lblProfitTaken" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace max="-2" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -259,6 +283,38 @@
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="cmdExitShortsActionPerformed"/>
       </Events>
+      <AuxValues>
+        <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="10"/>
+      </AuxValues>
+    </Component>
+    <Component class="javax.swing.JLabel" name="jLabel3">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Profit Target"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JTextField" name="txtProfitTarget">
+      <Properties>
+        <Property name="text" type="java.lang.String" value=".."/>
+      </Properties>
+      <AuxValues>
+        <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="10"/>
+      </AuxValues>
+    </Component>
+    <Component class="javax.swing.JButton" name="cmdUpdateProfitTgt">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Update Profit Tgt"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="cmdUpdateProfitTgtActionPerformed"/>
+      </Events>
+      <AuxValues>
+        <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="10"/>
+      </AuxValues>
+    </Component>
+    <Component class="javax.swing.JLabel" name="lblProfitTaken">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="0"/>
+      </Properties>
       <AuxValues>
         <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="10"/>
       </AuxValues>

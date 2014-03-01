@@ -4,7 +4,8 @@
  */
 package com.incurrency.algorithms.turtle;
 
-import com.incurrency.framework.BeanOHLC;
+import com.incurrency.framework.TWSConnection;
+import com.incurrency.framework.EnumOrderIntent;
 import com.incurrency.framework.GUIMissedOrders;
 import com.incurrency.framework.Algorithm;
 import com.incurrency.framework.GUIDashBoard;
@@ -18,13 +19,14 @@ import com.incurrency.framework.TWSConnection;
 import com.incurrency.framework.MarketData;
 import com.incurrency.framework.RealTimeBars;
 import com.incurrency.framework.BeanSymbol;
-import com.incurrency.framework.EnumOrderIntent;
-import com.incurrency.framework.BeanSymbolCompare;
+import com.incurrency.framework.GUIInProgressOrders;
+import com.incurrency.framework.GUIPNLDashBoard;
+import com.incurrency.framework.TradingUtil;
 import com.incurrency.framework.OrderListener;
 import com.incurrency.framework.HistoricalBars;
-import com.incurrency.framework.GUIPNLDashBoard;
-import com.incurrency.framework.EnumOrderSide;
-import com.incurrency.algorithms.adr.ADR;
+import com.incurrency.framework.RealTimeBars;
+import com.incurrency.framework.BeanConnection;
+import com.incurrency.framework.GUIMissedOrders;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -40,7 +42,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import javax.swing.JFrame;
-
+import com.RatesClient.Subscribe;
+import com.incurrency.framework.ADRRates;
 /**
  *
  * @author admin
@@ -72,6 +75,7 @@ public class MainAlgorithm extends Algorithm  {
     private String macID="";
     private Date expiryDate;
     private static String collectTicks;
+    private double profitTarget;
     
     public MainAlgorithm(String[] args) throws Exception {
         super(args); //this initializes the connection and symbols
@@ -254,7 +258,9 @@ public class MainAlgorithm extends Algorithm  {
             msnap.setSnapshot(true);
             msnap.start();
          }       
-        
+        ADRRates rates=new ADRRates();
+        Subscribe prices=new Subscribe("103.250.184.15:5556");
+		
         System.setProperties(pstrategy);
         String currDateStr = DateUtil.getFormatedDate("yyyyMMdd", Parameters.connection.get(0).getConnectionTime());
         String preopenStr = currDateStr + " " + System.getProperty("PreOpenTime");
@@ -264,6 +270,8 @@ public class MainAlgorithm extends Algorithm  {
         preopenDate = DateUtil.parseDate("yyyyMMdd HH:mm:ss", preopenStr);
         startDate=DateUtil.parseDate("yyyyMMdd HH:mm:ss", startDateStr);
         closeDate = DateUtil.parseDate("yyyyMMdd HH:mm:ss", closeStr);
+        setProfitTarget(Double.parseDouble(System.getProperty("ProfitTarget")));
+        MainAlgorithmUI.setProfitTarget(getProfitTarget());
         System.setProperties(pmaster);
         historicalData=System.getProperty("HistoricalData");
         realTimeBars=System.getProperty("RealTimeBars");
@@ -286,6 +294,10 @@ public class MainAlgorithm extends Algorithm  {
           minPNL.add(0D);
           maxPNL.add(0D);
          }
+        boolean flip=Boolean.valueOf(System.getProperty("Flip"));
+        for( BeanConnection c: Parameters.connection){
+            c.getWrapper().setFlip(flip);
+        }
         preopen=new Timer();
        // preopen.schedule(new SnapShotPreOpenPrice(), preopenDate);       
         //initialize listners
@@ -570,5 +582,19 @@ public class MainAlgorithm extends Algorithm  {
      */
     public static void setCollectTicks(String aCollectTicks) {
         collectTicks = aCollectTicks;
+    }
+
+    /**
+     * @return the profitTarget
+     */
+    public synchronized double getProfitTarget() {
+        return profitTarget;
+    }
+
+    /**
+     * @param profitTarget the profitTarget to set
+     */
+    public synchronized void setProfitTarget(double profitTarget) {
+        this.profitTarget = profitTarget;
     }
 }
