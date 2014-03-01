@@ -43,7 +43,11 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import javax.swing.JFrame;
 import com.RatesClient.Subscribe;
+import com.incurrency.algorithms.adr.ADR;
 import com.incurrency.framework.ADRRates;
+import com.incurrency.framework.BeanOHLC;
+import com.incurrency.framework.BeanSymbolCompare;
+import com.incurrency.framework.EnumOrderSide;
 /**
  *
  * @author admin
