@@ -436,7 +436,10 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
 //1. Add the parameters files to myList variable
         for(int i=0;i<args.length;i++){
             input.put(args[i].split("=")[0].toLowerCase(), args[i].split("=")[1].toLowerCase());
-        }        
+        }
+        
+        //check parameters needed before start
+        headless=(input.get("headless")==null||input.get("headless").compareTo("false")==0)?false:true;
         
 //        loadParam("Algo.properties");
         FileInputStream configFile = null;
