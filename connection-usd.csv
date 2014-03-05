@@ -1,0 +1,3 @@
+ip,port,clientID,purpose,rtMessageLimit,histMessageLimit,tickersLimit,strategy
+72.55.156.141,2502,10,Trading,48,12,70,IDT
+72.55.156.141,4830,10,Data,48,12,70,none
