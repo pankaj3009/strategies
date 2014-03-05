@@ -48,6 +48,8 @@ import com.incurrency.framework.ADRRates;
 import com.incurrency.framework.BeanOHLC;
 import com.incurrency.framework.BeanSymbolCompare;
 import com.incurrency.framework.EnumOrderSide;
+import java.util.HashMap;
+import java.util.Map;
 /**
  *
  * @author admin
@@ -56,6 +58,7 @@ public class MainAlgorithm extends Algorithm  {
 
     //public MarketData m;
     //public MarketData mSnap;
+    static HashMap<String,String> input = new HashMap();
     public final static Logger logger = Logger.getLogger(MainAlgorithm.class.getName());
     private BeanTurtle paramTurtle;
     private BeanGuds paramGuds;
@@ -72,7 +75,7 @@ public class MainAlgorithm extends Algorithm  {
     private String historicalData;
     private String realTimeBars;
     private String mySQL;
-    private boolean marketDataNotStarted=true;
+    //private boolean marketDataNotStarted=true;
     private String realAccountTrading="False";
     private boolean license=false;
     private String accounts="";
@@ -80,31 +83,21 @@ public class MainAlgorithm extends Algorithm  {
     private Date expiryDate;
     private static String collectTicks;
     private double profitTarget;
+    private boolean tradingAlgoInitialized=false;
     
-    public MainAlgorithm(String[] args) throws Exception {
+    public MainAlgorithm(HashMap<String,String> args) throws Exception {
         super(args); //this initializes the connection and symbols
-       
-        // initialize anything else 
-        //initialized wrappers
-        //BoilerPlate
-
-        Properties pmaster = new Properties(System.getProperties());
-        Properties pstrategy=new Properties(System.getProperties());
-        FileInputStream propFileMaster;
-        FileInputStream propFileStrategy;
-        try {
-            propFileMaster = new FileInputStream(args[3]);
-            propFileStrategy=new FileInputStream(args[0]);
-            try {
-                pmaster.load(propFileMaster);
-                pstrategy.load(propFileStrategy);
-            } catch (IOException ex) {
-                logger.log(Level.SEVERE, null, ex);
-            }
-        } catch (FileNotFoundException ex) {
-            logger.log(Level.SEVERE, null, ex);
-        }
-        
+        this.input=args;
+         /*
+         * MainAlgorithm does the following
+         * 1. Inititalizes the thread to listen and place messages to each connection
+         * 2. Gets the time difference of system clock with each connection
+         * 3. Checks for license
+         * 4. Only if license is available, retrieves contracts for all symbols. Cleans symbols file for missing contracts.
+         *    and writes to logfile if any symbols are invalid
+         * 5.Initializes each strategy file
+         * 
+         */
         
         for (BeanConnection c : Parameters.connection) {
             c.setWrapper(new TWSConnection(c));
@@ -122,9 +115,6 @@ public class MainAlgorithm extends Algorithm  {
         //check license
         
         //Request account numbers. Store account code + Trading requests
-        
-        System.setProperties(pmaster);
-        realAccountTrading =System.getProperty("RealAccountTrading");
         //Request Account Updates for each account in connection.csv
         
         for(BeanConnection c:Parameters.connection){
@@ -242,7 +232,7 @@ public class MainAlgorithm extends Algorithm  {
              filteredSymbols.add(s);
         }
 }
-        Collections.sort(filteredSymbols,new BeanSymbolCompare());
+        Collections.sort(filteredSymbols,new BeanSymbolCompare()); //sorts symbols in order of preference streaming priority. low priority is higher
         int count = filteredSymbols.size();
         int allocatedCapacity = 0;
         for (BeanConnection c : Parameters.connection) {
@@ -262,128 +252,74 @@ public class MainAlgorithm extends Algorithm  {
             msnap.setSnapshot(true);
             msnap.start();
          }       
-        ADRRates rates=new ADRRates();
-        Subscribe prices=new Subscribe("103.250.184.15:5556");
-		
-        System.setProperties(pstrategy);
-        String currDateStr = DateUtil.getFormatedDate("yyyyMMdd", Parameters.connection.get(0).getConnectionTime());
-        String preopenStr = currDateStr + " " + System.getProperty("PreOpenTime");
-        String startDateStr=currDateStr + " " + System.getProperty("StartTime");
-        String realtimebarsStr = currDateStr + " " + System.getProperty("RealTimeBarsTime");
-        String closeStr = currDateStr + " " + System.getProperty("CloseTime");
-        preopenDate = DateUtil.parseDate("yyyyMMdd HH:mm:ss", preopenStr);
-        startDate=DateUtil.parseDate("yyyyMMdd HH:mm:ss", startDateStr);
-        closeDate = DateUtil.parseDate("yyyyMMdd HH:mm:ss", closeStr);
-        setProfitTarget(Double.parseDouble(System.getProperty("ProfitTarget")));
-        MainAlgorithmUI.setProfitTarget(getProfitTarget());
-        System.setProperties(pmaster);
-        historicalData=System.getProperty("HistoricalData");
-        realTimeBars=System.getProperty("RealTimeBars");
-        mySQL=System.getProperty("MySQL");
-        collectTicks=System.getProperty("CollectTickData");
-        if (closeDate.compareTo(preopenDate) < 0 && new Date().compareTo(closeDate) > 0) {
-            //increase enddate by one calendar day
-            closeDate = DateUtil.addDays(closeDate, 1); //system date is > start date time. Therefore we have not crossed the 12:00 am barrier
-        } else if (closeDate.compareTo(preopenDate) < 0 && new Date().compareTo(preopenDate) < 0) {
-            preopenDate = DateUtil.addDays(preopenDate, -1); // we have moved beyond 12:00 am . adjust startdate to previous date
-            startDate=DateUtil.addDays(startDate, -1);
-        } else if(new Date().compareTo(preopenDate)>0 && new Date().compareTo(closeDate)>0){
-            preopenDate=DateUtil.addDays(preopenDate, 1);
-            startDate=DateUtil.addDays(startDate, 1);
-            closeDate=DateUtil.addDays(closeDate, 1);
-        }
-        String tempstrategies = System.getProperty("StrategyCount");
-        this.setStrategies( Arrays.asList(tempstrategies.split("\\s*,\\s*")));
-         for (int i = 0; i < strategies.size(); i++) {
+        //ADRRates rates=new ADRRates();
+        //Subscribe prices=new Subscribe("103.250.184.15:5556");
+	
+        int strategyCount=0;
+            for (Map.Entry value : input.entrySet()) {
+                if(value.getKey().equals("idt")||value.getKey().equals("swing")||value.getKey().equals("guds")){
+                    strategyCount=strategyCount+1;
+                }
+            }
+         for (int i = 0; i < strategyCount; i++) {
           minPNL.add(0D);
           maxPNL.add(0D);
          }
-        boolean flip=Boolean.valueOf(System.getProperty("Flip"));
-        for( BeanConnection c: Parameters.connection){
-            c.getWrapper().setFlip(flip);
-        }
-        preopen=new Timer();
+         
+
+        //preopen=new Timer();
        // preopen.schedule(new SnapShotPreOpenPrice(), preopenDate);       
         //initialize listners
-       //paramTurtle = new BeanTurtle(this);
+        if(input.containsKey("idt")){
+            paramTurtle = new BeanTurtle(this);
+            strategies.add("IDT");
+            this.tradingAlgoInitialized=true;
+        }
+        
+        if(args.containsKey("guds")){
+            BeanGuds paramGuds = new BeanGuds(this);
+            strategies.add("GUDS");
+            this.tradingAlgoInitialized=true;
+        }
+            
+        if(args.containsKey("swing")){
+            BeanSwing paramSwing = new BeanSwing(this);
+            strategies.add("SWING");
+            this.tradingAlgoInitialized=true;
+        }
+         
        // paramGuds = new BeanGuds(this);
        // paramSwing=new BeanSwing(this);
-        //ordManagement = new OrderPlacement(this);
-
+        if(tradingAlgoInitialized){
+        ordManagement = new OrderPlacement(this);
+        }
        
         //Attempt realtime bars in a new thread
-        if(!MainAlgorithmUI.headless){
+        if(!MainAlgorithmUI.headless && tradingAlgoInitialized){
             createAndShowGUI(this);
         }
-        //get historical data - this can be done before start time, assuming the program is started next day
-                try{
-            if(Boolean.valueOf(historicalData)){
-        Thread t = new Thread(new HistoricalBars());
-        t.setName("Historical Bars");
-         if(!MainAlgorithmUI.headless){
-             MainAlgorithmUI.setMessage("Starting request of Historical Data for yesterday");
-         }
-        t.start();
-        t.join();
-        }
-        }catch (Exception e){
-            logger.log(Level.SEVERE,null,e);
-        }
        
+        
+        /*
         if(Boolean.valueOf(mySQL)){
             for(BeanSymbol s: Parameters.symbol){
         ArrayList<BeanOHLC> yestOHLC=TradingUtil.getDailyBarsFromOneMinCandle(7,s.getSymbol()+"_FUT");
         s.setAdditionalInput(Long.toString(yestOHLC.get(0).getVolume()));
           }
         }
-        
+        */
         
         if(!MainAlgorithmUI.headless){
-            MainAlgorithmUI.setStart(true);
+           // MainAlgorithmUI.setStart(true);
         }
-        startDataCollection(historicalData,realTimeBars,startDate);
+        
         
     }
     }
+         
+    
  
-    public synchronized void startDataCollection(String historicalData, String realTimeBars,Date startDate){
-        
-      if(startDate.compareTo(new Date())<0 && marketDataNotStarted){
-          if(!MainAlgorithmUI.headless){
-              MainAlgorithmUI.setStart(false);
-          MainAlgorithmUI.setPauseTrading(true);
-        MainAlgorithmUI.setPauseTrading(true);
-        MainAlgorithmUI.setcmdLong(true);
-        MainAlgorithmUI.setcmdShort(true);
-        MainAlgorithmUI.setcmdBoth(true);
-        MainAlgorithmUI.setcmdExitShorts(true);
-        MainAlgorithmUI.setcmdExitLongs(true);
-        MainAlgorithmUI.setcmdSquareAll(true);
-        MainAlgorithmUI.setcmdAggressionDisable(true);
-        MainAlgorithmUI.setcmdAggressionEnable(true);
-          }
-        if(Boolean.valueOf(realTimeBars)){
-            marketDataNotStarted=false;
-            if(!MainAlgorithmUI.headless){
-            MainAlgorithmUI.setStart(false);
-            MainAlgorithmUI.setMessage("Starting request of RealTime Bars");
-            }
-        new RealTimeBars(getParamTurtle());
-        //BoilerPlate Ends
-        }
-        
-        logger.log(Level.FINEST, ",Symbol" + "," + "BarNo" + "," + "HighestHigh" + "," + "LowestLow" + "," + "LastPrice" + "," + "Volume" + "," + "CumulativeVol" + "," + "VolumeSlope" + "," + "MinSlopeReqd" + "," + "MA" + "," + "LongVolume" + "," + "ShortVolume" + "," + "DateTime" + ","
-                + "ruleHighestHigh" + "," + "ruleCumVolumeLong" + "," + "ruleSlopeLong" + "," + "ruleVolumeLong" + "," + "ruleLowestLow" + ","
-                + "ruleCumVolumeShort" + "," + "ruleSlopeShort" + "," + "ruleVolumeShort");
-            
-            }else{
-                if(!MainAlgorithmUI.headless){
-                    MainAlgorithmUI.setMessage("Please Click Button 'Start Program' after the market open time");
-                }
-                
-            }
-        
-}
+     
     public void fireOrderEvent(BeanSymbol s, EnumOrderSide side, int size, double lmtprice, double triggerprice, String ordReference, int expireTime,String exitType, EnumOrderIntent intent,int maxorderduration, int dynamicorderduration, double maxslippage) {
         OrderEvent order = new OrderEvent(this, s, side, size, lmtprice, triggerprice,ordReference,expireTime,exitType,intent,maxorderduration,dynamicorderduration,maxslippage);
         Iterator listeners = _listeners.iterator();
@@ -600,5 +536,19 @@ public class MainAlgorithm extends Algorithm  {
      */
     public synchronized void setProfitTarget(double profitTarget) {
         this.profitTarget = profitTarget;
+    }
+
+    /**
+     * @return the tradingAlgoInitialized
+     */
+    public boolean isTradingAlgoInitialized() {
+        return tradingAlgoInitialized;
+    }
+
+    /**
+     * @param tradingAlgoInitialized the tradingAlgoInitialized to set
+     */
+    public void setTradingAlgoInitialized(boolean tradingAlgoInitialized) {
+        this.tradingAlgoInitialized = tradingAlgoInitialized;
     }
 }

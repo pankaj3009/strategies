@@ -12,6 +12,7 @@ import com.espertech.esper.client.EPServiceProvider;
 import com.espertech.esper.client.EPServiceProviderManager;
 import com.espertech.esper.client.EPStatement;
 import com.espertech.esper.client.EventBean;
+import com.incurrency.algorithms.turtle.MainAlgorithmUI;
 import com.incurrency.framework.TradingUtil;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
@@ -107,6 +108,7 @@ public class EventProcessor implements ActionListener {
         statement.addListener(new TickListener());
         
         //create debug window
+        if(com.incurrency.algorithms.turtle.MainAlgorithmUI.input.containsKey("debugscreen")){
         JFrame myFrame = new JFrame("Debug Window");
         myFrame.setLayout( new FlowLayout() );
         myFrame.setSize(300,400);
@@ -117,16 +119,12 @@ public class EventProcessor implements ActionListener {
          myFrame.setVisible(true);
         debugButton.setVisible(true);
         debugButton.addActionListener(this);
-
+        }
     
     }
     
-    public void actionPerformed(ActionEvent e){
-        ADR.adrServer.close();
-        
-    }
-    
-    /*
+  
+    @Override
     	public void actionPerformed(ActionEvent e) {
         EPRuntime epRuntime = esperEngine.getEPRuntime();        
         System.out.println("PriceWin aggregation output");
@@ -157,7 +155,7 @@ public class EventProcessor implements ActionListener {
              }
        }
         
-      */  
+      
         public void debugFireTickQuery(){
         EPRuntime epRuntime = esperEngine.getEPRuntime();        
         System.out.println("PriceWin aggregation output");

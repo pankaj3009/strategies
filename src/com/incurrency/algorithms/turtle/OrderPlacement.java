@@ -69,9 +69,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
         //Initialize timers
         new Timer(10000, cancelExpiredOrders).start();
         new Timer(2000, hastenCloseOut).start();
-        new Timer(10000, reattemptOrders).start();
-
-        
+        new Timer(10000, reattemptOrders).start();       
         }
 
     @Override
@@ -292,7 +290,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
         if (event.getExpireTime() != 0) {
             c.getOrdersToBeCancelled().put(orderid, new BeanOrderInformation(id, c, orderid, tempexpire, event));
             activeOrders.put(id, new BeanOrderInformation(id, c, orderid, tempexpire, event));
-            logger.log(Level.FINEST, "Expiration time in object getOrdersToBeCancelled=" + DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", tempexpire));
+            logger.log(Level.FINE, "Expiration time in object getOrdersToBeCancelled=" + DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", tempexpire));
         }
     }
 
@@ -514,7 +512,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
                     ArrayList<Integer> temp = new ArrayList();
                     ArrayList<Integer> symbols = new ArrayList();
                     for (Integer key : c.getOrdersToBeCancelled().keySet()) {
-                        logger.log(Level.FINEST, "Expiration Time:{0},System Time:{1}", new Object[]{DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", c.getOrdersToBeCancelled().get(key).getExpireTime()), DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", System.currentTimeMillis())});
+                        logger.log(Level.FINE, "Expiration Time:{0},System Time:{1}", new Object[]{DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", c.getOrdersToBeCancelled().get(key).getExpireTime()), DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", System.currentTimeMillis())});
                         if (c.getOrdersToBeCancelled().get(key).getExpireTime() < System.currentTimeMillis()) {
                             logger.log(Level.INFO, "cancelExpiredOrders Method:{0}, Symbol:{1}, OrderID:{2}", new Object[]{Thread.currentThread().getStackTrace()[1].getMethodName(), Parameters.symbol.get(c.getOrders().get(key).getSymbolID() - 1).getSymbol(), key});
                             //logger.log(Level.INFO,"Expired Order being cancelled. OrderID="+key);
@@ -526,15 +524,17 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
 
                             temp.add(key); //holds all orders that have now been cancelled
                             symbols.add(c.getOrdersToBeCancelled().get(key).getSymbolid());
+                            
                         }
                     }
                     for (int ordersToBeDeleted : temp) {
                         c.getOrdersToBeCancelled().remove(ordersToBeDeleted);
-                        logger.log(Level.FINEST, "Expired Order being deleted from cancellation queue. OrderID=" + ordersToBeDeleted);
+                        //c.getOrdersInProgress().remove(ordersToBeDeleted); This is being removed once we get acknowledgement of cancellation from api
+                        logger.log(Level.FINE, "Expired Order being deleted from cancellation queue. OrderID=" + ordersToBeDeleted);
                     }
                     for (int symbolsToBeDeleted : symbols) {
                         activeOrders.remove(symbolsToBeDeleted);
-                        logger.log(Level.FINEST, "Expired symbols being deleted from active orders queue. Symbol=" + symbolsToBeDeleted);
+                        logger.log(Level.FINE, "Expired symbols being deleted from active orders queue. Symbol=" + symbolsToBeDeleted);
                     }
                 }
             }
@@ -812,7 +812,7 @@ public class OrderPlacement implements OrderListener, OrderStatusListener, TWSEr
         int origposition = p.getPosition();
         if (c.getOrders().get(orderID).getOrderSide() == EnumOrderSide.SELL || c.getOrders().get(orderID).getOrderSide() == EnumOrderSide.SHORT || c.getOrders().get(orderID).getOrderSide() == EnumOrderSide.TRAILSELL) {
             fill = -fill;
-            logger.log(Level.FINEST, "Reversed fill sign as sell or short. Symbol:{1}, Fill={2}", new Object[]{Parameters.symbol.get(id).getSymbol(), fill});
+            logger.log(Level.FINE, "Reversed fill sign as sell or short. Symbol:{1}, Fill={2}", new Object[]{Parameters.symbol.get(id).getSymbol(), fill});
         }
         double realizedPL = (origposition + fill) == 0 && origposition != 0 ? -(origposition * p.getPrice() + fill * lastFillPrice) + p.getProfit() : p.getProfit();
         double positionPrice = (origposition + fill) == 0 ? 0 : (p.getPosition() * p.getPrice() + fill * lastFillPrice) / (origposition + fill);

@@ -19,6 +19,7 @@ import com.incurrency.framework.Index;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
 import java.util.logging.Level;
@@ -38,6 +39,8 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
    static String parameterFileName;
    static public boolean headless=false;
    private static final Logger logger=Logger.getLogger(MainAlgorithmUI.class.getName());
+   public static HashMap <String, String> input =new HashMap();
+   
     /** Creates new form NewSwingGUI */
     public MainAlgorithmUI() {
         initComponents();
@@ -319,7 +322,7 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
     }
     
     private void cmdStartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdStartActionPerformed
-        algo.startDataCollection(algo.getHistoricalData(), algo.getRealTimeBars(),MainAlgorithm.getStartDate());
+       // algo.startDataCollection(algo.getHistoricalData(), algo.getRealTimeBars(),MainAlgorithm.getStartDate());
     }//GEN-LAST:event_cmdStartActionPerformed
 
     private void cmdAggressionDisableActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdAggressionDisableActionPerformed
@@ -430,29 +433,10 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
            logger.log(Level.SEVERE, null, ex);
         }
         //</editor-fold>
-//1. Add the parameters files to myList variable  
-        if(args.length==4){
-        myList.add(args[0]);
-        myList.add(args[1]);
-        myList.add(args[2]);
-        myList.add(args[3]);
-        parameterFileName=args[0];
-        }
-        else if(args.length==3){
-        myList.add(args[0]);
-        myList.add(args[1]);
-        myList.add(args[2]);
-        myList.add("Master.properties");
-        parameterFileName=args[0];
-            
-        }
-        else{
-        myList.add("IDT.properties");
-        myList.add("symbols.csv");
-        myList.add("connection.csv");
-        myList.add("Master.properties");
-        parameterFileName="IDT.properties";
-        }
+//1. Add the parameters files to myList variable
+        for(int i=0;i<args.length;i++){
+            input.put(args[i].split("=")[0].toLowerCase(), args[i].split("=")[1].toLowerCase());
+        }        
         
 //        loadParam("Algo.properties");
         FileInputStream configFile = null;
@@ -481,11 +465,7 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
                 }
             }
             });
-            String[] temp=new String[myList.size()];
-            for(int i=0;i<myList.size();i++){
-                temp[i]=myList.get(i);
-            }
-            algo=new MainAlgorithm(temp);
+            algo=new MainAlgorithm(input);
             cmdUpdateProfitTgt.setVisible(true);
             txtProfitTarget.setVisible(true);
             

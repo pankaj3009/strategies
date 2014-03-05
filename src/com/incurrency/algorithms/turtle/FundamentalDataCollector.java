@@ -13,6 +13,7 @@ import com.incurrency.framework.FundamentalDataListener;
 import com.incurrency.framework.Parameters;
 import com.incurrency.framework.TWSConnection;
 import java.util.ArrayList;
+import java.util.HashMap;
 
     
 /**
@@ -23,8 +24,8 @@ public class FundamentalDataCollector extends Algorithm implements FundamentalDa
 
     String[] args={"","symbols.csv","connection.csv",""};
     
-    public FundamentalDataCollector(String[] args) throws Exception{
-         super(args);
+    public FundamentalDataCollector(HashMap<String,String> input) throws Exception{
+         super(input);
          for (BeanConnection c : Parameters.connection) {
             c.setWrapper(new TWSConnection(c));
         }
