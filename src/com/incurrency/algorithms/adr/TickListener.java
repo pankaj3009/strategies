@@ -33,8 +33,6 @@ public class TickListener implements UpdateListener{
         long tVolume= newEvents[0].get("tLastSize")==null?0:Math.round((double) newEvents[0].get("tLastSize"));
         long uVolume= newEvents[0].get("uLastSize")==null?0:Math.round((double) newEvents[0].get("uLastSize"));
  
-        double adr = pTicks;
-        if (tTicks > 0) adr = (double)pTicks/tTicks;
         String message = "Tick: TotalTicks: " + tTicks + " (+)Ticks: " + pTicks + " (-)Ticks: " + nTicks + " Unchanged: " + uTicks;
         message += " (+)Vol: "+pVolume+" (-)Vol:"+nVolume+" Tot LastSize:"+ tVolume;
                 long now =new Date().getTime();
@@ -46,7 +44,20 @@ public class TickListener implements UpdateListener{
         ADR.adrServer.send("IND:CUS:ALL",11+","+now+","+tVolume +","+"ADR" );
         ADR.adrServer.send("IND:CUS:ALL",12+","+now+","+uTicks +","+"ADR");
         ADR.adrServer.send("IND:CUS:ALL",13+","+now+","+uVolume +","+"ADR");
+
+        double tick=pTicks+nTicks>0?pTicks*100/(pTicks+nTicks):0;
+        double tickTRIN=pVolume+nVolume>0?pVolume*100/(pVolume+nVolume):0;
+
+        if(tTicks>800){
+          ADR.tick=tick;
+          ADR.tickTRIN=tickTRIN;
+          
+         }
         
+
+        ADR.mEsperEvtProcessor.sendEvent(new TickPriceEvent(ADRTickType.T_TICK,ADRTickType.T_TICK,tick));
+        ADR.mEsperEvtProcessor.sendEvent(new TickPriceEvent(ADRTickType.T_TRIN,ADRTickType.T_TRIN,tickTRIN));
+       
         //System.out.println(message);
         //System.out.println("Listner update: " + message);
         //MarketApp.setADRLP(df.format(adr), message); //ADR Tick

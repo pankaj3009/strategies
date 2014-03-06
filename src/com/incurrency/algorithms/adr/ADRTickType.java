@@ -24,6 +24,11 @@ public class ADRTickType {
     public static final int T_ADVANCE_VOL   = 9;
     public static final int T_DECLINE_VOL   = 10;
     public static final int T_TOTAL_VOL     = 11;
+    public static final int D_ADR           = 10001;
+    public static final int D_TRIN          = 10002;
+    public static final int T_TICK          = 10003;
+    public static final int T_TRIN          = 10004;
+    public static final int INDEX           = 10005;
 
 
     public static String getField( int adrType) {

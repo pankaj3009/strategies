@@ -6,6 +6,7 @@
 package com.incurrency.algorithms.adr;
 import com.espertech.esper.client.UpdateListener;
 import com.espertech.esper.client.EventBean;
+import com.incurrency.framework.Parameters;
 import java.text.DecimalFormat;
 import java.util.Date;
 import java.util.logging.Logger;
@@ -33,8 +34,6 @@ public class ADRListener implements UpdateListener{
         Long tVolume = newEvents[0].get("volume")==null? 0:Math.round((double)newEvents[0].get("volume"));
         
         Long uChg = tTicks - (pTicks + nTicks);
-        double adr = pTicks;
-        if (tTicks > 0) adr = (double)pTicks/tTicks;
         String message = "ADR: TotalMoves: " + tTicks + " (+)Advances: " + pTicks + " (-)Declines: " + nTicks + " Unchanged: " + uChg +" Advancing Volume: "+pVolume +" Declining Volume: "+nVolume+ " Total Volume: "+tVolume;
         long now =new Date().getTime();
         ADR.adrServer.send("IND-CUS-ALL",0+","+now+","+pTicks+","+"ADR");
@@ -44,6 +43,19 @@ public class ADRListener implements UpdateListener{
         ADR.adrServer.send("IND-CUS-ALL",4+","+now+","+nVolume+","+"ADR" );
         ADR.adrServer.send("IND-CUS-ALL",5+","+now+","+tVolume+","+"ADR" );
         
+        double adr=pTicks+nTicks>0?pTicks*100/(pTicks+nTicks):0;
+        double adrTRIN=pVolume+nVolume>0?pVolume*100/(pVolume+nVolume):0;
+        if(tTicks>800){
+          ADR.adr=adr;
+          ADR.adrTRIN=adrTRIN;
+          ADR.adrDayHigh=adr>ADR.adrDayHigh?adr:ADR.adrDayHigh;
+          ADR.adrDayLow=adr<ADR.adrDayLow?adr:ADR.adrDayLow;
+        }
+    
+        
+        
+        ADR.mEsperEvtProcessor.sendEvent(new ADREvent(ADRTickType.D_ADR,adr));
+        ADR.mEsperEvtProcessor.sendEvent(new ADREvent(ADRTickType.D_TRIN,adrTRIN));
        // System.out.println(message);
         //System.out.println("Listner update: " + message);
 //        MarketApp.setADRLC(df.format(adr), message); //ADR Market

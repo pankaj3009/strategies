@@ -29,6 +29,7 @@ public class EventProcessor implements ActionListener {
 
     private EPServiceProvider esperEngine;
     private static final Logger logger = Logger.getLogger(EventProcessor.class.getName());
+    public EPStatement ADRStatement=null;
     
     public  EventProcessor()
     {
@@ -36,6 +37,7 @@ public class EventProcessor implements ActionListener {
         Configuration config = new Configuration();
 //        config.addEventType("TickPrice", "com.adr.TickPriceEvent");
        config.addEventType("TickPrice", com.incurrency.algorithms.adr.TickPriceEvent.class);
+       config.addEventType("ADRPrice", com.incurrency.algorithms.adr.ADREvent.class);
 
         // Get an engine instance
         esperEngine = EPServiceProviderManager.getDefaultProvider(config);
@@ -106,6 +108,28 @@ public class EventProcessor implements ActionListener {
         stmt += "count(*,price=lPrice) as uTicks, sum(lastSize,price=lPrice) as uLastSize, count(*) as tTicks, sum(lastSize) as tLastSize from LastPriceWin ";
         statement = esperEngine.getEPAdministrator().createEPL(stmt);
         statement.addListener(new TickListener());
+        
+        
+        //Once ADR volume, count data is available, we move to ADR processing
+        stmt = "create variable int adr  = " + com.incurrency.algorithms.adr.ADRTickType.D_ADR;
+        esperEngine.getEPAdministrator().createEPL(stmt);
+        stmt = "create variable int adrTRIN= " + com.incurrency.algorithms.adr.ADRTickType.D_TRIN;
+        esperEngine.getEPAdministrator().createEPL(stmt);
+        stmt = "create variable int tick  = " + com.incurrency.algorithms.adr.ADRTickType.T_TICK;
+        esperEngine.getEPAdministrator().createEPL(stmt);
+        stmt = "create variable int tickTRIN = " + com.incurrency.algorithms.adr.ADRTickType.T_TRIN;
+        esperEngine.getEPAdministrator().createEPL(stmt);
+        
+        
+        stmt = "select field,max(price) as high ,min(price) as low, avg(price) as average "
+                + "from ADRPrice.win:time(30 minutes) "
+                + "group by field";
+        
+        ADRStatement = esperEngine.getEPAdministrator().createEPL(stmt);
+        //statement.addListener(MainAlgorithmUI.algo.getParamADR());
+
+        
+        
         
         //create debug window
         if(com.incurrency.algorithms.turtle.MainAlgorithmUI.input.containsKey("debugscreen")){
