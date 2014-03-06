@@ -10,13 +10,18 @@ import com.incurrency.algorithms.turtle.MainAlgorithm;
 import com.incurrency.framework.Algorithm;
 import com.incurrency.framework.BeanConnection;
 import com.incurrency.framework.BeanSymbol;
+import com.incurrency.framework.DateUtil;
 import com.incurrency.framework.EnumOrderIntent;
 import com.incurrency.framework.EnumOrderSide;
 import com.incurrency.framework.Parameters;
 import com.incurrency.framework.TradeEvent;
 import com.incurrency.framework.TradeListner;
+import java.io.FileInputStream;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Properties;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -34,7 +39,12 @@ public class ADR implements TradeListner,UpdateListener{
     HashMap<Integer,BeanSymbol> symbols=new HashMap();
     static com.incurrency.framework.rateserver.RateServer adrServer= new com.incurrency.framework.rateserver.RateServer(5556);
     private static final Logger logger = Logger.getLogger(ADR.class.getName());
-
+    Date endDate;
+    boolean trading=false;
+    String index;
+    String type;
+    String expiry;
+    
     MainAlgorithm m;
     //----- updated by ADRListener and TickListener
     static double adr;
@@ -67,6 +77,7 @@ public class ADR implements TradeListner,UpdateListener{
     
     public ADR(MainAlgorithm m,ArrayList<BeanSymbol> symb){
         this.m=m;
+        loadParameters();
         mEsperEvtProcessor = new EventProcessor();
         mEsperEvtProcessor.ADRStatement.addListener(this);
         for(BeanSymbol s: symb){
@@ -74,9 +85,36 @@ public class ADR implements TradeListner,UpdateListener{
         }
         for(BeanConnection c: Parameters.connection){
         c.getWrapper().addTradeListener(this);
-    }
-        //request snapshot data
         
+    }
+        
+    }
+    
+    public void loadParameters() {
+        Properties p = new Properties(System.getProperties());
+        FileInputStream propFile;
+        try {
+            propFile = new FileInputStream(MainAlgorithm.input.get("adr"));
+            try {
+                p.load(propFile);
+            } catch (Exception ex) {
+                logger.log(Level.SEVERE, null, ex);
+            }
+        } catch (Exception ex) {
+            logger.log(Level.SEVERE, null, ex);
+        }
+        System.setProperties(p);   
+        String currDateStr = DateUtil.getFormatedDate("yyyyMMdd", Parameters.connection.get(0).getConnectionTime());
+        String endDateStr = currDateStr + " " + System.getProperty("EndTime");
+        endDate=DateUtil.parseDate("yyyyMMdd HH:mm:ss", endDateStr);
+        if (new Date().compareTo(endDate) > 0) {
+            //increase enddate by one calendar day
+            endDate = DateUtil.addDays(endDate, 1); 
+        } 
+        trading=Boolean.valueOf(System.getProperty("Trading"));
+        index=System.getProperty("Index");
+        type=System.getProperty("Type");
+        expiry=System.getProperty("Expiry");
     }
 
     @Override
@@ -109,7 +147,7 @@ public class ADR implements TradeListner,UpdateListener{
                     break;
             }
         }
-        if(Parameters.symbol.get(id).getSymbol().compareTo("NIFTY50")==0 && Parameters.symbol.get(id).getType().compareTo("FUT")==0 && event.getTickType()==com.ib.client.TickType.LAST){
+        if(trading && Parameters.symbol.get(id).getSymbol().compareTo(index)==0 && Parameters.symbol.get(id).getType().compareTo(type)==0 && Parameters.symbol.get(id).getExpiry().compareTo(expiry)==0 && event.getTickType()==com.ib.client.TickType.LAST){
             double price=Parameters.symbol.get(id).getLastPrice();
             mEsperEvtProcessor.sendEvent(new ADREvent(ADRTickType.INDEX,price));
             if (price>indexDayHigh){
