@@ -276,28 +276,28 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
         algo.getParamTurtle().setLongOnly(true);
         algo.getParamTurtle().setShortOnly(false);
         MainAlgorithmUI.setMessage("Long Only mode initiated.");
-         Logger.getLogger(MainAlgorithmUI.class.getName()).log(Level.INFO, "Set to Long Only");
+         logger.log(Level.INFO, "Set to Long Only");
     }//GEN-LAST:event_cmdLongActionPerformed
 
     private void cmdShortActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdShortActionPerformed
         algo.getParamTurtle().setLongOnly(false);
         algo.getParamTurtle().setShortOnly(true);
         MainAlgorithmUI.setMessage("Short Only mode initiated.");
-        Logger.getLogger(MainAlgorithmUI.class.getName()).log(Level.INFO, "Set to Short Only");
+        logger.log(Level.INFO, "Set to Short Only");
     }//GEN-LAST:event_cmdShortActionPerformed
 
     private void cmdBothActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdBothActionPerformed
         algo.getParamTurtle().setLongOnly(true);
         algo.getParamTurtle().setShortOnly(true);
         MainAlgorithmUI.setMessage("Both Long and Short modes initiated.");
-        Logger.getLogger(MainAlgorithmUI.class.getName()).log(Level.INFO, "Set to Long and Short");
+        logger.log(Level.INFO, "Set to Long and Short");
     }//GEN-LAST:event_cmdBothActionPerformed
 
     private void cmdPauseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdPauseActionPerformed
         algo.getParamTurtle().setLongOnly(false);
         algo.getParamTurtle().setShortOnly(false);
         MainAlgorithmUI.setMessage("Program Paused.");
-        Logger.getLogger(MainAlgorithmUI.class.getName()).log(Level.INFO, "Program Paused");
+        logger.log(Level.INFO, "Program Paused");
     }//GEN-LAST:event_cmdPauseActionPerformed
 
     private void cmdSquareAllActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdSquareAllActionPerformed
@@ -313,7 +313,7 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
                 }
             }
     }//GEN-LAST:event_cmdSquareAllActionPerformed
-  Logger.getLogger(MainAlgorithmUI.class.getName()).log(Level.INFO, "Square All Positions initiated");
+  logger.log(Level.INFO, "Square All Positions initiated");
     }
     
     
@@ -328,13 +328,13 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
     private void cmdAggressionDisableActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdAggressionDisableActionPerformed
         algo.getParamTurtle().setAggression(false);
         MainAlgorithmUI.setMessage("Passive Orders in play");
-        Logger.getLogger(MainAlgorithmUI.class.getName()).log(Level.INFO, "Passive Orders in play");
+        logger.log(Level.INFO, "Passive Orders in play");
     }//GEN-LAST:event_cmdAggressionDisableActionPerformed
 
     private void cmdAggressionEnableActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdAggressionEnableActionPerformed
         algo.getParamTurtle().setAggression(true);
         MainAlgorithmUI.setMessage("Aggressive Orders in play");
-        Logger.getLogger(MainAlgorithmUI.class.getName()).log(Level.INFO, "Active Orders in play");
+        logger.log(Level.INFO, "Active Orders in play");
     }//GEN-LAST:event_cmdAggressionEnableActionPerformed
 
     private void cmdRegisterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdRegisterActionPerformed
@@ -346,7 +346,7 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
     private void cmdExitLongsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdExitLongsActionPerformed
         algo.getParamTurtle().setLongOnly(false);
         MainAlgorithmUI.setMessage("Short Only Mode.");
-        Logger.getLogger(MainAlgorithmUI.class.getName()).log(Level.INFO, "Set to Short Only");
+        logger.log(Level.INFO, "Set to Short Only");
         for (BeanConnection c : Parameters.connection) {
             if ("Trading".equals(c.getPurpose()) && c.getStrategy().contains("IDT")) {
                 for (int id = 0; id < Parameters.symbol.size(); id++) {
@@ -360,13 +360,13 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
                 }
             }
         }
-        Logger.getLogger(MainAlgorithmUI.class.getName()).log(Level.INFO, "Exit Long positions");
+        logger.log(Level.INFO, "Exit Long positions");
     }//GEN-LAST:event_cmdExitLongsActionPerformed
 
     private void cmdExitShortsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdExitShortsActionPerformed
         algo.getParamTurtle().setShortOnly(false);
         MainAlgorithmUI.setMessage("Long Only Mode.");
-        Logger.getLogger(MainAlgorithmUI.class.getName()).log(Level.INFO, "Set to Long Only");
+        logger.log(Level.INFO, "Set to Long Only");
         for (BeanConnection c : Parameters.connection) {
             if ("Trading".equals(c.getPurpose()) && c.getStrategy().contains("IDT")) {
                 for (int id = 0; id < Parameters.symbol.size(); id++) {
@@ -380,7 +380,7 @@ public class MainAlgorithmUI extends javax.swing.JFrame {
                 }
             }
         } 
-        Logger.getLogger(MainAlgorithmUI.class.getName()).log(Level.INFO, "Exit Short Positions");
+        logger.log(Level.INFO, "Exit Short Positions");
     }//GEN-LAST:event_cmdExitShortsActionPerformed
 
     private void cmdUpdateProfitTgtActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdUpdateProfitTgtActionPerformed
