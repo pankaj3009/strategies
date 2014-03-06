@@ -61,6 +61,7 @@ public class MainAlgorithm extends Algorithm  {
     static HashMap<String,String> input = new HashMap();
     public final static Logger logger = Logger.getLogger(MainAlgorithm.class.getName());
     private BeanTurtle paramTurtle;
+    private ADR paramADR;
     private BeanGuds paramGuds;
     public OrderPlacement ordManagement;
     private Date preopenDate;
@@ -196,7 +197,7 @@ public class MainAlgorithm extends Algorithm  {
             System.out.print("ContractDetails Requested:" + s.getSymbol());
         }
 
-        while (TWSConnection.mTotalSymbols > 0) {
+        while (TWSConnection.mTotalSymbols >= 0) {
             //System.out.println(TWSConnection.mTotalSymbols);
             //do nothing
              if(!MainAlgorithmUI.headless){
@@ -221,7 +222,7 @@ public class MainAlgorithm extends Algorithm  {
                 adrList.add(s);
             }
         }
-        ADR adr =new ADR(adrList);
+        paramADR =new ADR(this,adrList);
         //Request Market Data
         
         Thread.sleep(1000);
@@ -561,5 +562,19 @@ public class MainAlgorithm extends Algorithm  {
      */
     public void setTradingAlgoInitialized(boolean tradingAlgoInitialized) {
         this.tradingAlgoInitialized = tradingAlgoInitialized;
+    }
+
+    /**
+     * @return the paramADR
+     */
+    public ADR getParamADR() {
+        return paramADR;
+    }
+
+    /**
+     * @param paramADR the paramADR to set
+     */
+    public void setParamADR(ADR paramADR) {
+        this.paramADR = paramADR;
     }
 }
