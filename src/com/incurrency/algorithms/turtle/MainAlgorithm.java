@@ -245,13 +245,27 @@ public class MainAlgorithm extends Algorithm  {
                 m.start();
             }
         }
+        
+        boolean getsnapshotfromallconnections=(input.get("getsnapshotfromallconnections")==null||input.get("getsnapshotfromallconnections").compareTo("false")==0)?false:true;
         //If there are symbols left, request snapshot. Distribute across accounts
-         for (BeanConnection c : Parameters.connection) {
+        if(getsnapshotfromallconnections){
+        for (BeanConnection c : Parameters.connection) {
              int snapshotcount=count/Parameters.connection.size();
              MarketData msnap = new MarketData(c, allocatedCapacity, snapshotcount,filteredSymbols);
             msnap.setSnapshot(true);
             msnap.start();
-         }       
+         }
+        }
+        //Alternatively, we use 1st connection for snapshot. Make sure it has the number of symbols permitted as zero
+        else {
+            if(count>0){
+             int snapshotcount=count;;
+             MarketData msnap = new MarketData(Parameters.connection.get(0), allocatedCapacity, snapshotcount,filteredSymbols);
+             msnap.setSnapshot(true);
+             msnap.start();
+             }
+        }
+             
         //ADRRates rates=new ADRRates();
         //Subscribe prices=new Subscribe("103.250.184.15:5556");
 	
@@ -309,10 +323,7 @@ public class MainAlgorithm extends Algorithm  {
         }
         */
         
-        if(!MainAlgorithmUI.headless){
-           // MainAlgorithmUI.setStart(true);
-        }
-        
+     
         
     }
     }

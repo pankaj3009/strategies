@@ -49,6 +49,7 @@ import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.regex.Pattern;
 
 /**
  *
@@ -226,7 +227,7 @@ TimerTask realTimeBars = new TimerTask(){
         try {
             //get historical data - this can be done before start time, assuming the program is started next day
            
-             Thread t = new Thread(new HistoricalBars());
+             Thread t = new Thread(new HistoricalBars("IDT"));
              t.setName("Historical Bars");
               if(!MainAlgorithmUI.headless){
                   MainAlgorithmUI.setMessage("Starting request of Historical Data for yesterday");
@@ -247,6 +248,7 @@ TimerTask realTimeBars = new TimerTask(){
             connect = DriverManager.getConnection("jdbc:mysql://72.55.179.5:3306/histdata", "root", "spark123");
             //statement = connect.createStatement();
             for (int j = 0; j < Parameters.symbol.size(); j++) {
+                if(Pattern.compile(Pattern.quote("IDT"), Pattern.CASE_INSENSITIVE).matcher(Parameters.symbol.get(j).getStrategy()).find()){
                 String name = Parameters.symbol.get(j).getSymbol() + "_FUT";
                 preparedStatement = connect.prepareStatement("select * from dharasymb where name=? order by date desc LIMIT 1");
                 preparedStatement.setString(1, name);
@@ -263,6 +265,7 @@ TimerTask realTimeBars = new TimerTask(){
 
                 }
 
+            }
             }
         } catch (Exception e) {
             logger.log(Level.SEVERE,null,e);
