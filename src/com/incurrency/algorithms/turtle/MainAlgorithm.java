@@ -58,7 +58,7 @@ public class MainAlgorithm extends Algorithm  {
 
     //public MarketData m;
     //public MarketData mSnap;
-    static HashMap<String,String> input = new HashMap();
+    public static HashMap<String,String> input = new HashMap();
     public final static Logger logger = Logger.getLogger(MainAlgorithm.class.getName());
     private BeanTurtle paramTurtle;
     private ADR paramADR;
@@ -220,6 +220,10 @@ public class MainAlgorithm extends Algorithm  {
                 Parameters.symbol.remove(i);
             }
         }
+        
+        logger.log(Level.INFO,"Contract Information Retrieved");
+        MainAlgorithmUI.setMessage("Contract Information Retrieved");
+        
          ArrayList<BeanSymbol> adrList=new ArrayList();
         //populate adrList with symbols needed for ADR
         for(BeanSymbol s: Parameters.symbol){
@@ -227,11 +231,15 @@ public class MainAlgorithm extends Algorithm  {
                 adrList.add(s);
             }
         }
-        paramADR =new ADR(this,adrList);
+            if(input.containsKey("adr")){
+            paramADR =new ADR(this,adrList);
+            strategies.add("ADR");
+            this.tradingAlgoInitialized=true;
+        }
+        
         //Request Market Data
         
-        Thread.sleep(1000);
-        
+     
         List<BeanSymbol> filteredSymbols = new ArrayList();
         for(BeanSymbol s : Parameters.symbol) {
         if( "N".compareTo(s.getPreopen())==0){
