@@ -196,8 +196,8 @@ public class MainAlgorithm extends Algorithm  {
             tempC.getWrapper().getContractDetails(s,"");
             System.out.print("ContractDetails Requested:" + s.getSymbol());
         }
-
-        while (TWSConnection.mTotalSymbols >= 0) {
+        
+        while (TWSConnection.mTotalSymbols > 0) {
             //System.out.println(TWSConnection.mTotalSymbols);
             //do nothing
              if(!MainAlgorithmUI.headless){
@@ -207,7 +207,12 @@ public class MainAlgorithm extends Algorithm  {
         
         ArrayList <Boolean> arrayID=new ArrayList();
         for(BeanSymbol s: Parameters.symbol){
-               arrayID.add(s.isStatus());
+            while(s.isStatus()==null){
+               Thread.sleep(1000);
+               logger.log(Level.SEVERE,"Waiting for contract details for symbol: {0}",new Object[]{s.getSymbol()});
+               MainAlgorithmUI.setMessage("Waiting for contract details for "+s.getSymbol());
+            }
+            arrayID.add(s.isStatus());
          }
         
         for(int i=0;i<arrayID.size();i++){
