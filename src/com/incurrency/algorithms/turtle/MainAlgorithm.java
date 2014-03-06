@@ -82,7 +82,7 @@ public class MainAlgorithm extends Algorithm  {
     private String accounts="";
     private String macID="";
     private Date expiryDate;
-    private static String collectTicks;
+    private static boolean collectTicks;
     private double profitTarget;
     private boolean tradingAlgoInitialized=false;
     
@@ -236,7 +236,9 @@ public class MainAlgorithm extends Algorithm  {
             strategies.add("ADR");
             this.tradingAlgoInitialized=true;
         }
-        
+        //check if ticks need to be collected in csv
+          collectTicks=(input.get("collectticks")==null||input.get("collectticks").compareTo("false")==0)?false:true;
+      
         //Request Market Data
         
      
@@ -538,14 +540,14 @@ public class MainAlgorithm extends Algorithm  {
         /**
      * @return the collectTicks
      */
-    public static String getCollectTicks() {
+    public static boolean getCollectTicks() {
         return collectTicks;
     }
 
     /**
      * @param aCollectTicks the collectTicks to set
      */
-    public static void setCollectTicks(String aCollectTicks) {
+    public static void setCollectTicks(boolean aCollectTicks) {
         collectTicks = aCollectTicks;
     }
 
