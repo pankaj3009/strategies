@@ -234,7 +234,7 @@ public class MainAlgorithm extends Algorithm  {
             if(input.containsKey("adr")){
             paramADR =new ADR(this,adrList);
             strategies.add("ADR");
-            this.tradingAlgoInitialized=true;
+            //this.tradingAlgoInitialized=true;
         }
         //check if ticks need to be collected in csv
           collectTicks=(input.get("collectticks")==null||input.get("collectticks").compareTo("false")==0)?false:true;
