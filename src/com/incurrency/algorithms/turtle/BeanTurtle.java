@@ -219,6 +219,7 @@ TimerTask realTimeBars = new TimerTask(){
         exposure = Double.parseDouble(System.getProperty("Exposure"));
         startBars = Integer.parseInt(System.getProperty("StartBars"));
         display = Integer.parseInt(System.getProperty("Display"));
+        maxSlippage=Double.parseDouble(System.getProperty("MaxSlippage"));
         //exit = System.getProperty("Exit");
         this.symbols = System.getProperty("Symbols");
     }
