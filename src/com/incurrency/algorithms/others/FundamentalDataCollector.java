@@ -2,8 +2,9 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.incurrency.algorithms.turtle;
+package com.incurrency.algorithms.others;
 
+import com.incurrency.framework.MainAlgorithmUI;
 import com.incurrency.framework.Algorithm;
 import com.incurrency.framework.BeanConnection;
 import com.incurrency.framework.BeanSymbol;

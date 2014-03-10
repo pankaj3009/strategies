@@ -6,8 +6,7 @@ package com.incurrency.algorithms.adr;
 
 import com.espertech.esper.client.EventBean;
 import com.espertech.esper.client.UpdateListener;
-import com.incurrency.algorithms.turtle.MainAlgorithm;
-import com.incurrency.framework.Algorithm;
+import com.incurrency.framework.MainAlgorithm;
 import com.incurrency.framework.BeanConnection;
 import com.incurrency.framework.BeanSymbol;
 import com.incurrency.framework.DateUtil;
@@ -44,6 +43,7 @@ public class ADR implements TradeListner,UpdateListener{
     String index;
     String type;
     String expiry;
+    double tickSize;
     
     MainAlgorithm m;
     //----- updated by ADRListener and TickListener
@@ -73,6 +73,7 @@ public class ADR implements TradeListner,UpdateListener{
     double indexDayHigh=Double.MIN_VALUE;
     double indexDayLow=Double.MAX_VALUE;
     int position=0;
+    com.incurrency.framework.OrderPlacement orderADR;
 
     
     public ADR(MainAlgorithm m,ArrayList<BeanSymbol> symb){
@@ -83,6 +84,7 @@ public class ADR implements TradeListner,UpdateListener{
         for(BeanSymbol s: symb){
             symbols.put(s.getSerialno()-1, s);
         }
+        orderADR=new ADROrderManagement(true,this.tickSize);
         for(BeanConnection c: Parameters.connection){
         c.getWrapper().addTradeListener(this);
         
@@ -115,6 +117,7 @@ public class ADR implements TradeListner,UpdateListener{
         index=System.getProperty("Index");
         type=System.getProperty("Type");
         expiry=System.getProperty("Expiry");
+        tickSize=Double.parseDouble(System.getProperty("TickSize"));
     }
 
     @Override
@@ -159,13 +162,13 @@ public class ADR implements TradeListner,UpdateListener{
             boolean buyZone1=(adrHigh-adrLow>5 && adr>adrLow+0.75*(adrHigh-adrLow)) ||
                             (adrDayHigh-adrDayLow>10 && adr>adrDayLow+0.75*(adrDayHigh-adrDayLow))?true:false;
             boolean buyZone2=(indexHigh-indexLow)>10 && price>indexLow+0.75*(indexHigh-indexLow)||
-                            (indexDayHigh-indexDayLow)>10 && price>indexDayLow+0.75*(indexDayHigh-indexDayLow);
+                            (indexDayHigh-indexDayLow)>20 && price>indexDayLow+0.75*(indexDayHigh-indexDayLow);
             boolean buyZone3=this.adrTRINAvg<95 && this.adrTRINAvg>0;
             
             boolean shortZone1=(adrHigh-adrLow>5 && adr<adrHigh-0.75*(adrHigh-adrLow)) ||
                             (adrDayHigh-adrDayLow>10 && adr<adrDayHigh-0.75*(adrDayHigh-adrDayLow));
             boolean shortZone2=(indexHigh-indexLow)>10 && price<indexHigh-0.75*(indexHigh-indexLow)||
-                            (indexDayHigh-indexDayLow)>10 && price<indexDayHigh-0.75*(indexDayHigh-indexDayLow);
+                            (indexDayHigh-indexDayLow)>20 && price<indexDayHigh-0.75*(indexDayHigh-indexDayLow);
             boolean shortZone3=this.adrTRINAvg>105;
             
             Boolean buyZone=atLeastTwo(buyZone1,buyZone2,buyZone3);   

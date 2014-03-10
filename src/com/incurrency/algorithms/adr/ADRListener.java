@@ -45,7 +45,7 @@ public class ADRListener implements UpdateListener{
         
         double adr=pTicks+nTicks>0?pTicks*100/(pTicks+nTicks):0;
         double adrTRIN=pVolume+nVolume>0?pVolume*100/(pVolume+nVolume):0;
-        if(tTicks>800){
+        if(tTicks>600){
           ADR.adr=adr;
           ADR.adrTRIN=adrTRIN;
           ADR.adrDayHigh=adr>ADR.adrDayHigh?adr:ADR.adrDayHigh;

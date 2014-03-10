@@ -4,7 +4,8 @@
  */
 package com.incurrency.algorithms.turtle;
 
-import static com.incurrency.algorithms.turtle.MainAlgorithmUI.algo;
+import com.incurrency.framework.MainAlgorithmUI;
+import static com.incurrency.framework.MainAlgorithmUI.algo;
 import com.incurrency.framework.BeanEODTradeRecord;
 import com.incurrency.framework.EnumOrderStatus;
 import com.incurrency.framework.OrderBean;
