@@ -137,7 +137,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
             c.getWrapper().addTradeListener(this);
 			}
         plmanager=new ProfitLossManager();
-        ordManagement = new TurtleOrderManagement(this.aggression,Double.parseDouble(this.tickSize));		               
+        ordManagement = new TurtleOrderManagement(this.aggression,Double.parseDouble(this.tickSize),"IDT");		               
         populateLastTradePrice();
         getHistoricalData();
         MainAlgorithmUI.setMessage("Waiting for market open");

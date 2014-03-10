@@ -10,8 +10,8 @@ package com.incurrency.algorithms.turtle;
  */
 public class TurtleOrderManagement extends com.incurrency.framework.OrderPlacement{
     
-    public TurtleOrderManagement(boolean aggression, double tickSize){
-        super(aggression,tickSize);
+    public TurtleOrderManagement(boolean aggression, double tickSize, String ordReference){
+        super(aggression,tickSize,ordReference);
     }
     
 }

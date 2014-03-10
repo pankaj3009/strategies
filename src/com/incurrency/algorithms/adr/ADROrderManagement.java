@@ -12,8 +12,8 @@ import com.incurrency.algorithms.turtle.*;
  */
 public class ADROrderManagement extends com.incurrency.framework.OrderPlacement{
     
-    public ADROrderManagement(boolean aggression, double tickSize){
-        super(aggression,tickSize);
+    public ADROrderManagement(boolean aggression, double tickSize, String ordReference){
+        super(aggression,tickSize,ordReference);
     }
     
 }

@@ -84,7 +84,7 @@ public class ADR implements TradeListner,UpdateListener{
         for(BeanSymbol s: symb){
             symbols.put(s.getSerialno()-1, s);
         }
-        orderADR=new ADROrderManagement(true,this.tickSize);
+        orderADR=new ADROrderManagement(true,this.tickSize,"ADR");
         for(BeanConnection c: Parameters.connection){
         c.getWrapper().addTradeListener(this);
         
