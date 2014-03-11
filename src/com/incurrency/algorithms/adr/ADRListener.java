@@ -44,7 +44,7 @@ public class ADRListener implements UpdateListener{
         ADR.adrServer.send("IND-CUS-ALL",5+","+now+","+tVolume+","+"ADR" );
         
         double adr=pTicks+nTicks>0?pTicks*100/(pTicks+nTicks):0;
-        double adrTRIN=pVolume+nVolume>0?pVolume*100/(pVolume+nVolume):0;
+        double adrTRIN=pVolume+nVolume>0?adr*100/(pVolume*100/(pVolume+nVolume)):0;
         if(tTicks>ADR.threshold){
           ADR.adr=adr;
           ADR.adrTRIN=adrTRIN;

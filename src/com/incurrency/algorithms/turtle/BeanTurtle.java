@@ -19,6 +19,7 @@ import com.incurrency.framework.HistoricalBars;
 import com.incurrency.framework.Parameters;
 import com.incurrency.framework.ProfitLossManager;
 import com.incurrency.framework.RealTimeBars;
+import com.incurrency.framework.Trade;
 import com.incurrency.framework.TradeEvent;
 import com.incurrency.framework.TradeListner;
 import java.io.FileInputStream;
@@ -64,7 +65,9 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
     private ArrayList<Long> longVolume = new ArrayList();
     private ArrayList<Long> shortVolume = new ArrayList();
     private ArrayList<Long> notionalPosition = new ArrayList();
+    private ArrayList<Boolean> lastTradeWasLosing=new ArrayList();
     private ArrayList<Long> advanceOrder = new ArrayList();
+    private HashMap<Integer,Trade> trades = new HashMap();
     private static Date startDate;
     private static Date lastOrderDate;
     private static Date endDate;
@@ -127,6 +130,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
             breachDown.add(0);
             exPriceBarLong.add(Boolean.FALSE);
             exPriceBarShort.add(Boolean.FALSE);
+            lastTradeWasLosing.add(Boolean.FALSE);
         }
         for (int i = 0; i < Parameters.symbol.size(); i++) {
             Parameters.symbol.get(i).getOneMinuteBar().addHistoricalBarListener(this);
@@ -135,6 +139,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
         }
         for (BeanConnection c : Parameters.connection){
             c.getWrapper().addTradeListener(this);
+            c.initializeConnection("IDT");
 			}
         plmanager=new ProfitLossManager();
         ordManagement = new TurtleOrderManagement(this.aggression,Double.parseDouble(this.tickSize),"IDT");		               
@@ -691,6 +696,8 @@ TimerTask realTimeBars = new TimerTask(){
                     logger.log(Level.INFO, "Buy. Symbol:{0},LL:{1},LastPrice:{2},HH{3},Slope:{4},SlopeThreshold:{5},Volume:{6},VolumeMA:{7}, Breachup:{8},Breachdown:{9}",
                             new Object[]{Parameters.symbol.get(id).getSymbol(), this.getLowestLow().get(id).toString(), Parameters.symbol.get(id).getLastPrice(), this.getHighestHigh().get(id).toString(), this.getSlope().get(id).toString(), String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeLongMultiplier() / 375), this.getVolume().get(id).toString(), this.getVolumeMA().get(id).toString(), this.getBreachUp().get(id) + 1, this.getBreachDown().get(id)
                     });
+                    trades.put(id, new Trade(id,EnumOrderSide.BUY,this.getHighestHigh().get(id)));
+                    if(lastTradeWasLosing.get(id)){
                     if (this.getAdvanceOrder().get(id) == 0) { //no advance order present
                         m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.BUY, size, this.getHighestHigh().get(id) + Parameters.symbol.get(id).getAggression(), 0, "IDT", maxOrderDuration, exit, EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageEntry);
                     } else if (this.getAdvanceOrder().get(id) == 1) {
@@ -700,6 +707,9 @@ TimerTask realTimeBars = new TimerTask(){
                         m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.BUY, size, this.getHighestHigh().get(id) + Parameters.symbol.get(id).getAggression(), 0, "IDT", maxOrderDuration, exit, EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageEntry);
                     }
                     this.advanceOrder.set(id, 0L);
+                    }else{
+                        logger.log(Level.INFO,"First Trade or Last Trade was a winning Trade. No orders placed for Symbol {1}",new Object[]{Parameters.symbol.get(id).getSymbol()});
+                    }
                 } else if (shortOnly && ruleLowestLow && (exPriceBarShort.get(id) && sourceBars || (!sourceBars && ruleCumVolumeShort && ruleSlopeShort && ruleVolumeShort)) && this.getLastOrderDate().compareTo(new Date()) > 0 && breachdown > 0.5 && this.getBreachUp().get(id) >= 1) {
                     //Short condition
                     this.getNotionalPosition().set(id, -1L);
@@ -707,6 +717,8 @@ TimerTask realTimeBars = new TimerTask(){
                     logger.log(Level.INFO, "Short. Symbol:{0},LL:{1},LastPrice:{2},HH{3},Slope:{4},SlopeThreshold:{5},Volume:{6},VolumeMA:{7},Breachup:{8},Breachdown:{9}",
                             new Object[]{Parameters.symbol.get(id).getSymbol(), this.getLowestLow().get(id).toString(), Parameters.symbol.get(id).getLastPrice(), this.getHighestHigh().get(id).toString(), this.getSlope().get(id).toString(), String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeLongMultiplier() / 375), this.getVolume().get(id).toString(), this.getVolumeMA().get(id).toString(), this.getBreachUp().get(id), this.getBreachUp().get(id) + 1
                     });
+                    trades.put(id, new Trade(id,EnumOrderSide.SHORT,this.getLowestLow().get(id)));
+                    if(lastTradeWasLosing.get(id)){
                     if (this.getAdvanceOrder().get(id) == 0) {
                         m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.SHORT, size, this.getLowestLow().get(id) - Parameters.symbol.get(id).getAggression(), 0, "IDT", maxOrderDuration, exit, EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageEntry);
                     } else if (this.getAdvanceOrder().get(id) == -1) {
@@ -716,6 +728,9 @@ TimerTask realTimeBars = new TimerTask(){
                         m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.SHORT, size, this.getLowestLow().get(id) - Parameters.symbol.get(id).getAggression(), 0, "IDT", maxOrderDuration, exit, EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageEntry);
                     }
                     this.advanceOrder.set(id, 0L);
+                    }else{
+                        logger.log(Level.INFO,"First Trade or Last Trade was a winning Trade. No orders placed for Symbol {1}",new Object[]{Parameters.symbol.get(id).getSymbol()});
+                    }
 
                 }
             } else if (this.getNotionalPosition().get(id) == -1) { //position exists. Check for exit conditions for a short
@@ -725,6 +740,12 @@ TimerTask realTimeBars = new TimerTask(){
                     logger.log(Level.INFO, "Cover.Symbol:{0},LL:{1},LastPrice:{2},HH{3},Slope:{4},SlopeThreshold:{5},Volume:{6},VolumeMA:{7}",
                             new Object[]{Parameters.symbol.get(id).getSymbol(), this.getLowestLow().get(id).toString(), Parameters.symbol.get(id).getLastPrice(), this.getHighestHigh().get(id).toString(), this.getSlope().get(id).toString(), String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeLongMultiplier() / 375), this.getVolume().get(id).toString(), this.getVolumeMA().get(id).toString()
                     });
+                   if(trades.get(id).getPrice()>=this.getHighestHigh().get(id)){
+                        this.lastTradeWasLosing.set(id,Boolean.FALSE);
+                    }
+                    else{
+                        this.lastTradeWasLosing.set(id,Boolean.TRUE);
+                    }
                     if (ruleHighestHigh) {
                         if (this.getAdvanceOrder().get(id) == 0) {
                             m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.COVER, size, this.getHighestHigh().get(id), 0, "IDT", maxOrderDuration, "", EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageExit);
@@ -751,6 +772,13 @@ TimerTask realTimeBars = new TimerTask(){
                     logger.log(Level.INFO, "Sell.Symbol:{0},LL:{1},LastPrice:{2},HH{3},Slope:{4},SlopeThreshold:{5},Volume:{6},VolumeMA:{7}",
                             new Object[]{Parameters.symbol.get(id).getSymbol(), this.getLowestLow().get(id).toString(), Parameters.symbol.get(id).getLastPrice(), this.getHighestHigh().get(id).toString(), this.getSlope().get(id).toString(), String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeLongMultiplier() / 375), this.getVolume().get(id).toString(), this.getVolumeMA().get(id).toString()
                     });
+                    if(trades.get(id).getPrice()<=this.getLowestLow().get(id)){
+                        this.lastTradeWasLosing.set(id,Boolean.FALSE);
+                    }
+                    else{
+                        this.lastTradeWasLosing.set(id,Boolean.TRUE);
+                    }
+                  
                     if (ruleLowestLow) {
                         if (this.getAdvanceOrder().get(id) == 0) {
                             m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.SELL, size, this.getLowestLow().get(id), 0, "IDT", maxOrderDuration, "", EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageExit);
