@@ -66,7 +66,8 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
     private ArrayList<Long> shortVolume = new ArrayList();
     private ArrayList<Long> notionalPosition = new ArrayList();
     private ArrayList<Boolean> lastTradeWasLosing=new ArrayList();
-    private ArrayList<Long> advanceOrder = new ArrayList();
+    private ArrayList<Long> advanceEntryOrder = new ArrayList();
+    private ArrayList<Long> advanceExitOrder = new ArrayList();
     private HashMap<Integer,Trade> trades = new HashMap();
     private static Date startDate;
     private static Date lastOrderDate;
@@ -101,10 +102,12 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
     Timer openProcessing;
     private double maVolumeLong;
     private double maVolumeShort;
-    private boolean advanceOrders;
+    private boolean paramAdvanceEntryOrders;
+    private boolean paramAdvanceExitOrders;
     private ProfitLossManager plmanager;
     private double profitTarget;
     private TurtleOrderManagement ordManagement;
+    private boolean skipAfterWins=false;
 
     public BeanTurtle(MainAlgorithm m) {
         this.m = m;
@@ -123,7 +126,8 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
             longVolume.add(Parameters.symbol.get(i).getLongvolume());
             shortVolume.add(Parameters.symbol.get(i).getShortvolume());
             notionalPosition.add(0L);
-            advanceOrder.add(0L);
+            advanceEntryOrder.add(0L);
+            advanceExitOrder.add(0L);
             breachUpInBar.add(Boolean.FALSE);
             breachDownInBar.add(Boolean.FALSE);
             breachUp.add(0);
@@ -211,8 +215,9 @@ TimerTask realTimeBars = new TimerTask(){
         dynamicOrderDuration = Integer.parseInt(System.getProperty("DynamicOrderDuration"));
         maVolumeLong=Double.parseDouble(System.getProperty("MAVolumeLong"));
         maVolumeShort=Double.parseDouble(System.getProperty("MAVolumeShort"));
-        String strAdvanceOrders=System.getProperty("AdvanceOrders");
-        advanceOrders=Boolean.valueOf(strAdvanceOrders);
+        String strAdvanceOrders=System.getProperty("AdvanceEntryOrders");
+        paramAdvanceEntryOrders=Boolean.valueOf(strAdvanceOrders);
+        paramAdvanceExitOrders=Boolean.valueOf(System.getProperty("AdvanceExitOrders"));
         //maxSlippage = Double.parseDouble(System.getProperty("MaxSlippage"));
         channelDuration = Integer.parseInt(System.getProperty("ChannelDuration"));
         volumeSlopeLongMultiplier = Double.parseDouble(System.getProperty("VolSlopeMultLong"));
@@ -225,6 +230,7 @@ TimerTask realTimeBars = new TimerTask(){
         maxSlippageExit=Double.parseDouble(System.getProperty("MaxSlippageExit"))/100; // divide by 100 as input was a percentage
         //exit = System.getProperty("Exit");
         this.symbols = System.getProperty("Symbols");
+        this.skipAfterWins=Boolean.getBoolean(System.getProperty("SkipAfterWins"));
     }
     
     private void getHistoricalData(){
@@ -456,8 +462,11 @@ TimerTask realTimeBars = new TimerTask(){
                         } else {
                             exPriceBarShort.set(id, Boolean.FALSE);
                         }
-                        if (advanceOrders) {
-                            placeAdvancedOrders(id);
+                        if (paramAdvanceEntryOrders) {
+                            placeAdvancedEntryOrders(id);
+                        }
+                        if(paramAdvanceExitOrders){
+                            placeAdvancedExitOrders(id);
                         }
 
                         logger.log(Level.FINEST, "{0},{1}, HH:{2}, LL:{3}, CumVol:{4}, LongVolCutoff:{5}, ShortVolCutoff:{6}, Slope:{7}, SlopeCutoff:{8}, BarVol:{9}, VolMA:{10}, BreachUp:{11}, BreachDown:{12}", new Object[]{
@@ -493,7 +502,7 @@ TimerTask realTimeBars = new TimerTask(){
         }
     }
 
-    public void placeAdvancedOrders(int id) {
+    public void placeAdvancedEntryOrders(int id) {
         //Place advance orders
         double threshold = this.getHighestHigh().get(id) - this.getLowestLow().get(id) > 1 ? 0.5 : (this.getHighestHigh().get(id) - this.getLowestLow().get(id)) / 2;
         boolean tradeable = Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) / (Parameters.symbol.get(id).getMinsize() * 375) >= 6.0 && this.getCumVolume().get(id).size() > this.getStartBars() && Parameters.symbol.get(id).getLastPrice() > 0;
@@ -504,7 +513,7 @@ TimerTask realTimeBars = new TimerTask(){
         double highTriggerPrice=this.getHighestHigh().get(id)+Double.parseDouble(tickSize);
         double lowTriggerPrice=this.getLowestLow().get(id)-Double.parseDouble(tickSize);
         //Amend Entry Advance orders
-        if (notionalPosition.get(id) == 0 && getAdvanceOrder().get(id) == 1) { //advance order has been placed
+        if (notionalPosition.get(id) == 0 && getAdvanceEntryOrder().get(id) == 1) { //advance order has been placed
             if ((Parameters.symbol.get(id).getLastPrice() + threshold) > this.getHighestHigh().get(id)
                     && (Parameters.symbol.get(id).getLastPrice() - threshold) > this.getLowestLow().get(id)
                     && this.getBreachUp().get(id) >= this.getBreachDown().get(id)
@@ -516,12 +525,12 @@ TimerTask realTimeBars = new TimerTask(){
                 //cancel order. There is no need for advance buy order.
                 logger.log(Level.INFO, "cancel order. There is no need for advance buy order. Symbol:{0},LastPrice: {1}, LowPrice: :{2} ,HighPrice: :{3} ,Threshold: {4}", new Object[]{Parameters.symbol.get(id).getSymbol(), Parameters.symbol.get(id).getLastPrice(), this.getLowestLow().get(id), this.getHighestHigh().get(id), threshold});
                 m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.BUY, size, this.getHighestHigh().get(id) + Parameters.symbol.get(id).getAggression(), highTriggerPrice, "IDT", 0, exit, EnumOrderIntent.Cancel, maxOrderDuration, dynamicOrderDuration, maxSlippageEntry);
-                this.getAdvanceOrder().set(id, 0L);
+                this.getAdvanceEntryOrder().set(id, 0L);
             }
         }
 
 
-        if (notionalPosition.get(id) == 0 && getAdvanceOrder().get(id) == -1) {
+        if (notionalPosition.get(id) == 0 && getAdvanceEntryOrder().get(id) == -1) {
             if ((Parameters.symbol.get(id).getLastPrice() - threshold) < this.getLowestLow().get(id)
                     && (Parameters.symbol.get(id).getLastPrice() + threshold) < this.getHighestHigh().get(id)
                     && this.getBreachDown().get(id) >= this.getBreachUp().get(id)
@@ -533,11 +542,47 @@ TimerTask realTimeBars = new TimerTask(){
                 //cancel order. There is no need for advance short order.
                 logger.log(Level.INFO, "cancel order. There is no need for advance short order. Symbol:{0},LastPrice: {1}, LowPrice: :{2} ,HighPrice: :{3} ,Threshold: {4}", new Object[]{Parameters.symbol.get(id).getSymbol(), Parameters.symbol.get(id).getLastPrice(), this.getLowestLow().get(id), this.getHighestHigh().get(id), threshold});
                 m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.SHORT, size, this.getLowestLow().get(id) - Parameters.symbol.get(id).getAggression(), lowTriggerPrice, "IDT", 0, exit, EnumOrderIntent.Cancel, maxOrderDuration, dynamicOrderDuration, maxSlippageEntry);
-                this.getAdvanceOrder().set(id, 0L);
+                this.getAdvanceEntryOrder().set(id, 0L);
             }
         }
+       
+        //Place entry orders
+        if (tradeable && this.getNotionalPosition().get(id) == 0 && this.getCumVolume().get(id).size() >= this.getChannelDuration()) {
+            if (notionalPosition.get(id) == 0 && getAdvanceEntryOrder().get(id) == 0 && longOnly && exPriceBarLong.get(id) && this.getLastOrderDate().compareTo(new Date()) > 0 && this.getBreachUp().get(id) >= this.getBreachDown().get(id) && this.getBreachDown().get(id) >= 1) {
+                if ((Parameters.symbol.get(id).getLastPrice() + threshold) > this.getHighestHigh().get(id)
+                        && (Parameters.symbol.get(id).getLastPrice() - threshold) > this.getLowestLow().get(id)
+                        && this.longOnly) {
+                    //place advance order to buy
+                    this.getAdvanceEntryOrder().set(id, 1L);
+                    logger.log(Level.INFO, "place advance order to buy. Symbol:{0},LastPrice: {1}, LowPrice: :{2} ,HighPrice: :{3} ,Threshold: {4}", new Object[]{Parameters.symbol.get(id).getSymbol(), Parameters.symbol.get(id).getLastPrice(), this.getLowestLow().get(id), this.getHighestHigh().get(id), threshold});
+                    m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.BUY, size, this.getHighestHigh().get(id) + Parameters.symbol.get(id).getAggression(), highTriggerPrice, "IDT", 0, exit, EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageEntry);
+                }
+            } else if (notionalPosition.get(id) == 0 && getAdvanceEntryOrder().get(id) == 0 && shortOnly && exPriceBarShort.get(id) && this.getLastOrderDate().compareTo(new Date()) > 0 && this.getBreachDown().get(id) >= this.getBreachUp().get(id) && this.getBreachUp().get(id) >= 1) {
+                if ((Parameters.symbol.get(id).getLastPrice() - threshold) < this.getLowestLow().get(id)
+                        && (Parameters.symbol.get(id).getLastPrice() + threshold) < this.getHighestHigh().get(id)
+                        && this.shortOnly) {
+                    //place advance order to short
+                    this.getAdvanceEntryOrder().set(id, -1L);
+                    logger.log(Level.INFO, "place advance order to short. Symbol:{0},LastPrice: {1}, LowPrice: :{2} ,HighPrice: :{3} ,Threshold: {4}", new Object[]{Parameters.symbol.get(id).getSymbol(), Parameters.symbol.get(id).getLastPrice(), this.getLowestLow().get(id), this.getHighestHigh().get(id), threshold});
+                    m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.SHORT, size, this.getLowestLow().get(id) - Parameters.symbol.get(id).getAggression(), lowTriggerPrice, "IDT", 0, exit, EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageEntry);
+                }
+            }
+        }        
+    }
+
+    public void placeAdvancedExitOrders(int id){
+         //Place advance orders
+        double threshold = this.getHighestHigh().get(id) - this.getLowestLow().get(id) > 1 ? 0.5 : (this.getHighestHigh().get(id) - this.getLowestLow().get(id)) / 2;
+        boolean tradeable = Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) / (Parameters.symbol.get(id).getMinsize() * 375) >= 6.0 && this.getCumVolume().get(id).size() > this.getStartBars() && Parameters.symbol.get(id).getLastPrice() > 0;
+        if (this.getExposure() != 0 && this.getCumVolume().get(id).size() > this.getStartBars() && Parameters.symbol.get(id).getLastPrice() > 0) {
+            tradeable = true;
+        }
+        int size = this.getExposure() != 0 ? (int) (this.getExposure() / Parameters.symbol.get(id).getLastPrice()) : Parameters.symbol.get(id).getMinsize();
+        double highTriggerPrice=this.getHighestHigh().get(id);//+Double.parseDouble(tickSize);
+        double lowTriggerPrice=this.getLowestLow().get(id);//-Double.parseDouble(tickSize);
+        
         //amend advance sell order
-        if (notionalPosition.get(id) == 1 && getAdvanceOrder().get(id) == -1) {
+        if (notionalPosition.get(id) == 1 && getAdvanceExitOrder().get(id) == -1) {
             if ((Parameters.symbol.get(id).getLastPrice() - threshold) < this.getLowestLow().get(id)
                     && (Parameters.symbol.get(id).getLastPrice() + threshold) < this.getHighestHigh().get(id)) {
                 //amend existing advance sell order
@@ -547,11 +592,11 @@ TimerTask realTimeBars = new TimerTask(){
                 //cancel order. There is no need for advance sell order.
                 logger.log(Level.INFO, "cancel order. There is no need for advance sell order. Symbol:{0},LastPrice: {1}, LowPrice: :{2} ,HighPrice: :{3} ,Threshold: {4}", new Object[]{Parameters.symbol.get(id).getSymbol(), Parameters.symbol.get(id).getLastPrice(), this.getLowestLow().get(id), this.getHighestHigh().get(id), threshold});
                 m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.SELL, size, this.getLowestLow().get(id) - Parameters.symbol.get(id).getAggression(), lowTriggerPrice, "IDT", 0, exit, EnumOrderIntent.Cancel, maxOrderDuration, dynamicOrderDuration, maxSlippageExit);
-                this.getAdvanceOrder().set(id, 0L);
+                this.getAdvanceExitOrder().set(id, 0L);
             }
         }
         //amend advance cover order
-        if (notionalPosition.get(id) == -1 && getAdvanceOrder().get(id) == 1) {
+        if (notionalPosition.get(id) == -1 && getAdvanceExitOrder().get(id) == 1) {
             if ((Parameters.symbol.get(id).getLastPrice() + threshold) > this.getHighestHigh().get(id)
                     && (Parameters.symbol.get(id).getLastPrice() - threshold) > this.getLowestLow().get(id)) {
                 //amend existing advance cover order
@@ -561,38 +606,16 @@ TimerTask realTimeBars = new TimerTask(){
                 //cancel order. There is no need for advance cover order.
                 logger.log(Level.INFO, "cancel order. There is no need for advance cover order. Symbol:{0},LastPrice: {1}, LowPrice: :{2} ,HighPrice: :{3} ,Threshold: {4}", new Object[]{Parameters.symbol.get(id).getSymbol(), Parameters.symbol.get(id).getLastPrice(), this.getLowestLow().get(id), this.getHighestHigh().get(id), threshold});
                 m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.COVER, size, this.getHighestHigh().get(id) + Parameters.symbol.get(id).getAggression(), highTriggerPrice, "IDT", 0, exit, EnumOrderIntent.Cancel, maxOrderDuration, dynamicOrderDuration, maxSlippageExit);
-                this.getAdvanceOrder().set(id, 0L);
+                this.getAdvanceExitOrder().set(id, 0L);
             }
         }
-        //Place entry orders
-        if (tradeable && this.getNotionalPosition().get(id) == 0 && this.getCumVolume().get(id).size() >= this.getChannelDuration()) {
-            if (notionalPosition.get(id) == 0 && getAdvanceOrder().get(id) == 0 && longOnly && exPriceBarLong.get(id) && this.getLastOrderDate().compareTo(new Date()) > 0 && this.getBreachUp().get(id) >= this.getBreachDown().get(id) && this.getBreachDown().get(id) >= 1) {
-                if ((Parameters.symbol.get(id).getLastPrice() + threshold) > this.getHighestHigh().get(id)
-                        && (Parameters.symbol.get(id).getLastPrice() - threshold) > this.getLowestLow().get(id)
-                        && this.longOnly) {
-                    //place advance order to buy
-                    this.getAdvanceOrder().set(id, 1L);
-                    logger.log(Level.INFO, "place advance order to buy. Symbol:{0},LastPrice: {1}, LowPrice: :{2} ,HighPrice: :{3} ,Threshold: {4}", new Object[]{Parameters.symbol.get(id).getSymbol(), Parameters.symbol.get(id).getLastPrice(), this.getLowestLow().get(id), this.getHighestHigh().get(id), threshold});
-                    m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.BUY, size, this.getHighestHigh().get(id) + Parameters.symbol.get(id).getAggression(), highTriggerPrice, "IDT", 0, exit, EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageEntry);
-                }
-            } else if (notionalPosition.get(id) == 0 && getAdvanceOrder().get(id) == 0 && shortOnly && exPriceBarShort.get(id) && this.getLastOrderDate().compareTo(new Date()) > 0 && this.getBreachDown().get(id) >= this.getBreachUp().get(id) && this.getBreachUp().get(id) >= 1) {
-                if ((Parameters.symbol.get(id).getLastPrice() - threshold) < this.getLowestLow().get(id)
-                        && (Parameters.symbol.get(id).getLastPrice() + threshold) < this.getHighestHigh().get(id)
-                        && this.shortOnly) {
-                    //place advance order to short
-                    this.getAdvanceOrder().set(id, -1L);
-                    logger.log(Level.INFO, "place advance order to short. Symbol:{0},LastPrice: {1}, LowPrice: :{2} ,HighPrice: :{3} ,Threshold: {4}", new Object[]{Parameters.symbol.get(id).getSymbol(), Parameters.symbol.get(id).getLastPrice(), this.getLowestLow().get(id), this.getHighestHigh().get(id), threshold});
-                    m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.SHORT, size, this.getLowestLow().get(id) - Parameters.symbol.get(id).getAggression(), lowTriggerPrice, "IDT", 0, exit, EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageEntry);
-                }
-            }
-        }
-
+        
         //now place sell and cover advance orders
-        if (notionalPosition.get(id) == -1 && getAdvanceOrder().get(id) == 0) {
+        if (notionalPosition.get(id) == -1 && getAdvanceExitOrder().get(id) == 0) {
             if ((Parameters.symbol.get(id).getLastPrice() + threshold) > this.getHighestHigh().get(id)
                     && (Parameters.symbol.get(id).getLastPrice() - threshold) > this.getHighestHigh().get(id)) //place advance order to cover
             {
-                this.getAdvanceOrder().set(id, 1L);
+                this.getAdvanceExitOrder().set(id, 1L);
 
                 logger.log(Level.INFO, "place advance order to cover. Symbol:{0},LastPrice: {1}, LowPrice: :{2} ,HighPrice: :{3} ,Threshold: {4}", new Object[]{Parameters.symbol.get(id).getSymbol(), Parameters.symbol.get(id).getLastPrice(), this.getLowestLow().get(id), this.getHighestHigh().get(id), threshold});
                 m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.COVER, size, this.getHighestHigh().get(id) + Parameters.symbol.get(id).getAggression(), highTriggerPrice, "IDT", 0, exit, EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageExit);
@@ -600,16 +623,15 @@ TimerTask realTimeBars = new TimerTask(){
         }
 
 
-        if (notionalPosition.get(id) == 1 && getAdvanceOrder().get(id) == 0) {
+        if (notionalPosition.get(id) == 1 && getAdvanceExitOrder().get(id) == 0) {
             if ((Parameters.symbol.get(id).getLastPrice() - threshold) < this.getLowestLow().get(id)) {
                 //place advance order to sell
                 logger.log(Level.INFO, "place advance order to sell. Symbol:{0},LastPrice: {1}, LowPrice: :{2} ,HighPrice: :{3} ,Threshold: {4}", new Object[]{Parameters.symbol.get(id).getSymbol(), Parameters.symbol.get(id).getLastPrice(), this.getLowestLow().get(id), this.getHighestHigh().get(id), threshold});
                 m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.SELL, size, this.getLowestLow().get(id) - Parameters.symbol.get(id).getAggression(), lowTriggerPrice, "IDT", 0, exit, EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageExit);
-                this.getAdvanceOrder().set(id, -1L);
+                this.getAdvanceExitOrder().set(id, -1L);
             }
         }
     }
-
     @Override
     public synchronized void tradeReceived(TradeEvent event) {
 
@@ -697,16 +719,16 @@ TimerTask realTimeBars = new TimerTask(){
                             new Object[]{Parameters.symbol.get(id).getSymbol(), this.getLowestLow().get(id).toString(), Parameters.symbol.get(id).getLastPrice(), this.getHighestHigh().get(id).toString(), this.getSlope().get(id).toString(), String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeLongMultiplier() / 375), this.getVolume().get(id).toString(), this.getVolumeMA().get(id).toString(), this.getBreachUp().get(id) + 1, this.getBreachDown().get(id)
                     });
                     trades.put(id, new Trade(id,EnumOrderSide.BUY,this.getHighestHigh().get(id)));
-                    if(lastTradeWasLosing.get(id)){
-                    if (this.getAdvanceOrder().get(id) == 0) { //no advance order present
+                    if(!skipAfterWins || lastTradeWasLosing.get(id)){
+                    if (this.getAdvanceEntryOrder().get(id) == 0) { //no advance order present
                         m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.BUY, size, this.getHighestHigh().get(id) + Parameters.symbol.get(id).getAggression(), 0, "IDT", maxOrderDuration, exit, EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageEntry);
-                    } else if (this.getAdvanceOrder().get(id) == 1) {
+                    } else if (this.getAdvanceEntryOrder().get(id) == 1) {
                         m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.BUY, size, this.getHighestHigh().get(id) + Parameters.symbol.get(id).getAggression(), 0, "IDT", maxOrderDuration, exit, EnumOrderIntent.Amend, maxOrderDuration, dynamicOrderDuration, maxSlippageEntry);
-                    } else if (this.getAdvanceOrder().get(id) == -1) { //advance order is short.
+                    } else if (this.getAdvanceEntryOrder().get(id) == -1) { //advance order is short.
                         m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.BUY, size, this.getHighestHigh().get(id) + Parameters.symbol.get(id).getAggression(), 0, "IDT", maxOrderDuration, exit, EnumOrderIntent.Cancel, maxOrderDuration, dynamicOrderDuration, maxSlippageEntry);
                         m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.BUY, size, this.getHighestHigh().get(id) + Parameters.symbol.get(id).getAggression(), 0, "IDT", maxOrderDuration, exit, EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageEntry);
                     }
-                    this.advanceOrder.set(id, 0L);
+                    this.advanceEntryOrder.set(id, 0L);
                     }else{
                         logger.log(Level.INFO,"First Trade or Last Trade was a winning Trade. No orders placed for Symbol {1}",new Object[]{Parameters.symbol.get(id).getSymbol()});
                     }
@@ -718,16 +740,16 @@ TimerTask realTimeBars = new TimerTask(){
                             new Object[]{Parameters.symbol.get(id).getSymbol(), this.getLowestLow().get(id).toString(), Parameters.symbol.get(id).getLastPrice(), this.getHighestHigh().get(id).toString(), this.getSlope().get(id).toString(), String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeLongMultiplier() / 375), this.getVolume().get(id).toString(), this.getVolumeMA().get(id).toString(), this.getBreachUp().get(id), this.getBreachUp().get(id) + 1
                     });
                     trades.put(id, new Trade(id,EnumOrderSide.SHORT,this.getLowestLow().get(id)));
-                    if(lastTradeWasLosing.get(id)){
-                    if (this.getAdvanceOrder().get(id) == 0) {
+                    if(!skipAfterWins || lastTradeWasLosing.get(id)){
+                    if (this.getAdvanceEntryOrder().get(id) == 0) {
                         m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.SHORT, size, this.getLowestLow().get(id) - Parameters.symbol.get(id).getAggression(), 0, "IDT", maxOrderDuration, exit, EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageEntry);
-                    } else if (this.getAdvanceOrder().get(id) == -1) {
+                    } else if (this.getAdvanceEntryOrder().get(id) == -1) {
                         m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.SHORT, size, this.getLowestLow().get(id) - Parameters.symbol.get(id).getAggression(), 0, "IDT", maxOrderDuration, exit, EnumOrderIntent.Amend, maxOrderDuration, dynamicOrderDuration, maxSlippageEntry);
-                    } else if (this.getAdvanceOrder().get(id) == 1) {
+                    } else if (this.getAdvanceEntryOrder().get(id) == 1) {
                         m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.SHORT, size, this.getLowestLow().get(id) - Parameters.symbol.get(id).getAggression(), 0, "IDT", maxOrderDuration, exit, EnumOrderIntent.Cancel, maxOrderDuration, dynamicOrderDuration, maxSlippageEntry);
                         m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.SHORT, size, this.getLowestLow().get(id) - Parameters.symbol.get(id).getAggression(), 0, "IDT", maxOrderDuration, exit, EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageEntry);
                     }
-                    this.advanceOrder.set(id, 0L);
+                    this.advanceEntryOrder.set(id, 0L);
                     }else{
                         logger.log(Level.INFO,"First Trade or Last Trade was a winning Trade. No orders placed for Symbol {1}",new Object[]{Parameters.symbol.get(id).getSymbol()});
                     }
@@ -747,20 +769,20 @@ TimerTask realTimeBars = new TimerTask(){
                         this.lastTradeWasLosing.set(id,Boolean.TRUE);
                     }
                     if (ruleHighestHigh) {
-                        if (this.getAdvanceOrder().get(id) == 0) {
+                        if (this.getAdvanceExitOrder().get(id) == 0) {
                             m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.COVER, size, this.getHighestHigh().get(id), 0, "IDT", maxOrderDuration, "", EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageExit);
-                        } else if (this.getAdvanceOrder().get(id) == 1) {
+                        } else if (this.getAdvanceExitOrder().get(id) == 1) {
                             m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.COVER, size, this.getHighestHigh().get(id), 0, "IDT", maxOrderDuration, "", EnumOrderIntent.Amend, maxOrderDuration, dynamicOrderDuration, maxSlippageExit);
-                        } else if (this.getAdvanceOrder().get(id) == -1) {
+                        } else if (this.getAdvanceExitOrder().get(id) == -1) {
                             m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.COVER, size, this.getHighestHigh().get(id), 0, "IDT", maxOrderDuration, "", EnumOrderIntent.Cancel, maxOrderDuration, dynamicOrderDuration, maxSlippageExit);
                             m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.COVER, size, this.getHighestHigh().get(id), 0, "IDT", maxOrderDuration, "", EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageExit);
                         }
-                        this.getAdvanceOrder().set(id, 0L);
+                        this.getAdvanceExitOrder().set(id, 0L);
                     } else if (System.currentTimeMillis() > endDate.getTime()) {
                         logger.log(Level.INFO,"Current Time is after program end date. Cover. Cancel open orders and place closeout.");
                         m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.COVER, size, this.getHighestHigh().get(id), 0, "IDT", maxOrderDuration, "", EnumOrderIntent.Cancel, maxOrderDuration, dynamicOrderDuration, maxSlippageExit);
                         m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.COVER, size, this.getClose().get(id), 0, "IDT", maxOrderDuration, "", EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageExit);
-                        this.advanceOrder.set(id, 0L);
+                        this.advanceExitOrder.set(id, 0L);
 
                     }
                 }
@@ -780,20 +802,20 @@ TimerTask realTimeBars = new TimerTask(){
                     }
                   
                     if (ruleLowestLow) {
-                        if (this.getAdvanceOrder().get(id) == 0) {
+                        if (this.getAdvanceExitOrder().get(id) == 0) {
                             m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.SELL, size, this.getLowestLow().get(id), 0, "IDT", maxOrderDuration, "", EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageExit);
-                        } else if (this.getAdvanceOrder().get(id) == -1) {
+                        } else if (this.getAdvanceExitOrder().get(id) == -1) {
                             m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.SELL, size, this.getLowestLow().get(id), 0, "IDT", maxOrderDuration, "", EnumOrderIntent.Amend, maxOrderDuration, dynamicOrderDuration, maxSlippageExit);
-                        } else if (this.getAdvanceOrder().get(id) == 1) {
+                        } else if (this.getAdvanceExitOrder().get(id) == 1) {
                             m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.SELL, size, this.getLowestLow().get(id), 0, "IDT", maxOrderDuration, "", EnumOrderIntent.Cancel, maxOrderDuration, dynamicOrderDuration, maxSlippageExit);
                             m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.SELL, size, this.getLowestLow().get(id), 0, "IDT", maxOrderDuration, "", EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageExit);
                         }
-                        this.getAdvanceOrder().set(id, 0L);
+                        this.getAdvanceExitOrder().set(id, 0L);
                     } else if (System.currentTimeMillis() > endDate.getTime()) {
                         logger.log(Level.INFO,"Current Time is after program end date. Sell. Cancel open orders and place closeout.");
                         m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.SELL, size, this.getLowestLow().get(id), 0, "IDT", maxOrderDuration, "", EnumOrderIntent.Cancel, maxOrderDuration, dynamicOrderDuration, maxSlippageExit);
                         m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.SELL, size, this.getClose().get(id), 0, "IDT", maxOrderDuration, "", EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageExit);
-                        this.advanceOrder.set(id, 0L);
+                        this.advanceExitOrder.set(id, 0L);
 
                     }
                 }
@@ -810,7 +832,7 @@ TimerTask realTimeBars = new TimerTask(){
                         logger.log(Level.INFO, "Sell. Force Close All Positions.Symbol:{0}", new Object[]{Parameters.symbol.get(symb).getSymbol()});
                         m.fireOrderEvent(Parameters.symbol.get(symb), EnumOrderSide.SELL, size, this.getClose().get(symb), 0, "IDT", maxOrderDuration, "", EnumOrderIntent.Cancel, maxOrderDuration, dynamicOrderDuration, maxSlippageExit);
                         m.fireOrderEvent(Parameters.symbol.get(symb), EnumOrderSide.SELL, size, this.getClose().get(symb), 0, "IDT", maxOrderDuration, "", EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageExit);
-                        this.advanceOrder.set(symb, 0L);
+                        this.advanceExitOrder.set(symb, 0L);
                     } else if (j < 0) {
                         //close short
                         int size = this.getExposure() != 0 ? (int) (this.getExposure() / Parameters.symbol.get(symb).getLastPrice()) : Parameters.symbol.get(symb).getMinsize();
@@ -818,7 +840,7 @@ TimerTask realTimeBars = new TimerTask(){
                         logger.log(Level.INFO, "Cover. Force Close All Positions.Symbol:{0}", new Object[]{Parameters.symbol.get(symb).getSymbol()});
                         m.fireOrderEvent(Parameters.symbol.get(symb), EnumOrderSide.COVER, size, this.getClose().get(symb), 0, "IDT", maxOrderDuration, "", EnumOrderIntent.Cancel, maxOrderDuration, dynamicOrderDuration, maxSlippageExit);
                         m.fireOrderEvent(Parameters.symbol.get(symb), EnumOrderSide.COVER, size, this.getClose().get(symb), 0, "IDT", maxOrderDuration, "", EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageExit);
-                        this.advanceOrder.set(symb, 0L);
+                        this.advanceExitOrder.set(symb, 0L);
                     }
                     symb = symb + 1;
                 }
@@ -1174,17 +1196,17 @@ TimerTask realTimeBars = new TimerTask(){
     }
 
     /**
-     * @return the advanceOrder
+     * @return the advanceEntryOrder
      */
-    public synchronized ArrayList<Long> getAdvanceOrder() {
-        return advanceOrder;
+    public synchronized ArrayList<Long> getAdvanceEntryOrder() {
+        return advanceEntryOrder;
     }
 
     /**
-     * @param advanceOrder the advanceOrder to set
+     * @param advanceEntryOrder the advanceEntryOrder to set
      */
-    public synchronized void setAdvanceOrder(ArrayList<Long> advanceOrder) {
-        this.advanceOrder = advanceOrder;
+    public synchronized void setAdvanceEntryOrder(ArrayList<Long> advanceEntryOrder) {
+        this.advanceEntryOrder = advanceEntryOrder;
     }
 
     /**
@@ -1339,5 +1361,19 @@ TimerTask realTimeBars = new TimerTask(){
      */
     public void setProfitTarget(double profitTarget) {
         this.profitTarget = profitTarget;
+    }
+
+    /**
+     * @return the advanceExitOrder
+     */
+    public ArrayList<Long> getAdvanceExitOrder() {
+        return advanceExitOrder;
+    }
+
+    /**
+     * @param advanceExitOrder the advanceExitOrder to set
+     */
+    public void setAdvanceExitOrder(ArrayList<Long> advanceExitOrder) {
+        this.advanceExitOrder = advanceExitOrder;
     }
     }
