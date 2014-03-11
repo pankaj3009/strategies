@@ -50,12 +50,13 @@ public class ADRListener implements UpdateListener{
           ADR.adrTRIN=adrTRIN;
           ADR.adrDayHigh=adr>ADR.adrDayHigh?adr:ADR.adrDayHigh;
           ADR.adrDayLow=adr<ADR.adrDayLow?adr:ADR.adrDayLow;
+          ADR.mEsperEvtProcessor.sendEvent(new ADREvent(ADRTickType.D_ADR,adr));
+          ADR.mEsperEvtProcessor.sendEvent(new ADREvent(ADRTickType.D_TRIN,adrTRIN));
         }
     
         
         
-        ADR.mEsperEvtProcessor.sendEvent(new ADREvent(ADRTickType.D_ADR,adr));
-        ADR.mEsperEvtProcessor.sendEvent(new ADREvent(ADRTickType.D_TRIN,adrTRIN));
+
        // System.out.println(message);
         //System.out.println("Listner update: " + message);
 //        MarketApp.setADRLC(df.format(adr), message); //ADR Market

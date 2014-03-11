@@ -155,13 +155,14 @@ public class ADR implements TradeListner,UpdateListener{
         String symbolexpiry=Parameters.symbol.get(id).getExpiry()==null?"":Parameters.symbol.get(id).getExpiry();
         if(trading && Parameters.symbol.get(id).getSymbol().equals(index) && Parameters.symbol.get(id).getType().equals(type) && symbolexpiry.equals(expiry) && event.getTickType()==com.ib.client.TickType.LAST){
             double price=Parameters.symbol.get(id).getLastPrice();
+            if(adr>0){ //calculate high low only after minimum ticks have been received.
             mEsperEvtProcessor.sendEvent(new ADREvent(ADRTickType.INDEX,price));
             if (price>indexDayHigh){
                 indexDayHigh=price;
             }else if (price<indexDayLow){
                 indexDayLow=price;
             }
-            
+            }
             boolean buyZone1=(adrHigh-adrLow>5 && adr>adrLow+0.75*(adrHigh-adrLow)) ||
                             (adrDayHigh-adrDayLow>10 && adr>adrDayLow+0.75*(adrDayHigh-adrDayLow))?true:false;
             boolean buyZone2=(indexHigh-indexLow)>10 && price>indexLow+0.75*(indexHigh-indexLow)||

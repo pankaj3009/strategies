@@ -51,13 +51,10 @@ public class TickListener implements UpdateListener{
         if(tTicks>ADR.threshold){
           ADR.tick=tick;
           ADR.tickTRIN=tickTRIN;
-          
-         }
-        
-
-        ADR.mEsperEvtProcessor.sendEvent(new TickPriceEvent(ADRTickType.T_TICK,ADRTickType.T_TICK,tick));
-        ADR.mEsperEvtProcessor.sendEvent(new TickPriceEvent(ADRTickType.T_TRIN,ADRTickType.T_TRIN,tickTRIN));
-       
+          ADR.mEsperEvtProcessor.sendEvent(new TickPriceEvent(ADRTickType.T_TICK,ADRTickType.T_TICK,tick));
+          ADR.mEsperEvtProcessor.sendEvent(new TickPriceEvent(ADRTickType.T_TRIN,ADRTickType.T_TRIN,tickTRIN));         
+          }
+ 
         //System.out.println(message);
         //System.out.println("Listner update: " + message);
         //MarketApp.setADRLP(df.format(adr), message); //ADR Tick
