@@ -35,12 +35,14 @@ public class EventProcessor implements ActionListener {
     {
         // Register event class alias for simplicity
         Configuration config = new Configuration();
+        config.getEngineDefaults().getThreading().setListenerDispatchPreserveOrder(false);
+        config.getEngineDefaults().getThreading().setInsertIntoDispatchPreserveOrder(false); 
 //        config.addEventType("TickPrice", "com.adr.TickPriceEvent");
        config.addEventType("TickPrice", com.incurrency.algorithms.adr.TickPriceEvent.class);
        config.addEventType("ADRPrice", com.incurrency.algorithms.adr.ADREvent.class);
 
         // Get an engine instance
-        esperEngine = EPServiceProviderManager.getDefaultProvider(config);
+        esperEngine=EPServiceProviderManager.getDefaultProvider(config);
    //     String test=TickPriceEvent.class.getName();
   //      esperEngine.getEPAdministrator().getConfiguration().addEventType("TickPrice", TickPriceEvent.class);
         //Make sure the following jars are in classpath. 1.CGILIB, 2.ANTLR

@@ -44,6 +44,7 @@ public class ADR implements TradeListner,UpdateListener{
     String type;
     String expiry;
     double tickSize;
+    public static int threshold=1000000;
     
     MainAlgorithm m;
     //----- updated by ADRListener and TickListener
@@ -116,8 +117,9 @@ public class ADR implements TradeListner,UpdateListener{
         trading=Boolean.valueOf(System.getProperty("Trading"));
         index=System.getProperty("Index");
         type=System.getProperty("Type");
-        expiry=System.getProperty("Expiry");
+        expiry=System.getProperty("Expiry")==null?"":System.getProperty("Expiry");
         tickSize=Double.parseDouble(System.getProperty("TickSize"));
+        threshold=Integer.parseInt(System.getProperty("Threshold"));
     }
 
     @Override
@@ -150,7 +152,8 @@ public class ADR implements TradeListner,UpdateListener{
                     break;
             }
         }
-        if(trading && Parameters.symbol.get(id).getSymbol().compareTo(index)==0 && Parameters.symbol.get(id).getType().compareTo(type)==0 && Parameters.symbol.get(id).getExpiry().compareTo(expiry)==0 && event.getTickType()==com.ib.client.TickType.LAST){
+        String symbolexpiry=Parameters.symbol.get(id).getExpiry()==null?"":Parameters.symbol.get(id).getExpiry();
+        if(trading && Parameters.symbol.get(id).getSymbol().equals(index) && Parameters.symbol.get(id).getType().equals(type) && symbolexpiry.equals(expiry) && event.getTickType()==com.ib.client.TickType.LAST){
             double price=Parameters.symbol.get(id).getLastPrice();
             mEsperEvtProcessor.sendEvent(new ADREvent(ADRTickType.INDEX,price));
             if (price>indexDayHigh){
@@ -176,10 +179,12 @@ public class ADR implements TradeListner,UpdateListener{
             
             if(position==0){           
             if(buyZone && tick<45 && tickTRIN>120){
+                logger.log(Level.INFO,"Buy Order. ADR: {0}, ADRTrin :{1}, Tick: {2}, TickTrin: {3}, BuyZone1: {4}, BuyZone2: {5}, BuyZone3: {6}",new Object[]{adr,adrTRIN,tick,tickTRIN,buyZone1,buyZone2,buyZone3});
                 m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.BUY, 50, price, 0, "ADR", 3, null, EnumOrderIntent.Init, 3, 1, 0);
                 position=1;
             }
             else if(shortZone && tick>55  && tickTRIN<80){
+            logger.log(Level.INFO,"Short Order. ADR: {0}, ADRTrin :{1}, Tick: {2}, TickTrin: {3}, ShortZone1: {4}, ShortZone2: {5}, ShortZone3: {6}",new Object[]{adr,adrTRIN,tick,tickTRIN,shortZone1,shortZone2,shortZone3});
             m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.SHORT, 50, price, 0, "ADR", 3, null, EnumOrderIntent.Init, 3, 1, 0);
             position=-1;
                 
@@ -187,11 +192,13 @@ public class ADR implements TradeListner,UpdateListener{
             }
             else if(position==-1){
                 if(!shortZone){
+                    logger.log(Level.INFO,"Cover Order. ADR: {0}, ADRTrin :{1}, Tick: {2}, TickTrin: {3}, ShortZone1: {4}, ShortZone2: {5}, ShortZone3: {6}",new Object[]{adr,adrTRIN,tick,tickTRIN,shortZone1,shortZone2,shortZone3});
                     m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.COVER, 50, price, 0, "ADR", 3, null, EnumOrderIntent.Init, 3, 1, 0);
                     position=0;
                 }
             } else if(position==1){
                 if(!buyZone){
+                    logger.log(Level.INFO,"Sell Order. ADR: {0}, ADRTrin :{1}, Tick: {2}, TickTrin: {3}, BuyZone1: {4}, BuyZone2: {5}, BuyZone3: {6}",new Object[]{adr,adrTRIN,tick,tickTRIN,buyZone1,buyZone2,buyZone3});
                     m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.SELL, 50, price, 0, "ADR", 3, null, EnumOrderIntent.Init, 3, 1, 0);
                     position=0;
                 }
@@ -204,7 +211,7 @@ public class ADR implements TradeListner,UpdateListener{
        double high = (Double) newEvents[0].get("high");
         double low = (Double) newEvents[0].get("low");
         double average = (Double) newEvents[0].get("average");
-
+        if(adr>0){
         switch ((Integer) newEvents[0].get("field")) {
             case ADRTickType.D_ADR:
                 adrHigh = high;
@@ -233,6 +240,7 @@ public class ADR implements TradeListner,UpdateListener{
                 break;
             default:
                 break;
+        }
         }
     }
  
