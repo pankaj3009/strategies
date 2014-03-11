@@ -1,2 +1,2 @@
 cd /home/psharma/TurtleTradingProduction/
-java -jar TurtleTrading.jar Turtle-USD.properties symbols-USD.csv connection-USD.csv Master-USD.properties
+java -jar TurtleTrading.jar symbolfile=symbols-usd.csv connectionfile=connection-usd.csv idt=Turtle-usd.properties
