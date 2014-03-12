@@ -124,7 +124,9 @@ public class EventProcessor implements ActionListener {
         
         
         stmt = "select field,max(price) as high ,min(price) as low, avg(price) as average "
-                + "from ADRPrice.win:time(30 minutes) "
+                + "from ADRPrice.win:time("
+                +ADR.window
+                +" minutes) "
                 + "group by field";
         
         ADRStatement = esperEngine.getEPAdministrator().createEPL(stmt);

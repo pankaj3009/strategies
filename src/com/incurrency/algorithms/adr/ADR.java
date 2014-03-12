@@ -46,6 +46,11 @@ public class ADR implements TradeListner,UpdateListener{
     double tickSize;
     public static int threshold=1000000;
     int numberOfContracts=0;
+    double stopLoss=5;
+    double entryPrice=0;
+    static String window;
+    double windowHurdle;
+    double dayHurdle;
     
     MainAlgorithm m;
     //----- updated by ADRListener and TickListener
@@ -123,6 +128,10 @@ public class ADR implements TradeListner,UpdateListener{
         tickSize=Double.parseDouble(System.getProperty("TickSize"));
         threshold=Integer.parseInt(System.getProperty("Threshold"));
         numberOfContracts=Integer.parseInt(System.getProperty("NumberOfContracts"));
+        stopLoss=Double.parseDouble(System.getProperty("StopLoss"));
+        window=System.getProperty("Window");
+        windowHurdle=Double.parseDouble(System.getProperty("WindowHurdle"));
+        dayHurdle=Double.parseDouble(System.getProperty("DayHurdle"));
     }
 
     @Override
@@ -168,43 +177,45 @@ public class ADR implements TradeListner,UpdateListener{
             }
             boolean buyZone1=(adrHigh-adrLow>5 && adr>adrLow+0.75*(adrHigh-adrLow)) ||
                             (adrDayHigh-adrDayLow>10 && adr>adrDayLow+0.75*(adrDayHigh-adrDayLow))?true:false;
-            boolean buyZone2=(indexHigh-indexLow)>10 && price>indexLow+0.75*(indexHigh-indexLow)||
-                            (indexDayHigh-indexDayLow)>20 && price>indexDayLow+0.75*(indexDayHigh-indexDayLow);
+            boolean buyZone2=(indexHigh-indexLow)>windowHurdle && price>indexLow+0.75*(indexHigh-indexLow)||
+                            (indexDayHigh-indexDayLow)>dayHurdle && price>indexDayLow+0.75*(indexDayHigh-indexDayLow);
             boolean buyZone3=this.adrTRINAvg<90 && this.adrTRINAvg>0;
             
             boolean shortZone1=(adrHigh-adrLow>5 && adr<adrHigh-0.75*(adrHigh-adrLow)) ||
                             (adrDayHigh-adrDayLow>10 && adr<adrDayHigh-0.75*(adrDayHigh-adrDayLow));
-            boolean shortZone2=(indexHigh-indexLow)>10 && price<indexHigh-0.75*(indexHigh-indexLow)||
-                            (indexDayHigh-indexDayLow)>20 && price<indexDayHigh-0.75*(indexDayHigh-indexDayLow);
+            boolean shortZone2=(indexHigh-indexLow)>windowHurdle && price<indexHigh-0.75*(indexHigh-indexLow)||
+                            (indexDayHigh-indexDayLow)>dayHurdle && price<indexDayHigh-0.75*(indexDayHigh-indexDayLow);
             boolean shortZone3=this.adrTRINAvg>95;
             
             Boolean buyZone=atLeastTwo(buyZone1,buyZone2,buyZone3);   
             Boolean shortZone=atLeastTwo(shortZone1,shortZone2,shortZone3);
             logger.log(Level.INFO," adrHigh: {0},adrLow: {1},adrAvg: {2},adrTRINHigh: {3},adrTRINLow: {4},adrTRINAvg: {5},indexHigh :{6},indexLow :{7},indexAvg: {8}",new Object[]{adrHigh,adrLow,adrAvg,adrTRINHigh,adrTRINLow,adrTRINAvg,indexHigh,indexLow,indexAvg});
             //tickHigh,tickLow,tickAvg,tickTRINHigh,tickTRINLow,tickTRINAvg
-            if(position==0){           
+            if(position==0 && new Date().compareTo(endDate)<0){           
             if(buyZone && (tick<45 || tickTRIN>120)){
+                entryPrice=price;
                 logger.log(Level.INFO,"Buy Order. ADR: {0}, ADRTrin :{1}, Tick: {2}, TickTrin: {3}, BuyZone1: {4}, BuyZone2: {5}, BuyZone3: {6}",new Object[]{adr,adrTRIN,tick,tickTRIN,buyZone1,buyZone2,buyZone3});
-                m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.BUY, 50, price, 0, "ADR", 3, null, EnumOrderIntent.Init, 3, 1, 0);
+                m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.BUY, numberOfContracts, price, 0, "ADR", 3, "", EnumOrderIntent.Init, 3, 1, 0);
                 position=1;
             }
             else if(shortZone && (tick>55  || tickTRIN<80)){
+                entryPrice=price;
             logger.log(Level.INFO,"Short Order. ADR: {0}, ADRTrin :{1}, Tick: {2}, TickTrin: {3}, ShortZone1: {4}, ShortZone2: {5}, ShortZone3: {6}",new Object[]{adr,adrTRIN,tick,tickTRIN,shortZone1,shortZone2,shortZone3});
-            m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.SHORT, 50, price, 0, "ADR", 3, null, EnumOrderIntent.Init, 3, 1, 0);
+            m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.SHORT, numberOfContracts, price, 0, "ADR", 3, "", EnumOrderIntent.Init, 3, 1, 0);
             position=-1;
                 
             }
             }
             else if(position==-1){
-                if(!shortZone){
+                if(buyZone || price>entryPrice+stopLoss||new Date().compareTo(endDate)>0){
                     logger.log(Level.INFO,"Cover Order. ADR: {0}, ADRTrin :{1}, Tick: {2}, TickTrin: {3}, ShortZone1: {4}, ShortZone2: {5}, ShortZone3: {6}",new Object[]{adr,adrTRIN,tick,tickTRIN,shortZone1,shortZone2,shortZone3});
-                    m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.COVER, 50, price, 0, "ADR", 3, null, EnumOrderIntent.Init, 3, 1, 0);
+                    m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.COVER, numberOfContracts, price, 0, "ADR", 3, "", EnumOrderIntent.Init, 3, 1, 0);
                     position=0;
                 }
             } else if(position==1){
-                if(!buyZone){
+                if(shortZone || price<entryPrice-stopLoss||new Date().compareTo(endDate)>0){
                     logger.log(Level.INFO,"Sell Order. ADR: {0}, ADRTrin :{1}, Tick: {2}, TickTrin: {3}, BuyZone1: {4}, BuyZone2: {5}, BuyZone3: {6}",new Object[]{adr,adrTRIN,tick,tickTRIN,buyZone1,buyZone2,buyZone3});
-                    m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.SELL, 50, price, 0, "ADR", 3, null, EnumOrderIntent.Init, 3, 1, 0);
+                    m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.SELL, numberOfContracts, price, 0, "ADR", 3, "", EnumOrderIntent.Init, 3, 1, 0);
                     position=0;
                 }
             }
