@@ -231,6 +231,34 @@ TimerTask realTimeBars = new TimerTask(){
         //exit = System.getProperty("Exit");
         this.symbols = System.getProperty("Symbols");
         this.skipAfterWins=Boolean.getBoolean(System.getProperty("SkipAfterWins"));
+        logger.log(Level.INFO, "-----Turtle Parameters----");
+        logger.log(Level.INFO,"start Time: "+startDate);
+        logger.log(Level.INFO,"Last Order Time: "+lastOrderDate);
+        logger.log(Level.INFO,"end Time: "+endDate);
+        logger.log(Level.INFO,"Close Time: "+closeDate);
+        logger.log(Level.INFO,"Channel Duration: "+channelDuration);
+        logger.log(Level.INFO,"Start Bars: "+startBars);
+        logger.log(Level.INFO,"Display: "+display);
+        logger.log(Level.INFO,"Regression Lookback: "+regressionLookBack);
+        logger.log(Level.INFO,"Volume Slope Multiplier Long: "+volumeSlopeLongMultiplier);
+        logger.log(Level.INFO,"Volume Slope Multiplier Short: "+volumeSlopeShortMultipler);
+        logger.log(Level.INFO,"MA Volume Long: "+maVolumeLong);
+        logger.log(Level.INFO,"MA Volume Short: "+maVolumeShort);
+        logger.log(Level.INFO,"TickSize: "+tickSize);
+        logger.log(Level.INFO,"Exposure: "+exposure);
+        logger.log(Level.INFO,"Max Order Duration: "+maxOrderDuration);
+        logger.log(Level.INFO,"Dynamic Order Duration: "+dynamicOrderDuration);
+        logger.log(Level.INFO,"Advance Entry Orders: "+paramAdvanceEntryOrders);
+        logger.log(Level.INFO,"Advance Exit Orders: "+paramAdvanceExitOrders);
+        logger.log(Level.INFO,"Profit Target: "+profitTarget);
+        logger.log(Level.INFO,"Max Slippage Entry: "+maxSlippageEntry);
+        logger.log(Level.INFO,"Max Slippage Exit: "+maxSlippageExit);
+        logger.log(Level.INFO,"Skip After Wins: "+skipAfterWins);
+        
+        
+
+        
+        
     }
     
     private void getHistoricalData(){

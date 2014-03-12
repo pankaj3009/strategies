@@ -132,6 +132,20 @@ public class ADR implements TradeListner,UpdateListener{
         window=System.getProperty("Window");
         windowHurdle=Double.parseDouble(System.getProperty("WindowHurdle"));
         dayHurdle=Double.parseDouble(System.getProperty("DayHurdle"));
+        logger.log(Level.INFO, "-----Turtle Parameters----");
+        logger.log(Level.INFO,"end Time: "+endDate);
+        logger.log(Level.INFO,"Setup to Trade: "+trading);
+        logger.log(Level.INFO,"Traded Index: "+index);
+        logger.log(Level.INFO,"Index Type: "+type);
+        logger.log(Level.INFO,"Index Contract Expiry: "+expiry);
+        logger.log(Level.INFO,"TickSize: "+tickSize);
+        logger.log(Level.INFO,"Number of quotes before data collection: "+threshold);
+        logger.log(Level.INFO,"Number of contracts to be traded: "+numberOfContracts);
+        logger.log(Level.INFO,"Stop Loss: "+stopLoss);
+        logger.log(Level.INFO,"Sliding Window Duration: "+window);
+        logger.log(Level.INFO,"Hurdle Index move needed for window duration: "+windowHurdle);
+        logger.log(Level.INFO,"Hurdle Index move needed for day: "+dayHurdle);
+
     }
 
     @Override
