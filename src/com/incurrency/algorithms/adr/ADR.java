@@ -12,16 +12,25 @@ import com.incurrency.framework.BeanSymbol;
 import com.incurrency.framework.DateUtil;
 import com.incurrency.framework.EnumOrderIntent;
 import com.incurrency.framework.EnumOrderSide;
+import com.incurrency.framework.MainAlgorithmUI;
 import com.incurrency.framework.Parameters;
+import com.incurrency.framework.Trade;
 import com.incurrency.framework.TradeEvent;
 import com.incurrency.framework.TradeListner;
 import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.supercsv.io.CsvBeanWriter;
+import org.supercsv.prefs.CsvPreference;
 
 /**
  * Generates ADR, Tick , TRIN 
@@ -51,6 +60,9 @@ public class ADR implements TradeListner,UpdateListener{
     static String window;
     double windowHurdle;
     double dayHurdle;
+    int internalOrderID=1;
+    HashMap <Integer,Integer> internalOpenOrders=new HashMap(); //holds mapping of symbol id to latest initialization internal order
+    HashMap<Integer,Trade> trades=new HashMap();
     
     MainAlgorithm m;
     //----- updated by ADRListener and TickListener
@@ -95,12 +107,14 @@ public class ADR implements TradeListner,UpdateListener{
         for(BeanConnection c: Parameters.connection){
         c.getWrapper().addTradeListener(this);
         c.initializeConnection("ADR");
+        Timer closeProcessing=new Timer();
+        closeProcessing.schedule(runPrintOrders, com.incurrency.framework.DateUtil.addSeconds(endDate, 600));
         
     }
         
     }
     
-    public void loadParameters() {
+    private void loadParameters() {
         Properties p = new Properties(System.getProperties());
         FileInputStream propFile;
         try {
@@ -133,18 +147,18 @@ public class ADR implements TradeListner,UpdateListener{
         windowHurdle=Double.parseDouble(System.getProperty("WindowHurdle"));
         dayHurdle=Double.parseDouble(System.getProperty("DayHurdle"));
         logger.log(Level.INFO, "-----Turtle Parameters----");
-        logger.log(Level.INFO,"end Time: "+endDate);
-        logger.log(Level.INFO,"Setup to Trade: "+trading);
-        logger.log(Level.INFO,"Traded Index: "+index);
-        logger.log(Level.INFO,"Index Type: "+type);
-        logger.log(Level.INFO,"Index Contract Expiry: "+expiry);
-        logger.log(Level.INFO,"TickSize: "+tickSize);
-        logger.log(Level.INFO,"Number of quotes before data collection: "+threshold);
-        logger.log(Level.INFO,"Number of contracts to be traded: "+numberOfContracts);
-        logger.log(Level.INFO,"Stop Loss: "+stopLoss);
-        logger.log(Level.INFO,"Sliding Window Duration: "+window);
-        logger.log(Level.INFO,"Hurdle Index move needed for window duration: "+windowHurdle);
-        logger.log(Level.INFO,"Hurdle Index move needed for day: "+dayHurdle);
+        logger.log(Level.INFO, "end Time: {0}", endDate);
+        logger.log(Level.INFO, "Setup to Trade: {0}", trading);
+        logger.log(Level.INFO, "Traded Index: {0}", index);
+        logger.log(Level.INFO, "Index Type: {0}", type);
+        logger.log(Level.INFO, "Index Contract Expiry: {0}", expiry);
+        logger.log(Level.INFO, "TickSize: {0}", tickSize);
+        logger.log(Level.INFO, "Number of quotes before data collection: {0}", threshold);
+        logger.log(Level.INFO, "Number of contracts to be traded: {0}", numberOfContracts);
+        logger.log(Level.INFO, "Stop Loss: {0}", stopLoss);
+        logger.log(Level.INFO, "Sliding Window Duration: {0}", window);
+        logger.log(Level.INFO, "Hurdle Index move needed for window duration: {0}", windowHurdle);
+        logger.log(Level.INFO, "Hurdle Index move needed for day: {0}", dayHurdle);
 
     }
 
@@ -208,28 +222,38 @@ public class ADR implements TradeListner,UpdateListener{
             if(position==0 && new Date().compareTo(endDate)<0){           
             if(buyZone && (tick<45 || tickTRIN>120)){
                 entryPrice=price;
+                this.internalOpenOrders.put(id, internalOrderID);
+                trades.put(this.internalOrderID, new Trade(id,EnumOrderSide.BUY,entryPrice,numberOfContracts,internalOrderID++));
                 logger.log(Level.INFO,"Buy Order. ADR: {0}, ADRTrin :{1}, Tick: {2}, TickTrin: {3}, BuyZone1: {4}, BuyZone2: {5}, BuyZone3: {6}",new Object[]{adr,adrTRIN,tick,tickTRIN,buyZone1,buyZone2,buyZone3});
-                m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.BUY, numberOfContracts, price, 0, "ADR", 3, "", EnumOrderIntent.Init, 3, 1, 0);
+                m.fireOrderEvent(internalOrderID-1,internalOrderID-1,Parameters.symbol.get(id), EnumOrderSide.BUY, numberOfContracts, price, 0, "ADR", 3, "", EnumOrderIntent.Init, 3, 1, 0);
                 position=1;
             }
             else if(shortZone && (tick>55  || tickTRIN<80)){
                 entryPrice=price;
-            logger.log(Level.INFO,"Short Order. ADR: {0}, ADRTrin :{1}, Tick: {2}, TickTrin: {3}, ShortZone1: {4}, ShortZone2: {5}, ShortZone3: {6}",new Object[]{adr,adrTRIN,tick,tickTRIN,shortZone1,shortZone2,shortZone3});
-            m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.SHORT, numberOfContracts, price, 0, "ADR", 3, "", EnumOrderIntent.Init, 3, 1, 0);
-            position=-1;
+                this.internalOpenOrders.put(id, internalOrderID);
+                trades.put(this.internalOrderID, new Trade(id,EnumOrderSide.BUY,entryPrice,numberOfContracts,internalOrderID++));
+                logger.log(Level.INFO,"Short Order. ADR: {0}, ADRTrin :{1}, Tick: {2}, TickTrin: {3}, ShortZone1: {4}, ShortZone2: {5}, ShortZone3: {6}",new Object[]{adr,adrTRIN,tick,tickTRIN,shortZone1,shortZone2,shortZone3});
+                m.fireOrderEvent(internalOrderID-1,internalOrderID-1,Parameters.symbol.get(id), EnumOrderSide.SHORT, numberOfContracts, price, 0, "ADR", 3, "", EnumOrderIntent.Init, 3, 1, 0);
+                position=-1;
                 
             }
             }
             else if(position==-1){
-                if(buyZone || price>entryPrice+stopLoss||new Date().compareTo(endDate)>0){
-                    logger.log(Level.INFO,"Cover Order. ADR: {0}, ADRTrin :{1}, Tick: {2}, TickTrin: {3}, ShortZone1: {4}, ShortZone2: {5}, ShortZone3: {6}",new Object[]{adr,adrTRIN,tick,tickTRIN,shortZone1,shortZone2,shortZone3});
-                    m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.COVER, numberOfContracts, price, 0, "ADR", 3, "", EnumOrderIntent.Init, 3, 1, 0);
+                if(buyZone || price>indexLow+stopLoss||new Date().compareTo(endDate)>0){
+                    int tempinternalOrderID=internalOpenOrders.get(id);
+                    Trade tempTrade=trades.get(tempinternalOrderID);
+                    tempTrade.updateExit(id, EnumOrderSide.COVER, price, numberOfContracts, internalOrderID++);
+                    logger.log(Level.INFO,"Cover Order. ADR: {0}, ADRTrin :{1}, Tick: {2}, TickTrin: {3}, BuyZone1: {4}, BuyZone2: {5}, BuyZone3: {6}",new Object[]{adr,adrTRIN,tick,tickTRIN,buyZone1,buyZone2,buyZone3});
+                    m.fireOrderEvent(internalOrderID-1,tempinternalOrderID,Parameters.symbol.get(id), EnumOrderSide.COVER, numberOfContracts, price, 0, "ADR", 3, "", EnumOrderIntent.Init, 3, 1, 0);
                     position=0;
                 }
             } else if(position==1){
-                if(shortZone || price<entryPrice-stopLoss||new Date().compareTo(endDate)>0){
-                    logger.log(Level.INFO,"Sell Order. ADR: {0}, ADRTrin :{1}, Tick: {2}, TickTrin: {3}, BuyZone1: {4}, BuyZone2: {5}, BuyZone3: {6}",new Object[]{adr,adrTRIN,tick,tickTRIN,buyZone1,buyZone2,buyZone3});
-                    m.fireOrderEvent(Parameters.symbol.get(id), EnumOrderSide.SELL, numberOfContracts, price, 0, "ADR", 3, "", EnumOrderIntent.Init, 3, 1, 0);
+                if(shortZone || price<indexHigh-stopLoss||new Date().compareTo(endDate)>0){
+                    int tempinternalOrderID=internalOpenOrders.get(id);
+                    Trade tempTrade=trades.get(tempinternalOrderID);
+                    tempTrade.updateExit(id, EnumOrderSide.SELL, price, numberOfContracts, internalOrderID++);
+                    logger.log(Level.INFO,"Sell Order. ADR: {0}, ADRTrin :{1}, Tick: {2}, TickTrin: {3}, ShortZone1: {4}, ShortZone2: {5}, ShortZone3: {6}",new Object[]{adr,adrTRIN,tick,tickTRIN,shortZone1,shortZone2,shortZone3});
+                    m.fireOrderEvent(internalOrderID-1,tempinternalOrderID,Parameters.symbol.get(id), EnumOrderSide.SELL, numberOfContracts, price, 0, "ADR", 3, "", EnumOrderIntent.Init, 3, 1, 0);
                     position=0;
                 }
             }
@@ -273,9 +297,39 @@ public class ADR implements TradeListner,UpdateListener{
         }
         }
     }
- 
-    
+     
     boolean atLeastTwo(boolean a, boolean b, boolean c) {
     return a && (b || c) || (b && c);
 }
+    
+    TimerTask runPrintOrders = new TimerTask(){
+    public void run(){
+        printOrders();
+    }
+};
+    private void printOrders(){
+                FileWriter file;
+        try {
+            file = new FileWriter("orders.csv", true);
+            String[] header = new String[]{
+                "entrySymbol", "entryType", "entryExpiry", "entryRight", "entryStrike",
+                "entrySide", "entryPrice", "entrySize", "entryTime", "entryID", "exitSymbol",
+                "exitType", "exitExpiry", "exitRight", "exitStrike", "exitSide", "exitPrice",
+                "exitSize", "exitTime", "exitID"};
+            CsvBeanWriter writer = new CsvBeanWriter(file, CsvPreference.EXCEL_PREFERENCE);
+            for (Map.Entry<Integer, Trade> trade : trades.entrySet()) {
+                writer.write(trade.getValue(), header, Parameters.getTradeProcessors());
+            }
+            file = new FileWriter("trades.csv", true);
+            writer = new CsvBeanWriter(file, CsvPreference.EXCEL_PREFERENCE);
+            for (Map.Entry<Integer, Trade> trades : orderADR.getTrades().entrySet()) {
+                writer.write(trades.getValue(), header, Parameters.getTradeProcessors());
+            }
+            writer.close();
+            System.out.println("Clean Exit after writing orders");
+            System.exit(0);
+        } catch (IOException ex) {
+            Logger.getLogger(MainAlgorithmUI.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
 }
