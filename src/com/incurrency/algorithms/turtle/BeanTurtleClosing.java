@@ -5,16 +5,12 @@
 package com.incurrency.algorithms.turtle;
 
 import com.incurrency.framework.MainAlgorithmUI;
-import static com.incurrency.framework.MainAlgorithmUI.algo;
-import com.incurrency.framework.BeanEODTradeRecord;
-import com.incurrency.framework.EnumOrderStatus;
-import com.incurrency.framework.OrderBean;
 import com.incurrency.framework.Parameters;
+import com.incurrency.framework.Trade;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Map;
 import java.util.TimerTask;
-import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.supercsv.io.CsvBeanWriter;
@@ -27,52 +23,40 @@ import org.supercsv.prefs.CsvPreference;
 public class BeanTurtleClosing extends TimerTask {
 
     BeanTurtle beanturtle;
-    
-     BeanTurtleClosing(BeanTurtle b){
-    beanturtle=b;    
+    TurtleOrderManagement ord;
+
+    BeanTurtleClosing(BeanTurtle b, TurtleOrderManagement ord) {
+        beanturtle = b;
+        this.ord = ord;
     }
-    
+
     @Override
     public void run() {
         //print orders 
-       FileWriter file;
-       try {
-           file = new FileWriter("orders.csv", true);
-           String[] header = new String[] {
-                "symbolID", "orderID", "orderSide", "orderType",
-                "status", "orderSize", "fillSize", "fillPrice","cancelRequested", "positionsize", "limitPrice",
-                "triggerPrice","orderValidity","expireTime","orderReference","exitLogic"};
-           CsvBeanWriter writer = new CsvBeanWriter(file, CsvPreference.EXCEL_PREFERENCE);
-           
-           if(algo!=null){
-              
-           for (Map.Entry<Integer,OrderBean> orders : Parameters.connection.get(algo.getParamTurtle().getDisplay()).getOrders().entrySet()) {
-                 writer.write(orders.getValue(), header,Parameters.getOrderProcessors());
-                 //writer.write(orders.getValue(), header);
-             } 
-             TreeMap<Integer,BeanEODTradeRecord> output=new TreeMap();
-             
-             for (Map.Entry<Integer,OrderBean> orders : Parameters.connection.get(algo.getParamTurtle().getDisplay()).getOrders().entrySet()) {
-                if(orders.getValue().getStatus()==EnumOrderStatus.CompleteFilled||orders.getValue().getStatus()==EnumOrderStatus.CompleteFilled){
-                    output.put(orders.getValue().getOrderID(), new BeanEODTradeRecord(orders.getValue()));
-                }
-                //now we have a list of completed orders, sorted by orderID. Iterate through this to identify output
-                for (Map.Entry<Integer,BeanEODTradeRecord> trades : output.entrySet()) {
-                
-                }
-                
-             } 
-           writer.close();
+        FileWriter file;
+        try {
+            file = new FileWriter("orders.csv", true);
+            String[] header = new String[]{
+                "entrySymbol", "entryType", "entryExpiry", "entryRight", "entryStrike",
+                "entrySide", "entryPrice", "entrySize", "entryTime", "entryID", "exitSymbol",
+                "exitType", "exitExpiry", "exitRight", "exitStrike", "exitSide", "exitPrice",
+                "exitSize", "exitTime", "exitID"};
+            CsvBeanWriter writer = new CsvBeanWriter(file, CsvPreference.EXCEL_PREFERENCE);
+            for (Map.Entry<Integer, Trade> trades : beanturtle.getTrades().entrySet()) {
+                writer.write(trades.getValue(), header, Parameters.getTradeProcessors());
+            }
+            file = new FileWriter("trades.csv", true);
+            writer = new CsvBeanWriter(file, CsvPreference.EXCEL_PREFERENCE);
+            for (Map.Entry<Integer, Trade> trades : ord.getTrades().entrySet()) {
+                writer.write(trades.getValue(), header, Parameters.getTradeProcessors());
+            }
+            writer.close();
             System.out.println("Clean Exit after writing orders");
             System.exit(0);
-           
-           }
-             
-            } catch (IOException ex) {
-           Logger.getLogger(MainAlgorithmUI.class.getName()).log(Level.SEVERE, null, ex);
-       }
-        //execute clean exit
-       
+        } catch (IOException ex) {
+            Logger.getLogger(MainAlgorithmUI.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+
     }
-    
 }
