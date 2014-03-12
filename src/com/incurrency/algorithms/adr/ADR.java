@@ -217,7 +217,7 @@ public class ADR implements TradeListner,UpdateListener{
             
             Boolean buyZone=atLeastTwo(buyZone1,buyZone2,buyZone3);   
             Boolean shortZone=atLeastTwo(shortZone1,shortZone2,shortZone3);
-            logger.log(Level.INFO," adrHigh: {0},adrLow: {1},adrAvg: {2},adrTRINHigh: {3},adrTRINLow: {4},adrTRINAvg: {5},indexHigh :{6},indexLow :{7},indexAvg: {8}",new Object[]{adrHigh,adrLow,adrAvg,adrTRINHigh,adrTRINLow,adrTRINAvg,indexHigh,indexLow,indexAvg});
+            logger.log(Level.FINE," adrHigh: {0},adrLow: {1},adrAvg: {2},adrTRINHigh: {3},adrTRINLow: {4},adrTRINAvg: {5},indexHigh :{6},indexLow :{7},indexAvg: {8}",new Object[]{adrHigh,adrLow,adrAvg,adrTRINHigh,adrTRINLow,adrTRINAvg,indexHigh,indexLow,indexAvg});
             //tickHigh,tickLow,tickAvg,tickTRINHigh,tickTRINLow,tickTRINAvg
             if(position==0 && new Date().compareTo(endDate)<0){           
             if(buyZone && (tick<45 || tickTRIN>120)){
