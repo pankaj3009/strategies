@@ -108,10 +108,11 @@ public class ADR implements TradeListner,UpdateListener{
         for(BeanConnection c: Parameters.connection){
         c.getWrapper().addTradeListener(this);
         c.initializeConnection("adr");
+        }
         Timer closeProcessing=new Timer();
         closeProcessing.schedule(runPrintOrders, com.incurrency.framework.DateUtil.addSeconds(endDate, 600));
         
-    }
+    
         
     }
     
