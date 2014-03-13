@@ -56,6 +56,7 @@ public class ADR implements TradeListner,UpdateListener{
     public static int threshold=1000000;
     int numberOfContracts=0;
     double stopLoss=5;
+    double takeProfit=10;
     double entryPrice=0;
     static String window;
     double windowHurdle;
@@ -146,6 +147,7 @@ public class ADR implements TradeListner,UpdateListener{
         window=System.getProperty("Window");
         windowHurdle=Double.parseDouble(System.getProperty("WindowHurdle"));
         dayHurdle=Double.parseDouble(System.getProperty("DayHurdle"));
+        takeProfit=Double.parseDouble(System.getProperty("TakeProfit"));
         logger.log(Level.INFO, "-----Turtle Parameters----");
         logger.log(Level.INFO, "end Time: {0}", endDate);
         logger.log(Level.INFO, "Setup to Trade: {0}", trading);
@@ -156,6 +158,7 @@ public class ADR implements TradeListner,UpdateListener{
         logger.log(Level.INFO, "Number of quotes before data collection: {0}", threshold);
         logger.log(Level.INFO, "Number of contracts to be traded: {0}", numberOfContracts);
         logger.log(Level.INFO, "Stop Loss: {0}", stopLoss);
+        logger.log(Level.INFO, "Take Profit: {0}", takeProfit);
         logger.log(Level.INFO, "Sliding Window Duration: {0}", window);
         logger.log(Level.INFO, "Hurdle Index move needed for window duration: {0}", windowHurdle);
         logger.log(Level.INFO, "Hurdle Index move needed for day: {0}", dayHurdle);
