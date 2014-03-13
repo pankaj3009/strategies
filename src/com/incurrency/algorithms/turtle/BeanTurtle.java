@@ -785,7 +785,7 @@ TimerTask realTimeBars = new TimerTask(){
                     originalTrade.updateExit(id,EnumOrderSide.COVER,this.getHighestHigh().get(id),size,this.internalorderID++);                    
                     getTrades().put(entryInternalOrderID, originalTrade);
                     if(entryInternalOrderID!=0){
-                   if(  getTrades().get(entryInternalOrderID).getPrice()>=this.getHighestHigh().get(id)){
+                   if(  getTrades().get(entryInternalOrderID).getEntryPrice()>=this.getHighestHigh().get(id)){
                         this.lastTradeWasLosing.set(id,Boolean.FALSE);
                     }
                     else{
@@ -823,7 +823,7 @@ TimerTask realTimeBars = new TimerTask(){
                     originalTrade.updateExit(id,EnumOrderSide.SELL,this.getLowestLow().get(id),size,this.internalorderID++);                    
                     getTrades().put(entryInternalOrderID, originalTrade);
                     if(entryInternalOrderID!=0){
-                    if( getTrades().get(entryInternalOrderID).getPrice()<=this.getLowestLow().get(id)){
+                    if( getTrades().get(entryInternalOrderID).getEntryPrice()<=this.getLowestLow().get(id)){
                         this.lastTradeWasLosing.set(id,Boolean.FALSE);
                     }
                     else{

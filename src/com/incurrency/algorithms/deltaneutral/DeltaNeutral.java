@@ -19,11 +19,14 @@ import com.incurrency.framework.HistoricalBars;
 import com.incurrency.framework.MainAlgorithm;
 import com.incurrency.framework.MainAlgorithmUI;
 import com.incurrency.framework.Parameters;
+import com.incurrency.framework.Splits;
 import com.incurrency.framework.Trade;
 import com.incurrency.framework.TradeEvent;
 import com.incurrency.framework.TradeListner;
+import com.incurrency.framework.TradingUtil;
 import java.io.FileInputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -54,10 +57,11 @@ public class DeltaNeutral implements TradeListner, BidAskListener, HistoricalBar
     Boolean aggression;
     int totalOrderDuration;
     int dynamicOrderDuration;
-    int maxOpenPositions=0;
-    int transactionCostPerCombination=0;
+    int maxOpenPositions = 0;
+    int transactionCostPerCombination = 0;
     DeltaNeutralOrderManagement ord;
-    String splits;
+    String split;
+    private ArrayList<Splits> splits = new ArrayList();
     private ArrayList<TreeMap<Long, BeanOHLC>> historicalData = new ArrayList();
     private ArrayList<Double> dailyReturns;
     private ArrayList<Double> opencloseReturns;
@@ -70,7 +74,6 @@ public class DeltaNeutral implements TradeListner, BidAskListener, HistoricalBar
     private ArrayList<ArrayList<Double>> threeMonthOpenCloseHistoricalVol;
     private ArrayList<ArrayList<Double>> oneMonthOpenCloseHistoricalVol;
     private List<Integer> tradeableSymbols = new ArrayList();
-
 
     public DeltaNeutral() {
         loadParameters();
@@ -128,13 +131,28 @@ public class DeltaNeutral implements TradeListner, BidAskListener, HistoricalBar
         aggression = Boolean.parseBoolean(System.getProperty("Aggression"));
         totalOrderDuration = Integer.parseInt(System.getProperty("TotalOrderDuration"));
         dynamicOrderDuration = Integer.parseInt(System.getProperty("DynamicOrderDuration"));
-        maxOpenPositions=Integer.parseInt(System.getProperty("MaxOpenPositions"));
-        transactionCostPerCombination=Integer.parseInt(System.getProperty("TransactionCostPerComibination"));
-        splits=System.getProperty("Splits");
-        volatilityMarkup=Double.parseDouble(System.getProperty("VolatilityMarkup"));
-        zscore=Double.parseDouble(System.getProperty("zscore"));
-        
-        
+        maxOpenPositions = Integer.parseInt(System.getProperty("MaxOpenPositions"));
+        transactionCostPerCombination = Integer.parseInt(System.getProperty("TransactionCostPerComibination"));
+        split = System.getProperty("Splits");
+        volatilityMarkup = Double.parseDouble(System.getProperty("VolatilityMarkup"));
+        zscore = Double.parseDouble(System.getProperty("zscore"));
+        List<String> items = Arrays.asList(split.split("\\s*;\\s*"));
+        for (String str : items) {
+            List<String> temp = Arrays.asList(str.split("\\s*,\\s*"));
+            try {
+                int id = TradingUtil.getIDFromSymbol(temp.get(0), "STK", "", "", "");
+                int oldShares = Integer.parseInt(temp.get(2).split("\\s*:\\s*")[0]);
+                int newShares = Integer.parseInt(temp.get(2).split("\\s*:\\s*")[1]);
+                Date splitDate = DateUtil.parseDate("dd/mm/yyyy", temp.get(1));
+                splits.add(new Splits(id, temp.get(0), oldShares, newShares, splitDate));
+
+            } catch (Exception e) {
+                logger.log(Level.INFO, "Split could not be processed. {0}", new Object[]{str});
+                logger.log(Level.SEVERE, null, e);
+            }
+        }
+
+
         logger.log(Level.INFO, "-----Delta Neutral Options Parameters----");
         logger.log(Level.INFO, "end Time: {0}", endDate);
         logger.log(Level.INFO, "Volatility Threshold: {0}", volatilityMarkup);
@@ -178,8 +196,20 @@ public class DeltaNeutral implements TradeListner, BidAskListener, HistoricalBar
          * d. Calculate mean and sd of open returns for 3 month and one month
          */
         //a. Adjust for splits
-        
-        
+        for (Splits s : splits) {
+            int id = s.getId();
+            TreeMap<Long, BeanOHLC> hist = historicalData.get(id);
+            for (Map.Entry<Long, BeanOHLC> entry : hist.entrySet()) {
+                if (entry.getKey() < s.getEffectiveDate().getTime()) {
+                    entry.getValue().setOpen(entry.getValue().getOpen() * s.getOldShares() / s.getNewShares());
+                    entry.getValue().setHigh(entry.getValue().getHigh() * s.getOldShares() / s.getNewShares());
+                    entry.getValue().setLow(entry.getValue().getLow() * s.getOldShares() / s.getNewShares());
+                    entry.getValue().setClose(entry.getValue().getClose() * s.getOldShares() / s.getNewShares());
+                    entry.getValue().setVolume(entry.getValue().getVolume() * s.getNewShares() / s.getOldShares());
+                }
+            }
+        }
+
         int i = 0;
         for (TreeMap<Long, BeanOHLC> m : historicalData) {
             if (m == null) {
@@ -249,13 +279,12 @@ public class DeltaNeutral implements TradeListner, BidAskListener, HistoricalBar
     @Override
     public void tradeReceived(TradeEvent event) {
         int id = event.getSymbolID() - 1;
-        if (tradeableSymbols.contains(id) && Parameters.symbol.get(id).getType().compareTo("OPT")==0) {
+        if (tradeableSymbols.contains(id) && Parameters.symbol.get(id).getType().compareTo("OPT") == 0) {
             //Entry
             //option (both call and put) vol/1 month vol>2 && option vol/3 month vol >2 and 1 month vol < historical 3 m vol 
             //buy sell option
             //buy or sell future
             //update combination position.
-            
             //Exit
             //if market closing and position is in profit, exit
             //else write position to log file
