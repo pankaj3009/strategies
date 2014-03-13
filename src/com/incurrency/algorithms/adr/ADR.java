@@ -103,12 +103,12 @@ public class ADR implements TradeListner,UpdateListener{
         for(BeanSymbol s: symb){
             symbols.put(s.getSerialno()-1, s);
         }
-        orderADR=new ADROrderManagement(true,this.tickSize,"ADR");
+        orderADR=new ADROrderManagement(true,this.tickSize,"adr");
         for(BeanConnection c: Parameters.connection){
         c.getWrapper().addTradeListener(this);
         c.initializeConnection("adr");
-        //Timer closeProcessing=new Timer();
-        //closeProcessing.schedule(runPrintOrders, com.incurrency.framework.DateUtil.addSeconds(endDate, 600));
+        Timer closeProcessing=new Timer();
+        closeProcessing.schedule(runPrintOrders, com.incurrency.framework.DateUtil.addSeconds(endDate, 600));
         
     }
         
