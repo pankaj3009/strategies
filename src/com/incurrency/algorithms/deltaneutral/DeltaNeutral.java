@@ -198,7 +198,7 @@ public class DeltaNeutral implements TradeListner, BidAskListener, HistoricalBar
         //a. Adjust for splits
         for (Splits s : splits) {
             int id = s.getId();
-            TreeMap<Long, BeanOHLC> hist = historicalData.get(id);
+            TreeMap<Long, BeanOHLC> hist = Parameters.symbol.get(id).getDailyBar().getHistoricalBars();
             for (Map.Entry<Long, BeanOHLC> entry : hist.entrySet()) {
                 if (entry.getKey() < s.getEffectiveDate().getTime()) {
                     entry.getValue().setOpen(entry.getValue().getOpen() * s.getOldShares() / s.getNewShares());
@@ -211,8 +211,9 @@ public class DeltaNeutral implements TradeListner, BidAskListener, HistoricalBar
         }
 
         int i = 0;
-        for (TreeMap<Long, BeanOHLC> m : historicalData) {
-            if (m == null) {
+
+        for (BeanSymbol symb : Parameters.symbol) {
+            if (symb.getDailyBar().getHistoricalBars() == null) {
                 this.dailyReturns.add(0D);
                 this.opencloseReturns.add(0D);
                 this.oneMonthMeanReturn.add(null);
@@ -221,7 +222,7 @@ public class DeltaNeutral implements TradeListner, BidAskListener, HistoricalBar
                 this.threeMonthHistoricalVol.add(null);
             } else {
                 List<BeanOHLC> lastValues;
-                lastValues = Lists.newArrayList(Iterables.limit(m.descendingMap().values(), 300));
+                lastValues = Lists.newArrayList(Iterables.limit(symb.getDailyBar().getHistoricalBars().descendingMap().values(), 300));
                 lastValues = com.google.common.collect.Lists.reverse(lastValues);
                 for (i = 0; i < lastValues.size() - 1; i++) {
                     this.dailyReturns.add((lastValues.get(i + 1).getClose() - lastValues.get(i).getClose()) / lastValues.get(i).getClose());
@@ -299,10 +300,12 @@ public class DeltaNeutral implements TradeListner, BidAskListener, HistoricalBar
 
     @Override
     public void barsReceived(HistoricalBarEvent event) {
+        /*Dont need this code as bars are stored in symbol
         int id = event.getSymbol().getSerialno() - 1;
         if (event.ohlc().getPeriodicity() == EnumBarSize.Daily && tradeableSymbols.contains(event.getSymbol().getSerialno() - 1)) {
             //bars are thrown starting from first day in the range to the last day in range
             historicalData.get(id).put(event.ohlc().getOpenTime(), new BeanOHLC(event.ohlc()));
-        }
+        }*/
     }
+    
 }
