@@ -283,9 +283,9 @@ public class ADR implements TradeListner,UpdateListener{
 
     @Override
     public void update(EventBean[] newEvents, EventBean[] oldEvents) {
-       double high = (Double) newEvents[0].get("high");
-        double low = (Double) newEvents[0].get("low");
-        double average = (Double) newEvents[0].get("average");
+       double high = newEvents[0].get("high")==null?Double.MIN_VALUE:(Double) newEvents[0].get("high");
+        double low = newEvents[0].get("low")==null?Double.MAX_VALUE:(Double) newEvents[0].get("low");
+        double average = newEvents[0].get("average")==null?adrAvg:(Double) newEvents[0].get("average");
         if(adr>0){
         switch ((Integer) newEvents[0].get("field")) {
             case ADRTickType.D_ADR:
