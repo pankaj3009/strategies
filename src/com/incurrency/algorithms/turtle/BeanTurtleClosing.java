@@ -45,6 +45,8 @@ public class BeanTurtleClosing extends TimerTask {
             for (Map.Entry<Integer, Trade> trades : beanturtle.getTrades().entrySet()) {
                 writer.write(trades.getValue(), header, Parameters.getTradeProcessors());
             }
+            writer.close();
+            System.out.println("Clean Exit after writing trades");
             file = new FileWriter("trades.csv", true);
             writer = new CsvBeanWriter(file, CsvPreference.EXCEL_PREFERENCE);
             for (Map.Entry<Integer, Trade> trades : ord.getTrades().entrySet()) {
