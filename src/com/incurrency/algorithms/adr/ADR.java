@@ -243,7 +243,7 @@ public class ADR implements TradeListner,UpdateListener{
             }
             }
             else if(position==-1){
-                if(buyZone || price>indexLow+stopLoss||new Date().compareTo(endDate)>0){ //stop loss
+                if(buyZone || (price>indexLow+stopLoss && !shortZone)||new Date().compareTo(endDate)>0){ //stop loss
                     int tempinternalOrderID=internalOpenOrders.get(id);
                     Trade tempTrade=trades.get(tempinternalOrderID);
                     tempTrade.updateExit(id, EnumOrderSide.COVER, price, numberOfContracts, internalOrderID++);
@@ -260,7 +260,7 @@ public class ADR implements TradeListner,UpdateListener{
                     
                 }
             } else if(position==1){
-                if(shortZone || price<indexHigh-stopLoss||new Date().compareTo(endDate)>0){
+                if(shortZone || (price<indexHigh-stopLoss && !buyZone)||new Date().compareTo(endDate)>0){
                     int tempinternalOrderID=internalOpenOrders.get(id);
                     Trade tempTrade=trades.get(tempinternalOrderID);
                     tempTrade.updateExit(id, EnumOrderSide.SELL, price, numberOfContracts, internalOrderID++);

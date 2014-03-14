@@ -253,7 +253,7 @@ TimerTask realTimeBars = new TimerTask(){
         try {
             //get historical data - this can be done before start time, assuming the program is started next day
            
-             Thread t = new Thread(new HistoricalBars("idt"));
+             Thread t = new Thread(new HistoricalBars("idt","FUT"));
              t.setName("Historical Bars");
               if(!MainAlgorithmUI.headless){
                   MainAlgorithmUI.setMessage("Starting request of Historical Data for yesterday");
