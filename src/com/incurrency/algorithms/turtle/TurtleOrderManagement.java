@@ -4,14 +4,16 @@
  */
 package com.incurrency.algorithms.turtle;
 
+import java.util.Date;
+
 /**
  *
  * @author pankaj
  */
 public class TurtleOrderManagement extends com.incurrency.framework.OrderPlacement{
     
-    public TurtleOrderManagement(boolean aggression, double tickSize, String ordReference){
-        super(aggression,tickSize,ordReference);
+    public TurtleOrderManagement(boolean aggression, double tickSize,Date endDate, String ordReference){
+        super(aggression,tickSize,endDate,ordReference);
     }
     
 }

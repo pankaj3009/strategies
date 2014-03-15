@@ -17,7 +17,7 @@ import com.incurrency.framework.HistoricalBarEvent;
 import com.incurrency.framework.HistoricalBarListener;
 import com.incurrency.framework.HistoricalBars;
 import com.incurrency.framework.MainAlgorithm;
-import com.incurrency.framework.MainAlgorithmUI;
+import com.incurrency.algorithms.turtle.TurtleMainUI;
 import com.incurrency.framework.Parameters;
 import com.incurrency.framework.Splits;
 import com.incurrency.framework.Trade;
@@ -81,7 +81,7 @@ public class BeanDNO implements TradeListner, BidAskListener, HistoricalBarListe
     public BeanDNO(MainAlgorithm m) {
         this.m=m;
         loadParameters();
-        ord = new DeltaNeutralOrderManagement(aggression, tickSize, "dno");
+        ord = new DeltaNeutralOrderManagement(aggression, tickSize, endDate,"dno");
         for (BeanConnection c : Parameters.connection) {
             c.getWrapper().addTradeListener(this);
             c.getWrapper().addBidAskListener(this);
@@ -182,8 +182,8 @@ public class BeanDNO implements TradeListner, BidAskListener, HistoricalBarListe
 
             Thread t = new Thread(new HistoricalBars(strategy,type));
             t.setName("Historical Bars");
-            if (!MainAlgorithmUI.headless) {
-                MainAlgorithmUI.setMessage("Starting request of Historical Data for yesterday");
+            if (!TurtleMainUI.headless) {
+                TurtleMainUI.setMessage("Starting request of Historical Data for yesterday");
             }
             t.start();
             t.join();

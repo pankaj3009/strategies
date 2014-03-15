@@ -12,7 +12,7 @@ import com.incurrency.framework.BeanSymbol;
 import com.incurrency.framework.DateUtil;
 import com.incurrency.framework.EnumOrderIntent;
 import com.incurrency.framework.EnumOrderSide;
-import com.incurrency.framework.MainAlgorithmUI;
+import com.incurrency.algorithms.turtle.TurtleMainUI;
 import com.incurrency.framework.Parameters;
 import com.incurrency.framework.Trade;
 import com.incurrency.framework.TradeEvent;
@@ -104,7 +104,7 @@ public class ADR implements TradeListner,UpdateListener{
         for(BeanSymbol s: symb){
             symbols.put(s.getSerialno()-1, s);
         }
-        orderADR=new ADROrderManagement(true,this.tickSize,"adr");
+        orderADR=new ADROrderManagement(true,this.tickSize,endDate,"adr");
         for(BeanConnection c: Parameters.connection){
         c.getWrapper().addTradeListener(this);
         c.initializeConnection("adr");
@@ -350,7 +350,7 @@ public class ADR implements TradeListner,UpdateListener{
             System.out.println("Clean Exit after writing orders");
             System.exit(0);
         } catch (IOException ex) {
-            Logger.getLogger(MainAlgorithmUI.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(TurtleMainUI.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 }

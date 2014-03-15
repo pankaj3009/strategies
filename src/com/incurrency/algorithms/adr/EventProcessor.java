@@ -12,7 +12,7 @@ import com.espertech.esper.client.EPServiceProvider;
 import com.espertech.esper.client.EPServiceProviderManager;
 import com.espertech.esper.client.EPStatement;
 import com.espertech.esper.client.EventBean;
-import com.incurrency.framework.MainAlgorithmUI;
+import com.incurrency.algorithms.turtle.TurtleMainUI;
 import com.incurrency.framework.TradingUtil;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
@@ -130,13 +130,13 @@ public class EventProcessor implements ActionListener {
                 + "group by field";
         
         ADRStatement = esperEngine.getEPAdministrator().createEPL(stmt);
-        //statement.addListener(MainAlgorithmUI.algo.getParamADR());
+        //statement.addListener(TurtleMainUI.algo.getParamADR());
 
         
         
         
         //create debug window
-        if(com.incurrency.framework.MainAlgorithmUI.input.containsKey("debugscreen")){
+        if(com.incurrency.algorithms.turtle.TurtleMainUI.input.containsKey("debugscreen")){
         JFrame myFrame = new JFrame("Debug Window");
         myFrame.setLayout( new FlowLayout() );
         myFrame.setSize(300,400);

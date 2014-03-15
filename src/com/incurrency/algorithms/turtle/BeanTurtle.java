@@ -29,6 +29,7 @@ import org.apache.commons.math3.stat.regression.SimpleRegression;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.regex.Pattern;
+import javax.swing.JFrame;
 
 /**
  *
@@ -135,10 +136,11 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
             c.initializeConnection("idt");
 			}
         plmanager=new ProfitLossManager();
-        ordManagement = new TurtleOrderManagement(this.aggression,Double.parseDouble(this.tickSize),"idt");		               
+        ordManagement = new TurtleOrderManagement(this.aggression,Double.parseDouble(this.tickSize),endDate,"idt");		               
         populateLastTradePrice();
+        createAndShowGUI(m);
         getHistoricalData();
-        MainAlgorithmUI.setMessage("Waiting for market open");
+        TurtleMainUI.setMessage("Waiting for market open");
         closeProcessing = new Timer();
         closeProcessing.schedule(new BeanTurtleClosing(this,ordManagement), closeDate);
         openProcessing = new Timer();
@@ -155,7 +157,55 @@ TimerTask realTimeBars = new TimerTask(){
         requestRealTimeBars();
     }
 };
-   
+    private static void createAndShowGUI(MainAlgorithm m) {
+        //Create and set up the window.
+        JFrame frame1 = new JFrame("Positions");
+        frame1.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        //Create and set up the content pane.
+        GUIDashBoard newContentPane = new GUIDashBoard(m);
+        newContentPane.setOpaque(true); //content panes must be opaque
+        frame1.setContentPane(newContentPane);
+        //Display the window.
+        frame1.pack();
+        frame1.setLocation(0, 0);
+        frame1.setVisible(true);
+
+        JFrame frame2 = new JFrame("Missed Orders");
+        frame2.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        //Create and set up the content pane.
+        GUIMissedOrders newContentPane2 = new GUIMissedOrders(m);
+        newContentPane2.setOpaque(true); //content panes must be opaque
+        frame2.setContentPane(newContentPane2);
+        //Display the window.
+        frame2.pack();
+        frame2.setLocation(820, 142);
+        frame2.setVisible(true);
+
+        JFrame frame3 = new JFrame("Orders In Progress");
+        frame3.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        //Create and set up the content pane.
+        GUIInProgressOrders newContentPane3 = new GUIInProgressOrders(m);
+        newContentPane3.setOpaque(true); //content panes must be opaque
+        frame3.setContentPane(newContentPane3);
+        //Display the window.
+        frame3.pack();
+        frame3.setLocation(819, 0);
+        frame3.setVisible(true);
+
+        JFrame frame4 = new JFrame("Total PNL");
+        frame4.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        GUIPNLDashBoard newContentPane4 = new GUIPNLDashBoard(m);
+        newContentPane4.setOpaque(true); //content panes must be opaque
+        frame4.setContentPane(newContentPane4);
+        //Display the window.
+        frame4.pack();
+        frame4.setLocation(820, 415);
+        frame4.setVisible(true);
+    }
+
     private void loadParameters() {
         Properties p = new Properties(System.getProperties());
         FileInputStream propFile;
@@ -198,7 +248,7 @@ TimerTask realTimeBars = new TimerTask(){
         }
         double tempprofitTarget= "".equals(System.getProperty("ProfitTarget"))? Double.MAX_VALUE:Double.parseDouble(System.getProperty("ProfitTarget"));
         setProfitTarget(tempprofitTarget);
-        MainAlgorithmUI.setProfitTarget(getProfitTarget());
+        TurtleMainUI.setProfitTarget(getProfitTarget());
         tickSize = System.getProperty("TickSize");
         maxOrderDuration = Integer.parseInt(System.getProperty("MaxOrderDuration"));
         dynamicOrderDuration = Integer.parseInt(System.getProperty("DynamicOrderDuration"));
@@ -255,8 +305,8 @@ TimerTask realTimeBars = new TimerTask(){
              String type=Parameters.symbol.get(tradeableSymbols.get(0)).getType();
              Thread t = new Thread(new HistoricalBars("idt",type));
              t.setName("Historical Bars");
-              if(!MainAlgorithmUI.headless){
-                  MainAlgorithmUI.setMessage("Starting request of Historical Data for yesterday");
+              if(!TurtleMainUI.headless){
+                  TurtleMainUI.setMessage("Starting request of Historical Data for yesterday");
               }
              t.start();
              t.join();
@@ -300,21 +350,21 @@ TimerTask realTimeBars = new TimerTask(){
     
     private synchronized void requestRealTimeBars() {
 
-        if (!MainAlgorithmUI.headless) {
-            MainAlgorithmUI.setStart(false);
-            MainAlgorithmUI.setPauseTrading(true);
-            MainAlgorithmUI.setcmdLong(true);
-            MainAlgorithmUI.setcmdShort(true);
-            MainAlgorithmUI.setcmdBoth(true);
-            MainAlgorithmUI.setcmdExitShorts(true);
-            MainAlgorithmUI.setcmdExitLongs(true);
-            MainAlgorithmUI.setcmdSquareAll(true);
-            MainAlgorithmUI.setcmdAggressionDisable(true);
-            MainAlgorithmUI.setcmdAggressionEnable(true);
+        if (!TurtleMainUI.headless) {
+            TurtleMainUI.setStart(false);
+            TurtleMainUI.setPauseTrading(true);
+            TurtleMainUI.setcmdLong(true);
+            TurtleMainUI.setcmdShort(true);
+            TurtleMainUI.setcmdBoth(true);
+            TurtleMainUI.setcmdExitShorts(true);
+            TurtleMainUI.setcmdExitLongs(true);
+            TurtleMainUI.setcmdSquareAll(true);
+            TurtleMainUI.setcmdAggressionDisable(true);
+            TurtleMainUI.setcmdAggressionEnable(true);
         }
-        if (!MainAlgorithmUI.headless) {
-            MainAlgorithmUI.setStart(false);
-            MainAlgorithmUI.setMessage("Starting request of RealTime Bars");
+        if (!TurtleMainUI.headless) {
+            TurtleMainUI.setStart(false);
+            TurtleMainUI.setMessage("Starting request of RealTime Bars");
         }
         new RealTimeBars();
         logger.log(Level.FINE, ",Symbol" + "," + "BarNo" + "," + "HighestHigh" + "," + "LowestLow" + "," + "LastPrice" + "," + "Volume" + "," + "CumulativeVol" + "," + "VolumeSlope" + "," + "MinSlopeReqd" + "," + "MA" + "," + "LongVolume" + "," + "ShortVolume" + "," + "DateTime" + ","

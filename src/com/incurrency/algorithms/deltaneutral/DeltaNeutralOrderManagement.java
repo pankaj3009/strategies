@@ -5,13 +5,14 @@
 package com.incurrency.algorithms.deltaneutral;
 
 import com.incurrency.framework.OrderPlacement;
+import java.util.Date;
 /**
  *
  * @author pankaj
  */
 public class DeltaNeutralOrderManagement extends com.incurrency.framework.OrderPlacement {
     
-        public DeltaNeutralOrderManagement(boolean aggression, double tickSize, String ordReference){
-        super(aggression,tickSize,ordReference);
+        public DeltaNeutralOrderManagement(boolean aggression, double tickSize, Date endDate,String ordReference){
+        super(aggression,tickSize,endDate,ordReference);
     }
 }

@@ -5,6 +5,7 @@
 package com.incurrency.algorithms.adr;
 
 import com.incurrency.algorithms.turtle.*;
+import java.util.Date;
 
 /**
  *
@@ -12,8 +13,8 @@ import com.incurrency.algorithms.turtle.*;
  */
 public class ADROrderManagement extends com.incurrency.framework.OrderPlacement{
     
-    public ADROrderManagement(boolean aggression, double tickSize, String ordReference){
-        super(aggression,tickSize,ordReference);
+    public ADROrderManagement(boolean aggression, double tickSize, Date endDate,String ordReference){
+        super(aggression,tickSize,endDate,ordReference);
     }
     
 }

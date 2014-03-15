@@ -4,7 +4,6 @@
  */
 package com.incurrency.algorithms.turtle;
 
-import com.incurrency.framework.MainAlgorithmUI;
 import com.incurrency.framework.Parameters;
 import com.incurrency.framework.Trade;
 import java.io.FileWriter;
@@ -56,7 +55,7 @@ public class BeanTurtleClosing extends TimerTask {
             System.out.println("Clean Exit after writing orders");
             System.exit(0);
         } catch (IOException ex) {
-            Logger.getLogger(MainAlgorithmUI.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(TurtleMainUI.class.getName()).log(Level.SEVERE, null, ex);
         }
         
 

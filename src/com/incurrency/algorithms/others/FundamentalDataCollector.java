@@ -4,13 +4,13 @@
  */
 package com.incurrency.algorithms.others;
 
-import com.incurrency.framework.MainAlgorithmUI;
+import com.incurrency.algorithms.turtle.TurtleMainUI;
 import com.incurrency.framework.Algorithm;
 import com.incurrency.framework.BeanConnection;
 import com.incurrency.framework.BeanSymbol;
-import com.incurrency.framework.FundamentalData;
-import com.incurrency.framework.FundamentalDataEvent;
-import com.incurrency.framework.FundamentalDataListener;
+import com.incurrency.framework.fundamental.FundamentalData;
+import com.incurrency.framework.fundamental.FundamentalDataEvent;
+import com.incurrency.framework.fundamental.FundamentalDataListener;
 import com.incurrency.framework.Parameters;
 import com.incurrency.framework.TWSConnection;
 import java.util.ArrayList;
@@ -46,8 +46,8 @@ public class FundamentalDataCollector extends Algorithm implements FundamentalDa
         while (TWSConnection.mTotalSymbols > 0) {
             //System.out.println(TWSConnection.mTotalSymbols);
             //do nothing
-             if(!MainAlgorithmUI.headless){
-                 MainAlgorithmUI.setMessage("Waiting for contract information to be retrieved");
+             if(!TurtleMainUI.headless){
+                 TurtleMainUI.setMessage("Waiting for contract information to be retrieved");
              }
         }
         
