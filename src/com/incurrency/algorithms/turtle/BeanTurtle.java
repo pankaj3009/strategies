@@ -80,7 +80,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
     private ArrayList<Boolean> exPriceBarLong = new ArrayList();
     private ArrayList<Boolean> exPriceBarShort = new ArrayList();
     private String symbols;
-    private List<String> tradeableSymbols = new ArrayList();
+    private List<Integer> tradeableSymbols = new ArrayList();
     Timer closeProcessing;
     Timer openProcessing;
     private double maVolumeLong;
@@ -99,7 +99,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
         loadParameters();
         for(BeanSymbol s: Parameters.symbol){
         if(s.getStrategy().contains("idt")){
-            tradeableSymbols.add(s.getSymbol());
+            tradeableSymbols.add(s.getSerialno()-1);
         }
     }
         for (int i = 0; i < Parameters.symbol.size(); i++) {
@@ -252,8 +252,8 @@ TimerTask realTimeBars = new TimerTask(){
     private void getHistoricalData(){
         try {
             //get historical data - this can be done before start time, assuming the program is started next day
-           
-             Thread t = new Thread(new HistoricalBars("idt","FUT"));
+             String type=Parameters.symbol.get(tradeableSymbols.get(0)).getType();
+             Thread t = new Thread(new HistoricalBars("idt",type));
              t.setName("Historical Bars");
               if(!MainAlgorithmUI.headless){
                   MainAlgorithmUI.setMessage("Starting request of Historical Data for yesterday");
@@ -325,7 +325,7 @@ TimerTask realTimeBars = new TimerTask(){
     @Override
     public void barsReceived(HistoricalBarEvent event) {
         int outsideid = event.getSymbol().getSerialno() - 1;
-        if (this.tradeableSymbols.contains(Parameters.symbol.get(outsideid).getSymbol())) {
+        if (this.tradeableSymbols.contains(outsideid)) {
             try {
                 if (event.ohlc().getPeriodicity() == EnumBarSize.FiveSec) {
                     int id = event.getSymbol().getSerialno() - 1;
@@ -653,7 +653,7 @@ TimerTask realTimeBars = new TimerTask(){
 
         try {
             int id = event.getSymbolID(); //here symbolID is with zero base.
-            if (this.tradeableSymbols.contains(Parameters.symbol.get(id).getSymbol())) {
+            if (this.tradeableSymbols.contains(id)) {
                 boolean ruleHighestHigh = Parameters.symbol.get(id).getLastPrice() > this.getHighestHigh().get(id);
                 boolean ruleLowestLow = Parameters.symbol.get(id).getLastPrice() < this.getLowestLow().get(id);
                 boolean ruleCumVolumeLong = this.getCumVolume().get(id).get(this.getCumVolume().get(id).size() - 1) >= 0.05 * Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput());
@@ -666,7 +666,7 @@ TimerTask realTimeBars = new TimerTask(){
                 ruleCumVolumeShort = true;
                 //ruleVolumeLong = true;
                 //ruleVolumeShort = true;
-                if (this.tradeableSymbols.contains(Parameters.symbol.get(id).getSymbol())) {
+                if (this.tradeableSymbols.contains(id)) {
                     generateOrders(id, ruleHighestHigh, ruleLowestLow, ruleCumVolumeLong, ruleCumVolumeShort, ruleSlopeLong, ruleSlopeShort, ruleVolumeLong, ruleVolumeShort, false);
                 }
             }
