@@ -5,9 +5,11 @@
 package com.incurrency.algorithms.others;
 
 import com.incurrency.algorithms.others.BeanGuds;
+import static com.incurrency.algorithms.turtle.TurtleMainUI.algo;
 import com.incurrency.framework.BeanSymbol;
 import com.incurrency.framework.EnumOrderIntent;
 import com.incurrency.framework.EnumOrderSide;
+import com.incurrency.framework.Launch;
 import com.incurrency.framework.Parameters;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -58,10 +60,10 @@ public class BeanGudsPreOpen extends TimerTask{
                 //place appropriate market open order
                 if(percentchange>0){
                     //place sell futures order
-              beanG.getM().fireOrderEvent(-1,-1,s, EnumOrderSide.SHORT, s.getMinsize(), Math.ceil(s.getClosePrice()*(1+percentchange) * 20) / 20, 0, "GUDS", 6, "MOC",EnumOrderIntent.Init,beanG.getMaxOrderDuration(),beanG.getDynamicOrderDuration(),beanG.getMaxSlippage());
+              algo.getParamTurtle().orderTurtle.tes.fireOrderEvent(-1,-1,s, EnumOrderSide.SHORT, s.getMinsize(), Math.ceil(s.getClosePrice()*(1+percentchange) * 20) / 20, 0, "GUDS", 6, "MOC",EnumOrderIntent.Init,beanG.getMaxOrderDuration(),beanG.getDynamicOrderDuration(),beanG.getMaxSlippage());
                 } else if (percentchange<0){
                     //place buy futures order
-                     beanG.getM().fireOrderEvent(-1,-1,s, EnumOrderSide.SHORT, s.getMinsize(), Math.ceil(s.getClosePrice()*(1-percentchange) * 20) / 20, 0, "GUDS", 6, "MOC",EnumOrderIntent.Init,beanG.getMaxOrderDuration(),beanG.getDynamicOrderDuration(),beanG.getMaxSlippage());
+                     algo.getParamTurtle().orderTurtle.tes.fireOrderEvent(-1,-1,s, EnumOrderSide.SHORT, s.getMinsize(), Math.ceil(s.getClosePrice()*(1-percentchange) * 20) / 20, 0, "GUDS", 6, "MOC",EnumOrderIntent.Init,beanG.getMaxOrderDuration(),beanG.getDynamicOrderDuration(),beanG.getMaxSlippage());
              
                 }
                 beanG.getLuckyOrdersPlaced().set(i, Boolean.TRUE);

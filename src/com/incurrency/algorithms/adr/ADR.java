@@ -16,7 +16,8 @@ import com.incurrency.algorithms.turtle.TurtleMainUI;
 import com.incurrency.framework.Parameters;
 import com.incurrency.framework.Trade;
 import com.incurrency.framework.TradeEvent;
-import com.incurrency.framework.TradeListner;
+import com.incurrency.framework.TradeListener;
+import com.incurrency.framework.TradingEventSupport;
 import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -41,7 +42,7 @@ import org.supercsv.prefs.CsvPreference;
  * 
  * @author pankaj
  */
-public class ADR implements TradeListner,UpdateListener{
+public class ADR implements TradeListener,UpdateListener{
     
     static EventProcessor mEsperEvtProcessor = null;
     HashMap<Integer,BeanSymbol> symbols=new HashMap();
@@ -229,7 +230,7 @@ public class ADR implements TradeListner,UpdateListener{
                 this.internalOpenOrders.put(id, internalOrderID);
                 trades.put(this.internalOrderID, new Trade(id,EnumOrderSide.BUY,entryPrice,numberOfContracts,internalOrderID++));
                 logger.log(Level.INFO,"Buy Order. Price: {0}, ADR: {1}, ADRTrin :{2}, Tick: {3}, TickTrin: {4}, BuyZone1: {5}, BuyZone2: {6}, BuyZone3: {7}",new Object[]{price,adr,adrTRIN,tick,tickTRIN,buyZone1,buyZone2,buyZone3});
-                m.fireOrderEvent(internalOrderID-1,internalOrderID-1,Parameters.symbol.get(id), EnumOrderSide.BUY, numberOfContracts, price, 0, "adr", 3, "", EnumOrderIntent.Init, 3, 1, 0);
+                orderADR.tes.fireOrderEvent(internalOrderID-1,internalOrderID-1,Parameters.symbol.get(id), EnumOrderSide.BUY, numberOfContracts, price, 0, "adr", 3, "", EnumOrderIntent.Init, 3, 1, 0);
                 position=1;
             }
             else if(shortZone && (tick>55  || tickTRIN<80)){
@@ -237,7 +238,7 @@ public class ADR implements TradeListner,UpdateListener{
                 this.internalOpenOrders.put(id, internalOrderID);
                 trades.put(this.internalOrderID, new Trade(id,EnumOrderSide.BUY,entryPrice,numberOfContracts,internalOrderID++));
                 logger.log(Level.INFO,"Short Order. Price: {0}, ADR: {1}, ADRTrin :{2}, Tick: {3}, TickTrin: {4}, ShortZone1: {5}, ShortZone2: {6}, ShortZone3: {7}",new Object[]{price,adr,adrTRIN,tick,tickTRIN,shortZone1,shortZone2,shortZone3});
-                m.fireOrderEvent(internalOrderID-1,internalOrderID-1,Parameters.symbol.get(id), EnumOrderSide.SHORT, numberOfContracts, price, 0, "adr", 3, "", EnumOrderIntent.Init, 3, 1, 0);
+                orderADR.tes.fireOrderEvent(internalOrderID-1,internalOrderID-1,Parameters.symbol.get(id), EnumOrderSide.SHORT, numberOfContracts, price, 0, "adr", 3, "", EnumOrderIntent.Init, 3, 1, 0);
                 position=-1;
                 
             }
@@ -248,14 +249,14 @@ public class ADR implements TradeListner,UpdateListener{
                     Trade tempTrade=trades.get(tempinternalOrderID);
                     tempTrade.updateExit(id, EnumOrderSide.COVER, price, numberOfContracts, internalOrderID++);
                     logger.log(Level.INFO,"Cover Order. StopLoss. Price: {0}, ADR: {1}, ADRTrin :{2}, Tick: {3}, TickTrin: {4}, BuyZone1: {5}, BuyZone2: {6}, BuyZone3: {7}",new Object[]{price,adr,adrTRIN,tick,tickTRIN,buyZone1,buyZone2,buyZone3});
-                    m.fireOrderEvent(internalOrderID-1,tempinternalOrderID,Parameters.symbol.get(id), EnumOrderSide.COVER, numberOfContracts, price, 0, "adr", 3, "", EnumOrderIntent.Init, 3, 1, 0);
+                    orderADR.tes.fireOrderEvent(internalOrderID-1,tempinternalOrderID,Parameters.symbol.get(id), EnumOrderSide.COVER, numberOfContracts, price, 0, "adr", 3, "", EnumOrderIntent.Init, 3, 1, 0);
                     position=0;
                 }else if(!shortZone && price<entryPrice-takeProfit){
                     int tempinternalOrderID=internalOpenOrders.get(id);
                     Trade tempTrade=trades.get(tempinternalOrderID);
                     tempTrade.updateExit(id, EnumOrderSide.COVER, price, numberOfContracts, internalOrderID++);
                     logger.log(Level.INFO,"Cover Order. TakeProfit. Price: {0}, ADR: {1}, ADRTrin :{2}, Tick: {3}, TickTrin: {4}, BuyZone1: {5}, BuyZone2: {6}, BuyZone3: {7}",new Object[]{price,adr,adrTRIN,tick,tickTRIN,buyZone1,buyZone2,buyZone3});
-                    m.fireOrderEvent(internalOrderID-1,tempinternalOrderID,Parameters.symbol.get(id), EnumOrderSide.COVER, numberOfContracts, price, 0, "adr", 3, "", EnumOrderIntent.Init, 3, 1, 0);
+                    orderADR.tes.fireOrderEvent(internalOrderID-1,tempinternalOrderID,Parameters.symbol.get(id), EnumOrderSide.COVER, numberOfContracts, price, 0, "adr", 3, "", EnumOrderIntent.Init, 3, 1, 0);
                     position=0;
                     
                 }
@@ -265,14 +266,14 @@ public class ADR implements TradeListner,UpdateListener{
                     Trade tempTrade=trades.get(tempinternalOrderID);
                     tempTrade.updateExit(id, EnumOrderSide.SELL, price, numberOfContracts, internalOrderID++);
                     logger.log(Level.INFO,"Sell Order. StopLoss. Price: {0}, ADR: {1}, ADRTrin :{2}, Tick: {3}, TickTrin: {4}, ShortZone1: {5}, ShortZone2: {6}, ShortZone3: {7}",new Object[]{price,adr,adrTRIN,tick,tickTRIN,shortZone1,shortZone2,shortZone3});
-                    m.fireOrderEvent(internalOrderID-1,tempinternalOrderID,Parameters.symbol.get(id), EnumOrderSide.SELL, numberOfContracts, price, 0, "adr", 3, "", EnumOrderIntent.Init, 3, 1, 0);
+                    orderADR.tes.fireOrderEvent(internalOrderID-1,tempinternalOrderID,Parameters.symbol.get(id), EnumOrderSide.SELL, numberOfContracts, price, 0, "adr", 3, "", EnumOrderIntent.Init, 3, 1, 0);
                     position=0;
                 }else if(!buyZone && price>entryPrice+takeProfit){
                     int tempinternalOrderID=internalOpenOrders.get(id);
                     Trade tempTrade=trades.get(tempinternalOrderID);
                     tempTrade.updateExit(id, EnumOrderSide.COVER, price, numberOfContracts, internalOrderID++);
                     logger.log(Level.INFO,"Sell Order. TakeProfit. Price: {0}, ADR: {1}, ADRTrin :{2}, Tick: {3}, TickTrin: {4}, BuyZone1: {5}, BuyZone2: {6}, BuyZone3: {7}",new Object[]{price,adr,adrTRIN,tick,tickTRIN,buyZone1,buyZone2,buyZone3});
-                    m.fireOrderEvent(internalOrderID-1,tempinternalOrderID,Parameters.symbol.get(id), EnumOrderSide.SELL, numberOfContracts, price, 0, "adr", 3, "", EnumOrderIntent.Init, 3, 1, 0);
+                    orderADR.tes.fireOrderEvent(internalOrderID-1,tempinternalOrderID,Parameters.symbol.get(id), EnumOrderSide.SELL, numberOfContracts, price, 0, "adr", 3, "", EnumOrderIntent.Init, 3, 1, 0);
                     position=0;
                     
                 

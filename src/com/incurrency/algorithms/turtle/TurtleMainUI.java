@@ -305,8 +305,8 @@ public class TurtleMainUI extends javax.swing.JFrame {
         for (BeanConnection c : Parameters.connection) {
             if ("Trading".equals(c.getPurpose()) && c.getStrategy().contains("idt")) {
                 for (int id = 0; id < Parameters.symbol.size(); id++) {
-                    algo.ordManagement.cancelOpenOrders(c, id, "idt");
-                    algo.ordManagement.squareAllPositions(c, id, "idt");
+                    algo.getParamTurtle().orderTurtle.cancelOpenOrders(c, id, "idt");
+                    algo.getParamTurtle().orderTurtle.squareAllPositions(c, id, "idt");
                 }
             }
     }//GEN-LAST:event_cmdSquareAllActionPerformed
@@ -350,8 +350,8 @@ public class TurtleMainUI extends javax.swing.JFrame {
                     Index ind = new Index("idt", id);
                     if(c.getPositions().get(ind)!=null){
                         if(c.getPositions().get(ind).getPosition()>0){
-                            algo.ordManagement.cancelOpenOrders(c, id, "idt");
-                            algo.ordManagement.squareAllPositions(c, id, "idt");
+                            algo.getParamTurtle().orderTurtle.cancelOpenOrders(c, id, "idt");
+                            algo.getParamTurtle().orderTurtle.squareAllPositions(c, id, "idt");
                         }
                     }
                 }
@@ -370,8 +370,8 @@ public class TurtleMainUI extends javax.swing.JFrame {
                     Index ind = new Index("idt", id);
                     if(c.getPositions().get(ind)!=null){
                         if(c.getPositions().get(ind).getPosition()<0){
-                            algo.ordManagement.cancelOpenOrders(c, id, "idt");
-                            algo.ordManagement.squareAllPositions(c, id, "idt");
+                            algo.getParamTurtle().orderTurtle.cancelOpenOrders(c, id, "idt");
+                            algo.getParamTurtle().orderTurtle.squareAllPositions(c, id, "idt");
                         }
                     }
                 }

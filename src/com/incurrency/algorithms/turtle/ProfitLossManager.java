@@ -12,7 +12,7 @@ import com.incurrency.framework.Index;
 import com.incurrency.framework.Launch;
 import com.incurrency.framework.Parameters;
 import com.incurrency.framework.TradeEvent;
-import com.incurrency.framework.TradeListner;
+import com.incurrency.framework.TradeListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Level;
@@ -22,7 +22,7 @@ import java.util.logging.Logger;
  *
  * @author pankaj
  */
-public class ProfitLossManager implements TradeListner {
+public class ProfitLossManager implements TradeListener {
 
     public HashMap<Index, Double> pnlBySymbol = new HashMap();
     public ArrayList<Double> pnl = new ArrayList();
@@ -87,10 +87,10 @@ public class ProfitLossManager implements TradeListner {
                             int position = c.getPositions().get(ind) == null ? 0 : c.getPositions().get(ind).getPosition();
                             if(position>0){
                             logger.log(Level.INFO,"Profit Target Hit. Sell. Profit Target:{0}",new Object[]{takeProfit * profitsToBeTaken.get(j)});
-                            Launch.algo.fireOrderEvent(0,0,Parameters.symbol.get(symbolid), EnumOrderSide.SELL, Math.abs(position), Parameters.symbol.get(symbolid).getLastPrice(), 0, "idt", 3, "", EnumOrderIntent.Init, 3, 2, 0);
+                            Launch.algo.getParamTurtle().orderTurtle.tes.fireOrderEvent(0,0,Parameters.symbol.get(symbolid), EnumOrderSide.SELL, Math.abs(position), Parameters.symbol.get(symbolid).getLastPrice(), 0, "idt", 3, "", EnumOrderIntent.Init, 3, 2, 0);
                             } else if (position<0){
                             logger.log(Level.INFO,"Profit Target Hit. Cover. Profit Target:{0}",new Object[]{takeProfit * profitsToBeTaken.get(j)});
-                            Launch.algo.fireOrderEvent(0,0,Parameters.symbol.get(symbolid), EnumOrderSide.COVER, Math.abs(position), Parameters.symbol.get(symbolid).getLastPrice(), 0, "idt", 3, "", EnumOrderIntent.Init, 3, 2, 0);                                
+                            Launch.algo.getParamTurtle().orderTurtle.tes.fireOrderEvent(0,0,Parameters.symbol.get(symbolid), EnumOrderSide.COVER, Math.abs(position), Parameters.symbol.get(symbolid).getLastPrice(), 0, "idt", 3, "", EnumOrderIntent.Init, 3, 2, 0);                                
                             }
                         }
                     }

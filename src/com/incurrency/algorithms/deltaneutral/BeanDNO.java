@@ -22,7 +22,7 @@ import com.incurrency.framework.Parameters;
 import com.incurrency.framework.Splits;
 import com.incurrency.framework.Trade;
 import com.incurrency.framework.TradeEvent;
-import com.incurrency.framework.TradeListner;
+import com.incurrency.framework.TradeListener;
 import com.incurrency.framework.TradingUtil;
 import java.io.FileInputStream;
 import java.util.ArrayList;
@@ -42,7 +42,7 @@ import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
  *
  * @author pankaj
  */
-public class BeanDNO implements TradeListner, BidAskListener, HistoricalBarListener {
+public class BeanDNO implements TradeListener, BidAskListener, HistoricalBarListener {
 
     private MainAlgorithm m;
     private static final Logger logger = Logger.getLogger(BeanDNO.class.getName());

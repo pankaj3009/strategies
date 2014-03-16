@@ -15,7 +15,7 @@ import com.incurrency.framework.BeanSymbol;
 import com.incurrency.framework.DateUtil;
 import com.incurrency.framework.Parameters;
 import com.incurrency.framework.TradeEvent;
-import com.incurrency.framework.TradeListner;
+import com.incurrency.framework.TradeListener;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -33,7 +33,7 @@ import java.util.Timer;
  *
  * @author pankaj
  */
-public class BeanSwing implements Serializable, TradeListner {
+public class BeanSwing implements Serializable, TradeListener {
 
     private ArrayList<ArrayList<BeanOHLC>>  ohlcv = new <ArrayList<BeanOHLC>> ArrayList();  //algo parameter 
     private ArrayList<ArrayList<Integer>> swingHigh = new <ArrayList<Integer>> ArrayList();  //algo parameter 
