@@ -138,9 +138,9 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
         plmanager=new ProfitLossManager();
         orderTurtle = new TurtleOrderManagement(this.aggression,Double.parseDouble(this.tickSize),endDate,"idt");		               
         populateLastTradePrice();
-        createAndShowGUI(m);
+        //createAndShowGUI(m);
         getHistoricalData();
-        TurtleMainUI.setMessage("Waiting for market open");
+        Launch.setMessage("Waiting for market open");
         closeProcessing = new Timer();
         closeProcessing.schedule(new BeanTurtleClosing(this,orderTurtle), closeDate);
         openProcessing = new Timer();
@@ -248,7 +248,7 @@ TimerTask realTimeBars = new TimerTask(){
         }
         double tempprofitTarget= "".equals(System.getProperty("ProfitTarget"))? Double.MAX_VALUE:Double.parseDouble(System.getProperty("ProfitTarget"));
         setProfitTarget(tempprofitTarget);
-        TurtleMainUI.setProfitTarget(getProfitTarget());
+        //Launch.setProfitTarget(getProfitTarget());
         tickSize = System.getProperty("TickSize");
         maxOrderDuration = Integer.parseInt(System.getProperty("MaxOrderDuration"));
         dynamicOrderDuration = Integer.parseInt(System.getProperty("DynamicOrderDuration"));
@@ -305,8 +305,8 @@ TimerTask realTimeBars = new TimerTask(){
              String type=Parameters.symbol.get(tradeableSymbols.get(0)).getType();
              Thread t = new Thread(new HistoricalBars("idt",type));
              t.setName("Historical Bars");
-              if(!TurtleMainUI.headless){
-                  TurtleMainUI.setMessage("Starting request of Historical Data for yesterday");
+              if(!Launch.headless){
+                  Launch.setMessage("Starting request of Historical Data for yesterday");
               }
              t.start();
              t.join();

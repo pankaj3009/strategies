@@ -30,12 +30,13 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import org.supercsv.io.CsvBeanWriter;
 import org.supercsv.prefs.CsvPreference;
 
 /**
  * Generates ADR, Tick , TRIN 
- * initialise ADR passing the symbols that need to be tracked.
+ * initialise ADR passing the adrSymbols that need to be tracked.
  * ADR will immediately initiate polling market data in snapshot mode. Streaming mode is currently not supported
  * output is available via static fields
  * Advances, Declines, Tick Advances, Tick Declines, Advancing Volume, Declining Volume, Tick Advancing Volume, Tick Declining Volume
@@ -45,7 +46,7 @@ import org.supercsv.prefs.CsvPreference;
 public class ADR implements TradeListener,UpdateListener{
     
     static EventProcessor mEsperEvtProcessor = null;
-    HashMap<Integer,BeanSymbol> symbols=new HashMap();
+    HashMap<Integer,BeanSymbol> adrSymbols=new HashMap();
     static com.incurrency.framework.rateserver.RateServer adrServer= new com.incurrency.framework.rateserver.RateServer(5556);
     private static final Logger logger = Logger.getLogger(ADR.class.getName());
     Date endDate;
@@ -97,14 +98,18 @@ public class ADR implements TradeListener,UpdateListener{
     com.incurrency.framework.OrderPlacement orderADR;
 
     
-    public ADR(MainAlgorithm m,ArrayList<BeanSymbol> symb){
+    public ADR(MainAlgorithm m){
         this.m=m;
         loadParameters();
         mEsperEvtProcessor = new EventProcessor();
         mEsperEvtProcessor.ADRStatement.addListener(this);
-        for(BeanSymbol s: symb){
-            symbols.put(s.getSerialno()-1, s);
-        }
+        ArrayList<BeanSymbol> adrList = new ArrayList();
+            //populate adrList with adrSymbols needed for ADR
+            for (BeanSymbol s : Parameters.symbol) {
+                if (Pattern.compile(Pattern.quote("ADR"), Pattern.CASE_INSENSITIVE).matcher(s.getStrategy()).find()) {
+                    adrSymbols.put(s.getSerialno()-1, s);
+                }
+            }
         orderADR=new ADROrderManagement(true,this.tickSize,endDate,"adr");
         for(BeanConnection c: Parameters.connection){
         c.getWrapper().addTradeListener(this);
@@ -170,7 +175,7 @@ public class ADR implements TradeListener,UpdateListener{
     @Override
     public void tradeReceived(TradeEvent event) {
         int id=event.getSymbolID(); //zero based id
-        if(symbols.containsKey(id)){
+        if(adrSymbols.containsKey(id)){
             switch(event.getTickType()){
                 case com.ib.client.TickType.LAST_SIZE:
                     //System.out.println("LASTSIZE, Symbol:"+Parameters.symbol.get(id).getSymbol()+" Value: "+Parameters.symbol.get(id).getLastSize()+" tickerID: "+id);

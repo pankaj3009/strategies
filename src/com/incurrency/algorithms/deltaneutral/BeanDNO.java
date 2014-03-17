@@ -18,6 +18,7 @@ import com.incurrency.framework.HistoricalBarListener;
 import com.incurrency.framework.HistoricalBars;
 import com.incurrency.framework.MainAlgorithm;
 import com.incurrency.algorithms.turtle.TurtleMainUI;
+import com.incurrency.framework.Launch;
 import com.incurrency.framework.Parameters;
 import com.incurrency.framework.Splits;
 import com.incurrency.framework.Trade;
@@ -182,8 +183,8 @@ public class BeanDNO implements TradeListener, BidAskListener, HistoricalBarList
 
             Thread t = new Thread(new HistoricalBars(strategy,type));
             t.setName("Historical Bars");
-            if (!TurtleMainUI.headless) {
-                TurtleMainUI.setMessage("Starting request of Historical Data for yesterday");
+            if (!Launch.headless) {
+                Launch.setMessage("Starting request of Historical Data for yesterday");
             }
             t.start();
             t.join();
@@ -289,6 +290,7 @@ public class BeanDNO implements TradeListener, BidAskListener, HistoricalBarList
 
     @Override
     public void tradeReceived(TradeEvent event) {
+        /*
         int id = event.getSymbolID() - 1;
         if (tradeableSymbols.contains(id) && Parameters.symbol.get(id).getType().compareTo("OPT") == 0) {
             //Entry
@@ -319,6 +321,7 @@ public class BeanDNO implements TradeListener, BidAskListener, HistoricalBarList
             //else write position to log file
             //
         }
+        */
     }
 
     @Override
