@@ -63,6 +63,7 @@ public class ADR implements TradeListener,UpdateListener{
     static String window;
     double windowHurdle;
     double dayHurdle;
+    double pointValue=1;
     int internalOrderID=1;
     HashMap <Integer,Integer> internalOpenOrders=new HashMap(); //holds mapping of symbol id to latest initialization internal order
     HashMap<Integer,Trade> trades=new HashMap();
@@ -142,7 +143,8 @@ public class ADR implements TradeListener,UpdateListener{
         if (new Date().compareTo(endDate) > 0) {
             //increase enddate by one calendar day
             endDate = DateUtil.addDays(endDate, 1); 
-        } 
+        }
+        
         trading=Boolean.valueOf(System.getProperty("Trading"));
         index=System.getProperty("Index");
         type=System.getProperty("Type");
@@ -155,6 +157,7 @@ public class ADR implements TradeListener,UpdateListener{
         windowHurdle=Double.parseDouble(System.getProperty("WindowHurdle"));
         dayHurdle=Double.parseDouble(System.getProperty("DayHurdle"));
         takeProfit=Double.parseDouble(System.getProperty("TakeProfit"));
+        pointValue="".compareTo(System.getProperty("PointValue"))==0?1:Double.parseDouble(System.getProperty("PointValue"));
         logger.log(Level.INFO, "-----Turtle Parameters----");
         logger.log(Level.INFO, "end Time: {0}", endDate);
         logger.log(Level.INFO, "Setup to Trade: {0}", trading);
@@ -169,6 +172,7 @@ public class ADR implements TradeListener,UpdateListener{
         logger.log(Level.INFO, "Sliding Window Duration: {0}", window);
         logger.log(Level.INFO, "Hurdle Index move needed for window duration: {0}", windowHurdle);
         logger.log(Level.INFO, "Hurdle Index move needed for day: {0}", dayHurdle);
+        logger.log(Level.INFO, "PointValue: {0}", pointValue);
 
     }
 
