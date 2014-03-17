@@ -349,7 +349,7 @@ TimerTask realTimeBars = new TimerTask(){
     }
     
     private synchronized void requestRealTimeBars() {
-
+/*
         if (!TurtleMainUI.headless) {
             TurtleMainUI.setStart(false);
             TurtleMainUI.setPauseTrading(true);
@@ -361,10 +361,10 @@ TimerTask realTimeBars = new TimerTask(){
             TurtleMainUI.setcmdSquareAll(true);
             TurtleMainUI.setcmdAggressionDisable(true);
             TurtleMainUI.setcmdAggressionEnable(true);
-        }
-        if (!TurtleMainUI.headless) {
-            TurtleMainUI.setStart(false);
-            TurtleMainUI.setMessage("Starting request of RealTime Bars");
+        }*/
+        if (!Launch.headless) {
+            //TurtleMainUI.setStart(false);
+            Launch.setMessage("Starting request of RealTime Bars");
         }
         new RealTimeBars();
         logger.log(Level.FINE, ",Symbol" + "," + "BarNo" + "," + "HighestHigh" + "," + "LowestLow" + "," + "LastPrice" + "," + "Volume" + "," + "CumulativeVol" + "," + "VolumeSlope" + "," + "MinSlopeReqd" + "," + "MA" + "," + "LongVolume" + "," + "ShortVolume" + "," + "DateTime" + ","
