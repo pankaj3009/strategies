@@ -23,6 +23,7 @@ public class BeanTurtleClosing extends TimerTask {
 
     BeanTurtle beanturtle;
     TurtleOrderManagement ord;
+    private static final Logger logger = Logger.getLogger(BeanTurtleClosing.class.getName());
 
     BeanTurtleClosing(BeanTurtle b, TurtleOrderManagement ord) {
         beanturtle = b;
@@ -55,7 +56,7 @@ public class BeanTurtleClosing extends TimerTask {
             System.out.println("Clean Exit after writing orders");
             System.exit(0);
         } catch (IOException ex) {
-            Logger.getLogger(TurtleMainUI.class.getName()).log(Level.SEVERE, null, ex);
+            logger.log(Level.SEVERE, null, ex);
         }
         
 

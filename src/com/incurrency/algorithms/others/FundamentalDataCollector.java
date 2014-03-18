@@ -4,7 +4,7 @@
  */
 package com.incurrency.algorithms.others;
 
-import com.incurrency.algorithms.turtle.TurtleMainUI;
+
 import com.incurrency.framework.Algorithm;
 import com.incurrency.framework.BeanConnection;
 import com.incurrency.framework.BeanSymbol;
@@ -46,9 +46,6 @@ public class FundamentalDataCollector extends Algorithm implements FundamentalDa
         while (TWSConnection.mTotalSymbols > 0) {
             //System.out.println(TWSConnection.mTotalSymbols);
             //do nothing
-             if(!TurtleMainUI.headless){
-                 TurtleMainUI.setMessage("Waiting for contract information to be retrieved");
-             }
         }
         
                 ArrayList <Boolean> arrayID=new ArrayList();

@@ -5,7 +5,6 @@
 package com.incurrency.algorithms.others;
 
 import com.incurrency.algorithms.turtle.BeanTurtle;
-import static com.incurrency.algorithms.turtle.TurtleMainUI.algo;
 import com.incurrency.framework.MainAlgorithm;
 import com.incurrency.framework.OrderPlacement;
 import com.incurrency.framework.Algorithm;
@@ -211,10 +210,10 @@ public class BeanGuds implements Serializable, TradeListener {
             if (true) {
                 //Short Signal
                 if (lastPrice > highThreshold.get(id) || Parameters.symbol.get(id).getOpenPrice() > highThreshold.get(id)) {
-                    algo.getParamTurtle().orderTurtle.tes.fireOrderEvent(-1, -1, Parameters.symbol.get(id), EnumOrderSide.SHORT, Parameters.symbol.get(id).getMinsize(), Math.ceil(highThreshold.get(id) * 20) / 20, 0, "GUDS", 3, exit, EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippage);
+                    Launch.algo.getParamTurtle().getOmsTurtle().tes.fireOrderEvent(-1, -1, Parameters.symbol.get(id), EnumOrderSide.SHORT, Parameters.symbol.get(id).getMinsize(), Math.ceil(highThreshold.get(id) * 20) / 20, 0, "GUDS", 3, exit, EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippage);
                 } //Buy Signal
                 else if (lastPrice < lowThreshold.get(id) || Parameters.symbol.get(id).getOpenPrice() < lowThreshold.get(id)) {
-                    algo.getParamTurtle().orderTurtle.tes.fireOrderEvent(-1, -1, Parameters.symbol.get(id), EnumOrderSide.BUY, Parameters.symbol.get(id).getMinsize(), Math.ceil(lowThreshold.get(id) * 20) / 20, 0, "GUDS", 3, exit, EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippage);
+                    Launch.algo.getParamTurtle().getOmsTurtle().tes.fireOrderEvent(-1, -1, Parameters.symbol.get(id), EnumOrderSide.BUY, Parameters.symbol.get(id).getMinsize(), Math.ceil(lowThreshold.get(id) * 20) / 20, 0, "GUDS", 3, exit, EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippage);
                 }
             } else if (!luckyOrdersPlaced.get(id)) {
                 //amend orders and replace

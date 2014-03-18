@@ -4,7 +4,6 @@
  */
 package com.incurrency.algorithms.turtle;
 
-import com.incurrency.algorithms.turtle.TurtleMainUI;
 import com.incurrency.framework.BeanConnection;
 import com.incurrency.framework.EnumOrderIntent;
 import com.incurrency.framework.EnumOrderSide;
@@ -78,7 +77,6 @@ public class ProfitLossManager implements TradeListener {
                 
             if (pnl.get(j) > takeProfit * profitsToBeTaken.get(j)) {
                 int profitsTaken = profitsToBeTaken.get(j);
-                TurtleMainUI.setProfitTaken(Integer.toString(profitsTaken));
                 profitsToBeTaken.set(j, profitsTaken + 1);
                 for (BeanConnection c : Parameters.connection) {
                     if ("Trading".equals(c.getPurpose()) && c.getStrategy().contains(strategy)) {
@@ -88,10 +86,10 @@ public class ProfitLossManager implements TradeListener {
                             int position = c.getPositions().get(ind) == null ? 0 : c.getPositions().get(ind).getPosition();
                             if(position>0){
                             logger.log(Level.INFO,"Profit Target Hit. Sell. Profit Target:{0}",new Object[]{takeProfit * profitsToBeTaken.get(j)});
-                            Launch.algo.getParamTurtle().orderTurtle.tes.fireOrderEvent(0,0,Parameters.symbol.get(symbolid), EnumOrderSide.SELL, Math.abs(position), Parameters.symbol.get(symbolid).getLastPrice(), 0, "idt", 3, "", EnumOrderIntent.Init, 3, 2, 0);
+                            Launch.algo.getParamTurtle().getOmsTurtle().tes.fireOrderEvent(0,0,Parameters.symbol.get(symbolid), EnumOrderSide.SELL, Math.abs(position), Parameters.symbol.get(symbolid).getLastPrice(), 0, "idt", 3, "", EnumOrderIntent.Init, 3, 2, 0);
                             } else if (position<0){
                             logger.log(Level.INFO,"Profit Target Hit. Cover. Profit Target:{0}",new Object[]{takeProfit * profitsToBeTaken.get(j)});
-                            Launch.algo.getParamTurtle().orderTurtle.tes.fireOrderEvent(0,0,Parameters.symbol.get(symbolid), EnumOrderSide.COVER, Math.abs(position), Parameters.symbol.get(symbolid).getLastPrice(), 0, "idt", 3, "", EnumOrderIntent.Init, 3, 2, 0);                                
+                            Launch.algo.getParamTurtle().getOmsTurtle().tes.fireOrderEvent(0,0,Parameters.symbol.get(symbolid), EnumOrderSide.COVER, Math.abs(position), Parameters.symbol.get(symbolid).getLastPrice(), 0, "idt", 3, "", EnumOrderIntent.Init, 3, 2, 0);                                
                             }
                         }
                     }
