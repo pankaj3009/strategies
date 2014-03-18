@@ -30,15 +30,16 @@ public class ProfitLossManager implements TradeListener {
     double stopLoss;
     ArrayList<Integer> profitsToBeTaken = new ArrayList();
     private static final Logger logger = Logger.getLogger(ProfitLossManager.class.getName());
+    String strategy;
 
 
-    public ProfitLossManager() {
-
+    public ProfitLossManager(String strategy) {
+        this.strategy=strategy;
         //initialize Hashmap
         for (int i = 0; i < Parameters.symbol.size(); i++) {
             //ArrayList <Integer> arr=new ArrayList();
             //arr.add(0);
-            Index ind = new Index("idt", i);
+            Index ind = new Index(strategy, i);
             //Positions.put(ind, new BeanPosition());
             pnlBySymbol.put(ind, 0D);
         }
@@ -80,7 +81,7 @@ public class ProfitLossManager implements TradeListener {
                 TurtleMainUI.setProfitTaken(Integer.toString(profitsTaken));
                 profitsToBeTaken.set(j, profitsTaken + 1);
                 for (BeanConnection c : Parameters.connection) {
-                    if ("Trading".equals(c.getPurpose()) && c.getStrategy().contains("idt")) {
+                    if ("Trading".equals(c.getPurpose()) && c.getStrategy().contains(strategy)) {
                         for (int symbolid = 0; symbolid < Parameters.symbol.size(); symbolid++) {
                             //Launch.algo.ordManagement.cancelOpenOrders(c, symbolid, "idt");
                             Index ind=new Index("idt",symbolid);

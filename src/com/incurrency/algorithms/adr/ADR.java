@@ -347,17 +347,19 @@ public class ADR implements TradeListener,UpdateListener{
                 "entrySide", "entryPrice", "entrySize", "entryTime", "entryID", "exitSymbol",
                 "exitType", "exitExpiry", "exitRight", "exitStrike", "exitSide", "exitPrice",
                 "exitSize", "exitTime", "exitID"};
-            CsvBeanWriter writer = new CsvBeanWriter(file, CsvPreference.EXCEL_PREFERENCE);
-            for (Map.Entry<Integer, Trade> trade : trades.entrySet()) {
-                writer.write(trade.getValue(), header, Parameters.getTradeProcessors());
+            CsvBeanWriter orderWriter = new CsvBeanWriter(file, CsvPreference.EXCEL_PREFERENCE);
+            for (Map.Entry<Integer, Trade> order : trades.entrySet()) {
+                orderWriter.write(order.getValue(), header, Parameters.getTradeProcessors());
             }
+            orderWriter.close();
+            logger.log(Level.INFO,"Clean Exit after writing orders");
             file = new FileWriter("trades.csv", true);
-            writer = new CsvBeanWriter(file, CsvPreference.EXCEL_PREFERENCE);
-            for (Map.Entry<Integer, Trade> trades : orderADR.getTrades().entrySet()) {
-                writer.write(trades.getValue(), header, Parameters.getTradeProcessors());
+            CsvBeanWriter tradeWriter = new CsvBeanWriter(file, CsvPreference.EXCEL_PREFERENCE);
+            for (Map.Entry<Integer, Trade> trade : orderADR.getTrades().entrySet()) {
+                tradeWriter.write(trade.getValue(), header, Parameters.getTradeProcessors());
             }
-            writer.close();
-            System.out.println("Clean Exit after writing orders");
+            tradeWriter.close();
+            logger.log(Level.INFO,"Clean Exit after writing trades");
             System.exit(0);
         } catch (IOException ex) {
             Logger.getLogger(TurtleMainUI.class.getName()).log(Level.SEVERE, null, ex);

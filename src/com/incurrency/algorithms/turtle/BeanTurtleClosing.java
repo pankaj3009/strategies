@@ -40,18 +40,18 @@ public class BeanTurtleClosing extends TimerTask {
                 "entrySide", "entryPrice", "entrySize", "entryTime", "entryID", "exitSymbol",
                 "exitType", "exitExpiry", "exitRight", "exitStrike", "exitSide", "exitPrice",
                 "exitSize", "exitTime", "exitID"};
-            CsvBeanWriter writer = new CsvBeanWriter(file, CsvPreference.EXCEL_PREFERENCE);
-            for (Map.Entry<Integer, Trade> trades : beanturtle.getTrades().entrySet()) {
-                writer.write(trades.getValue(), header, Parameters.getTradeProcessors());
+            CsvBeanWriter ordersWriter = new CsvBeanWriter(file, CsvPreference.EXCEL_PREFERENCE);
+            for (Map.Entry<Integer, Trade> order : beanturtle.getTrades().entrySet()) {
+                ordersWriter.write(order.getValue(), header, Parameters.getTradeProcessors());
             }
-            writer.close();
+            ordersWriter.close();
             System.out.println("Clean Exit after writing trades");
             file = new FileWriter("trades.csv", true);
-            writer = new CsvBeanWriter(file, CsvPreference.EXCEL_PREFERENCE);
-            for (Map.Entry<Integer, Trade> trades : ord.getTrades().entrySet()) {
-                writer.write(trades.getValue(), header, Parameters.getTradeProcessors());
+            CsvBeanWriter tradeWriter = new CsvBeanWriter(file, CsvPreference.EXCEL_PREFERENCE);
+            for (Map.Entry<Integer, Trade> trade : ord.getTrades().entrySet()) {
+                tradeWriter.write(trade.getValue(), header, Parameters.getTradeProcessors());
             }
-            writer.close();
+            tradeWriter.close();
             System.out.println("Clean Exit after writing orders");
             System.exit(0);
         } catch (IOException ex) {

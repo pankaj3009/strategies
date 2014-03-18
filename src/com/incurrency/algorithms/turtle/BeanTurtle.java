@@ -135,7 +135,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
             c.getWrapper().addTradeListener(this);
             c.initializeConnection("idt");
 			}
-        plmanager=new ProfitLossManager();
+        plmanager=new ProfitLossManager("idt");
         orderTurtle = new TurtleOrderManagement(this.aggression,Double.parseDouble(this.tickSize),endDate,"idt");		               
         populateLastTradePrice();
         //createAndShowGUI(m);
