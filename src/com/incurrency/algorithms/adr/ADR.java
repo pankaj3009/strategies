@@ -225,15 +225,15 @@ public class ADR implements TradeListener,UpdateListener{
             }
             }
             boolean buyZone1=(adrHigh-adrLow>5 && adr>adrLow+0.75*(adrHigh-adrLow)) ||
-                            (adrDayHigh-adrDayLow>10 && adr>adrDayLow+0.75*(adrDayHigh-adrDayLow))?true:false;
-            boolean buyZone2=(indexHigh-indexLow)>windowHurdle && price>indexLow+0.75*(indexHigh-indexLow)||
-                            (indexDayHigh-indexDayLow)>dayHurdle && price>indexDayLow+0.75*(indexDayHigh-indexDayLow);
+                            (adrDayHigh-adrDayLow>10 && adr>adrDayLow+0.75*(adrDayHigh-adrDayLow));
+            boolean buyZone2=(indexHigh-indexLow>windowHurdle && price>indexLow+0.75*(indexHigh-indexLow))||
+                            (indexDayHigh-indexDayLow>dayHurdle && price>indexDayLow+0.75*(indexDayHigh-indexDayLow));
             boolean buyZone3=this.adrTRINAvg<90 && this.adrTRINAvg>0;
             
             boolean shortZone1=(adrHigh-adrLow>5 && adr<adrHigh-0.75*(adrHigh-adrLow)) ||
                             (adrDayHigh-adrDayLow>10 && adr<adrDayHigh-0.75*(adrDayHigh-adrDayLow));
-            boolean shortZone2=(indexHigh-indexLow)>windowHurdle && price<indexHigh-0.75*(indexHigh-indexLow)||
-                            (indexDayHigh-indexDayLow)>dayHurdle && price<indexDayHigh-0.75*(indexDayHigh-indexDayLow);
+            boolean shortZone2=(indexHigh-indexLow>windowHurdle && price<indexHigh-0.75*(indexHigh-indexLow))||
+                            (indexDayHigh-indexDayLow>dayHurdle && price<indexDayHigh-0.75*(indexDayHigh-indexDayLow));
             boolean shortZone3=this.adrTRINAvg>95;
             
             Boolean buyZone=atLeastTwo(buyZone1,buyZone2,buyZone3);   
