@@ -94,6 +94,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
     private boolean skipAfterWins=false;
     private int internalorderID=1;
     private HashMap<Integer,Integer> internalOpenOrders=new HashMap();
+    private double pointValue=1;
 
     public BeanTurtle(MainAlgorithm m) {
         this.m = m;
@@ -136,7 +137,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
             c.initializeConnection("idt");
 			}
         plmanager=new ProfitLossManager("idt");
-        omsTurtle = new TurtleOrderManagement(this.aggression,Double.parseDouble(this.tickSize),endDate,"idt");		               
+        omsTurtle = new TurtleOrderManagement(this.aggression,Double.parseDouble(this.tickSize),endDate,"idt",pointValue);		               
         populateLastTradePrice();
         //createAndShowGUI(m);
         getHistoricalData();
@@ -220,6 +221,7 @@ TimerTask realTimeBars = new TimerTask(){
         maxSlippageExit=Double.parseDouble(System.getProperty("MaxSlippageExit"))/100; // divide by 100 as input was a percentage
         //exit = System.getProperty("Exit");
         this.skipAfterWins=Boolean.getBoolean(System.getProperty("SkipAfterWins"));
+        pointValue=Double.parseDouble(System.getProperty("PointValue"));
         logger.log(Level.INFO, "-----Turtle Parameters----");
         logger.log(Level.INFO, "start Time: {0}", startDate);
         logger.log(Level.INFO, "Last Order Time: {0}", lastOrderDate);
@@ -243,7 +245,7 @@ TimerTask realTimeBars = new TimerTask(){
         logger.log(Level.INFO, "Max Slippage Entry: {0}", maxSlippageEntry);
         logger.log(Level.INFO, "Max Slippage Exit: {0}", maxSlippageExit);
         logger.log(Level.INFO, "Skip After Wins: {0}", skipAfterWins);
-        
+        logger.log(Level.INFO, "PointValue: {0}", pointValue);  
         
 
         
@@ -1441,5 +1443,19 @@ TimerTask realTimeBars = new TimerTask(){
      */
     public void setOmsTurtle(TurtleOrderManagement omsTurtle) {
         this.omsTurtle = omsTurtle;
+    }
+
+    /**
+     * @return the pointValue
+     */
+    public double getPointValue() {
+        return pointValue;
+    }
+
+    /**
+     * @param pointValue the pointValue to set
+     */
+    public void setPointValue(double pointValue) {
+        this.pointValue = pointValue;
     }
     }

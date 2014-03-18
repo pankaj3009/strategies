@@ -81,7 +81,7 @@ public class BeanDNO implements TradeListener, BidAskListener, HistoricalBarList
     public BeanDNO(MainAlgorithm m) {
         this.m=m;
         loadParameters();
-        ord = new DeltaNeutralOrderManagement(aggression, tickSize, endDate,"dno");
+        ord = new DeltaNeutralOrderManagement(aggression, tickSize, endDate,"dno",1);
         for (BeanConnection c : Parameters.connection) {
             c.getWrapper().addTradeListener(this);
             c.getWrapper().addBidAskListener(this);

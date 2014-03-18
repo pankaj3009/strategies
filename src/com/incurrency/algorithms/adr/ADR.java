@@ -116,7 +116,7 @@ public class ADR implements TradeListener,UpdateListener{
                     adrSymbols.put(s.getSerialno()-1, s);
                 }
             }
-        omsADR=new ADROrderManagement(aggression,this.tickSize,endDate,"adr");
+        omsADR=new ADROrderManagement(aggression,this.tickSize,endDate,"adr",pointValue);
         for(BeanConnection c: Parameters.connection){
         c.getWrapper().addTradeListener(this);
         c.initializeConnection("adr");
