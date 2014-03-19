@@ -95,6 +95,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
     private int internalorderID=1;
     private HashMap<Integer,Integer> internalOpenOrders=new HashMap();
     private double pointValue=1;
+    private Integer maxOpenPositionsLimit=0;
 
     public BeanTurtle(MainAlgorithm m) {
         this.m = m;
@@ -137,7 +138,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
             c.initializeConnection("idt");
 			}
         plmanager=new ProfitLossManager("idt");
-        omsTurtle = new TurtleOrderManagement(this.aggression,Double.parseDouble(this.tickSize),endDate,"idt",pointValue);		               
+        omsTurtle = new TurtleOrderManagement(this.aggression,Double.parseDouble(this.tickSize),endDate,"idt",pointValue,this.maxOpenPositionsLimit);		               
         populateLastTradePrice();
         //createAndShowGUI(m);
         getHistoricalData();
@@ -219,8 +220,8 @@ TimerTask realTimeBars = new TimerTask(){
         display = Integer.parseInt(System.getProperty("Display"));
         maxSlippageEntry=Double.parseDouble(System.getProperty("MaxSlippageEntry"))/100; // divide by 100 as input was a percentage
         maxSlippageExit=Double.parseDouble(System.getProperty("MaxSlippageExit"))/100; // divide by 100 as input was a percentage
-        //exit = System.getProperty("Exit");
         this.skipAfterWins=Boolean.getBoolean(System.getProperty("SkipAfterWins"));
+        this.maxOpenPositionsLimit=Integer.parseInt(System.getProperty("MaximumOpenPositions")); //this property does not work with advance entry orders
         pointValue=Double.parseDouble(System.getProperty("PointValue"));
         logger.log(Level.INFO, "-----Turtle Parameters----");
         logger.log(Level.INFO, "start Time: {0}", startDate);
@@ -246,10 +247,7 @@ TimerTask realTimeBars = new TimerTask(){
         logger.log(Level.INFO, "Max Slippage Exit: {0}", maxSlippageExit);
         logger.log(Level.INFO, "Skip After Wins: {0}", skipAfterWins);
         logger.log(Level.INFO, "PointValue: {0}", pointValue);  
-        
-
-        
-        
+        logger.log(Level.INFO, "Max Open Positions: {0}", maxOpenPositionsLimit);          
     }
     
     private void getHistoricalData(){
@@ -302,19 +300,6 @@ TimerTask realTimeBars = new TimerTask(){
     }
     
     private synchronized void requestRealTimeBars() {
-/*
-        if (!TurtleMainUI.headless) {
-            TurtleMainUI.setStart(false);
-            TurtleMainUI.setPauseTrading(true);
-            TurtleMainUI.setcmdLong(true);
-            TurtleMainUI.setcmdShort(true);
-            TurtleMainUI.setcmdBoth(true);
-            TurtleMainUI.setcmdExitShorts(true);
-            TurtleMainUI.setcmdExitLongs(true);
-            TurtleMainUI.setcmdSquareAll(true);
-            TurtleMainUI.setcmdAggressionDisable(true);
-            TurtleMainUI.setcmdAggressionEnable(true);
-        }*/
         if (!Launch.headless) {
             //TurtleMainUI.setStart(false);
             Launch.setMessage("Starting request of RealTime Bars");

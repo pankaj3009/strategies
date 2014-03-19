@@ -12,8 +12,8 @@ import java.util.Date;
  */
 public class TurtleOrderManagement extends com.incurrency.framework.OrderPlacement{
     
-    public TurtleOrderManagement(boolean aggression, double tickSize,Date endDate, String ordReference,double pointValue){
-        super(aggression,tickSize,endDate,ordReference,pointValue);
+    public TurtleOrderManagement(boolean aggression, double tickSize,Date endDate, String ordReference,double pointValue,Integer maxOpenPositions){
+        super(aggression,tickSize,endDate,ordReference,pointValue,maxOpenPositions);
     }
     
 }

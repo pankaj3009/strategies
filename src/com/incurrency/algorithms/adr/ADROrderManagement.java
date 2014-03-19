@@ -14,7 +14,7 @@ import java.util.Date;
 public class ADROrderManagement extends com.incurrency.framework.OrderPlacement{
     
     public ADROrderManagement(boolean aggression, double tickSize, Date endDate,String ordReference,double pointValue){
-        super(aggression,tickSize,endDate,ordReference,pointValue);
+        super(aggression,tickSize,endDate,ordReference,pointValue,1);
     }
     
 }

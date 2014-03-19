@@ -13,6 +13,6 @@ import java.util.Date;
 public class DeltaNeutralOrderManagement extends com.incurrency.framework.OrderPlacement {
     
         public DeltaNeutralOrderManagement(boolean aggression, double tickSize, Date endDate,String ordReference,double pointValue){
-        super(aggression,tickSize,endDate,ordReference,pointValue);
+        super(aggression,tickSize,endDate,ordReference,pointValue,1);
     }
 }
