@@ -73,6 +73,11 @@ public class ADR implements TradeListener,UpdateListener{
     private Boolean shortOnly = true;
     private Boolean aggression = true;
     private double profitTarget=Double.MAX_VALUE;
+    private double maxSlippageEntry=0;
+    private double maxSlippageExit=0;
+    private int maxOrderDuration;
+    private int dynamicOrderDuration;
+       
     
     //----- updated by ADRListener and TickListener
     static double adr;
@@ -164,7 +169,11 @@ public class ADR implements TradeListener,UpdateListener{
         takeProfit=Double.parseDouble(System.getProperty("TakeProfit"));
         pointValue="".compareTo(System.getProperty("PointValue"))==0?1:Double.parseDouble(System.getProperty("PointValue"));
         profitTarget=Double.parseDouble(System.getProperty("ProfitTarget"));
-        
+        maxSlippageEntry=Double.parseDouble(System.getProperty("MaxSlippageEntry"))/100; // divide by 100 as input was a percentage
+        maxSlippageExit=Double.parseDouble(System.getProperty("MaxSlippageExit"))/100; // divide by 100 as input was a percentage
+        maxOrderDuration = Integer.parseInt(System.getProperty("MaxOrderDuration"));
+        dynamicOrderDuration = Integer.parseInt(System.getProperty("DynamicOrderDuration"));
+       
         logger.log(Level.INFO, "-----Turtle Parameters----");
         logger.log(Level.INFO, "end Time: {0}", endDate);
         logger.log(Level.INFO, "Setup to Trade: {0}", trading);
@@ -180,6 +189,10 @@ public class ADR implements TradeListener,UpdateListener{
         logger.log(Level.INFO, "Hurdle Index move needed for window duration: {0}", windowHurdle);
         logger.log(Level.INFO, "Hurdle Index move needed for day: {0}", dayHurdle);
         logger.log(Level.INFO, "PointValue: {0}", pointValue);
+        logger.log(Level.INFO, "Maxmimum slippage allowed for entry: {0}", maxSlippageEntry);
+        logger.log(Level.INFO, "Maximum slippage allowed for exit: {0}", maxSlippageExit);
+        logger.log(Level.INFO, "Max Order Duration: {0}", maxOrderDuration);
+        logger.log(Level.INFO, "Dynamic Order Duration: {0}", dynamicOrderDuration);
 
     }
 
@@ -246,7 +259,7 @@ public class ADR implements TradeListener,UpdateListener{
                 this.internalOpenOrders.put(id, internalOrderID);
                 trades.put(this.internalOrderID, new Trade(id,EnumOrderSide.BUY,entryPrice,numberOfContracts,internalOrderID++));
                 logger.log(Level.INFO,"Buy Order. Price: {0}",new Object[]{price});
-                    getOmsADR().tes.fireOrderEvent(internalOrderID-1,internalOrderID-1,Parameters.symbol.get(id), EnumOrderSide.BUY, numberOfContracts, price, 0, "adr", 3, "", EnumOrderIntent.Init, 3, 1, 0);
+                    getOmsADR().tes.fireOrderEvent(internalOrderID-1,internalOrderID-1,Parameters.symbol.get(id), EnumOrderSide.BUY, numberOfContracts, price, 0, "adr", 3, "", EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageEntry);
                 position=1;
             }
             else if(shortZone && (tick>55  || tickTRIN<80)){
@@ -254,7 +267,7 @@ public class ADR implements TradeListener,UpdateListener{
                 this.internalOpenOrders.put(id, internalOrderID);
                 trades.put(this.internalOrderID, new Trade(id,EnumOrderSide.BUY,entryPrice,numberOfContracts,internalOrderID++));
                 logger.log(Level.INFO,"Short Order. Price: {0}",new Object[]{price});
-                    getOmsADR().tes.fireOrderEvent(internalOrderID-1,internalOrderID-1,Parameters.symbol.get(id), EnumOrderSide.SHORT, numberOfContracts, price, 0, "adr", 3, "", EnumOrderIntent.Init, 3, 1, 0);
+                    getOmsADR().tes.fireOrderEvent(internalOrderID-1,internalOrderID-1,Parameters.symbol.get(id), EnumOrderSide.SHORT, numberOfContracts, price, 0, "adr", 3, "", EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageEntry);
                 position=-1;
                 
             }
@@ -265,14 +278,14 @@ public class ADR implements TradeListener,UpdateListener{
                     Trade tempTrade=trades.get(tempinternalOrderID);
                     tempTrade.updateExit(id, EnumOrderSide.COVER, price, numberOfContracts, internalOrderID++);
                     logger.log(Level.INFO,"Cover Order. StopLoss. Price: {0}",new Object[]{price});
-                    getOmsADR().tes.fireOrderEvent(internalOrderID-1,tempinternalOrderID,Parameters.symbol.get(id), EnumOrderSide.COVER, numberOfContracts, price, 0, "adr", 3, "", EnumOrderIntent.Init, 3, 1, 0);
+                    getOmsADR().tes.fireOrderEvent(internalOrderID-1,tempinternalOrderID,Parameters.symbol.get(id), EnumOrderSide.COVER, numberOfContracts, price, 0, "adr", 3, "", EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageExit);
                     position=0;
                 }else if(!shortZone && price<entryPrice-takeProfit){
                     int tempinternalOrderID=internalOpenOrders.get(id);
                     Trade tempTrade=trades.get(tempinternalOrderID);
                     tempTrade.updateExit(id, EnumOrderSide.COVER, price, numberOfContracts, internalOrderID++);
                     logger.log(Level.INFO,"Cover Order. TakeProfit. Price: {0}",new Object[]{price});
-                    getOmsADR().tes.fireOrderEvent(internalOrderID-1,tempinternalOrderID,Parameters.symbol.get(id), EnumOrderSide.COVER, numberOfContracts, price, 0, "adr", 3, "", EnumOrderIntent.Init, 3, 1, 0);
+                    getOmsADR().tes.fireOrderEvent(internalOrderID-1,tempinternalOrderID,Parameters.symbol.get(id), EnumOrderSide.COVER, numberOfContracts, price, 0, "adr", 3, "", EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageExit);
                     position=0;
                     
                 }
@@ -282,17 +295,15 @@ public class ADR implements TradeListener,UpdateListener{
                     Trade tempTrade=trades.get(tempinternalOrderID);
                     tempTrade.updateExit(id, EnumOrderSide.SELL, price, numberOfContracts, internalOrderID++);
                     logger.log(Level.INFO,"Sell Order. StopLoss. Price: {0}",new Object[]{price});
-                    getOmsADR().tes.fireOrderEvent(internalOrderID-1,tempinternalOrderID,Parameters.symbol.get(id), EnumOrderSide.SELL, numberOfContracts, price, 0, "adr", 3, "", EnumOrderIntent.Init, 3, 1, 0);
+                    getOmsADR().tes.fireOrderEvent(internalOrderID-1,tempinternalOrderID,Parameters.symbol.get(id), EnumOrderSide.SELL, numberOfContracts, price, 0, "adr", 3, "", EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageExit);
                     position=0;
                 }else if(!buyZone && price>entryPrice+takeProfit){
                     int tempinternalOrderID=internalOpenOrders.get(id);
                     Trade tempTrade=trades.get(tempinternalOrderID);
                     tempTrade.updateExit(id, EnumOrderSide.COVER, price, numberOfContracts, internalOrderID++);
                     logger.log(Level.INFO,"Sell Order. TakeProfit. Price: {0}",new Object[]{price});
-                    getOmsADR().tes.fireOrderEvent(internalOrderID-1,tempinternalOrderID,Parameters.symbol.get(id), EnumOrderSide.SELL, numberOfContracts, price, 0, "adr", 3, "", EnumOrderIntent.Init, 3, 1, 0);
-                    position=0;
-                    
-                
+                    getOmsADR().tes.fireOrderEvent(internalOrderID-1,tempinternalOrderID,Parameters.symbol.get(id), EnumOrderSide.SELL, numberOfContracts, price, 0, "adr", 3, "", EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageExit);
+                    position=0; 
                 }
             }
         }
