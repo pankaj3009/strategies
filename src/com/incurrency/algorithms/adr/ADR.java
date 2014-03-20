@@ -75,8 +75,8 @@ public class ADR implements TradeListener,UpdateListener{
     private double profitTarget=Double.MAX_VALUE;
     private double maxSlippageEntry=0;
     private double maxSlippageExit=0;
-    private int maxOrderDuration;
-    private int dynamicOrderDuration;
+    private int maxOrderDuration=3;
+    private int dynamicOrderDuration=1;
        
     
     //----- updated by ADRListener and TickListener
@@ -239,14 +239,14 @@ public class ADR implements TradeListener,UpdateListener{
             }
             boolean buyZone1=(adrHigh-adrLow>5 && adr>adrLow+0.75*(adrHigh-adrLow) && adr>adrAvg) ||
                             (adrDayHigh-adrDayLow>10 && adr>adrDayLow+0.75*(adrDayHigh-adrDayLow) && adr>adrAvg);
-            boolean buyZone2=(indexHigh-indexLow>windowHurdle && (price>indexLow+0.75*(indexHigh-indexLow)||price>indexAvg))||
-                            (indexDayHigh-indexDayLow>dayHurdle && (price>indexDayLow+0.75*(indexDayHigh-indexDayLow)||price>indexAvg));
+            boolean buyZone2=(indexHigh-indexLow>windowHurdle && (price>indexLow+0.75*(indexHigh-indexLow)&& price>indexAvg))||
+                            (indexDayHigh-indexDayLow>dayHurdle && (price>indexDayLow+0.75*(indexDayHigh-indexDayLow)&& price>indexAvg));
             boolean buyZone3=this.adrTRINAvg<90 && this.adrTRINAvg>0;
             
             boolean shortZone1=(adrHigh-adrLow>5 && adr<adrHigh-0.75*(adrHigh-adrLow) && adr<adrAvg) ||
                             (adrDayHigh-adrDayLow>10 && adr<adrDayHigh-0.75*(adrDayHigh-adrDayLow ) && adr<adrAvg);
-            boolean shortZone2=(indexHigh-indexLow>windowHurdle && (price<indexHigh-0.75*(indexHigh-indexLow)||price<indexAvg))||
-                            (indexDayHigh-indexDayLow>dayHurdle && (price<indexDayHigh-0.75*(indexDayHigh-indexDayLow)||price<indexAvg));
+            boolean shortZone2=(indexHigh-indexLow>windowHurdle && (price<indexHigh-0.75*(indexHigh-indexLow)&& price<indexAvg))||
+                            (indexDayHigh-indexDayLow>dayHurdle && (price<indexDayHigh-0.75*(indexDayHigh-indexDayLow) && price<indexAvg));
             boolean shortZone3=this.adrTRINAvg>95;
             
             Boolean buyZone=atLeastTwo(buyZone1,buyZone2,buyZone3);   
