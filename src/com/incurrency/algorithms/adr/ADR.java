@@ -348,7 +348,9 @@ public class ADR implements TradeListener,UpdateListener{
     private void printOrders(){
                 FileWriter file;
         try {
-            file = new FileWriter("orders.csv", true);
+            String fileSuffix=DateUtil.getFormatedDate("yyyyMMdd_HHmmss", new Date().getTime());
+            String filename="orders"+fileSuffix+".csv";
+            file = new FileWriter(filename, false);
             String[] header = new String[]{
                 "entrySymbol", "entryType", "entryExpiry", "entryRight", "entryStrike",
                 "entrySide", "entryPrice", "entrySize", "entryTime", "entryID", "exitSymbol",
@@ -360,7 +362,8 @@ public class ADR implements TradeListener,UpdateListener{
             }
             orderWriter.close();
             logger.log(Level.INFO,"Clean Exit after writing orders");
-            file = new FileWriter("trades.csv", true);
+            filename="trades"+fileSuffix+".csv";
+            file = new FileWriter(filename, false);
             CsvBeanWriter tradeWriter = new CsvBeanWriter(file, CsvPreference.EXCEL_PREFERENCE);
             for (Map.Entry<Integer, Trade> trade : getOmsADR().getTrades().entrySet()) {
                 tradeWriter.write(trade.getValue(), header, Parameters.getTradeProcessors());

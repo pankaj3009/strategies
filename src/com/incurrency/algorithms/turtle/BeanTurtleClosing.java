@@ -4,10 +4,12 @@
  */
 package com.incurrency.algorithms.turtle;
 
+import com.incurrency.framework.DateUtil;
 import com.incurrency.framework.Parameters;
 import com.incurrency.framework.Trade;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Date;
 import java.util.Map;
 import java.util.TimerTask;
 import java.util.logging.Level;
@@ -35,7 +37,9 @@ public class BeanTurtleClosing extends TimerTask {
         //print orders 
         FileWriter file;
         try {
-            file = new FileWriter("orders.csv", true);
+            String fileSuffix=DateUtil.getFormatedDate("yyyyMMdd_HHmmss", new Date().getTime());
+            String filename="orders"+fileSuffix+".csv";
+            file = new FileWriter(filename, false);
             String[] header = new String[]{
                 "entrySymbol", "entryType", "entryExpiry", "entryRight", "entryStrike",
                 "entrySide", "entryPrice", "entrySize", "entryTime", "entryID", "exitSymbol",
@@ -47,7 +51,8 @@ public class BeanTurtleClosing extends TimerTask {
             }
             ordersWriter.close();
             System.out.println("Clean Exit after writing trades");
-            file = new FileWriter("trades.csv", true);
+            filename="trades"+fileSuffix+".csv";
+            file = new FileWriter(filename, false);
             CsvBeanWriter tradeWriter = new CsvBeanWriter(file, CsvPreference.EXCEL_PREFERENCE);
             for (Map.Entry<Integer, Trade> trade : ord.getTrades().entrySet()) {
                 tradeWriter.write(trade.getValue(), header, Parameters.getTradeProcessors());
