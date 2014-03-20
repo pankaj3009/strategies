@@ -357,6 +357,7 @@ public class ADR implements TradeListener,UpdateListener{
                 "exitType", "exitExpiry", "exitRight", "exitStrike", "exitSide", "exitPrice",
                 "exitSize", "exitTime", "exitID"};
             CsvBeanWriter orderWriter = new CsvBeanWriter(file, CsvPreference.EXCEL_PREFERENCE);
+            orderWriter.writeHeader(header);
             for (Map.Entry<Integer, Trade> order : trades.entrySet()) {
                 orderWriter.write(order.getValue(), header, Parameters.getTradeProcessors());
             }
@@ -365,6 +366,7 @@ public class ADR implements TradeListener,UpdateListener{
             filename="trades"+fileSuffix+".csv";
             file = new FileWriter(filename, false);
             CsvBeanWriter tradeWriter = new CsvBeanWriter(file, CsvPreference.EXCEL_PREFERENCE);
+            tradeWriter.writeHeader(header);
             for (Map.Entry<Integer, Trade> trade : getOmsADR().getTrades().entrySet()) {
                 tradeWriter.write(trade.getValue(), header, Parameters.getTradeProcessors());
             }
