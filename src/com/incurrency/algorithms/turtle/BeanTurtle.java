@@ -4,6 +4,7 @@
  */
 package com.incurrency.algorithms.turtle;
 
+import com.incurrency.algorithms.adr.ADR;
 import com.incurrency.framework.*;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -719,12 +720,12 @@ TimerTask realTimeBars = new TimerTask(){
                     //Buy Condition
                     this.getNotionalPosition().set(id, 1L);
                     int size = this.getExposure() != 0 ? (int) (this.getExposure() / Parameters.symbol.get(id).getLastPrice()) : Parameters.symbol.get(id).getMinsize();
-                    logger.log(Level.INFO, "Buy. Symbol:{0},LL:{1},LastPrice:{2},HH{3},Slope:{4},SlopeThreshold:{5},Volume:{6},VolumeMA:{7}, Breachup:{8},Breachdown:{9}",
-                            new Object[]{Parameters.symbol.get(id).getSymbol(), this.getLowestLow().get(id).toString(), Parameters.symbol.get(id).getLastPrice(), this.getHighestHigh().get(id).toString(), this.getSlope().get(id).toString(), String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeLongMultiplier() / 375), this.getVolume().get(id).toString(), this.getVolumeMA().get(id).toString(), this.getBreachUp().get(id) + 1, this.getBreachDown().get(id)
+                    logger.log(Level.INFO, "Buy. Symbol:{0},LL:{1},LastPrice:{2},HH{3},Slope:{4},SlopeThreshold:{5},Volume:{6},VolumeMA:{7}, Breachup:{8},Breachdown:{9}, ADRHigh:{10}, ADRLow:{11}, ADRAvg:{12}",
+                            new Object[]{Parameters.symbol.get(id).getSymbol(), this.getLowestLow().get(id).toString(), Parameters.symbol.get(id).getLastPrice(), this.getHighestHigh().get(id).toString(), this.getSlope().get(id).toString(), String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeLongMultiplier() / 375), this.getVolume().get(id).toString(), this.getVolumeMA().get(id).toString(), this.getBreachUp().get(id) + 1, this.getBreachDown().get(id),ADR.adrDayHigh,ADR.adrDayLow,ADR.adrAvg
                     });
                     getTrades().put(internalorderID, new Trade(id,EnumOrderSide.BUY,this.getHighestHigh().get(id),size,this.internalorderID++));
                     this.internalOpenOrders.put(id, this.internalorderID-1);
-                    if(!skipAfterWins || lastTradeWasLosing.get(id)){
+                    if((!skipAfterWins || lastTradeWasLosing.get(id)) && ADR.adrAvg>ADR.adrDayLow+0.75*(ADR.adrDayHigh-ADR.adrDayLow)){
                     if (this.getAdvanceEntryOrder().get(id) == 0) { //no advance order present
                             getOmsTurtle().tes.fireOrderEvent(this.internalorderID-1,this.internalorderID-1,Parameters.symbol.get(id), EnumOrderSide.BUY, size, this.getHighestHigh().get(id) + Parameters.symbol.get(id).getAggression(), 0, "idt", maxOrderDuration, exit, EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageEntry);
                     } else if (this.getAdvanceEntryOrder().get(id) == 1) {
@@ -741,12 +742,12 @@ TimerTask realTimeBars = new TimerTask(){
                     //Short condition
                     this.getNotionalPosition().set(id, -1L);
                     int size = this.getExposure() != 0 ? (int) (this.getExposure() / Parameters.symbol.get(id).getLastPrice()) : Parameters.symbol.get(id).getMinsize();
-                    logger.log(Level.INFO, "Short. Symbol:{0},LL:{1},LastPrice:{2},HH{3},Slope:{4},SlopeThreshold:{5},Volume:{6},VolumeMA:{7},Breachup:{8},Breachdown:{9}",
-                            new Object[]{Parameters.symbol.get(id).getSymbol(), this.getLowestLow().get(id).toString(), Parameters.symbol.get(id).getLastPrice(), this.getHighestHigh().get(id).toString(), this.getSlope().get(id).toString(), String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeLongMultiplier() / 375), this.getVolume().get(id).toString(), this.getVolumeMA().get(id).toString(), this.getBreachUp().get(id), this.getBreachUp().get(id) + 1
+                    logger.log(Level.INFO, "Short. Symbol:{0},LL:{1},LastPrice:{2},HH{3},Slope:{4},SlopeThreshold:{5},Volume:{6},VolumeMA:{7},Breachup:{8},Breachdown:{9}, ADRHigh:{10}, ADRLow:{11}, ADRAvg:{12}",
+                            new Object[]{Parameters.symbol.get(id).getSymbol(), this.getLowestLow().get(id).toString(), Parameters.symbol.get(id).getLastPrice(), this.getHighestHigh().get(id).toString(), this.getSlope().get(id).toString(), String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeLongMultiplier() / 375), this.getVolume().get(id).toString(), this.getVolumeMA().get(id).toString(), this.getBreachUp().get(id), this.getBreachUp().get(id) + 1,ADR.adrDayHigh,ADR.adrDayLow,ADR.adrAvg
                     });
                     getTrades().put(internalorderID, new Trade(id,EnumOrderSide.SHORT,this.getLowestLow().get(id),size,this.internalorderID++));
                     this.internalOpenOrders.put(id, this.internalorderID-1);
-                    if(!skipAfterWins || lastTradeWasLosing.get(id)){
+                    if((!skipAfterWins || lastTradeWasLosing.get(id))&& ADR.adrAvg<ADR.adrDayHigh-0.75*(ADR.adrDayHigh-ADR.adrDayLow)){
                     if (this.getAdvanceEntryOrder().get(id) == 0) {
                             getOmsTurtle().tes.fireOrderEvent(this.internalorderID-1,this.internalorderID-1,Parameters.symbol.get(id), EnumOrderSide.SHORT, size, this.getLowestLow().get(id) - Parameters.symbol.get(id).getAggression(), 0, "idt", maxOrderDuration, exit, EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageEntry);
                     } else if (this.getAdvanceEntryOrder().get(id) == -1) {

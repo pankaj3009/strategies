@@ -84,13 +84,13 @@ public class ADR implements TradeListener,UpdateListener{
     static double adrTRIN;
     static double tick;
     static double tickTRIN;
-    static double adrDayHigh=Double.MIN_VALUE;
-    static double adrDayLow=Double.MAX_VALUE;
+    public static double adrDayHigh=Double.MIN_VALUE;
+    public static double adrDayLow=Double.MAX_VALUE;
     
 //----- updated by method updateListener    
     double adrHigh;
     double adrLow;
-    double adrAvg;
+    public static double adrAvg;
     double adrTRINHigh;
     double adrTRINLow;
     double adrTRINAvg;
