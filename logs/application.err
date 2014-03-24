@@ -1,0 +1,12 @@
+[12:28:51.949]:SEVERE:(com.incurrency.framework.TradingEventSupport fireErrors): id:-1, ErrorCode:2104, Message:API.msg2: Market data farm connection is OK:usfuture
+[12:28:51.957]:SEVERE:(com.incurrency.framework.TradingEventSupport fireErrors): id:-1, ErrorCode:2104, Message:API.msg2: Market data farm connection is OK:eurofarm
+[12:28:51.964]:SEVERE:(com.incurrency.framework.TradingEventSupport fireErrors): id:-1, ErrorCode:2104, Message:API.msg2: Market data farm connection is OK:cashfarm
+[12:28:51.974]:SEVERE:(com.incurrency.framework.TradingEventSupport fireErrors): id:-1, ErrorCode:2104, Message:API.msg2: Market data farm connection is OK:hkfarm
+[12:28:51.981]:SEVERE:(com.incurrency.framework.TradingEventSupport fireErrors): id:-1, ErrorCode:2104, Message:API.msg2: Market data farm connection is OK:usfarm.us
+[12:28:54.135]:SEVERE:(com.incurrency.framework.TradingEventSupport fireErrors): id:-1, ErrorCode:2100, Message:API.msg2: API client has been unsubscribed from account data.
+[12:29:00.622]:SEVERE:(com.incurrency.framework.TradingEventSupport fireErrors): id:241, ErrorCode:200, Message:API.msg2: No security definition has been found for the request
+[12:29:00.915]:SEVERE:(com.incurrency.framework.TradingEventSupport fireErrors): id:263, ErrorCode:200, Message:API.msg2: No security definition has been found for the request
+[12:29:02.577]:SEVERE:(com.incurrency.framework.TradingEventSupport fireErrors): id:-1, ErrorCode:0, Message:API.msg2: Warning: Approaching max rate of 50 messages per second (46)
+[12:29:07.130]:SEVERE:(com.incurrency.framework.TradingEventSupport fireErrors): id:568, ErrorCode:200, Message:API.msg2: No security definition has been found for the request
+[12:29:08.091]:SEVERE:(com.incurrency.framework.TradingEventSupport fireErrors): id:605, ErrorCode:200, Message:API.msg2: No security definition has been found for the request
+[12:29:12.179]:SEVERE:(com.incurrency.framework.TradingEventSupport fireErrors): id:789, ErrorCode:200, Message:API.msg2: No security definition has been found for the request
