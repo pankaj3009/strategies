@@ -13,6 +13,7 @@ import com.incurrency.framework.DateUtil;
 import com.incurrency.framework.EnumOrderIntent;
 import com.incurrency.framework.EnumOrderSide;
 import com.incurrency.framework.Parameters;
+import com.incurrency.framework.ProfitLossManager;
 import com.incurrency.framework.Trade;
 import com.incurrency.framework.TradeEvent;
 import com.incurrency.framework.TradeListener;
@@ -23,6 +24,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Timer;
@@ -45,7 +47,7 @@ import org.supercsv.prefs.CsvPreference;
 public class ADR implements TradeListener,UpdateListener{
     
     static EventProcessor mEsperEvtProcessor = null;
-    HashMap<Integer,BeanSymbol> adrSymbols=new HashMap();
+    List<Integer> adrSymbols=new ArrayList();
     static com.incurrency.framework.rateserver.RateServer adrServer= new com.incurrency.framework.rateserver.RateServer(5556);
     private static final Logger logger = Logger.getLogger(ADR.class.getName());
     Date endDate;
@@ -107,6 +109,7 @@ public class ADR implements TradeListener,UpdateListener{
     double indexDayLow=Double.MAX_VALUE;
     int position=0;
     private com.incurrency.framework.OrderPlacement omsADR;
+    private ProfitLossManager plmanager;
 
     
     public ADR(MainAlgorithm m){
@@ -118,7 +121,7 @@ public class ADR implements TradeListener,UpdateListener{
             //populate adrList with adrSymbols needed for ADR
             for (BeanSymbol s : Parameters.symbol) {
                 if (Pattern.compile(Pattern.quote("ADR"), Pattern.CASE_INSENSITIVE).matcher(s.getStrategy()).find()) {
-                    adrSymbols.put(s.getSerialno()-1, s);
+                    adrSymbols.add(s.getSerialno()-1);
                 }
             }
         omsADR=new ADROrderManagement(aggression,this.tickSize,endDate,"adr",pointValue);
@@ -126,6 +129,7 @@ public class ADR implements TradeListener,UpdateListener{
         c.getWrapper().addTradeListener(this);
         c.initializeConnection("adr");
         }
+        plmanager=new ProfitLossManager("adr", this.adrSymbols, pointValue, takeProfit);
         Timer closeProcessing=new Timer();
         closeProcessing.schedule(runPrintOrders, com.incurrency.framework.DateUtil.addSeconds(endDate, 600));
         
@@ -174,7 +178,7 @@ public class ADR implements TradeListener,UpdateListener{
         maxOrderDuration = Integer.parseInt(System.getProperty("MaxOrderDuration"));
         dynamicOrderDuration = Integer.parseInt(System.getProperty("DynamicOrderDuration"));
        
-        logger.log(Level.INFO, "-----Turtle Parameters----");
+        logger.log(Level.INFO, "-----ADR Parameters----");
         logger.log(Level.INFO, "end Time: {0}", endDate);
         logger.log(Level.INFO, "Setup to Trade: {0}", trading);
         logger.log(Level.INFO, "Traded Index: {0}", index);
@@ -199,7 +203,7 @@ public class ADR implements TradeListener,UpdateListener{
     @Override
     public void tradeReceived(TradeEvent event) {
         int id=event.getSymbolID(); //zero based id
-        if(adrSymbols.containsKey(id)){
+        if(adrSymbols.contains(id)){
             switch(event.getTickType()){
                 case com.ib.client.TickType.LAST_SIZE:
                     //System.out.println("LASTSIZE, Symbol:"+Parameters.symbol.get(id).getSymbol()+" Value: "+Parameters.symbol.get(id).getLastSize()+" tickerID: "+id);
@@ -457,5 +461,19 @@ public class ADR implements TradeListener,UpdateListener{
      */
     public void setProfitTarget(double profitTarget) {
         this.profitTarget = profitTarget;
+    }
+
+    /**
+     * @return the plmanager
+     */
+    public ProfitLossManager getPlmanager() {
+        return plmanager;
+    }
+
+    /**
+     * @param plmanager the plmanager to set
+     */
+    public void setPlmanager(ProfitLossManager plmanager) {
+        this.plmanager = plmanager;
     }
 }
