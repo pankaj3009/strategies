@@ -159,7 +159,7 @@ public class ADR implements TradeListener,UpdateListener{
             //increase enddate by one calendar day
             endDate = DateUtil.addDays(endDate, 1); 
         }
-        Launch.algo.setCloseDate(DateUtil.addSeconds(endDate, 660));
+        m.setCloseDate(DateUtil.addSeconds(endDate, 660));
         trading=Boolean.valueOf(System.getProperty("Trading"));
         index=System.getProperty("Index");
         type=System.getProperty("Type");
