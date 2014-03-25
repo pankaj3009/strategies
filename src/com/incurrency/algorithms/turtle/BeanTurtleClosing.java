@@ -38,7 +38,7 @@ public class BeanTurtleClosing extends TimerTask {
         FileWriter file;
         try {
             String fileSuffix=DateUtil.getFormatedDate("yyyyMMdd_HHmmss", new Date().getTime());
-            String filename="orders"+fileSuffix+".csv";
+            String filename="ordersIDT"+fileSuffix+".csv";
             file = new FileWriter(filename, false);
             String[] header = new String[]{
                 "entrySymbol", "entryType", "entryExpiry", "entryRight", "entryStrike",
@@ -52,7 +52,7 @@ public class BeanTurtleClosing extends TimerTask {
             }
             ordersWriter.close();
             System.out.println("Clean Exit after writing trades");
-            filename="trades"+fileSuffix+".csv";
+            filename="tradesIDT"+fileSuffix+".csv";
             file = new FileWriter(filename, false);
             CsvBeanWriter tradeWriter = new CsvBeanWriter(file, CsvPreference.EXCEL_PREFERENCE);
             tradeWriter.writeHeader(header);
@@ -61,7 +61,7 @@ public class BeanTurtleClosing extends TimerTask {
             }
             tradeWriter.close();
             System.out.println("Clean Exit after writing orders");
-            System.exit(0);
+           // System.exit(0);
         } catch (IOException ex) {
             logger.log(Level.SEVERE, null, ex);
         }

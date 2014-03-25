@@ -12,6 +12,7 @@ import com.incurrency.framework.BeanSymbol;
 import com.incurrency.framework.DateUtil;
 import com.incurrency.framework.EnumOrderIntent;
 import com.incurrency.framework.EnumOrderSide;
+import com.incurrency.framework.Launch;
 import com.incurrency.framework.Parameters;
 import com.incurrency.framework.ProfitLossManager;
 import com.incurrency.framework.Trade;
@@ -158,7 +159,7 @@ public class ADR implements TradeListener,UpdateListener{
             //increase enddate by one calendar day
             endDate = DateUtil.addDays(endDate, 1); 
         }
-        
+        Launch.algo.setCloseDate(DateUtil.addSeconds(endDate, 660));
         trading=Boolean.valueOf(System.getProperty("Trading"));
         index=System.getProperty("Index");
         type=System.getProperty("Type");
@@ -365,7 +366,7 @@ public class ADR implements TradeListener,UpdateListener{
                 FileWriter file;
         try {
             String fileSuffix=DateUtil.getFormatedDate("yyyyMMdd_HHmmss", new Date().getTime());
-            String filename="orders"+fileSuffix+".csv";
+            String filename="ordersADR"+fileSuffix+".csv";
             file = new FileWriter(filename, false);
             String[] header = new String[]{
                 "entrySymbol", "entryType", "entryExpiry", "entryRight", "entryStrike",
@@ -379,7 +380,7 @@ public class ADR implements TradeListener,UpdateListener{
             }
             orderWriter.close();
             logger.log(Level.INFO,"Clean Exit after writing orders");
-            filename="trades"+fileSuffix+".csv";
+            filename="tradesADR"+fileSuffix+".csv";
             file = new FileWriter(filename, false);
             CsvBeanWriter tradeWriter = new CsvBeanWriter(file, CsvPreference.EXCEL_PREFERENCE);
             tradeWriter.writeHeader(header);
@@ -388,7 +389,7 @@ public class ADR implements TradeListener,UpdateListener{
             }
             tradeWriter.close();
             logger.log(Level.INFO,"Clean Exit after writing trades");
-            System.exit(0);
+            //System.exit(0);
         } catch (IOException ex) {
             logger.log(Level.SEVERE, null, ex);
         }
