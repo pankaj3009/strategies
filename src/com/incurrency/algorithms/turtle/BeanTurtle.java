@@ -726,7 +726,7 @@ TimerTask realTimeBars = new TimerTask(){
                     });
                     getTrades().put(internalorderID, new Trade(id,EnumOrderSide.BUY,this.getHighestHigh().get(id),size,this.internalorderID++));
                     this.internalOpenOrders.put(id, this.internalorderID-1);
-                    if((!skipAfterWins || lastTradeWasLosing.get(id)) && ADR.adrAvg>ADR.adrDayLow+0.75*(ADR.adrDayHigh-ADR.adrDayLow)){
+                    if((!skipAfterWins || lastTradeWasLosing.get(id)) && ADR.adr>ADR.adrDayLow+0.75*(ADR.adrDayHigh-ADR.adrDayLow) && ADR.adrTRIN<100){
                     if (this.getAdvanceEntryOrder().get(id) == 0) { //no advance order present
                             getOms().tes.fireOrderEvent(this.internalorderID-1,this.internalorderID-1,Parameters.symbol.get(id), EnumOrderSide.BUY, size, this.getHighestHigh().get(id) + Parameters.symbol.get(id).getAggression(), 0, "idt", maxOrderDuration, exit, EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageEntry);
                     } else if (this.getAdvanceEntryOrder().get(id) == 1) {
@@ -748,7 +748,7 @@ TimerTask realTimeBars = new TimerTask(){
                     });
                     getTrades().put(internalorderID, new Trade(id,EnumOrderSide.SHORT,this.getLowestLow().get(id),size,this.internalorderID++));
                     this.internalOpenOrders.put(id, this.internalorderID-1);
-                    if((!skipAfterWins || lastTradeWasLosing.get(id))&& ADR.adrAvg<ADR.adrDayHigh-0.75*(ADR.adrDayHigh-ADR.adrDayLow)){
+                    if((!skipAfterWins || lastTradeWasLosing.get(id))&& ADR.adr<ADR.adrDayHigh-0.75*(ADR.adrDayHigh-ADR.adrDayLow) && ADR.adrTRIN>90){
                     if (this.getAdvanceEntryOrder().get(id) == 0) {
                             getOms().tes.fireOrderEvent(this.internalorderID-1,this.internalorderID-1,Parameters.symbol.get(id), EnumOrderSide.SHORT, size, this.getLowestLow().get(id) - Parameters.symbol.get(id).getAggression(), 0, "idt", maxOrderDuration, exit, EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageEntry);
                     } else if (this.getAdvanceEntryOrder().get(id) == -1) {

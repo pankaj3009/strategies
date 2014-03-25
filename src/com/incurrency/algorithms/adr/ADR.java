@@ -82,8 +82,8 @@ public class ADR implements TradeListener,UpdateListener{
        
     
     //----- updated by ADRListener and TickListener
-    static double adr;
-    static double adrTRIN;
+    public static double adr;
+    public static double adrTRIN;
     static double tick;
     static double tickTRIN;
     public static double adrDayHigh=Double.MIN_VALUE;
@@ -129,7 +129,7 @@ public class ADR implements TradeListener,UpdateListener{
         c.getWrapper().addTradeListener(this);
         c.initializeConnection("adr");
         }
-        plmanager=new ProfitLossManager("adr", this.adrSymbols, pointValue, takeProfit);
+        plmanager=new ProfitLossManager("adr", this.adrSymbols, pointValue, profitTarget);
         Timer closeProcessing=new Timer();
         closeProcessing.schedule(runPrintOrders, com.incurrency.framework.DateUtil.addSeconds(endDate, 600));
         
@@ -192,6 +192,7 @@ public class ADR implements TradeListener,UpdateListener{
         logger.log(Level.INFO, "Sliding Window Duration: {0}", window);
         logger.log(Level.INFO, "Hurdle Index move needed for window duration: {0}", windowHurdle);
         logger.log(Level.INFO, "Hurdle Index move needed for day: {0}", dayHurdle);
+        logger.log(Level.INFO, "Strategy Profit Target: {0}", profitTarget);
         logger.log(Level.INFO, "PointValue: {0}", pointValue);
         logger.log(Level.INFO, "Maxmimum slippage allowed for entry: {0}", maxSlippageEntry);
         logger.log(Level.INFO, "Maximum slippage allowed for exit: {0}", maxSlippageExit);
