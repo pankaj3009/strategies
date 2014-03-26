@@ -4,6 +4,7 @@
  */
 package com.incurrency.algorithms.adr;
 
+import com.RatesClient.Subscribe;
 import com.espertech.esper.client.EventBean;
 import com.espertech.esper.client.UpdateListener;
 import com.incurrency.framework.MainAlgorithm;
@@ -117,7 +118,7 @@ public class ADR implements TradeListener,UpdateListener{
     public ADR(MainAlgorithm m){
         this.m=m;
         loadParameters();
-        TradingUtil.writeToFile("ADR.csv", "adr"+","+"adrTRIN"+","+"tick"+","+"tickTRIN"+","+"price"+","+"adrHigh"+","+"adrLow"+","+"adrAvg"+","+"adrTRINHigh"+","+"adrTRINLow"+","+"adrTRINAvg"+","+"indexHigh"+","+"indexLow"+","+"indexAvg");
+        TradingUtil.writeToFile("ADR.csv", "adr"+","+"adrTRIN"+","+"tick"+","+"tickTRIN"+","+"price"+","+"adrHigh"+","+"adrLow"+","+"adrAvg"+","+"adrTRINHigh"+","+"adrTRINLow"+","+"adrTRINAvg"+","+"indexHigh"+","+"indexLow"+","+"indexAvg"+"\n");
         mEsperEvtProcessor = new EventProcessor();
         mEsperEvtProcessor.ADRStatement.addListener(this);
            //populate adrList with adrSymbols needed for ADR
@@ -130,6 +131,9 @@ public class ADR implements TradeListener,UpdateListener{
         for(BeanConnection c: Parameters.connection){
         c.getWrapper().addTradeListener(this);
         c.initializeConnection("adr");
+        }
+        if (Subscribe.tes!=null){
+            Subscribe.tes.addTradeListener(this);
         }
         plmanager=new ProfitLossManager("adr", this.adrSymbols, pointValue, profitTarget);
         Timer closeProcessing=new Timer();
@@ -258,7 +262,7 @@ public class ADR implements TradeListener,UpdateListener{
             
             Boolean buyZone=atLeastTwo(buyZone1,buyZone2,buyZone3);   
             Boolean shortZone=atLeastTwo(shortZone1,shortZone2,shortZone3);
-            TradingUtil.writeToFile("ADR.csv", adr+","+adrTRIN+","+tick+","+tickTRIN+","+price+","+adrHigh+","+adrLow+","+adrAvg+","+adrTRINHigh+","+adrTRINLow+","+adrTRINAvg+","+indexHigh+","+indexLow+","+indexAvg);
+            TradingUtil.writeToFile("ADR.csv", adr+","+adrTRIN+","+tick+","+tickTRIN+","+price+","+adrHigh+","+adrLow+","+adrAvg+","+adrTRINHigh+","+adrTRINLow+","+adrTRINAvg+","+indexHigh+","+indexLow+","+indexAvg+"\n");
             logger.log(Level.FINEST," adrHigh: {0},adrLow: {1},adrAvg: {2},adrTRINHigh: {3},adrTRINLow: {4},adrTRINAvg: {5},indexHigh :{6},indexLow :{7},indexAvg: {8}, buyZone1: {9}, buyZone2: {10}, buyZone 3: {11}, shortZone1: {12}, shortZone2: {13}, ShortZone3:{14}, ADR: {15}, ADRTrin: {16}, Tick: {17}, TickTrin: {18}, adrDayHigh: {19}, adrDayLow: {20}, IndexDayHigh: {21}, IndexDayLow: {22}",new Object[]{adrHigh,adrLow,adrAvg,adrTRINHigh,adrTRINLow,adrTRINAvg,indexHigh,indexLow,indexAvg,buyZone1,buyZone2,buyZone3,shortZone1,shortZone2,shortZone3,adr,adrTRIN,tick,tickTRIN,adrDayHigh,adrDayLow,indexDayHigh,indexDayLow});
             //tickHigh,tickLow,tickAvg,tickTRINHigh,tickTRINLow,tickTRINAvg
             if(position==0 && new Date().compareTo(endDate)<0){           
