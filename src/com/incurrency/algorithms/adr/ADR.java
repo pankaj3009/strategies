@@ -4,6 +4,7 @@
  */
 package com.incurrency.algorithms.adr;
 
+import com.RatesClient.Subscribe;
 import com.espertech.esper.client.EventBean;
 import com.espertech.esper.client.UpdateListener;
 import com.incurrency.framework.MainAlgorithm;
@@ -130,6 +131,9 @@ public class ADR implements TradeListener,UpdateListener{
         for(BeanConnection c: Parameters.connection){
         c.getWrapper().addTradeListener(this);
         c.initializeConnection("adr");
+        }
+        if (Subscribe.tes!=null){
+            Subscribe.tes.addTradeListener(this);
         }
         plmanager=new ProfitLossManager("adr", this.adrSymbols, pointValue, profitTarget);
         Timer closeProcessing=new Timer();
