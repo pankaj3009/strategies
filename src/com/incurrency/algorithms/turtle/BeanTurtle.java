@@ -205,7 +205,7 @@ TimerTask realTimeBars = new TimerTask(){
             endDate=DateUtil.addDays(endDate, 1);
             endDate=DateUtil.addDays(closeDate, 1);
         }
-        m.setCloseDate(closeDate);
+        m.setCloseDate(DateUtil.addSeconds(closeDate, 60));
         double tempprofitTarget= "".equals(System.getProperty("ProfitTarget"))? Double.MAX_VALUE:Double.parseDouble(System.getProperty("ProfitTarget"));
         setProfitTarget(tempprofitTarget);
         //Launch.setProfitTarget(getProfitTarget());
