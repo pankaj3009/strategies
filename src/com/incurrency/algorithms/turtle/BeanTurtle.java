@@ -4,6 +4,7 @@
  */
 package com.incurrency.algorithms.turtle;
 
+import com.RatesClient.Subscribe;
 import com.incurrency.framework.ProfitLossManager;
 import com.incurrency.algorithms.adr.ADR;
 import com.incurrency.framework.*;
@@ -139,6 +140,9 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
             c.getWrapper().addTradeListener(this);
             c.initializeConnection("idt");
 			}
+                if (Subscribe.tes!=null){
+            Subscribe.tes.addTradeListener(this);
+        }
         plmanager=new ProfitLossManager("idt",tradeableSymbols,pointValue,profitTarget);
         oms = new TurtleOrderManagement(this.aggression,Double.parseDouble(this.tickSize),endDate,"idt",pointValue,this.maxOpenPositionsLimit);		               
         populateLastTradePrice();
@@ -644,7 +648,7 @@ TimerTask realTimeBars = new TimerTask(){
 
         try {
             int id = event.getSymbolID(); //here symbolID is with zero base.
-            if (this.tradeableSymbols.contains(id)) {
+            if (this.tradeableSymbols.contains(id) && event.getTickType()==com.ib.client.TickType.LAST) {
                 boolean ruleHighestHigh = Parameters.symbol.get(id).getLastPrice() > this.getHighestHigh().get(id);
                 boolean ruleLowestLow = Parameters.symbol.get(id).getLastPrice() < this.getLowestLow().get(id);
                 boolean ruleCumVolumeLong = this.getCumVolume().get(id).get(this.getCumVolume().get(id).size() - 1) >= 0.05 * Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput());
@@ -727,7 +731,7 @@ TimerTask realTimeBars = new TimerTask(){
                     });
                     getTrades().put(internalorderID, new Trade(id,EnumOrderSide.BUY,this.getHighestHigh().get(id),size,this.internalorderID++));
                     this.internalOpenOrders.put(id, this.internalorderID-1);
-                    if((!skipAfterWins || lastTradeWasLosing.get(id)) && ADR.adr>ADR.adrDayLow+0.75*(ADR.adrDayHigh-ADR.adrDayLow) && ADR.adrTRIN<90){
+                    if((!skipAfterWins || lastTradeWasLosing.get(id)) && (ADR.adr>ADR.adrDayLow+0.75*(ADR.adrDayHigh-ADR.adrDayLow)||ADR.adr>ADR.adrAvg+2) && ADR.adrTRIN<90){
                     if (this.getAdvanceEntryOrder().get(id) == 0) { //no advance order present
                             getOms().tes.fireOrderEvent(this.internalorderID-1,this.internalorderID-1,Parameters.symbol.get(id), EnumOrderSide.BUY, size, this.getHighestHigh().get(id) + Parameters.symbol.get(id).getAggression(), 0, "idt", maxOrderDuration, exit, EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageEntry);
                     } else if (this.getAdvanceEntryOrder().get(id) == 1) {
@@ -749,7 +753,7 @@ TimerTask realTimeBars = new TimerTask(){
                     });
                     getTrades().put(internalorderID, new Trade(id,EnumOrderSide.SHORT,this.getLowestLow().get(id),size,this.internalorderID++));
                     this.internalOpenOrders.put(id, this.internalorderID-1);
-                    if((!skipAfterWins || lastTradeWasLosing.get(id))&& ADR.adr<ADR.adrDayHigh-0.75*(ADR.adrDayHigh-ADR.adrDayLow) && ADR.adrTRIN>90){
+                    if((!skipAfterWins || lastTradeWasLosing.get(id))&& (ADR.adr<ADR.adrDayHigh-0.75*(ADR.adrDayHigh-ADR.adrDayLow)||ADR.adr<ADR.adrAvg-2) && ADR.adrTRIN>90){
                     if (this.getAdvanceEntryOrder().get(id) == 0) {
                             getOms().tes.fireOrderEvent(this.internalorderID-1,this.internalorderID-1,Parameters.symbol.get(id), EnumOrderSide.SHORT, size, this.getLowestLow().get(id) - Parameters.symbol.get(id).getAggression(), 0, "idt", maxOrderDuration, exit, EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageEntry);
                     } else if (this.getAdvanceEntryOrder().get(id) == -1) {
