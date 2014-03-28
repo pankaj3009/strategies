@@ -266,7 +266,7 @@ public class ADR implements TradeListener,UpdateListener{
             logger.log(Level.FINEST," adrHigh: {0},adrLow: {1},adrAvg: {2},adrTRINHigh: {3},adrTRINLow: {4},adrTRINAvg: {5},indexHigh :{6},indexLow :{7},indexAvg: {8}, buyZone1: {9}, buyZone2: {10}, buyZone 3: {11}, shortZone1: {12}, shortZone2: {13}, ShortZone3:{14}, ADR: {15}, ADRTrin: {16}, Tick: {17}, TickTrin: {18}, adrDayHigh: {19}, adrDayLow: {20}, IndexDayHigh: {21}, IndexDayLow: {22}",new Object[]{adrHigh,adrLow,adrAvg,adrTRINHigh,adrTRINLow,adrTRINAvg,indexHigh,indexLow,indexAvg,buyZone1,buyZone2,buyZone3,shortZone1,shortZone2,shortZone3,adr,adrTRIN,tick,tickTRIN,adrDayHigh,adrDayLow,indexDayHigh,indexDayLow});
             //tickHigh,tickLow,tickAvg,tickTRINHigh,tickTRINLow,tickTRINAvg
             if(position==0 && new Date().compareTo(endDate)<0){           
-            if(buyZone && (tick<45 || tickTRIN>120)){
+            if(buyZone && (tick<45 || tickTRIN>120) && longOnly){
                 entryPrice=price;
                 this.internalOpenOrders.put(id, internalOrderID);
                 trades.put(this.internalOrderID, new Trade(id,EnumOrderSide.BUY,entryPrice,numberOfContracts,internalOrderID++));
@@ -274,7 +274,7 @@ public class ADR implements TradeListener,UpdateListener{
                     getOmsADR().tes.fireOrderEvent(internalOrderID-1,internalOrderID-1,Parameters.symbol.get(id), EnumOrderSide.BUY, numberOfContracts, price, 0, "adr", 3, "", EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageEntry);
                 position=1;
             }
-            else if(shortZone && (tick>55  || tickTRIN<80)){
+            else if(shortZone && (tick>55  || tickTRIN<80) && shortOnly){
                 entryPrice=price;
                 this.internalOpenOrders.put(id, internalOrderID);
                 trades.put(this.internalOrderID, new Trade(id,EnumOrderSide.BUY,entryPrice,numberOfContracts,internalOrderID++));
