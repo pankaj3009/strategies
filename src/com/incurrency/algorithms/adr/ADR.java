@@ -270,7 +270,8 @@ public class ADR implements TradeListener,UpdateListener{
                 entryPrice=price;
                 this.internalOpenOrders.put(id, internalOrderID);
                 trades.put(this.internalOrderID, new Trade(id,EnumOrderSide.BUY,entryPrice,numberOfContracts,internalOrderID++));
-                logger.log(Level.INFO,"Buy Order. Price: {0}",new Object[]{price});
+                logger.log(Level.INFO," Strategy: ADR. adrHigh: {0},adrLow: {1},adrAvg: {2},adrTRINHigh: {3},adrTRINLow: {4},adrTRINAvg: {5},indexHigh :{6},indexLow :{7},indexAvg: {8}, buyZone1: {9}, buyZone2: {10}, buyZone 3: {11}, shortZone1: {12}, shortZone2: {13}, ShortZone3:{14}, ADR: {15}, ADRTrin: {16}, Tick: {17}, TickTrin: {18}, adrDayHigh: {19}, adrDayLow: {20}, IndexDayHigh: {21}, IndexDayLow: {22}",new Object[]{adrHigh,adrLow,adrAvg,adrTRINHigh,adrTRINLow,adrTRINAvg,indexHigh,indexLow,indexAvg,buyZone1,buyZone2,buyZone3,shortZone1,shortZone2,shortZone3,adr,adrTRIN,tick,tickTRIN,adrDayHigh,adrDayLow,indexDayHigh,indexDayLow});
+                logger.log(Level.INFO,"Strategy: ADR. Buy Order. Price: {0}",new Object[]{price});
                     getOmsADR().tes.fireOrderEvent(internalOrderID-1,internalOrderID-1,Parameters.symbol.get(id), EnumOrderSide.BUY, numberOfContracts, price, 0, "adr", 3, "", EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageEntry);
                 position=1;
             }
@@ -278,8 +279,9 @@ public class ADR implements TradeListener,UpdateListener{
                 entryPrice=price;
                 this.internalOpenOrders.put(id, internalOrderID);
                 trades.put(this.internalOrderID, new Trade(id,EnumOrderSide.BUY,entryPrice,numberOfContracts,internalOrderID++));
-                logger.log(Level.INFO,"Short Order. Price: {0}",new Object[]{price});
-                    getOmsADR().tes.fireOrderEvent(internalOrderID-1,internalOrderID-1,Parameters.symbol.get(id), EnumOrderSide.SHORT, numberOfContracts, price, 0, "adr", 3, "", EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageEntry);
+                logger.log(Level.INFO," Strategy: ADR. adrHigh: {0},adrLow: {1},adrAvg: {2},adrTRINHigh: {3},adrTRINLow: {4},adrTRINAvg: {5},indexHigh :{6},indexLow :{7},indexAvg: {8}, buyZone1: {9}, buyZone2: {10}, buyZone 3: {11}, shortZone1: {12}, shortZone2: {13}, ShortZone3:{14}, ADR: {15}, ADRTrin: {16}, Tick: {17}, TickTrin: {18}, adrDayHigh: {19}, adrDayLow: {20}, IndexDayHigh: {21}, IndexDayLow: {22}",new Object[]{adrHigh,adrLow,adrAvg,adrTRINHigh,adrTRINLow,adrTRINAvg,indexHigh,indexLow,indexAvg,buyZone1,buyZone2,buyZone3,shortZone1,shortZone2,shortZone3,adr,adrTRIN,tick,tickTRIN,adrDayHigh,adrDayLow,indexDayHigh,indexDayLow});
+                logger.log(Level.INFO,"Strategy: ADR. Short Order. Price: {0}",new Object[]{price});
+                getOmsADR().tes.fireOrderEvent(internalOrderID-1,internalOrderID-1,Parameters.symbol.get(id), EnumOrderSide.SHORT, numberOfContracts, price, 0, "adr", 3, "", EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageEntry);
                 position=-1;
                 
             }
@@ -289,14 +291,16 @@ public class ADR implements TradeListener,UpdateListener{
                     int tempinternalOrderID=internalOpenOrders.get(id);
                     Trade tempTrade=trades.get(tempinternalOrderID);
                     tempTrade.updateExit(id, EnumOrderSide.COVER, price, numberOfContracts, internalOrderID++);
-                    logger.log(Level.INFO,"Cover Order. StopLoss. Price: {0}",new Object[]{price});
+                    logger.log(Level.INFO," Strategy: ADR. adrHigh: {0},adrLow: {1},adrAvg: {2},adrTRINHigh: {3},adrTRINLow: {4},adrTRINAvg: {5},indexHigh :{6},indexLow :{7},indexAvg: {8}, buyZone1: {9}, buyZone2: {10}, buyZone 3: {11}, shortZone1: {12}, shortZone2: {13}, ShortZone3:{14}, ADR: {15}, ADRTrin: {16}, Tick: {17}, TickTrin: {18}, adrDayHigh: {19}, adrDayLow: {20}, IndexDayHigh: {21}, IndexDayLow: {22}",new Object[]{adrHigh,adrLow,adrAvg,adrTRINHigh,adrTRINLow,adrTRINAvg,indexHigh,indexLow,indexAvg,buyZone1,buyZone2,buyZone3,shortZone1,shortZone2,shortZone3,adr,adrTRIN,tick,tickTRIN,adrDayHigh,adrDayLow,indexDayHigh,indexDayLow});                
+                    logger.log(Level.INFO,"Strategy: ADR. Cover Order. StopLoss. Price: {0}",new Object[]{price});
                     getOmsADR().tes.fireOrderEvent(internalOrderID-1,tempinternalOrderID,Parameters.symbol.get(id), EnumOrderSide.COVER, numberOfContracts, price, 0, "adr", 3, "", EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageExit);
                     position=0;
                 }else if(!shortZone && price<entryPrice-takeProfit){
                     int tempinternalOrderID=internalOpenOrders.get(id);
                     Trade tempTrade=trades.get(tempinternalOrderID);
                     tempTrade.updateExit(id, EnumOrderSide.COVER, price, numberOfContracts, internalOrderID++);
-                    logger.log(Level.INFO,"Cover Order. TakeProfit. Price: {0}",new Object[]{price});
+                    logger.log(Level.INFO," Strategy: ADR. adrHigh: {0},adrLow: {1},adrAvg: {2},adrTRINHigh: {3},adrTRINLow: {4},adrTRINAvg: {5},indexHigh :{6},indexLow :{7},indexAvg: {8}, buyZone1: {9}, buyZone2: {10}, buyZone 3: {11}, shortZone1: {12}, shortZone2: {13}, ShortZone3:{14}, ADR: {15}, ADRTrin: {16}, Tick: {17}, TickTrin: {18}, adrDayHigh: {19}, adrDayLow: {20}, IndexDayHigh: {21}, IndexDayLow: {22}",new Object[]{adrHigh,adrLow,adrAvg,adrTRINHigh,adrTRINLow,adrTRINAvg,indexHigh,indexLow,indexAvg,buyZone1,buyZone2,buyZone3,shortZone1,shortZone2,shortZone3,adr,adrTRIN,tick,tickTRIN,adrDayHigh,adrDayLow,indexDayHigh,indexDayLow});               
+                    logger.log(Level.INFO," Strategy: ADR. Cover Order. TakeProfit. Price: {0}",new Object[]{price});
                     getOmsADR().tes.fireOrderEvent(internalOrderID-1,tempinternalOrderID,Parameters.symbol.get(id), EnumOrderSide.COVER, numberOfContracts, price, 0, "adr", 3, "", EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageExit);
                     position=0;
                     
@@ -306,14 +310,16 @@ public class ADR implements TradeListener,UpdateListener{
                     int tempinternalOrderID=internalOpenOrders.get(id);
                     Trade tempTrade=trades.get(tempinternalOrderID);
                     tempTrade.updateExit(id, EnumOrderSide.SELL, price, numberOfContracts, internalOrderID++);
-                    logger.log(Level.INFO,"Sell Order. StopLoss. Price: {0}",new Object[]{price});
+                    logger.log(Level.INFO," Strategy: ADR. adrHigh: {0},adrLow: {1},adrAvg: {2},adrTRINHigh: {3},adrTRINLow: {4},adrTRINAvg: {5},indexHigh :{6},indexLow :{7},indexAvg: {8}, buyZone1: {9}, buyZone2: {10}, buyZone 3: {11}, shortZone1: {12}, shortZone2: {13}, ShortZone3:{14}, ADR: {15}, ADRTrin: {16}, Tick: {17}, TickTrin: {18}, adrDayHigh: {19}, adrDayLow: {20}, IndexDayHigh: {21}, IndexDayLow: {22}",new Object[]{adrHigh,adrLow,adrAvg,adrTRINHigh,adrTRINLow,adrTRINAvg,indexHigh,indexLow,indexAvg,buyZone1,buyZone2,buyZone3,shortZone1,shortZone2,shortZone3,adr,adrTRIN,tick,tickTRIN,adrDayHigh,adrDayLow,indexDayHigh,indexDayLow});
+                    logger.log(Level.INFO," Strategy: ADR. Sell Order. StopLoss. Price: {0}",new Object[]{price});
                     getOmsADR().tes.fireOrderEvent(internalOrderID-1,tempinternalOrderID,Parameters.symbol.get(id), EnumOrderSide.SELL, numberOfContracts, price, 0, "adr", 3, "", EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageExit);
                     position=0;
                 }else if(!buyZone && price>entryPrice+takeProfit){
                     int tempinternalOrderID=internalOpenOrders.get(id);
                     Trade tempTrade=trades.get(tempinternalOrderID);
                     tempTrade.updateExit(id, EnumOrderSide.COVER, price, numberOfContracts, internalOrderID++);
-                    logger.log(Level.INFO,"Sell Order. TakeProfit. Price: {0}",new Object[]{price});
+                    logger.log(Level.INFO," Strategy: ADR. adrHigh: {0},adrLow: {1},adrAvg: {2},adrTRINHigh: {3},adrTRINLow: {4},adrTRINAvg: {5},indexHigh :{6},indexLow :{7},indexAvg: {8}, buyZone1: {9}, buyZone2: {10}, buyZone 3: {11}, shortZone1: {12}, shortZone2: {13}, ShortZone3:{14}, ADR: {15}, ADRTrin: {16}, Tick: {17}, TickTrin: {18}, adrDayHigh: {19}, adrDayLow: {20}, IndexDayHigh: {21}, IndexDayLow: {22}",new Object[]{adrHigh,adrLow,adrAvg,adrTRINHigh,adrTRINLow,adrTRINAvg,indexHigh,indexLow,indexAvg,buyZone1,buyZone2,buyZone3,shortZone1,shortZone2,shortZone3,adr,adrTRIN,tick,tickTRIN,adrDayHigh,adrDayLow,indexDayHigh,indexDayLow});
+                    logger.log(Level.INFO,"Strategy ADR. Sell Order. TakeProfit. Price: {0}",new Object[]{price});
                     getOmsADR().tes.fireOrderEvent(internalOrderID-1,tempinternalOrderID,Parameters.symbol.get(id), EnumOrderSide.SELL, numberOfContracts, price, 0, "adr", 3, "", EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageExit);
                     position=0; 
                 }
