@@ -378,7 +378,8 @@ public class ADR implements TradeListener,UpdateListener{
                 FileWriter file;
         try {
             String fileSuffix=DateUtil.getFormatedDate("yyyyMMdd_HHmmss", new Date().getTime());
-            String filename="ordersADR"+fileSuffix+".csv";
+            //String filename="ordersADR"+fileSuffix+".csv";
+            String filename="ordersADR"+".csv";
             file = new FileWriter(filename, false);
             String[] header = new String[]{
                 "entrySymbol", "entryType", "entryExpiry", "entryRight", "entryStrike",
@@ -392,7 +393,8 @@ public class ADR implements TradeListener,UpdateListener{
             }
             orderWriter.close();
             logger.log(Level.INFO,"Clean Exit after writing orders");
-            filename="tradesADR"+fileSuffix+".csv";
+            //filename="tradesADR"+fileSuffix+".csv";
+            filename="tradesADR"+".csv";
             file = new FileWriter(filename, false);
             CsvBeanWriter tradeWriter = new CsvBeanWriter(file, CsvPreference.EXCEL_PREFERENCE);
             tradeWriter.writeHeader(header);
