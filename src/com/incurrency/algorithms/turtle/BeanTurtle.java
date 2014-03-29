@@ -18,7 +18,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -32,7 +31,6 @@ import org.apache.commons.math3.stat.regression.SimpleRegression;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.regex.Pattern;
-import javax.swing.JFrame;
 
 /**
  *
@@ -94,11 +92,15 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
     private ProfitLossManager plmanager;
     private double profitTarget;
     private TurtleOrderManagement oms;
-    private boolean skipAfterWins=false;
     private int internalorderID=1;
     private HashMap<Integer,Integer> internalOpenOrders=new HashMap();
     private double pointValue=1;
     private Integer maxOpenPositionsLimit=0;
+    //Strategy Filters
+    private boolean checkForHistoricalLiquidity=true;;
+    private boolean checkForDirectionalBreaches=true;
+    private boolean skipAfterWins=false;
+    private boolean checkADRTrend=true;
 
     public BeanTurtle(MainAlgorithm m) {
         this.m = m;
@@ -227,7 +229,10 @@ TimerTask realTimeBars = new TimerTask(){
         display = Integer.parseInt(System.getProperty("Display"));
         maxSlippageEntry=Double.parseDouble(System.getProperty("MaxSlippageEntry"))/100; // divide by 100 as input was a percentage
         maxSlippageExit=Double.parseDouble(System.getProperty("MaxSlippageExit"))/100; // divide by 100 as input was a percentage
-        this.skipAfterWins=Boolean.getBoolean(System.getProperty("SkipAfterWins"));
+        this.skipAfterWins=System.getProperty("SkipAfterWins")==null?false:Boolean.getBoolean(System.getProperty("SkipAfterWins"));
+        checkForHistoricalLiquidity=System.getProperty("CheckForHistoricalLiquidity")==null?true:Boolean.getBoolean(System.getProperty("CheckForHistoricalLiquidity"));
+        checkForDirectionalBreaches=System.getProperty("CheckForDirectionalBreaches")==null?true:Boolean.getBoolean(System.getProperty("CheckForDirectionalBreaches"));
+        checkADRTrend=System.getProperty("CheckADRTrend")==null?true:Boolean.getBoolean(System.getProperty("CheckADRTrend"));
         this.maxOpenPositionsLimit=Integer.parseInt(System.getProperty("MaximumOpenPositions")); //this property does not work with advance entry orders
         pointValue=Double.parseDouble(System.getProperty("PointValue"));
         logger.log(Level.INFO, "-----Turtle Parameters----");
@@ -252,10 +257,13 @@ TimerTask realTimeBars = new TimerTask(){
         logger.log(Level.INFO, "Profit Target: {0}", tempprofitTarget);
         logger.log(Level.INFO, "Max Slippage Entry: {0}", maxSlippageEntry);
         logger.log(Level.INFO, "Max Slippage Exit: {0}", maxSlippageExit);
-        logger.log(Level.INFO, "Skip After Wins: {0}", skipAfterWins);
         logger.log(Level.INFO, "PointValue: {0}", pointValue);  
-        logger.log(Level.INFO, "Max Open Positions: {0}", maxOpenPositionsLimit);          
-    }
+        logger.log(Level.INFO, "Max Open Positions: {0}", maxOpenPositionsLimit);
+        logger.log(Level.INFO, "Skip After Wins: {0}", skipAfterWins);
+        logger.log(Level.INFO, "Check for Historical Liquidity: {0}", checkForHistoricalLiquidity);
+        logger.log(Level.INFO, "Check for directional breaches: {0}", checkForDirectionalBreaches);
+        logger.log(Level.INFO, "Check ADR Trend: {0}", checkADRTrend);
+      }
     
     private void getHistoricalData(){
         try {
@@ -643,6 +651,7 @@ TimerTask realTimeBars = new TimerTask(){
             }
         }
     }
+    
     @Override
     public synchronized void tradeReceived(TradeEvent event) {
 
@@ -721,17 +730,22 @@ TimerTask realTimeBars = new TimerTask(){
                 });
             }
 
-            if (tradeable && this.getNotionalPosition().get(id) == 0 && this.getCumVolume().get(id).size() >= this.getChannelDuration()) { //basic conditions met for testing entry
-                if (longOnly && ruleHighestHigh && (exPriceBarLong.get(id) && sourceBars || (!sourceBars && ruleCumVolumeLong && ruleSlopeLong && ruleVolumeLong)) && this.getLastOrderDate().compareTo(new Date()) > 0 && breachup > 0.5 && this.getBreachDown().get(id) >= 1) {
+            if (this.getNotionalPosition().get(id) == 0 && this.getCumVolume().get(id).size() >= this.getChannelDuration()) { //basic conditions met for testing entry
+                if (longOnly && ruleHighestHigh && (exPriceBarLong.get(id) && sourceBars || (!sourceBars && ruleCumVolumeLong && ruleSlopeLong && ruleVolumeLong)) && getLastOrderDate().compareTo(new Date()) > 0) {//basic turtle condition for long entry
                     //Buy Condition
                     this.getNotionalPosition().set(id, 1L);
                     int size = this.getExposure() != 0 ? (int) (this.getExposure() / Parameters.symbol.get(id).getLastPrice()) : Parameters.symbol.get(id).getMinsize();
                     logger.log(Level.FINE, "Buy. Symbol:{0},LL:{1},LastPrice:{2},HH{3},Slope:{4},SlopeThreshold:{5},Volume:{6},VolumeMA:{7}, Breachup:{8},Breachdown:{9}, ADRHigh:{10}, ADRLow:{11}, ADRAvg:{12}, ADR:{13}, ADRRTIN:{14}",
                             new Object[]{Parameters.symbol.get(id).getSymbol(), this.getLowestLow().get(id).toString(), Parameters.symbol.get(id).getLastPrice(), this.getHighestHigh().get(id).toString(), this.getSlope().get(id).toString(), String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeLongMultiplier() / 375), this.getVolume().get(id).toString(), this.getVolumeMA().get(id).toString(), this.getBreachUp().get(id) + 1, this.getBreachDown().get(id),ADR.adrDayHigh,ADR.adrDayLow,ADR.adrAvg, ADR.adr,ADR.adrTRIN
                     });
-                    getTrades().put(internalorderID, new Trade(id,EnumOrderSide.BUY,this.getHighestHigh().get(id),size,this.internalorderID++));
+                    //check for filters
+                    boolean liquidity=this.checkForHistoricalLiquidity==true?tradeable:true;
+                    boolean breaches=checkForDirectionalBreaches==true?breachup > 0.5 && this.getBreachDown().get(id) >= 1:true;
+                    boolean donotskip=skipAfterWins==true?lastTradeWasLosing.get(id):true;
+                    boolean adrtrend=checkADRTrend==true?(ADR.adr>ADR.adrDayLow+0.75*(ADR.adrDayHigh-ADR.adrDayLow)||ADR.adr>ADR.adrAvg+2) && ADR.adrTRIN<90:true;
+                    getTrades().put(internalorderID, new Trade(id,EnumOrderSide.BUY,this.getHighestHigh().get(id),size,this.internalorderID++,liquidity && breaches && donotskip && adrtrend));
                     this.internalOpenOrders.put(id, this.internalorderID-1);
-                    if((!skipAfterWins || lastTradeWasLosing.get(id)) && (ADR.adr>ADR.adrDayLow+0.75*(ADR.adrDayHigh-ADR.adrDayLow)||ADR.adr>ADR.adrAvg+2) && ADR.adrTRIN<90){
+                    if(liquidity && breaches && donotskip && adrtrend){
                     if (this.getAdvanceEntryOrder().get(id) == 0) { //no advance order present
                             getOms().tes.fireOrderEvent(this.internalorderID-1,this.internalorderID-1,Parameters.symbol.get(id), EnumOrderSide.BUY, size, this.getHighestHigh().get(id) + Parameters.symbol.get(id).getAggression(), 0, "idt", maxOrderDuration, exit, EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageEntry);
                     } else if (this.getAdvanceEntryOrder().get(id) == 1) {
@@ -742,18 +756,23 @@ TimerTask realTimeBars = new TimerTask(){
                     }
                     this.advanceEntryOrder.set(id, 0L);
                     }else{
-                        logger.log(Level.INFO,"Skip or ADR condition not met. Long order not placed for Symbol {0}",new Object[]{Parameters.symbol.get(id).getSymbol()});
+                        logger.log(Level.INFO,"Long order not placed for Symbol {0}. Filter: Liquidity: {1}, Directional Breach: {2}, Do No Skip Trade: {3}, ADR Trend: {4}",new Object[]{Parameters.symbol.get(id).getSymbol(),liquidity, breaches,donotskip,adrtrend});
                     }
-                } else if (shortOnly && ruleLowestLow && (exPriceBarShort.get(id) && sourceBars || (!sourceBars && ruleCumVolumeShort && ruleSlopeShort && ruleVolumeShort)) && this.getLastOrderDate().compareTo(new Date()) > 0 && breachdown > 0.5 && this.getBreachUp().get(id) >= 1) {
+                } else if (shortOnly && ruleLowestLow && (exPriceBarShort.get(id) && sourceBars || (!sourceBars && ruleCumVolumeShort && ruleSlopeShort && ruleVolumeShort)) && getLastOrderDate().compareTo(new Date()) > 0) {
                     //Short condition
                     this.getNotionalPosition().set(id, -1L);
                     int size = this.getExposure() != 0 ? (int) (this.getExposure() / Parameters.symbol.get(id).getLastPrice()) : Parameters.symbol.get(id).getMinsize();
                     logger.log(Level.FINE, "Short. Symbol:{0},LL:{1},LastPrice:{2},HH{3},Slope:{4},SlopeThreshold:{5},Volume:{6},VolumeMA:{7},Breachup:{8},Breachdown:{9}, ADRHigh:{10}, ADRLow:{11}, ADRAvg:{12}, ADR:{13}, ADRRTIN:{14}",
                             new Object[]{Parameters.symbol.get(id).getSymbol(), this.getLowestLow().get(id).toString(), Parameters.symbol.get(id).getLastPrice(), this.getHighestHigh().get(id).toString(), this.getSlope().get(id).toString(), String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeLongMultiplier() / 375), this.getVolume().get(id).toString(), this.getVolumeMA().get(id).toString(), this.getBreachUp().get(id), this.getBreachUp().get(id) + 1,ADR.adrDayHigh,ADR.adrDayLow,ADR.adrAvg,ADR.adr,ADR.adrTRIN
                     });
-                    getTrades().put(internalorderID, new Trade(id,EnumOrderSide.SHORT,this.getLowestLow().get(id),size,this.internalorderID++));
+                    //check for filters
+                    boolean liquidity=this.checkForHistoricalLiquidity==true?tradeable:true;
+                    boolean breaches=checkForDirectionalBreaches==true?breachdown > 0.5 && this.getBreachUp().get(id) >= 1:true;
+                    boolean donotskip=skipAfterWins==true?lastTradeWasLosing.get(id):true;
+                    boolean adrtrend=checkADRTrend==true?(ADR.adr<ADR.adrDayHigh-0.75*(ADR.adrDayHigh-ADR.adrDayLow)||ADR.adr<ADR.adrAvg-2) && ADR.adrTRIN>90:true;
+                    getTrades().put(internalorderID, new Trade(id,EnumOrderSide.SHORT,this.getLowestLow().get(id),size,this.internalorderID++,liquidity && breaches && donotskip && adrtrend));
                     this.internalOpenOrders.put(id, this.internalorderID-1);
-                    if((!skipAfterWins || lastTradeWasLosing.get(id))&& (ADR.adr<ADR.adrDayHigh-0.75*(ADR.adrDayHigh-ADR.adrDayLow)||ADR.adr<ADR.adrAvg-2) && ADR.adrTRIN>90){
+                    if(liquidity && breaches && donotskip && adrtrend){
                     if (this.getAdvanceEntryOrder().get(id) == 0) {
                             getOms().tes.fireOrderEvent(this.internalorderID-1,this.internalorderID-1,Parameters.symbol.get(id), EnumOrderSide.SHORT, size, this.getLowestLow().get(id) - Parameters.symbol.get(id).getAggression(), 0, "idt", maxOrderDuration, exit, EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageEntry);
                     } else if (this.getAdvanceEntryOrder().get(id) == -1) {
@@ -764,7 +783,7 @@ TimerTask realTimeBars = new TimerTask(){
                     }
                     this.advanceEntryOrder.set(id, 0L);
                     }else{
-                        logger.log(Level.INFO,"Skip or ADR condition not met. Short order not placed for Symbol {0}",new Object[]{Parameters.symbol.get(id).getSymbol()});
+                        logger.log(Level.INFO,"Short order not placed for Symbol {0}. Filter: Liquidity: {1}, Directional Breach: {2}, Do No Skip Trade: {3}, ADR Trend: {4}",new Object[]{Parameters.symbol.get(id).getSymbol(),liquidity, breaches,donotskip,adrtrend});
                     }
 
                 }

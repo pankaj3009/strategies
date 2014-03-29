@@ -13,13 +13,11 @@ import com.incurrency.framework.BeanSymbol;
 import com.incurrency.framework.DateUtil;
 import com.incurrency.framework.EnumOrderIntent;
 import com.incurrency.framework.EnumOrderSide;
-import com.incurrency.framework.Launch;
 import com.incurrency.framework.Parameters;
 import com.incurrency.framework.ProfitLossManager;
 import com.incurrency.framework.Trade;
 import com.incurrency.framework.TradeEvent;
 import com.incurrency.framework.TradeListener;
-import com.incurrency.framework.TradingEventSupport;
 import com.incurrency.framework.TradingUtil;
 import java.io.FileInputStream;
 import java.io.FileWriter;
@@ -383,7 +381,7 @@ public class ADR implements TradeListener,UpdateListener{
             file = new FileWriter(filename, false);
             String[] header = new String[]{
                 "entrySymbol", "entryType", "entryExpiry", "entryRight", "entryStrike",
-                "entrySide", "entryPrice", "entrySize", "entryTime", "entryID", "exitSymbol",
+                "entrySide", "entryPrice", "entrySize", "entryTime", "entryID", "filtered","exitSymbol",
                 "exitType", "exitExpiry", "exitRight", "exitStrike", "exitSide", "exitPrice",
                 "exitSize", "exitTime", "exitID"};
             CsvBeanWriter orderWriter = new CsvBeanWriter(file, CsvPreference.EXCEL_PREFERENCE);

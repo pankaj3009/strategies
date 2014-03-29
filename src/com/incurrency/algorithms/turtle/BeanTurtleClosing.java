@@ -43,7 +43,7 @@ public class BeanTurtleClosing extends TimerTask {
             file = new FileWriter(filename, false);
             String[] header = new String[]{
                 "entrySymbol", "entryType", "entryExpiry", "entryRight", "entryStrike",
-                "entrySide", "entryPrice", "entrySize", "entryTime", "entryID", "exitSymbol",
+                "entrySide", "entryPrice", "entrySize", "entryTime", "entryID","filtered","exitSymbol",
                 "exitType", "exitExpiry", "exitRight", "exitStrike", "exitSide", "exitPrice",
                 "exitSize", "exitTime", "exitID"};
             CsvBeanWriter ordersWriter = new CsvBeanWriter(file, CsvPreference.EXCEL_PREFERENCE);
