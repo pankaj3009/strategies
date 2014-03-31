@@ -83,6 +83,8 @@ public class ADR implements TradeListener,UpdateListener{
     private int dynamicOrderDuration=1;
     private String futBrokerageFile;
     private ArrayList <BrokerageRate> brokerageRate =new ArrayList<>();
+    private String tradeFile;
+    private String orderFile;
        
     
     //----- updated by ADRListener and TickListener
@@ -185,7 +187,10 @@ public class ADR implements TradeListener,UpdateListener{
         maxOrderDuration = Integer.parseInt(System.getProperty("MaxOrderDuration"));
         dynamicOrderDuration = Integer.parseInt(System.getProperty("DynamicOrderDuration"));
         futBrokerageFile=System.getProperty("BrokerageFile")==null?"":System.getProperty("BrokerageFile");
-       
+        tradeFile=System.getProperty("TradeFile");
+        orderFile=System.getProperty("OrderFile");
+        
+        
         logger.log(Level.INFO, "-----ADR Parameters----");
         logger.log(Level.INFO, "end Time: {0}", endDate);
         logger.log(Level.INFO, "Setup to Trade: {0}", trading);
@@ -207,6 +212,9 @@ public class ADR implements TradeListener,UpdateListener{
         logger.log(Level.INFO, "Max Order Duration: {0}", maxOrderDuration);
         logger.log(Level.INFO, "Dynamic Order Duration: {0}", dynamicOrderDuration);
         logger.log(Level.INFO, "Brokerage File: {0}", futBrokerageFile);
+        logger.log(Level.INFO, "Trade File: {0}", tradeFile);
+        logger.log(Level.INFO, "Order File: {0}", orderFile);
+        
                 if(futBrokerageFile.compareTo("")!=0){
             try {
                 p.clear();
@@ -318,7 +326,7 @@ public class ADR implements TradeListener,UpdateListener{
             else if(shortZone && (tick>55  || tickTRIN<80) && shortOnly){
                 entryPrice=price;
                 this.internalOpenOrders.put(id, internalOrderID);
-                trades.put(this.internalOrderID, new Trade(id,EnumOrderSide.BUY,entryPrice,numberOfContracts,internalOrderID++));
+                trades.put(this.internalOrderID, new Trade(id,EnumOrderSide.SHORT,entryPrice,numberOfContracts,internalOrderID++));
                 logger.log(Level.INFO," Strategy: ADR. adrHigh: {0},adrLow: {1},adrAvg: {2},adrTRINHigh: {3},adrTRINLow: {4},adrTRINAvg: {5},indexHigh :{6},indexLow :{7},indexAvg: {8}, buyZone1: {9}, buyZone2: {10}, buyZone 3: {11}, shortZone1: {12}, shortZone2: {13}, ShortZone3:{14}, ADR: {15}, ADRTrin: {16}, Tick: {17}, TickTrin: {18}, adrDayHigh: {19}, adrDayLow: {20}, IndexDayHigh: {21}, IndexDayLow: {22}",new Object[]{adrHigh,adrLow,adrAvg,adrTRINHigh,adrTRINLow,adrTRINAvg,indexHigh,indexLow,indexAvg,buyZone1,buyZone2,buyZone3,shortZone1,shortZone2,shortZone3,adr,adrTRIN,tick,tickTRIN,adrDayHigh,adrDayLow,indexDayHigh,indexDayLow});
                 logger.log(Level.INFO,"Strategy: ADR. Short Order. Price: {0}",new Object[]{price});
                 getOmsADR().tes.fireOrderEvent(internalOrderID-1,internalOrderID-1,Parameters.symbol.get(id), EnumOrderSide.SHORT, numberOfContracts, price, 0, "adr", 3, "", EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageEntry);
@@ -357,7 +365,7 @@ public class ADR implements TradeListener,UpdateListener{
                 }else if(!buyZone && price>entryPrice+takeProfit){
                     int tempinternalOrderID=internalOpenOrders.get(id);
                     Trade tempTrade=trades.get(tempinternalOrderID);
-                    tempTrade.updateExit(id, EnumOrderSide.COVER, price, numberOfContracts, internalOrderID++);
+                    tempTrade.updateExit(id, EnumOrderSide.SELL, price, numberOfContracts, internalOrderID++);
                     logger.log(Level.INFO," Strategy: ADR. adrHigh: {0},adrLow: {1},adrAvg: {2},adrTRINHigh: {3},adrTRINLow: {4},adrTRINAvg: {5},indexHigh :{6},indexLow :{7},indexAvg: {8}, buyZone1: {9}, buyZone2: {10}, buyZone 3: {11}, shortZone1: {12}, shortZone2: {13}, ShortZone3:{14}, ADR: {15}, ADRTrin: {16}, Tick: {17}, TickTrin: {18}, adrDayHigh: {19}, adrDayLow: {20}, IndexDayHigh: {21}, IndexDayLow: {22}",new Object[]{adrHigh,adrLow,adrAvg,adrTRINHigh,adrTRINLow,adrTRINAvg,indexHigh,indexLow,indexAvg,buyZone1,buyZone2,buyZone3,shortZone1,shortZone2,shortZone3,adr,adrTRIN,tick,tickTRIN,adrDayHigh,adrDayLow,indexDayHigh,indexDayLow});
                     logger.log(Level.INFO,"Strategy ADR. Sell Order. TakeProfit. Price: {0}",new Object[]{price});
                     getOmsADR().tes.fireOrderEvent(internalOrderID-1,tempinternalOrderID,Parameters.symbol.get(id), EnumOrderSide.SELL, numberOfContracts, price, 0, "adr", 3, "", EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageExit);
@@ -420,8 +428,8 @@ public class ADR implements TradeListener,UpdateListener{
         try {
             String fileSuffix=DateUtil.getFormatedDate("yyyyMMdd_HHmmss", new Date().getTime());
             //String filename="ordersADR"+fileSuffix+".csv";
-            String filename="ordersADR"+".csv";
-            profitGrid=TradingUtil.applyBrokerage(trades, brokerageRate,pointValue);
+            String filename=orderFile+".csv";
+            profitGrid=TradingUtil.applyBrokerage(trades, brokerageRate,pointValue,orderFile);
             TradingUtil.writeToFile("body.txt", "-----------------Orders:ADR----------------------");
             TradingUtil.writeToFile("body.txt", "Gross P&L today:"+profitGrid[0]);
             TradingUtil.writeToFile("body.txt", "Brokerage today:"+profitGrid[1]);
@@ -442,8 +450,8 @@ public class ADR implements TradeListener,UpdateListener{
             orderWriter.close();
             logger.log(Level.INFO,"Clean Exit after writing orders");
             //filename="tradesADR"+fileSuffix+".csv";
-            filename="tradesADR"+".csv";
-            profitGrid=TradingUtil.applyBrokerage(getOmsADR().getTrades(), brokerageRate,pointValue);
+            filename=tradeFile+".csv";
+            profitGrid=TradingUtil.applyBrokerage(getOmsADR().getTrades(), brokerageRate,pointValue,tradeFile);
             TradingUtil.writeToFile("body.txt", "-----------------Trades:ADR----------------------");
             TradingUtil.writeToFile("body.txt", "Gross P&L today:"+profitGrid[0]);
             TradingUtil.writeToFile("body.txt", "Brokerage today:"+profitGrid[1]);

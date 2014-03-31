@@ -106,6 +106,8 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
     private boolean skipAfterWins=false;
     private boolean checkADRTrend=true;
     private String futBrokerageFile;
+    private String tradeFile;
+    private String orderFile;
     private ArrayList <BrokerageRate> brokerageRate =new ArrayList<>();
 
     public BeanTurtle(MainAlgorithm m) {
@@ -244,6 +246,9 @@ TimerTask realTimeBars = new TimerTask(){
         this.maxOpenPositionsLimit=Integer.parseInt(System.getProperty("MaximumOpenPositions")); //this property does not work with advance entry orders
         pointValue=Double.parseDouble(System.getProperty("PointValue"));
         futBrokerageFile=System.getProperty("BrokerageFile")==null?"":System.getProperty("BrokerageFile");
+        tradeFile=System.getProperty("TradeFile");
+        orderFile=System.getProperty("OrderFile");
+        
         logger.log(Level.INFO, "-----Turtle Parameters----");
         logger.log(Level.INFO, "start Time: {0}", startDate);
         logger.log(Level.INFO, "Last Order Time: {0}", lastOrderDate);
@@ -273,6 +278,8 @@ TimerTask realTimeBars = new TimerTask(){
         logger.log(Level.INFO, "Check for directional breaches: {0}", checkForDirectionalBreaches);
         logger.log(Level.INFO, "Check ADR Trend: {0}", checkADRTrend);
         logger.log(Level.INFO, "Brokerage File: {0}",futBrokerageFile);
+        logger.log(Level.INFO, "Trade File: {0}",tradeFile);
+        logger.log(Level.INFO, "Order File: {0}",orderFile);
         if(futBrokerageFile.compareTo("")!=0){
             try {
                 //retrieve parameters from brokerage file
@@ -388,8 +395,8 @@ TimerTask realTimeBars = new TimerTask(){
         try {
             String fileSuffix=DateUtil.getFormatedDate("yyyyMMdd_HHmmss", new Date().getTime());
             //String filename="ordersIDT"+fileSuffix+".csv";
-            String filename="ordersIDT"+".csv";
-            profitGrid=TradingUtil.applyBrokerage(trades, brokerageRate, pointValue);
+            String filename=orderFile+".csv";
+            profitGrid=TradingUtil.applyBrokerage(trades, brokerageRate, pointValue,orderFile);
             TradingUtil.writeToFile("body.txt", "-----------------Orders:IDT----------------------");
             TradingUtil.writeToFile("body.txt", "Gross P&L today:"+profitGrid[0]);
             TradingUtil.writeToFile("body.txt", "Brokerage today:"+profitGrid[1]);
@@ -410,8 +417,8 @@ TimerTask realTimeBars = new TimerTask(){
             ordersWriter.close();
             System.out.println("Clean Exit after writing orders");
             //filename="tradesIDT"+fileSuffix+".csv";
-            filename="tradesIDT"+".csv";
-            profitGrid=TradingUtil.applyBrokerage(oms.getTrades(), brokerageRate,pointValue);
+            filename=tradeFile+".csv";
+            profitGrid=TradingUtil.applyBrokerage(oms.getTrades(), brokerageRate,pointValue,tradeFile);
             TradingUtil.writeToFile("body.txt", "-----------------Trades:IDT----------------------");
             TradingUtil.writeToFile("body.txt", "Gross P&L today:"+profitGrid[0]);
             TradingUtil.writeToFile("body.txt", "Brokerage today:"+profitGrid[1]);
