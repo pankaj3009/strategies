@@ -10,6 +10,7 @@ import com.incurrency.algorithms.adr.ADR;
 import com.incurrency.framework.*;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Serializable;
 import java.sql.Connection;
@@ -31,6 +32,8 @@ import org.apache.commons.math3.stat.regression.SimpleRegression;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.regex.Pattern;
+import org.supercsv.io.CsvBeanWriter;
+import org.supercsv.prefs.CsvPreference;
 
 /**
  *
@@ -55,6 +58,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
     private ArrayList<Long> advanceExitOrder = new ArrayList();
     private HashMap<Integer,Trade> trades = new HashMap();
     private static Date startDate;
+    private String startTime;
     private static Date lastOrderDate;
     private static Date endDate;
     private static Date closeDate;
@@ -101,6 +105,8 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
     private boolean checkForDirectionalBreaches=true;
     private boolean skipAfterWins=false;
     private boolean checkADRTrend=true;
+    private String futBrokerageFile;
+    private ArrayList <BrokerageRate> brokerageRate =new ArrayList<>();
 
     public BeanTurtle(MainAlgorithm m) {
         this.m = m;
@@ -152,7 +158,9 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
         getHistoricalData();
         Launch.setMessage("Waiting for market open");
         closeProcessing = new Timer();
-        closeProcessing.schedule(new BeanTurtleClosing(this, getOms()), closeDate);
+        //closeProcessing.schedule(new BeanTurtleClosing(this, getOms()), closeDate);
+        Timer closeProcessing=new Timer();
+        closeProcessing.schedule(runPrintOrders, com.incurrency.framework.DateUtil.addSeconds(endDate, 60));
         openProcessing = new Timer();
         if(new Date().compareTo(startDate)<0){ // if time is before startdate, schedule realtime bars
         openProcessing.schedule(realTimeBars, startDate);
@@ -182,7 +190,7 @@ TimerTask realTimeBars = new TimerTask(){
         }
         System.setProperties(p);
         
-
+        startTime = System.getProperty("StartTime");
         String currDateStr = DateUtil.getFormatedDate("yyyyMMdd", Parameters.connection.get(0).getConnectionTime());
         String startDateStr=currDateStr + " " + System.getProperty("StartTime");
         String lastOrderDateStr = currDateStr + " " + System.getProperty("LastOrderTime");
@@ -229,12 +237,13 @@ TimerTask realTimeBars = new TimerTask(){
         display = Integer.parseInt(System.getProperty("Display"));
         maxSlippageEntry=Double.parseDouble(System.getProperty("MaxSlippageEntry"))/100; // divide by 100 as input was a percentage
         maxSlippageExit=Double.parseDouble(System.getProperty("MaxSlippageExit"))/100; // divide by 100 as input was a percentage
-        this.skipAfterWins=System.getProperty("SkipAfterWins")==null?false:Boolean.getBoolean(System.getProperty("SkipAfterWins"));
-        checkForHistoricalLiquidity=System.getProperty("CheckForHistoricalLiquidity")==null?true:Boolean.getBoolean(System.getProperty("CheckForHistoricalLiquidity"));
-        checkForDirectionalBreaches=System.getProperty("CheckForDirectionalBreaches")==null?true:Boolean.getBoolean(System.getProperty("CheckForDirectionalBreaches"));
-        checkADRTrend=System.getProperty("CheckADRTrend")==null?true:Boolean.getBoolean(System.getProperty("CheckADRTrend"));
+        this.skipAfterWins=System.getProperty("SkipAfterWins")==null?false:Boolean.valueOf(System.getProperty("SkipAfterWins"));
+        checkForHistoricalLiquidity=System.getProperty("CheckForHistoricalLiquidity")==null?true:Boolean.valueOf(System.getProperty("CheckForHistoricalLiquidity"));
+        checkForDirectionalBreaches=System.getProperty("CheckForDirectionalBreaches")==null?true:Boolean.valueOf(System.getProperty("CheckForDirectionalBreaches"));
+        checkADRTrend=System.getProperty("CheckADRTrend")==null?true:Boolean.valueOf(System.getProperty("CheckADRTrend"));
         this.maxOpenPositionsLimit=Integer.parseInt(System.getProperty("MaximumOpenPositions")); //this property does not work with advance entry orders
         pointValue=Double.parseDouble(System.getProperty("PointValue"));
+        futBrokerageFile=System.getProperty("BrokerageFile")==null?"":System.getProperty("BrokerageFile");
         logger.log(Level.INFO, "-----Turtle Parameters----");
         logger.log(Level.INFO, "start Time: {0}", startDate);
         logger.log(Level.INFO, "Last Order Time: {0}", lastOrderDate);
@@ -263,8 +272,49 @@ TimerTask realTimeBars = new TimerTask(){
         logger.log(Level.INFO, "Check for Historical Liquidity: {0}", checkForHistoricalLiquidity);
         logger.log(Level.INFO, "Check for directional breaches: {0}", checkForDirectionalBreaches);
         logger.log(Level.INFO, "Check ADR Trend: {0}", checkADRTrend);
+        logger.log(Level.INFO, "Brokerage File: {0}",futBrokerageFile);
+        if(futBrokerageFile.compareTo("")!=0){
+            try {
+                //retrieve parameters from brokerage file
+                 p.clear();
+                 propFile = new FileInputStream(futBrokerageFile);
+                try {
+                    p.load(propFile);
+                    System.setProperties(p);      
+                } catch (IOException ex) {
+                    logger.log(Level.SEVERE, null, ex);
+                }
+            } catch (FileNotFoundException ex) {
+               logger.log(Level.SEVERE, null, ex);
+            }
+                 
+            String brokerage1=System.getProperty("Brokerage");
+            String addOn1=System.getProperty("AddOn1");
+            String addOn2=System.getProperty("AddOn2");
+            String addOn3=System.getProperty("AddOn3");
+            String addOn4=System.getProperty("AddOn4");
+            
+            if(brokerage1!=null){
+                getBrokerageRate().add(TradingUtil.parseBrokerageString(brokerage1, "FUT"));
+            }
+            if(addOn1!=null){
+                getBrokerageRate().add(TradingUtil.parseBrokerageString(addOn1, "FUT"));
+            }
+            if(addOn2!=null){
+                getBrokerageRate().add(TradingUtil.parseBrokerageString(addOn2, "FUT"));
+            }
+            if(addOn3!=null){
+                getBrokerageRate().add(TradingUtil.parseBrokerageString(addOn3, "FUT"));
+            }
+            if(addOn4!=null){
+                getBrokerageRate().add(TradingUtil.parseBrokerageString(addOn4, "FUT"));
+            }           
+               
+        }
       }
     
+      
+      
     private void getHistoricalData(){
         try {
             //get historical data - this can be done before start time, assuming the program is started next day
@@ -324,6 +374,63 @@ TimerTask realTimeBars = new TimerTask(){
                 + "ruleHighestHigh" + "," + "ruleCumVolumeLong" + "," + "ruleSlopeLong" + "," + "ruleVolumeLong" + "," + "ruleLowestLow" + ","
                 + "ruleCumVolumeShort" + "," + "ruleSlopeShort" + "," + "ruleVolumeShort");
     }
+    
+    TimerTask runPrintOrders = new TimerTask(){
+    public void run(){
+        printOrders();
+    }
+};
+    
+    public void printOrders(){
+                FileWriter file;
+                double[] profitGrid=new double[5];
+
+        try {
+            String fileSuffix=DateUtil.getFormatedDate("yyyyMMdd_HHmmss", new Date().getTime());
+            //String filename="ordersIDT"+fileSuffix+".csv";
+            String filename="ordersIDT"+".csv";
+            profitGrid=TradingUtil.applyBrokerage(trades, brokerageRate, pointValue);
+            TradingUtil.writeToFile("body.txt", "-----------------Orders:IDT----------------------");
+            TradingUtil.writeToFile("body.txt", "Gross P&L today:"+profitGrid[0]);
+            TradingUtil.writeToFile("body.txt", "Brokerage today:"+profitGrid[1]);
+            TradingUtil.writeToFile("body.txt", "Net P&L today:"+profitGrid[2]);
+            TradingUtil.writeToFile("body.txt", "MTD P&L"+profitGrid[3]);
+            TradingUtil.writeToFile("body.txt", "YTD P&L:"+profitGrid[4]);
+            file = new FileWriter(filename, true);
+            String[] header = new String[]{
+                "entrySymbol", "entryType", "entryExpiry", "entryRight", "entryStrike",
+                "entrySide", "entryPrice", "entrySize", "entryTime", "entryID","entryBrokerage" ,"filtered","exitSymbol",
+                "exitType", "exitExpiry", "exitRight", "exitStrike", "exitSide", "exitPrice",
+                "exitSize", "exitTime", "exitID","exitBrokerage"};
+            CsvBeanWriter ordersWriter = new CsvBeanWriter(file, CsvPreference.EXCEL_PREFERENCE);
+            ordersWriter.writeHeader(header);
+            for (Map.Entry<Integer, Trade> order : trades.entrySet()) {
+                ordersWriter.write(order.getValue(), header, Parameters.getTradeProcessors());
+            }
+            ordersWriter.close();
+            System.out.println("Clean Exit after writing orders");
+            //filename="tradesIDT"+fileSuffix+".csv";
+            filename="tradesIDT"+".csv";
+            profitGrid=TradingUtil.applyBrokerage(oms.getTrades(), brokerageRate,pointValue);
+            TradingUtil.writeToFile("body.txt", "-----------------Trades:IDT----------------------");
+            TradingUtil.writeToFile("body.txt", "Gross P&L today:"+profitGrid[0]);
+            TradingUtil.writeToFile("body.txt", "Brokerage today:"+profitGrid[1]);
+            TradingUtil.writeToFile("body.txt", "Net P&L today:"+profitGrid[2]);
+            TradingUtil.writeToFile("body.txt", "MTD P&L"+profitGrid[3]);
+            TradingUtil.writeToFile("body.txt", "YTD P&L:"+profitGrid[4]);
+            file = new FileWriter(filename, true);            
+            CsvBeanWriter tradeWriter = new CsvBeanWriter(file, CsvPreference.EXCEL_PREFERENCE);
+            tradeWriter.writeHeader(header);
+            for (Map.Entry<Integer, Trade> trade : oms.getTrades().entrySet()) {
+                tradeWriter.write(trade.getValue(), header, Parameters.getTradeProcessors());
+            }
+            tradeWriter.close();
+            System.out.println("Clean Exit after writing trades");
+           // System.exit(0);
+        } catch (IOException ex) {
+            logger.log(Level.SEVERE, null, ex);
+        }
+    }
 
     @Override
     public void barsReceived(HistoricalBarEvent event) {
@@ -360,7 +467,6 @@ TimerTask realTimeBars = new TimerTask(){
                     int barno = event.barNumber();
                     //logger.log(Level.FINE, "Bar No:{0}, Date={1}, Symbol:{2},FirstBarTime:{3}, LastBarTime:{4}, LastKey-FirstKey:{5}",
                             //new Object[]{barno, DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", event.ohlc().getOpenTime()), Parameters.symbol.get(id).getSymbol(), DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", event.list().firstKey()), DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", event.list().lastKey()), (event.list().lastKey() - event.list().firstKey()) / (1000 * 60)});
-                    String startTime = System.getProperty("StartTime");
                     SimpleDateFormat sdfDate = new SimpleDateFormat("HH:mm:ss");//dd/MM/yyyy
                     String firstBarTime = sdfDate.format(event.list().firstEntry().getKey());
                     if (firstBarTime.contains(startTime) && event.barNumber()==(event.list().lastEntry().getKey()-event.list().firstEntry().getKey())/60000+1 ) {//all bars till the latest bar are available
@@ -1482,5 +1588,19 @@ TimerTask realTimeBars = new TimerTask(){
      */
     public void setPlmanager(ProfitLossManager plmanager) {
         this.plmanager = plmanager;
+    }
+
+    /**
+     * @return the brokerageRate
+     */
+    public ArrayList <BrokerageRate> getBrokerageRate() {
+        return brokerageRate;
+    }
+
+    /**
+     * @param brokerageRate the brokerageRate to set
+     */
+    public void setBrokerageRate(ArrayList <BrokerageRate> brokerageRate) {
+        this.brokerageRate = brokerageRate;
     }
     }

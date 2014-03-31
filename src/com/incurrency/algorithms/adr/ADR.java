@@ -10,6 +10,7 @@ import com.espertech.esper.client.UpdateListener;
 import com.incurrency.framework.MainAlgorithm;
 import com.incurrency.framework.BeanConnection;
 import com.incurrency.framework.BeanSymbol;
+import com.incurrency.framework.BrokerageRate;
 import com.incurrency.framework.DateUtil;
 import com.incurrency.framework.EnumOrderIntent;
 import com.incurrency.framework.EnumOrderSide;
@@ -80,6 +81,8 @@ public class ADR implements TradeListener,UpdateListener{
     private double maxSlippageExit=0;
     private int maxOrderDuration=3;
     private int dynamicOrderDuration=1;
+    private String futBrokerageFile;
+    private ArrayList <BrokerageRate> brokerageRate =new ArrayList<>();
        
     
     //----- updated by ADRListener and TickListener
@@ -135,7 +138,7 @@ public class ADR implements TradeListener,UpdateListener{
         }
         plmanager=new ProfitLossManager("adr", this.adrSymbols, pointValue, profitTarget);
         Timer closeProcessing=new Timer();
-        closeProcessing.schedule(runPrintOrders, com.incurrency.framework.DateUtil.addSeconds(endDate, 600));
+        closeProcessing.schedule(runPrintOrders, com.incurrency.framework.DateUtil.addSeconds(endDate, 60));
         
     
         
@@ -181,6 +184,7 @@ public class ADR implements TradeListener,UpdateListener{
         maxSlippageExit=Double.parseDouble(System.getProperty("MaxSlippageExit"))/100; // divide by 100 as input was a percentage
         maxOrderDuration = Integer.parseInt(System.getProperty("MaxOrderDuration"));
         dynamicOrderDuration = Integer.parseInt(System.getProperty("DynamicOrderDuration"));
+        futBrokerageFile=System.getProperty("BrokerageFile")==null?"":System.getProperty("BrokerageFile");
        
         logger.log(Level.INFO, "-----ADR Parameters----");
         logger.log(Level.INFO, "end Time: {0}", endDate);
@@ -202,6 +206,44 @@ public class ADR implements TradeListener,UpdateListener{
         logger.log(Level.INFO, "Maximum slippage allowed for exit: {0}", maxSlippageExit);
         logger.log(Level.INFO, "Max Order Duration: {0}", maxOrderDuration);
         logger.log(Level.INFO, "Dynamic Order Duration: {0}", dynamicOrderDuration);
+        logger.log(Level.INFO, "Brokerage File: {0}", futBrokerageFile);
+                if(futBrokerageFile.compareTo("")!=0){
+            try {
+                p.clear();
+                //retrieve parameters from brokerage file
+                 propFile = new FileInputStream(futBrokerageFile);
+                try {
+                    p.load(propFile);
+                    System.setProperties(p); 
+                } catch (IOException ex) {
+                    logger.log(Level.SEVERE, null, ex);
+                }
+            } catch (Exception ex) {
+                logger.log(Level.SEVERE, null, ex);
+            }
+            String brokerage1=System.getProperty("Brokerage");
+            String addOn1=System.getProperty("AddOn1");
+            String addOn2=System.getProperty("AddOn2");
+            String addOn3=System.getProperty("AddOn3");
+            String addOn4=System.getProperty("AddOn4");
+            
+            if(brokerage1!=null){
+                getBrokerageRate().add(TradingUtil.parseBrokerageString(brokerage1, "FUT"));
+            }
+            if(addOn1!=null){
+                getBrokerageRate().add(TradingUtil.parseBrokerageString(addOn1, "FUT"));
+            }
+            if(addOn2!=null){
+                getBrokerageRate().add(TradingUtil.parseBrokerageString(addOn2, "FUT"));
+            }
+            if(addOn3!=null){
+                getBrokerageRate().add(TradingUtil.parseBrokerageString(addOn3, "FUT"));
+            }
+            if(addOn4!=null){
+                getBrokerageRate().add(TradingUtil.parseBrokerageString(addOn4, "FUT"));
+            }           
+               
+        }
 
     }
 
@@ -372,18 +414,26 @@ public class ADR implements TradeListener,UpdateListener{
         printOrders();
     }
 };
-    private void printOrders(){
+    public void printOrders(){
                 FileWriter file;
+                double[] profitGrid=new double[5];
         try {
             String fileSuffix=DateUtil.getFormatedDate("yyyyMMdd_HHmmss", new Date().getTime());
             //String filename="ordersADR"+fileSuffix+".csv";
             String filename="ordersADR"+".csv";
-            file = new FileWriter(filename, false);
+            profitGrid=TradingUtil.applyBrokerage(trades, brokerageRate,pointValue);
+            TradingUtil.writeToFile("body.txt", "-----------------Orders:ADR----------------------");
+            TradingUtil.writeToFile("body.txt", "Gross P&L today:"+profitGrid[0]);
+            TradingUtil.writeToFile("body.txt", "Brokerage today:"+profitGrid[1]);
+            TradingUtil.writeToFile("body.txt", "Net P&L today:"+profitGrid[2]);
+            TradingUtil.writeToFile("body.txt", "MTD P&L"+profitGrid[3]);
+            TradingUtil.writeToFile("body.txt", "YTD P&L:"+profitGrid[4]);
+            file = new FileWriter(filename, true);
             String[] header = new String[]{
                 "entrySymbol", "entryType", "entryExpiry", "entryRight", "entryStrike",
-                "entrySide", "entryPrice", "entrySize", "entryTime", "entryID", "filtered","exitSymbol",
+                "entrySide", "entryPrice", "entrySize", "entryTime", "entryID","entryBrokerage", "filtered","exitSymbol",
                 "exitType", "exitExpiry", "exitRight", "exitStrike", "exitSide", "exitPrice",
-                "exitSize", "exitTime", "exitID"};
+                "exitSize", "exitTime", "exitID","exitBrokerage"};
             CsvBeanWriter orderWriter = new CsvBeanWriter(file, CsvPreference.EXCEL_PREFERENCE);
             orderWriter.writeHeader(header);
             for (Map.Entry<Integer, Trade> order : trades.entrySet()) {
@@ -393,7 +443,14 @@ public class ADR implements TradeListener,UpdateListener{
             logger.log(Level.INFO,"Clean Exit after writing orders");
             //filename="tradesADR"+fileSuffix+".csv";
             filename="tradesADR"+".csv";
-            file = new FileWriter(filename, false);
+            profitGrid=TradingUtil.applyBrokerage(getOmsADR().getTrades(), brokerageRate,pointValue);
+            TradingUtil.writeToFile("body.txt", "-----------------Trades:ADR----------------------");
+            TradingUtil.writeToFile("body.txt", "Gross P&L today:"+profitGrid[0]);
+            TradingUtil.writeToFile("body.txt", "Brokerage today:"+profitGrid[1]);
+            TradingUtil.writeToFile("body.txt", "Net P&L today:"+profitGrid[2]);
+            TradingUtil.writeToFile("body.txt", "MTD P&L"+profitGrid[3]);
+            TradingUtil.writeToFile("body.txt", "YTD P&L:"+profitGrid[4]);
+            file = new FileWriter(filename, true);
             CsvBeanWriter tradeWriter = new CsvBeanWriter(file, CsvPreference.EXCEL_PREFERENCE);
             tradeWriter.writeHeader(header);
             for (Map.Entry<Integer, Trade> trade : getOmsADR().getTrades().entrySet()) {
@@ -489,5 +546,19 @@ public class ADR implements TradeListener,UpdateListener{
      */
     public void setPlmanager(ProfitLossManager plmanager) {
         this.plmanager = plmanager;
+    }
+
+    /**
+     * @return the brokerageRate
+     */
+    public ArrayList <BrokerageRate> getBrokerageRate() {
+        return brokerageRate;
+    }
+
+    /**
+     * @param brokerageRate the brokerageRate to set
+     */
+    public void setBrokerageRate(ArrayList <BrokerageRate> brokerageRate) {
+        this.brokerageRate = brokerageRate;
     }
 }
