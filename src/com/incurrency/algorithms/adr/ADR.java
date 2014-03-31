@@ -428,7 +428,7 @@ public class ADR implements TradeListener,UpdateListener{
         try {
             String fileSuffix=DateUtil.getFormatedDate("yyyyMMdd_HHmmss", new Date().getTime());
             //String filename="ordersADR"+fileSuffix+".csv";
-            String filename=orderFile+".csv";
+            String filename=orderFile;
             profitGrid=TradingUtil.applyBrokerage(trades, brokerageRate,pointValue,orderFile);
             TradingUtil.writeToFile("body.txt", "-----------------Orders:ADR----------------------");
             TradingUtil.writeToFile("body.txt", "Gross P&L today:"+profitGrid[0]);
@@ -450,7 +450,7 @@ public class ADR implements TradeListener,UpdateListener{
             orderWriter.close();
             logger.log(Level.INFO,"Clean Exit after writing orders");
             //filename="tradesADR"+fileSuffix+".csv";
-            filename=tradeFile+".csv";
+            filename=tradeFile;
             profitGrid=TradingUtil.applyBrokerage(getOmsADR().getTrades(), brokerageRate,pointValue,tradeFile);
             TradingUtil.writeToFile("body.txt", "-----------------Trades:ADR----------------------");
             TradingUtil.writeToFile("body.txt", "Gross P&L today:"+profitGrid[0]);
