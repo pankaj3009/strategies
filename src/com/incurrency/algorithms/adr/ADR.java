@@ -20,6 +20,7 @@ import com.incurrency.framework.Trade;
 import com.incurrency.framework.TradeEvent;
 import com.incurrency.framework.TradeListener;
 import com.incurrency.framework.TradingUtil;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -443,7 +444,9 @@ public class ADR implements TradeListener,UpdateListener{
                 "exitType", "exitExpiry", "exitRight", "exitStrike", "exitSide", "exitPrice",
                 "exitSize", "exitTime", "exitID","exitBrokerage"};
             CsvBeanWriter orderWriter = new CsvBeanWriter(file, CsvPreference.EXCEL_PREFERENCE);
+            if(!new File(filename).isFile()){//this ensures header is written only the first time
             orderWriter.writeHeader(header);
+            }
             for (Map.Entry<Integer, Trade> order : trades.entrySet()) {
                 orderWriter.write(order.getValue(), header, Parameters.getTradeProcessors());
             }
@@ -460,7 +463,9 @@ public class ADR implements TradeListener,UpdateListener{
             TradingUtil.writeToFile("body.txt", "YTD P&L:"+profitGrid[4]);
             file = new FileWriter(filename, true);
             CsvBeanWriter tradeWriter = new CsvBeanWriter(file, CsvPreference.EXCEL_PREFERENCE);
+            if(!new File(filename).isFile()){//this ensures header is written only the first time
             tradeWriter.writeHeader(header);
+            }
             for (Map.Entry<Integer, Trade> trade : getOmsADR().getTrades().entrySet()) {
                 tradeWriter.write(trade.getValue(), header, Parameters.getTradeProcessors());
             }
