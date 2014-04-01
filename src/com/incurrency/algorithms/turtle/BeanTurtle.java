@@ -411,9 +411,9 @@ TimerTask realTimeBars = new TimerTask(){
                 "exitType", "exitExpiry", "exitRight", "exitStrike", "exitSide", "exitPrice",
                 "exitSize", "exitTime", "exitID","exitBrokerage"};
             CsvBeanWriter ordersWriter = new CsvBeanWriter(file, CsvPreference.EXCEL_PREFERENCE);
-            if(!new File(filename).isFile()){//this ensures header is written only the first time
+ //           if(!new File(filename).isFile()){//this ensures header is written only the first time
             ordersWriter.writeHeader(header);
-            }
+ //           }
 
             for (Map.Entry<Integer, Trade> order : trades.entrySet()) {
                 ordersWriter.write(order.getValue(), header, Parameters.getTradeProcessors());
@@ -431,9 +431,9 @@ TimerTask realTimeBars = new TimerTask(){
             TradingUtil.writeToFile("body.txt", "YTD P&L:"+profitGrid[4]);
             file = new FileWriter(filename, true);            
             CsvBeanWriter tradeWriter = new CsvBeanWriter(file, CsvPreference.EXCEL_PREFERENCE);
-            if(!new File(filename).isFile()){//this ensures header is written only the first time
+ //           if(!new File(filename).isFile()){//this ensures header is written only the first time
             tradeWriter.writeHeader(header);
-            }
+ //           }
             for (Map.Entry<Integer, Trade> trade : oms.getTrades().entrySet()) {
                 tradeWriter.write(trade.getValue(), header, Parameters.getTradeProcessors());
             }
