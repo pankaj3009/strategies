@@ -159,7 +159,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
         populateLastTradePrice();
         //createAndShowGUI(m);
         getHistoricalData();
-        Launch.setMessage("Waiting for market open");
+        if (!Launch.headless) {Launch.setMessage("Waiting for market open");}
         closeProcessing = new Timer();
         //closeProcessing.schedule(new BeanTurtleClosing(this, getOms()), closeDate);
         Timer closeProcessing=new Timer();
