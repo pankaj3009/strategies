@@ -163,7 +163,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
         closeProcessing = new Timer();
         //closeProcessing.schedule(new BeanTurtleClosing(this, getOms()), closeDate);
         Timer closeProcessing=new Timer();
-        closeProcessing.schedule(runPrintOrders, com.incurrency.framework.DateUtil.addSeconds(endDate, 60));
+        closeProcessing.schedule(runPrintOrders, com.incurrency.framework.DateUtil.addSeconds(endDate, 300));
         openProcessing = new Timer();
         if(new Date().compareTo(startDate)<0){ // if time is before startdate, schedule realtime bars
         openProcessing.schedule(realTimeBars, startDate);

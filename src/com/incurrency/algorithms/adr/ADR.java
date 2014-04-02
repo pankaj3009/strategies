@@ -141,7 +141,7 @@ public class ADR implements TradeListener,UpdateListener{
         }
         plmanager=new ProfitLossManager("adr", this.adrSymbols, pointValue, profitTarget);
         Timer closeProcessing=new Timer();
-        closeProcessing.schedule(runPrintOrders, com.incurrency.framework.DateUtil.addSeconds(endDate, 60));
+        closeProcessing.schedule(runPrintOrders, com.incurrency.framework.DateUtil.addSeconds(endDate, 300));
         
     
         
