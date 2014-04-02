@@ -872,7 +872,7 @@ TimerTask realTimeBars = new TimerTask(){
                     boolean liquidity=this.checkForHistoricalLiquidity==true?tradeable:true;
                     boolean breaches=checkForDirectionalBreaches==true?breachup > 0.5 && this.getBreachDown().get(id) >= 1:true;
                     boolean donotskip=skipAfterWins==true?lastTradeWasLosing.get(id):true;
-                    boolean adrtrend=checkADRTrend==true?(ADR.adr>ADR.adrDayLow+0.75*(ADR.adrDayHigh-ADR.adrDayLow)||ADR.adr>ADR.adrAvg+2) && ADR.adrTRIN<90:true;
+                    boolean adrtrend=checkADRTrend==true?(ADR.adr>ADR.adrDayLow+0.75*(ADR.adrDayHigh-ADR.adrDayLow)||ADR.adr>ADR.adrAvg) && ADR.adrTRIN<90:true;
                     getTrades().put(internalorderID, new Trade(id,EnumOrderSide.BUY,this.getHighestHigh().get(id),size,this.internalorderID++,liquidity && breaches && donotskip && adrtrend));
                     this.internalOpenOrders.put(id, this.internalorderID-1);
                     if(liquidity && breaches && donotskip && adrtrend){
@@ -899,7 +899,7 @@ TimerTask realTimeBars = new TimerTask(){
                     boolean liquidity=this.checkForHistoricalLiquidity==true?tradeable:true;
                     boolean breaches=checkForDirectionalBreaches==true?breachdown > 0.5 && this.getBreachUp().get(id) >= 1:true;
                     boolean donotskip=skipAfterWins==true?lastTradeWasLosing.get(id):true;
-                    boolean adrtrend=checkADRTrend==true?(ADR.adr<ADR.adrDayHigh-0.75*(ADR.adrDayHigh-ADR.adrDayLow)||ADR.adr<ADR.adrAvg-2) && ADR.adrTRIN>90:true;
+                    boolean adrtrend=checkADRTrend==true?(ADR.adr<ADR.adrDayHigh-0.75*(ADR.adrDayHigh-ADR.adrDayLow)||ADR.adr<ADR.adrAvg) && ADR.adrTRIN>90:true;
                     getTrades().put(internalorderID, new Trade(id,EnumOrderSide.SHORT,this.getLowestLow().get(id),size,this.internalorderID++,liquidity && breaches && donotskip && adrtrend));
                     this.internalOpenOrders.put(id, this.internalorderID-1);
                     if(liquidity && breaches && donotskip && adrtrend){
