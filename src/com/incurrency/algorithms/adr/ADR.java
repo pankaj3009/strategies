@@ -438,7 +438,7 @@ public class ADR implements TradeListener,UpdateListener{
             TradingUtil.writeToFile("body.txt", "Net P&L today:"+profitGrid[2]);
             TradingUtil.writeToFile("body.txt", "MTD P&L"+profitGrid[3]);
             TradingUtil.writeToFile("body.txt", "YTD P&L:"+profitGrid[4]);
-            if(!new File(filename).exists()){
+            if(new File(filename).exists()){
                 writeHeader=false;
             }else{
                 writeHeader=true;
@@ -454,7 +454,7 @@ public class ADR implements TradeListener,UpdateListener{
             orderWriter.writeHeader(header);
             }
             for (Map.Entry<Integer, Trade> order : trades.entrySet()) {
-                orderWriter.write(order.getValue(), header, Parameters.getTradeProcessors());
+                orderWriter.write(order.getValue(), header, Parameters.getTradeProcessorsWrite());
             }
             orderWriter.close();
             logger.log(Level.INFO,"Clean Exit after writing orders");
@@ -467,7 +467,7 @@ public class ADR implements TradeListener,UpdateListener{
             TradingUtil.writeToFile("body.txt", "Net P&L today:"+profitGrid[2]);
             TradingUtil.writeToFile("body.txt", "MTD P&L"+profitGrid[3]);
             TradingUtil.writeToFile("body.txt", "YTD P&L:"+profitGrid[4]);
-            if(!new File(filename).exists()){
+            if(new File(filename).exists()){
                 writeHeader=false;
             }else{
                 writeHeader=true;
@@ -478,7 +478,7 @@ public class ADR implements TradeListener,UpdateListener{
             tradeWriter.writeHeader(header);
             }
             for (Map.Entry<Integer, Trade> trade : getOmsADR().getTrades().entrySet()) {
-                tradeWriter.write(trade.getValue(), header, Parameters.getTradeProcessors());
+                tradeWriter.write(trade.getValue(), header, Parameters.getTradeProcessorsWrite());
             }
             tradeWriter.close();
             logger.log(Level.INFO,"Clean Exit after writing trades");

@@ -405,7 +405,7 @@ TimerTask realTimeBars = new TimerTask(){
             TradingUtil.writeToFile("body.txt", "Net P&L today:"+profitGrid[2]);
             TradingUtil.writeToFile("body.txt", "MTD P&L"+profitGrid[3]);
             TradingUtil.writeToFile("body.txt", "YTD P&L:"+profitGrid[4]);
-            if(!new File(filename).exists()){
+            if(new File(filename).exists()){
                 writeHeader=false;
             }else{
                 writeHeader=true;
@@ -422,7 +422,7 @@ TimerTask realTimeBars = new TimerTask(){
             }
 
             for (Map.Entry<Integer, Trade> order : trades.entrySet()) {
-                ordersWriter.write(order.getValue(), header, Parameters.getTradeProcessors());
+                ordersWriter.write(order.getValue(), header, Parameters.getTradeProcessorsWrite());
             }
             ordersWriter.close();
             System.out.println("Clean Exit after writing orders");
@@ -435,7 +435,7 @@ TimerTask realTimeBars = new TimerTask(){
             TradingUtil.writeToFile("body.txt", "Net P&L today:"+profitGrid[2]);
             TradingUtil.writeToFile("body.txt", "MTD P&L"+profitGrid[3]);
             TradingUtil.writeToFile("body.txt", "YTD P&L:"+profitGrid[4]);
-            if(!new File(filename).exists()){
+            if(new File(filename).exists()){
                 writeHeader=false;
             }else{
                 writeHeader=true;
@@ -446,7 +446,7 @@ TimerTask realTimeBars = new TimerTask(){
             tradeWriter.writeHeader(header);
             }
             for (Map.Entry<Integer, Trade> trade : oms.getTrades().entrySet()) {
-                tradeWriter.write(trade.getValue(), header, Parameters.getTradeProcessors());
+                tradeWriter.write(trade.getValue(), header, Parameters.getTradeProcessorsWrite());
             }
             tradeWriter.close();
             System.out.println("Clean Exit after writing trades");
