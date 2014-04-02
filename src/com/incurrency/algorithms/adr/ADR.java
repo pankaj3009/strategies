@@ -427,6 +427,7 @@ public class ADR implements TradeListener,UpdateListener{
                 FileWriter file;
                 double[] profitGrid=new double[5];
         try {
+            boolean writeHeader=false;
             String fileSuffix=DateUtil.getFormatedDate("yyyyMMdd_HHmmss", new Date().getTime());
             //String filename="ordersADR"+fileSuffix+".csv";
             String filename=orderFile;
@@ -437,6 +438,11 @@ public class ADR implements TradeListener,UpdateListener{
             TradingUtil.writeToFile("body.txt", "Net P&L today:"+profitGrid[2]);
             TradingUtil.writeToFile("body.txt", "MTD P&L"+profitGrid[3]);
             TradingUtil.writeToFile("body.txt", "YTD P&L:"+profitGrid[4]);
+            if(!new File(filename).exists()){
+                writeHeader=false;
+            }else{
+                writeHeader=true;
+            }
             file = new FileWriter(filename, true);
             String[] header = new String[]{
                 "entrySymbol", "entryType", "entryExpiry", "entryRight", "entryStrike",
@@ -444,9 +450,9 @@ public class ADR implements TradeListener,UpdateListener{
                 "exitType", "exitExpiry", "exitRight", "exitStrike", "exitSide", "exitPrice",
                 "exitSize", "exitTime", "exitID","exitBrokerage"};
             CsvBeanWriter orderWriter = new CsvBeanWriter(file, CsvPreference.EXCEL_PREFERENCE);
-//            if(!new File(filename).exists()){//this ensures header is written only the first time
+            if(writeHeader){//this ensures header is written only the first time
             orderWriter.writeHeader(header);
- //           }
+            }
             for (Map.Entry<Integer, Trade> order : trades.entrySet()) {
                 orderWriter.write(order.getValue(), header, Parameters.getTradeProcessors());
             }
@@ -461,11 +467,16 @@ public class ADR implements TradeListener,UpdateListener{
             TradingUtil.writeToFile("body.txt", "Net P&L today:"+profitGrid[2]);
             TradingUtil.writeToFile("body.txt", "MTD P&L"+profitGrid[3]);
             TradingUtil.writeToFile("body.txt", "YTD P&L:"+profitGrid[4]);
+            if(!new File(filename).exists()){
+                writeHeader=false;
+            }else{
+                writeHeader=true;
+            }
             file = new FileWriter(filename, true);
             CsvBeanWriter tradeWriter = new CsvBeanWriter(file, CsvPreference.EXCEL_PREFERENCE);
-//            if(!new File(filename).exists()){//this ensures header is written only the first time
+            if(writeHeader){//this ensures header is written only the first time
             tradeWriter.writeHeader(header);
-//            }
+            }
             for (Map.Entry<Integer, Trade> trade : getOmsADR().getTrades().entrySet()) {
                 tradeWriter.write(trade.getValue(), header, Parameters.getTradeProcessors());
             }

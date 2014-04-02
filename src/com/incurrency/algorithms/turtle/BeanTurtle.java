@@ -392,6 +392,7 @@ TimerTask realTimeBars = new TimerTask(){
     public void printOrders(){
                 FileWriter file;
                 double[] profitGrid=new double[5];
+                boolean writeHeader=false;
 
         try {
             String fileSuffix=DateUtil.getFormatedDate("yyyyMMdd_HHmmss", new Date().getTime());
@@ -404,6 +405,11 @@ TimerTask realTimeBars = new TimerTask(){
             TradingUtil.writeToFile("body.txt", "Net P&L today:"+profitGrid[2]);
             TradingUtil.writeToFile("body.txt", "MTD P&L"+profitGrid[3]);
             TradingUtil.writeToFile("body.txt", "YTD P&L:"+profitGrid[4]);
+            if(!new File(filename).exists()){
+                writeHeader=false;
+            }else{
+                writeHeader=true;
+            }
             file = new FileWriter(filename, true);
             String[] header = new String[]{
                 "entrySymbol", "entryType", "entryExpiry", "entryRight", "entryStrike",
@@ -411,9 +417,9 @@ TimerTask realTimeBars = new TimerTask(){
                 "exitType", "exitExpiry", "exitRight", "exitStrike", "exitSide", "exitPrice",
                 "exitSize", "exitTime", "exitID","exitBrokerage"};
             CsvBeanWriter ordersWriter = new CsvBeanWriter(file, CsvPreference.EXCEL_PREFERENCE);
- //           if(!new File(filename).isFile()){//this ensures header is written only the first time
+            if(writeHeader){//this ensures header is written only the first time
             ordersWriter.writeHeader(header);
- //           }
+            }
 
             for (Map.Entry<Integer, Trade> order : trades.entrySet()) {
                 ordersWriter.write(order.getValue(), header, Parameters.getTradeProcessors());
@@ -429,11 +435,16 @@ TimerTask realTimeBars = new TimerTask(){
             TradingUtil.writeToFile("body.txt", "Net P&L today:"+profitGrid[2]);
             TradingUtil.writeToFile("body.txt", "MTD P&L"+profitGrid[3]);
             TradingUtil.writeToFile("body.txt", "YTD P&L:"+profitGrid[4]);
+            if(!new File(filename).exists()){
+                writeHeader=false;
+            }else{
+                writeHeader=true;
+            }
             file = new FileWriter(filename, true);            
             CsvBeanWriter tradeWriter = new CsvBeanWriter(file, CsvPreference.EXCEL_PREFERENCE);
- //           if(!new File(filename).isFile()){//this ensures header is written only the first time
+            if(writeHeader){//this ensures header is written only the first time
             tradeWriter.writeHeader(header);
- //           }
+            }
             for (Map.Entry<Integer, Trade> trade : oms.getTrades().entrySet()) {
                 tradeWriter.write(trade.getValue(), header, Parameters.getTradeProcessors());
             }
