@@ -24,6 +24,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -426,6 +427,7 @@ public class ADR implements TradeListener,UpdateListener{
     public void printOrders(){
                 FileWriter file;
                 double[] profitGrid=new double[5];
+                DecimalFormat df = new DecimalFormat("#.##");
         try {
             boolean writeHeader=false;
             String fileSuffix=DateUtil.getFormatedDate("yyyyMMdd_HHmmss", new Date().getTime());
@@ -433,11 +435,11 @@ public class ADR implements TradeListener,UpdateListener{
             String filename=orderFile;
             profitGrid=TradingUtil.applyBrokerage(trades, brokerageRate,pointValue,orderFile);
             TradingUtil.writeToFile("body.txt", "-----------------Orders:ADR----------------------");
-            TradingUtil.writeToFile("body.txt", "Gross P&L today:"+profitGrid[0]);
-            TradingUtil.writeToFile("body.txt", "Brokerage today:"+profitGrid[1]);
-            TradingUtil.writeToFile("body.txt", "Net P&L today:"+profitGrid[2]);
-            TradingUtil.writeToFile("body.txt", "MTD P&L"+profitGrid[3]);
-            TradingUtil.writeToFile("body.txt", "YTD P&L:"+profitGrid[4]);
+            TradingUtil.writeToFile("body.txt", "Gross P&L today:"+df.format(profitGrid[0]));
+            TradingUtil.writeToFile("body.txt", "Brokerage today:"+df.format(profitGrid[1]));
+            TradingUtil.writeToFile("body.txt", "Net P&L today:"+df.format(profitGrid[2]));
+            TradingUtil.writeToFile("body.txt", "MTD P&L"+df.format(profitGrid[3]));
+            TradingUtil.writeToFile("body.txt", "YTD P&L:"+df.format(profitGrid[4]));
             if(new File(filename).exists()){
                 writeHeader=false;
             }else{
@@ -462,11 +464,11 @@ public class ADR implements TradeListener,UpdateListener{
             filename=tradeFile;
             profitGrid=TradingUtil.applyBrokerage(getOmsADR().getTrades(), brokerageRate,pointValue,tradeFile);
             TradingUtil.writeToFile("body.txt", "-----------------Trades:ADR----------------------");
-            TradingUtil.writeToFile("body.txt", "Gross P&L today:"+profitGrid[0]);
-            TradingUtil.writeToFile("body.txt", "Brokerage today:"+profitGrid[1]);
-            TradingUtil.writeToFile("body.txt", "Net P&L today:"+profitGrid[2]);
-            TradingUtil.writeToFile("body.txt", "MTD P&L"+profitGrid[3]);
-            TradingUtil.writeToFile("body.txt", "YTD P&L:"+profitGrid[4]);
+            TradingUtil.writeToFile("body.txt", "Gross P&L today:"+df.format(profitGrid[0]));
+            TradingUtil.writeToFile("body.txt", "Brokerage today:"+df.format(profitGrid[1]));
+            TradingUtil.writeToFile("body.txt", "Net P&L today:"+df.format(profitGrid[2]));
+            TradingUtil.writeToFile("body.txt", "MTD P&L"+df.format(profitGrid[3]));
+            TradingUtil.writeToFile("body.txt", "YTD P&L:"+df.format(profitGrid[4]));
             if(new File(filename).exists()){
                 writeHeader=false;
             }else{
