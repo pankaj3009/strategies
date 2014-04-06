@@ -386,11 +386,11 @@ TimerTask realTimeBars = new TimerTask(){
     
     TimerTask runPrintOrders = new TimerTask(){
     public void run(){
-        printOrders();
+        printOrders("");
     }
 };
     
-    public void printOrders(){
+    public void printOrders(String prefix){
                 FileWriter file;
                 double[] profitGrid=new double[5];
                 boolean writeHeader=false;
@@ -399,7 +399,7 @@ TimerTask realTimeBars = new TimerTask(){
         try {
             String fileSuffix=DateUtil.getFormatedDate("yyyyMMdd_HHmmss", new Date().getTime());
             //String filename="ordersIDT"+fileSuffix+".csv";
-            String filename=orderFile;
+            String filename=prefix+orderFile;
             profitGrid=TradingUtil.applyBrokerage(trades, brokerageRate, pointValue,orderFile);
             TradingUtil.writeToFile("body.txt", "-----------------Orders:IDT----------------------");
             TradingUtil.writeToFile("body.txt", "Gross P&L today:"+df.format(profitGrid[0]));
@@ -429,7 +429,7 @@ TimerTask realTimeBars = new TimerTask(){
             ordersWriter.close();
             System.out.println("Clean Exit after writing orders");
             //filename="tradesIDT"+fileSuffix+".csv";
-            filename=tradeFile;
+            filename=prefix+tradeFile;
             profitGrid=TradingUtil.applyBrokerage(oms.getTrades(), brokerageRate,pointValue,tradeFile);
             TradingUtil.writeToFile("body.txt", "-----------------Trades:IDT----------------------");
             TradingUtil.writeToFile("body.txt", "Gross P&L today:"+df.format(profitGrid[0]));

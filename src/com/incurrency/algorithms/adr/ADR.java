@@ -421,10 +421,10 @@ public class ADR implements TradeListener,UpdateListener{
     
     TimerTask runPrintOrders = new TimerTask(){
     public void run(){
-        printOrders();
+        printOrders("");
     }
 };
-    public void printOrders(){
+    public void printOrders(String prefix){
                 FileWriter file;
                 double[] profitGrid=new double[5];
                 DecimalFormat df = new DecimalFormat("#.##");
@@ -432,7 +432,7 @@ public class ADR implements TradeListener,UpdateListener{
             boolean writeHeader=false;
             String fileSuffix=DateUtil.getFormatedDate("yyyyMMdd_HHmmss", new Date().getTime());
             //String filename="ordersADR"+fileSuffix+".csv";
-            String filename=orderFile;
+            String filename=prefix+orderFile;
             profitGrid=TradingUtil.applyBrokerage(trades, brokerageRate,pointValue,orderFile);
             TradingUtil.writeToFile("body.txt", "-----------------Orders:ADR----------------------");
             TradingUtil.writeToFile("body.txt", "Gross P&L today:"+df.format(profitGrid[0]));
@@ -461,7 +461,7 @@ public class ADR implements TradeListener,UpdateListener{
             orderWriter.close();
             logger.log(Level.INFO,"Clean Exit after writing orders");
             //filename="tradesADR"+fileSuffix+".csv";
-            filename=tradeFile;
+            filename=prefix+tradeFile;
             profitGrid=TradingUtil.applyBrokerage(getOmsADR().getTrades(), brokerageRate,pointValue,tradeFile);
             TradingUtil.writeToFile("body.txt", "-----------------Trades:ADR----------------------");
             TradingUtil.writeToFile("body.txt", "Gross P&L today:"+df.format(profitGrid[0]));
