@@ -52,7 +52,7 @@ public class ADR implements TradeListener,UpdateListener{
     
     static EventProcessor mEsperEvtProcessor = null;
     List<Integer> adrSymbols=new ArrayList();
-    static com.incurrency.framework.rateserver.RateServer adrServer= new com.incurrency.framework.rateserver.RateServer(5556);
+    static com.incurrency.framework.rateserver.RateServer adrServer= new com.incurrency.framework.rateserver.RateServer(5557);
     private static final Logger logger = Logger.getLogger(ADR.class.getName());
     Date endDate;
     boolean trading=false;
