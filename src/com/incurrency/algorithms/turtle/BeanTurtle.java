@@ -111,6 +111,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
     private String tradeFile;
     private String orderFile;
     private ArrayList <BrokerageRate> brokerageRate =new ArrayList<>();
+    private String timeZone="";
 
     public BeanTurtle(MainAlgorithm m) {
         this.m = m;
@@ -156,7 +157,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
             Subscribe.tes.addTradeListener(this);
         }
         plmanager=new ProfitLossManager("idt",tradeableSymbols,pointValue,profitTarget);
-        oms = new TurtleOrderManagement(this.aggression,Double.parseDouble(this.tickSize),endDate,"idt",pointValue,this.maxOpenPositionsLimit);		               
+        oms = new TurtleOrderManagement(this.aggression,Double.parseDouble(this.tickSize),endDate,"idt",pointValue,this.maxOpenPositionsLimit,timeZone);		               
         populateLastTradePrice();
         //createAndShowGUI(m);
         getHistoricalData();
@@ -250,7 +251,7 @@ TimerTask realTimeBars = new TimerTask(){
         futBrokerageFile=System.getProperty("BrokerageFile")==null?"":System.getProperty("BrokerageFile");
         tradeFile=System.getProperty("TradeFile");
         orderFile=System.getProperty("OrderFile");
-        
+        timeZone=System.getProperty("TradeTimeZone")==null?"":System.getProperty("TradeTimeZone");        
         logger.log(Level.INFO, "-----Turtle Parameters----");
         logger.log(Level.INFO, "start Time: {0}", startDate);
         logger.log(Level.INFO, "Last Order Time: {0}", lastOrderDate);
@@ -282,6 +283,8 @@ TimerTask realTimeBars = new TimerTask(){
         logger.log(Level.INFO, "Brokerage File: {0}",futBrokerageFile);
         logger.log(Level.INFO, "Trade File: {0}",tradeFile);
         logger.log(Level.INFO, "Order File: {0}",orderFile);
+        logger.log(Level.INFO, "Time Zone: {}", timeZone);
+
         if(futBrokerageFile.compareTo("")!=0){
             try {
                 //retrieve parameters from brokerage file
@@ -875,7 +878,7 @@ TimerTask realTimeBars = new TimerTask(){
                     boolean breaches=checkForDirectionalBreaches==true?breachup > 0.5 && this.getBreachDown().get(id) >= 1:true;
                     boolean donotskip=skipAfterWins==true?lastTradeWasLosing.get(id):true;
                     boolean adrtrend=checkADRTrend==true?(ADR.adr>ADR.adrDayLow+0.75*(ADR.adrDayHigh-ADR.adrDayLow)||ADR.adr>ADR.adrAvg) && ADR.adrTRIN<90:true;
-                    getTrades().put(internalorderID, new Trade(id,EnumOrderSide.BUY,this.getHighestHigh().get(id),size,this.internalorderID++,liquidity && breaches && donotskip && adrtrend));
+                    getTrades().put(internalorderID, new Trade(id,EnumOrderSide.BUY,this.getHighestHigh().get(id),size,this.internalorderID++,liquidity && breaches && donotskip && adrtrend,timeZone));
                     this.internalOpenOrders.put(id, this.internalorderID-1);
                     if(liquidity && breaches && donotskip && adrtrend){
                     if (this.getAdvanceEntryOrder().get(id) == 0) { //no advance order present
@@ -902,7 +905,7 @@ TimerTask realTimeBars = new TimerTask(){
                     boolean breaches=checkForDirectionalBreaches==true?breachdown > 0.5 && this.getBreachUp().get(id) >= 1:true;
                     boolean donotskip=skipAfterWins==true?lastTradeWasLosing.get(id):true;
                     boolean adrtrend=checkADRTrend==true?(ADR.adr<ADR.adrDayHigh-0.75*(ADR.adrDayHigh-ADR.adrDayLow)||ADR.adr<ADR.adrAvg) && ADR.adrTRIN>90:true;
-                    getTrades().put(internalorderID, new Trade(id,EnumOrderSide.SHORT,this.getLowestLow().get(id),size,this.internalorderID++,liquidity && breaches && donotskip && adrtrend));
+                    getTrades().put(internalorderID, new Trade(id,EnumOrderSide.SHORT,this.getLowestLow().get(id),size,this.internalorderID++,liquidity && breaches && donotskip && adrtrend,timeZone));
                     this.internalOpenOrders.put(id, this.internalorderID-1);
                     if(liquidity && breaches && donotskip && adrtrend){
                     if (this.getAdvanceEntryOrder().get(id) == 0) {
@@ -928,7 +931,7 @@ TimerTask realTimeBars = new TimerTask(){
                     });
                     int entryInternalOrderID=this.internalOpenOrders.get(id);
                     Trade originalTrade=getTrades().get(entryInternalOrderID);
-                    originalTrade.updateExit(id,EnumOrderSide.COVER,this.getHighestHigh().get(id),size,this.internalorderID++);                    
+                    originalTrade.updateExit(id,EnumOrderSide.COVER,this.getHighestHigh().get(id),size,this.internalorderID++,timeZone);                    
                     getTrades().put(entryInternalOrderID, originalTrade);
                     if(entryInternalOrderID!=0){
                    if(  getTrades().get(entryInternalOrderID).getEntryPrice()>=this.getHighestHigh().get(id)){
@@ -966,7 +969,7 @@ TimerTask realTimeBars = new TimerTask(){
                     });
                      int entryInternalOrderID=this.internalOpenOrders.get(id);
                     Trade originalTrade=getTrades().get(entryInternalOrderID);
-                    originalTrade.updateExit(id,EnumOrderSide.SELL,this.getLowestLow().get(id),size,this.internalorderID++);                    
+                    originalTrade.updateExit(id,EnumOrderSide.SELL,this.getLowestLow().get(id),size,this.internalorderID++,timeZone);                    
                     getTrades().put(entryInternalOrderID, originalTrade);
                     if(entryInternalOrderID!=0){
                     if( getTrades().get(entryInternalOrderID).getEntryPrice()<=this.getLowestLow().get(id)){
@@ -1006,7 +1009,7 @@ TimerTask realTimeBars = new TimerTask(){
                         this.getNotionalPosition().set(symb, 0L);
                         int entryInternalOrderID=this.internalOpenOrders.get(symb);
                         Trade originalTrade=getTrades().get(entryInternalOrderID);
-                        originalTrade.updateExit(symb,EnumOrderSide.SELL,this.getClose().get(symb),size,this.internalorderID++);                    
+                        originalTrade.updateExit(symb,EnumOrderSide.SELL,this.getClose().get(symb),size,this.internalorderID++,timeZone);                    
                         getTrades().put(entryInternalOrderID, originalTrade);
                         logger.log(Level.INFO, "Sell. Force Close All Positions.Symbol:{0}", new Object[]{Parameters.symbol.get(symb).getSymbol()});
                         getOms().tes.fireOrderEvent(this.internalorderID-1,entryInternalOrderID,Parameters.symbol.get(symb), EnumOrderSide.SELL, size, this.getClose().get(symb), 0, "idt", maxOrderDuration, "", EnumOrderIntent.Cancel, maxOrderDuration, dynamicOrderDuration, getMaxSlippageExit());
@@ -1018,7 +1021,7 @@ TimerTask realTimeBars = new TimerTask(){
                         this.getNotionalPosition().set(symb, 0L);
                         int entryInternalOrderID=this.internalOpenOrders.get(symb);
                         Trade originalTrade=getTrades().get(entryInternalOrderID);
-                        originalTrade.updateExit(symb,EnumOrderSide.COVER,this.getClose().get(symb),size,this.internalorderID++);                    
+                        originalTrade.updateExit(symb,EnumOrderSide.COVER,this.getClose().get(symb),size,this.internalorderID++,timeZone);                    
                         getTrades().put(entryInternalOrderID, originalTrade);
                         logger.log(Level.INFO, "Cover. Force Close All Positions.Symbol:{0}", new Object[]{Parameters.symbol.get(symb).getSymbol()});
                         getOms().tes.fireOrderEvent(this.internalorderID-1,entryInternalOrderID,Parameters.symbol.get(symb), EnumOrderSide.COVER, size, this.getClose().get(symb), 0, "idt", maxOrderDuration, "", EnumOrderIntent.Cancel, maxOrderDuration, dynamicOrderDuration, getMaxSlippageExit());
@@ -1642,5 +1645,19 @@ TimerTask realTimeBars = new TimerTask(){
      */
     public void setMaxSlippageExit(double maxSlippageExit) {
         this.maxSlippageExit = maxSlippageExit;
+    }
+
+    /**
+     * @return the timeZone
+     */
+    public String getTimeZone() {
+        return timeZone;
+    }
+
+    /**
+     * @param timeZone the timeZone to set
+     */
+    public void setTimeZone(String timeZone) {
+        this.timeZone = timeZone;
     }
     }
