@@ -219,7 +219,7 @@ public class ADR implements TradeListener,UpdateListener{
         logger.log(Level.INFO, "Brokerage File: {0}", futBrokerageFile);
         logger.log(Level.INFO, "Trade File: {0}", tradeFile);
         logger.log(Level.INFO, "Order File: {0}", orderFile);
-        logger.log(Level.INFO, "Time Zone: {}", timeZone);
+        logger.log(Level.INFO, "Time Zone: {0}", timeZone);
         
                 if(futBrokerageFile.compareTo("")!=0){
             try {
