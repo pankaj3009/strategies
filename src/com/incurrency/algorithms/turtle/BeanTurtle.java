@@ -110,6 +110,8 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
     private String orderFile;
     private ArrayList <BrokerageRate> brokerageRate =new ArrayList<>();
     private String timeZone="";
+    private double paramADRTRINBuy=100;
+    private double paramADRTRINShort=100;
 
     public BeanTurtle(MainAlgorithm m) {
         this.m = m;
@@ -245,7 +247,9 @@ TimerTask realTimeBars = new TimerTask(){
         futBrokerageFile=System.getProperty("BrokerageFile")==null?"":System.getProperty("BrokerageFile");
         tradeFile=System.getProperty("TradeFile");
         orderFile=System.getProperty("OrderFile");
-        timeZone=System.getProperty("TradeTimeZone")==null?"":System.getProperty("TradeTimeZone");        
+        timeZone=System.getProperty("TradeTimeZone")==null?"":System.getProperty("TradeTimeZone");
+        paramADRTRINBuy=System.getProperty("ADRTRINBuy")==null?100:Double.parseDouble(System.getProperty("ADRTRINBuy"));
+        paramADRTRINShort=System.getProperty("ADRTRINShort")==null?100:Double.parseDouble(System.getProperty("ADRTRINShort"));
         logger.log(Level.INFO, "-----Turtle Parameters----");
         logger.log(Level.INFO, "start Time: {0}", startDate);
         logger.log(Level.INFO, "Last Order Time: {0}", lastOrderDate);
@@ -869,7 +873,7 @@ TimerTask realTimeBars = new TimerTask(){
                     boolean liquidity=this.checkForHistoricalLiquidity==true?tradeable:true;
                     boolean breaches=checkForDirectionalBreaches==true?breachup > 0.5 && this.getBreachDown().get(id) >= 1:true;
                     boolean donotskip=skipAfterWins==true?lastTradeWasLosing.get(id):true;
-                    boolean adrtrend=checkADRTrend==true?(ADR.adr>ADR.adrDayLow+0.75*(ADR.adrDayHigh-ADR.adrDayLow)||ADR.adr>ADR.adrAvg) && ADR.adrTRIN<90:true;
+                    boolean adrtrend=checkADRTrend==true?(ADR.adr>ADR.adrDayLow+0.75*(ADR.adrDayHigh-ADR.adrDayLow)||ADR.adr>ADR.adrAvg) && ADR.adrTRIN<paramADRTRINBuy:true;
                     getTrades().put(internalorderID, new Trade(id,EnumOrderSide.BUY,this.getHighestHigh().get(id),size,this.internalorderID++,liquidity && breaches && donotskip && adrtrend,timeZone));
                     this.internalOpenOrders.put(id, this.internalorderID-1);
                     if(liquidity && breaches && donotskip && adrtrend){
@@ -896,7 +900,7 @@ TimerTask realTimeBars = new TimerTask(){
                     boolean liquidity=this.checkForHistoricalLiquidity==true?tradeable:true;
                     boolean breaches=checkForDirectionalBreaches==true?breachdown > 0.5 && this.getBreachUp().get(id) >= 1:true;
                     boolean donotskip=skipAfterWins==true?lastTradeWasLosing.get(id):true;
-                    boolean adrtrend=checkADRTrend==true?(ADR.adr<ADR.adrDayHigh-0.75*(ADR.adrDayHigh-ADR.adrDayLow)||ADR.adr<ADR.adrAvg) && ADR.adrTRIN>90:true;
+                    boolean adrtrend=checkADRTrend==true?(ADR.adr<ADR.adrDayHigh-0.75*(ADR.adrDayHigh-ADR.adrDayLow)||ADR.adr<ADR.adrAvg) && ADR.adrTRIN>paramADRTRINShort:true;
                     getTrades().put(internalorderID, new Trade(id,EnumOrderSide.SHORT,this.getLowestLow().get(id),size,this.internalorderID++,liquidity && breaches && donotskip && adrtrend,timeZone));
                     this.internalOpenOrders.put(id, this.internalorderID-1);
                     if(liquidity && breaches && donotskip && adrtrend){

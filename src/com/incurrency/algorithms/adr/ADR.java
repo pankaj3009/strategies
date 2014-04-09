@@ -309,7 +309,7 @@ public class ADR implements TradeListener,UpdateListener{
             boolean buyZone3=this.adrTRINAvg<90 && this.adrTRINAvg>0;
             
             boolean shortZone1=((adrHigh-adrLow>5 && adr<adrHigh-0.75*(adrHigh-adrLow) && adr<adrAvg) ||
-                            (adrDayHigh-adrDayLow>10 && adr<adrDayHigh-0.75*(adrDayHigh-adrDayLow ) && adr<adrAvg)) && adrTRIN>90;
+                            (adrDayHigh-adrDayLow>10 && adr<adrDayHigh-0.75*(adrDayHigh-adrDayLow ) && adr<adrAvg)) && adrTRIN>95;
             boolean shortZone2=(indexHigh-indexLow>windowHurdle && (price<indexHigh-0.75*(indexHigh-indexLow)&& price<indexAvg))||
                             (indexDayHigh-indexDayLow>dayHurdle && (price<indexDayHigh-0.75*(indexDayHigh-indexDayLow) && price<indexAvg));
             boolean shortZone3=this.adrTRINAvg>95;
