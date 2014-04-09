@@ -63,7 +63,6 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
     private String startTime;
     private static Date lastOrderDate;
     private static Date endDate;
-    private static Date closeDate;
     private int channelDuration;
     private int regressionLookBack;
     private double volumeSlopeLongMultiplier;
@@ -87,7 +86,6 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
     private Boolean aggression = true;
     private ArrayList<Boolean> exPriceBarLong = new ArrayList();
     private ArrayList<Boolean> exPriceBarShort = new ArrayList();
-    private String symbols;
     private List<Integer> tradeableSymbols = new ArrayList();
     Timer closeProcessing;
     Timer openProcessing;
@@ -165,7 +163,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
         closeProcessing = new Timer();
         //closeProcessing.schedule(new BeanTurtleClosing(this, getOms()), closeDate);
         Timer closeProcessing=new Timer();
-        closeProcessing.schedule(runPrintOrders, com.incurrency.framework.DateUtil.addSeconds(endDate, 300));
+        closeProcessing.schedule(runPrintOrders, com.incurrency.framework.DateUtil.addSeconds(endDate, (this.maxOrderDuration+1)*60));
         openProcessing = new Timer();
         if(new Date().compareTo(startDate)<0){ // if time is before startdate, schedule realtime bars
         openProcessing.schedule(realTimeBars, startDate);
@@ -200,27 +198,23 @@ TimerTask realTimeBars = new TimerTask(){
         String startDateStr=currDateStr + " " + System.getProperty("StartTime");
         String lastOrderDateStr = currDateStr + " " + System.getProperty("LastOrderTime");
         String endDateStr = currDateStr + " " + System.getProperty("EndTime");
-        String closeDateStr = currDateStr + " " + System.getProperty("CloseTime");
         startDate=DateUtil.parseDate("yyyyMMdd HH:mm:ss", startDateStr);
         lastOrderDate= DateUtil.parseDate("yyyyMMdd HH:mm:ss", lastOrderDateStr);
         endDate=DateUtil.parseDate("yyyyMMdd HH:mm:ss", endDateStr);
-        closeDate=DateUtil.parseDate("yyyyMMdd HH:mm:ss", closeDateStr);
 
         if (lastOrderDate.compareTo(startDate) < 0 && new Date().compareTo(lastOrderDate) > 0) {
             //increase enddate by one calendar day
             lastOrderDate=DateUtil.addDays(lastOrderDate,1); //system date is > start date time. Therefore we have not crossed the 12:00 am barrier
             endDate = DateUtil.addDays(endDate, 1); 
-            closeDate=DateUtil.addDays(closeDate,1);
             
         } else if (lastOrderDate.compareTo(startDate) < 0 && new Date().compareTo(lastOrderDate) < 0) {
             startDate=DateUtil.addDays(startDate, -1);
         } else if(new Date().compareTo(startDate)>0 && new Date().compareTo(lastOrderDate)>0){ //program started after lastorderDate
             startDate=DateUtil.addDays(startDate, 1);
-            endDate=DateUtil.addDays(lastOrderDate, 1);
+            lastOrderDate=DateUtil.addDays(lastOrderDate, 1);
             endDate=DateUtil.addDays(endDate, 1);
-            endDate=DateUtil.addDays(closeDate, 1);
         }
-        m.setCloseDate(DateUtil.addSeconds(closeDate, 60));
+        m.setCloseDate(DateUtil.addSeconds(endDate, (this.maxOrderDuration+2)*60));
         double tempprofitTarget= "".equals(System.getProperty("ProfitTarget"))? Double.MAX_VALUE:Double.parseDouble(System.getProperty("ProfitTarget"));
         setProfitTarget(tempprofitTarget);
         //Launch.setProfitTarget(getProfitTarget());
@@ -256,7 +250,6 @@ TimerTask realTimeBars = new TimerTask(){
         logger.log(Level.INFO, "start Time: {0}", startDate);
         logger.log(Level.INFO, "Last Order Time: {0}", lastOrderDate);
         logger.log(Level.INFO, "end Time: {0}", endDate);
-        logger.log(Level.INFO, "Close Time: {0}", closeDate);
         logger.log(Level.INFO, "Channel Duration: {0}", channelDuration);
         logger.log(Level.INFO, "Start Bars: {0}", startBars);
         logger.log(Level.INFO, "Display: {0}", display);
@@ -405,11 +398,11 @@ TimerTask realTimeBars = new TimerTask(){
             String filename=prefix+orderFile;
             profitGrid=TradingUtil.applyBrokerage(trades, brokerageRate, pointValue,orderFile,timeZone);
             TradingUtil.writeToFile("body.txt", "-----------------Orders:IDT----------------------");
-            TradingUtil.writeToFile("body.txt", "Gross P&L today:"+df.format(profitGrid[0]));
-            TradingUtil.writeToFile("body.txt", "Brokerage today:"+df.format(profitGrid[1]));
-            TradingUtil.writeToFile("body.txt", "Net P&L today:"+df.format(profitGrid[2]));
-            TradingUtil.writeToFile("body.txt", "MTD P&L"+df.format(profitGrid[3]));
-            TradingUtil.writeToFile("body.txt", "YTD P&L:"+df.format(profitGrid[4]));
+            TradingUtil.writeToFile("body.txt", "Gross P&L today: "+df.format(profitGrid[0]));
+            TradingUtil.writeToFile("body.txt", "Brokerage today: "+df.format(profitGrid[1]));
+            TradingUtil.writeToFile("body.txt", "Net P&L today: "+df.format(profitGrid[2]));
+            TradingUtil.writeToFile("body.txt", "MTD P&L: "+df.format(profitGrid[3]));
+            TradingUtil.writeToFile("body.txt", "YTD P&L: "+df.format(profitGrid[4]));
             if(new File(filename).exists()){
                 writeHeader=false;
             }else{
@@ -425,7 +418,6 @@ TimerTask realTimeBars = new TimerTask(){
             if(writeHeader){//this ensures header is written only the first time
             ordersWriter.writeHeader(header);
             }
-
             for (Map.Entry<Integer, Trade> order : trades.entrySet()) {
                 ordersWriter.write(order.getValue(), header, Parameters.getTradeProcessorsWrite());
             }

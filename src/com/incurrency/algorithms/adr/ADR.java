@@ -143,7 +143,7 @@ public class ADR implements TradeListener,UpdateListener{
         }
         plmanager=new ProfitLossManager("adr", this.adrSymbols, pointValue, profitTarget);
         Timer closeProcessing=new Timer();
-        closeProcessing.schedule(runPrintOrders, com.incurrency.framework.DateUtil.addSeconds(endDate, 300));
+        closeProcessing.schedule(runPrintOrders, com.incurrency.framework.DateUtil.addSeconds(endDate, (this.maxOrderDuration+1)*60));
         
     
         
@@ -170,7 +170,7 @@ public class ADR implements TradeListener,UpdateListener{
             //increase enddate by one calendar day
             endDate = DateUtil.addDays(endDate, 1); 
         }
-        m.setCloseDate(DateUtil.addSeconds(endDate, 660));
+        m.setCloseDate(DateUtil.addSeconds(endDate, (this.maxOrderDuration+2)*60)); //2 minutes after the enddate+max order duaration
         trading=Boolean.valueOf(System.getProperty("Trading"));
         index=System.getProperty("Index");
         type=System.getProperty("Type");
@@ -439,11 +439,11 @@ public class ADR implements TradeListener,UpdateListener{
             String filename=prefix+orderFile;
             profitGrid=TradingUtil.applyBrokerage(trades, brokerageRate,pointValue,orderFile,timeZone);
             TradingUtil.writeToFile("body.txt", "-----------------Orders:ADR----------------------");
-            TradingUtil.writeToFile("body.txt", "Gross P&L today:"+df.format(profitGrid[0]));
-            TradingUtil.writeToFile("body.txt", "Brokerage today:"+df.format(profitGrid[1]));
-            TradingUtil.writeToFile("body.txt", "Net P&L today:"+df.format(profitGrid[2]));
-            TradingUtil.writeToFile("body.txt", "MTD P&L"+df.format(profitGrid[3]));
-            TradingUtil.writeToFile("body.txt", "YTD P&L:"+df.format(profitGrid[4]));
+            TradingUtil.writeToFile("body.txt", "Gross P&L today: "+df.format(profitGrid[0]));
+            TradingUtil.writeToFile("body.txt", "Brokerage today: "+df.format(profitGrid[1]));
+            TradingUtil.writeToFile("body.txt", "Net P&L today: "+df.format(profitGrid[2]));
+            TradingUtil.writeToFile("body.txt", "MTD P&L: "+df.format(profitGrid[3]));
+            TradingUtil.writeToFile("body.txt", "YTD P&L: "+df.format(profitGrid[4]));
             if(new File(filename).exists()){
                 writeHeader=false;
             }else{
