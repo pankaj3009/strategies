@@ -403,7 +403,7 @@ TimerTask realTimeBars = new TimerTask(){
             String fileSuffix=DateUtil.getFormatedDate("yyyyMMdd_HHmmss", new Date().getTime());
             //String filename="ordersIDT"+fileSuffix+".csv";
             String filename=prefix+orderFile;
-            profitGrid=TradingUtil.applyBrokerage(trades, brokerageRate, pointValue,orderFile);
+            profitGrid=TradingUtil.applyBrokerage(trades, brokerageRate, pointValue,orderFile,timeZone);
             TradingUtil.writeToFile("body.txt", "-----------------Orders:IDT----------------------");
             TradingUtil.writeToFile("body.txt", "Gross P&L today:"+df.format(profitGrid[0]));
             TradingUtil.writeToFile("body.txt", "Brokerage today:"+df.format(profitGrid[1]));
@@ -433,7 +433,7 @@ TimerTask realTimeBars = new TimerTask(){
             System.out.println("Clean Exit after writing orders");
             //filename="tradesIDT"+fileSuffix+".csv";
             filename=prefix+tradeFile;
-            profitGrid=TradingUtil.applyBrokerage(oms.getTrades(), brokerageRate,pointValue,tradeFile);
+            profitGrid=TradingUtil.applyBrokerage(oms.getTrades(), brokerageRate,pointValue,tradeFile,timeZone);
             TradingUtil.writeToFile("body.txt", "-----------------Trades:IDT----------------------");
             TradingUtil.writeToFile("body.txt", "Gross P&L today:"+df.format(profitGrid[0]));
             TradingUtil.writeToFile("body.txt", "Brokerage today:"+df.format(profitGrid[1]));

@@ -437,7 +437,7 @@ public class ADR implements TradeListener,UpdateListener{
             String fileSuffix=DateUtil.getFormatedDate("yyyyMMdd_HHmmss", new Date().getTime());
             //String filename="ordersADR"+fileSuffix+".csv";
             String filename=prefix+orderFile;
-            profitGrid=TradingUtil.applyBrokerage(trades, brokerageRate,pointValue,orderFile);
+            profitGrid=TradingUtil.applyBrokerage(trades, brokerageRate,pointValue,orderFile,timeZone);
             TradingUtil.writeToFile("body.txt", "-----------------Orders:ADR----------------------");
             TradingUtil.writeToFile("body.txt", "Gross P&L today:"+df.format(profitGrid[0]));
             TradingUtil.writeToFile("body.txt", "Brokerage today:"+df.format(profitGrid[1]));
@@ -466,7 +466,7 @@ public class ADR implements TradeListener,UpdateListener{
             logger.log(Level.INFO,"Clean Exit after writing orders");
             //filename="tradesADR"+fileSuffix+".csv";
             filename=prefix+tradeFile;
-            profitGrid=TradingUtil.applyBrokerage(getOmsADR().getTrades(), brokerageRate,pointValue,tradeFile);
+            profitGrid=TradingUtil.applyBrokerage(getOmsADR().getTrades(), brokerageRate,pointValue,tradeFile,timeZone);
             TradingUtil.writeToFile("body.txt", "-----------------Trades:ADR----------------------");
             TradingUtil.writeToFile("body.txt", "Gross P&L today:"+df.format(profitGrid[0]));
             TradingUtil.writeToFile("body.txt", "Brokerage today:"+df.format(profitGrid[1]));
