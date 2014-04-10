@@ -305,13 +305,13 @@ public class ADR implements TradeListener,UpdateListener{
             boolean buyZone1=((adrHigh-adrLow>5 && adr>adrLow+0.75*(adrHigh-adrLow) && adr>adrAvg) ||
                             (adrDayHigh-adrDayLow>10 && adr>adrDayLow+0.75*(adrDayHigh-adrDayLow) && adr>adrAvg))&& adrTRIN<90;
             boolean buyZone2=(indexHigh-indexLow>windowHurdle && (price>indexLow+0.75*(indexHigh-indexLow)&& price>indexAvg))||
-                            (indexDayHigh-indexDayLow>dayHurdle && (price>indexDayLow+0.75*(indexDayHigh-indexDayLow)&& price>indexAvg));
+                            (indexDayHigh-indexDayLow>dayHurdle && (price>indexDayLow+0.75*(indexDayHigh-indexDayLow)&& price>indexAvg))&& adrTRIN<90;
             boolean buyZone3=this.adrTRINAvg<90 && this.adrTRINAvg>0;
             
             boolean shortZone1=((adrHigh-adrLow>5 && adr<adrHigh-0.75*(adrHigh-adrLow) && adr<adrAvg) ||
                             (adrDayHigh-adrDayLow>10 && adr<adrDayHigh-0.75*(adrDayHigh-adrDayLow ) && adr<adrAvg)) && adrTRIN>95;
             boolean shortZone2=(indexHigh-indexLow>windowHurdle && (price<indexHigh-0.75*(indexHigh-indexLow)&& price<indexAvg))||
-                            (indexDayHigh-indexDayLow>dayHurdle && (price<indexDayHigh-0.75*(indexDayHigh-indexDayLow) && price<indexAvg));
+                            (indexDayHigh-indexDayLow>dayHurdle && (price<indexDayHigh-0.75*(indexDayHigh-indexDayLow) && price<indexAvg)) && adrTRIN>105;
             boolean shortZone3=this.adrTRINAvg>95;
             
             Boolean buyZone=atLeastTwo(buyZone1,buyZone2,buyZone3);   
