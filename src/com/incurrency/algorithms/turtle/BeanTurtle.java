@@ -431,11 +431,11 @@ TimerTask realTimeBars = new TimerTask(){
             filename=prefix+tradeFile;
             profitGrid=TradingUtil.applyBrokerage(oms.getTrades(), brokerageRate,pointValue,tradeFile,timeZone);
             TradingUtil.writeToFile("body.txt", "-----------------Trades:IDT----------------------");
-            TradingUtil.writeToFile("body.txt", "Gross P&L today:"+df.format(profitGrid[0]));
-            TradingUtil.writeToFile("body.txt", "Brokerage today:"+df.format(profitGrid[1]));
-            TradingUtil.writeToFile("body.txt", "Net P&L today:"+df.format(profitGrid[2]));
-            TradingUtil.writeToFile("body.txt", "MTD P&L"+df.format(profitGrid[3]));
-            TradingUtil.writeToFile("body.txt", "YTD P&L:"+df.format(profitGrid[4]));
+            TradingUtil.writeToFile("body.txt", "Gross P&L today: "+df.format(profitGrid[0]));
+            TradingUtil.writeToFile("body.txt", "Brokerage today: "+df.format(profitGrid[1]));
+            TradingUtil.writeToFile("body.txt", "Net P&L today: "+df.format(profitGrid[2]));
+            TradingUtil.writeToFile("body.txt", "MTD P&L: "+df.format(profitGrid[3]));
+            TradingUtil.writeToFile("body.txt", "YTD P&L: "+df.format(profitGrid[4]));
             if(new File(filename).exists()){
                 writeHeader=false;
             }else{
