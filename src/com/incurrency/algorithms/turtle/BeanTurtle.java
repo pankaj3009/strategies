@@ -254,6 +254,7 @@ TimerTask realTimeBars = new TimerTask(){
         logger.log(Level.INFO, "start Time: {0}", startDate);
         logger.log(Level.INFO, "Last Order Time: {0}", lastOrderDate);
         logger.log(Level.INFO, "end Time: {0}", endDate);
+        logger.log(Level.INFO, "Print Time: {0}", com.incurrency.framework.DateUtil.addSeconds(endDate, (this.maxOrderDuration+1)*60));
         logger.log(Level.INFO, "Channel Duration: {0}", channelDuration);
         logger.log(Level.INFO, "Start Bars: {0}", startBars);
         logger.log(Level.INFO, "Display: {0}", display);
@@ -281,6 +282,7 @@ TimerTask realTimeBars = new TimerTask(){
         logger.log(Level.INFO, "Trade File: {0}",tradeFile);
         logger.log(Level.INFO, "Order File: {0}",orderFile);
         logger.log(Level.INFO, "Time Zone: {0}", timeZone);
+        
 
         if(futBrokerageFile.compareTo("")!=0){
             try {

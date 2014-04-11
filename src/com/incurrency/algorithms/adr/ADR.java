@@ -198,6 +198,7 @@ public class ADR implements TradeListener,UpdateListener{
         
         logger.log(Level.INFO, "-----ADR Parameters----");
         logger.log(Level.INFO, "end Time: {0}", endDate);
+        logger.log(Level.INFO, "Print Time: {0}", com.incurrency.framework.DateUtil.addSeconds(endDate, (this.maxOrderDuration+1)*60));        
         logger.log(Level.INFO, "Setup to Trade: {0}", trading);
         logger.log(Level.INFO, "Traded Index: {0}", index);
         logger.log(Level.INFO, "Index Type: {0}", type);
