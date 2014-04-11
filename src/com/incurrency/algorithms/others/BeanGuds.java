@@ -115,7 +115,7 @@ public class BeanGuds implements Serializable, TradeListener {
             Logger.getLogger(BeanGuds.class.getName()).log(Level.SEVERE, null, ex);
         }
         calculateSD();
-        preopenProcessing = new Timer();
+        preopenProcessing = new Timer("Timer: Pre Open Processing");
         long t = m.getPreopenDate().getTime();
         Date tempDate = new Date(t + 1 * 60000);// process one minute after preopen time.
         preopenProcessing.schedule(new BeanGudsPreOpen(this), tempDate);

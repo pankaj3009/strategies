@@ -107,7 +107,7 @@ public class BeanSwing implements Serializable, TradeListener {
              trend.add(tempTrend);
         }
         
-        preProcessing=new Timer();
+        preProcessing=new Timer("Timer: Swing PreProcessing");
         long t=m.getPreopenDate().getTime();
         Date tempDate=new Date(t+1*60000);// process one minute after preopen time.
         //preopenProcessing.schedule(new BeanGudsPreOpen(this), tempDate);

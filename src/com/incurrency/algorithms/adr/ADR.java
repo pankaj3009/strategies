@@ -124,7 +124,7 @@ public class ADR implements TradeListener,UpdateListener{
     public ADR(MainAlgorithm m){
         this.m=m;
         loadParameters();
-        TradingUtil.writeToFile("ADR.csv", "adr"+","+"adrTRIN"+","+"tick"+","+"tickTRIN"+","+"price"+","+"adrHigh"+","+"adrLow"+","+"adrAvg"+","+"adrTRINHigh"+","+"adrTRINLow"+","+"adrTRINAvg"+","+"indexHigh"+","+"indexLow"+","+"indexAvg"+"\n");
+        TradingUtil.writeToFile("ADR.csv", "adr"+","+"adrTRIN"+","+"tick"+","+"tickTRIN"+","+"price"+","+"adrHigh"+","+"adrLow"+","+"adrAvg"+","+"adrTRINHigh"+","+"adrTRINLow"+","+"adrTRINAvg"+","+"indexHigh"+","+"indexLow"+","+"indexAvg");
         mEsperEvtProcessor = new EventProcessor();
         mEsperEvtProcessor.ADRStatement.addListener(this);
            //populate adrList with adrSymbols needed for ADR
@@ -142,11 +142,8 @@ public class ADR implements TradeListener,UpdateListener{
             Subscribe.tes.addTradeListener(this);
         }
         plmanager=new ProfitLossManager("adr", this.adrSymbols, pointValue, profitTarget);
-        Timer closeProcessing=new Timer();
+        Timer closeProcessing=new Timer("Timer: ADR CloseProcessing");
         closeProcessing.schedule(runPrintOrders, com.incurrency.framework.DateUtil.addSeconds(endDate, (this.maxOrderDuration+1)*60));
-        
-    
-        
     }
     
     private void loadParameters() {
@@ -199,6 +196,7 @@ public class ADR implements TradeListener,UpdateListener{
         logger.log(Level.INFO, "-----ADR Parameters----");
         logger.log(Level.INFO, "end Time: {0}", endDate);
         logger.log(Level.INFO, "Print Time: {0}", com.incurrency.framework.DateUtil.addSeconds(endDate, (this.maxOrderDuration+1)*60));        
+        logger.log(Level.INFO, "ShutDown time: {0}",DateUtil.addSeconds(endDate, (this.maxOrderDuration+2)*60));
         logger.log(Level.INFO, "Setup to Trade: {0}", trading);
         logger.log(Level.INFO, "Traded Index: {0}", index);
         logger.log(Level.INFO, "Index Type: {0}", type);
@@ -424,11 +422,14 @@ public class ADR implements TradeListener,UpdateListener{
     return a && (b || c) || (b && c);
 }
     
-    TimerTask runPrintOrders = new TimerTask(){
-    public void run(){
-        printOrders("");
-    }
-};
+    TimerTask runPrintOrders = new TimerTask() {
+        public void run() {
+            System.out.println("In Printorders");
+            logger.log(Level.INFO, "Print Orders Called in ADR");
+            printOrders("");
+        }
+    };
+    
     public void printOrders(String prefix){
                 FileWriter file;
                 double[] profitGrid=new double[5];
