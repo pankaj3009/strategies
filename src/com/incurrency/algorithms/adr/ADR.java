@@ -88,7 +88,7 @@ public class ADR implements TradeListener,UpdateListener{
     private String tradeFile;
     private String orderFile;
     private String timeZone;
-       
+    private double startingCapital;   
     
     //----- updated by ADRListener and TickListener
     public static double adr;
@@ -119,6 +119,7 @@ public class ADR implements TradeListener,UpdateListener{
     int position=0;
     private com.incurrency.framework.OrderPlacement omsADR;
     private ProfitLossManager plmanager;
+
 
     
     public ADR(MainAlgorithm m){
@@ -189,7 +190,8 @@ public class ADR implements TradeListener,UpdateListener{
         futBrokerageFile=System.getProperty("BrokerageFile")==null?"":System.getProperty("BrokerageFile");
         tradeFile=System.getProperty("TradeFile");
         orderFile=System.getProperty("OrderFile");
-        timeZone=System.getProperty("TradeTimeZone")==null?"":System.getProperty("TradeTimeZone");        
+        timeZone=System.getProperty("TradeTimeZone")==null?"":System.getProperty("TradeTimeZone");  
+        startingCapital=System.getProperty("StartingCapital")==null?0D:Double.parseDouble(System.getProperty("StartingCapital"));  
 
         
         
@@ -219,6 +221,7 @@ public class ADR implements TradeListener,UpdateListener{
         logger.log(Level.INFO, "Trade File: {0}", tradeFile);
         logger.log(Level.INFO, "Order File: {0}", orderFile);
         logger.log(Level.INFO, "Time Zone: {0}", timeZone);
+        logger.log(Level.INFO, "Starting Capital: {0}", startingCapital);
         
                 if(futBrokerageFile.compareTo("")!=0){
             try {
@@ -439,13 +442,18 @@ public class ADR implements TradeListener,UpdateListener{
             String fileSuffix=DateUtil.getFormatedDate("yyyyMMdd_HHmmss", new Date().getTime());
             //String filename="ordersADR"+fileSuffix+".csv";
             String filename=prefix+orderFile;
-            profitGrid=TradingUtil.applyBrokerage(trades, brokerageRate,pointValue,orderFile,timeZone);
+            profitGrid=TradingUtil.applyBrokerage(trades, brokerageRate,pointValue,orderFile,timeZone,startingCapital);
             TradingUtil.writeToFile("body.txt", "-----------------Orders:ADR----------------------");
             TradingUtil.writeToFile("body.txt", "Gross P&L today: "+df.format(profitGrid[0]));
             TradingUtil.writeToFile("body.txt", "Brokerage today: "+df.format(profitGrid[1]));
             TradingUtil.writeToFile("body.txt", "Net P&L today: "+df.format(profitGrid[2]));
             TradingUtil.writeToFile("body.txt", "MTD P&L: "+df.format(profitGrid[3]));
             TradingUtil.writeToFile("body.txt", "YTD P&L: "+df.format(profitGrid[4]));
+            TradingUtil.writeToFile("body.txt", "Max Drawdown (%): "+df.format(profitGrid[5]));
+            TradingUtil.writeToFile("body.txt", "Max Drawdown (days): "+df.format(profitGrid[6]));
+            TradingUtil.writeToFile("body.txt", "Avg Drawdown (days): "+df.format(profitGrid[7]));
+            TradingUtil.writeToFile("body.txt", "Sharpe Ratio: "+df.format(profitGrid[8]));
+            TradingUtil.writeToFile("body.txt", "# sample days: "+df.format(profitGrid[9]));
             if(new File(filename).exists()){
                 writeHeader=false;
             }else{
@@ -468,13 +476,19 @@ public class ADR implements TradeListener,UpdateListener{
             logger.log(Level.INFO,"Clean Exit after writing orders");
             //filename="tradesADR"+fileSuffix+".csv";
             filename=prefix+tradeFile;
-            profitGrid=TradingUtil.applyBrokerage(getOmsADR().getTrades(), brokerageRate,pointValue,tradeFile,timeZone);
+            profitGrid=TradingUtil.applyBrokerage(getOmsADR().getTrades(), brokerageRate,pointValue,tradeFile,timeZone,startingCapital);
             TradingUtil.writeToFile("body.txt", "-----------------Trades:ADR----------------------");
             TradingUtil.writeToFile("body.txt", "Gross P&L today: "+df.format(profitGrid[0]));
             TradingUtil.writeToFile("body.txt", "Brokerage today: "+df.format(profitGrid[1]));
             TradingUtil.writeToFile("body.txt", "Net P&L today: "+df.format(profitGrid[2]));
             TradingUtil.writeToFile("body.txt", "MTD P&L: "+df.format(profitGrid[3]));
             TradingUtil.writeToFile("body.txt", "YTD P&L: "+df.format(profitGrid[4]));
+            TradingUtil.writeToFile("body.txt", "Max Drawdown (%): "+df.format(profitGrid[5]));
+            TradingUtil.writeToFile("body.txt", "Max Drawdown (days): "+df.format(profitGrid[6]));
+            TradingUtil.writeToFile("body.txt", "Avg Drawdown (days): "+df.format(profitGrid[7]));
+            TradingUtil.writeToFile("body.txt", "Sharpe Ratio: "+df.format(profitGrid[8]));
+            TradingUtil.writeToFile("body.txt", "# sample days: "+df.format(profitGrid[9]));
+            
             if(new File(filename).exists()){
                 writeHeader=false;
             }else{

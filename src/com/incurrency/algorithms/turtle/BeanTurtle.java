@@ -111,6 +111,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
     private String timeZone="";
     private double paramADRTRINBuy=100;
     private double paramADRTRINShort=100;
+    private double startingCapital;
 
     public BeanTurtle(MainAlgorithm m) {
         this.m = m;
@@ -247,6 +248,8 @@ TimerTask realTimeBars = new TimerTask(){
         timeZone=System.getProperty("TradeTimeZone")==null?"":System.getProperty("TradeTimeZone");
         paramADRTRINBuy=System.getProperty("ADRTRINBuy")==null?100:Double.parseDouble(System.getProperty("ADRTRINBuy"));
         paramADRTRINShort=System.getProperty("ADRTRINShort")==null?100:Double.parseDouble(System.getProperty("ADRTRINShort"));
+        startingCapital=System.getProperty("StartingCapital")==null?0D:Double.parseDouble(System.getProperty("StartingCapital"));  
+        
         logger.log(Level.INFO, "-----Turtle Parameters----");
         logger.log(Level.INFO, "start Time: {0}", startDate);
         logger.log(Level.INFO, "Last Order Time: {0}", lastOrderDate);
@@ -280,6 +283,7 @@ TimerTask realTimeBars = new TimerTask(){
         logger.log(Level.INFO, "Trade File: {0}",tradeFile);
         logger.log(Level.INFO, "Order File: {0}",orderFile);
         logger.log(Level.INFO, "Time Zone: {0}", timeZone);
+        logger.log(Level.INFO, "Starting Capital: {0}", startingCapital);
         
 
         if(futBrokerageFile.compareTo("")!=0){
@@ -398,16 +402,20 @@ TimerTask realTimeBars = new TimerTask(){
                 DecimalFormat df = new DecimalFormat("#.##");
 
         try {
-            String fileSuffix=DateUtil.getFormatedDate("yyyyMMdd_HHmmss", new Date().getTime());
-            //String filename="ordersIDT"+fileSuffix+".csv";
             String filename=prefix+orderFile;
-            profitGrid=TradingUtil.applyBrokerage(trades, brokerageRate, pointValue,orderFile,timeZone);
+            profitGrid=TradingUtil.applyBrokerage(trades, brokerageRate, pointValue,orderFile,timeZone,startingCapital);
             TradingUtil.writeToFile("body.txt", "-----------------Orders:IDT----------------------");
             TradingUtil.writeToFile("body.txt", "Gross P&L today: "+df.format(profitGrid[0]));
             TradingUtil.writeToFile("body.txt", "Brokerage today: "+df.format(profitGrid[1]));
             TradingUtil.writeToFile("body.txt", "Net P&L today: "+df.format(profitGrid[2]));
             TradingUtil.writeToFile("body.txt", "MTD P&L: "+df.format(profitGrid[3]));
             TradingUtil.writeToFile("body.txt", "YTD P&L: "+df.format(profitGrid[4]));
+            TradingUtil.writeToFile("body.txt", "Max Drawdown (%): "+df.format(profitGrid[5]));
+            TradingUtil.writeToFile("body.txt", "Max Drawdown (days): "+df.format(profitGrid[6]));
+            TradingUtil.writeToFile("body.txt", "Avg Drawdown (days): "+df.format(profitGrid[7]));
+            TradingUtil.writeToFile("body.txt", "Sharpe Ratio: "+df.format(profitGrid[8]));
+            TradingUtil.writeToFile("body.txt", "# sample days: "+df.format(profitGrid[9]));
+            
             if(new File(filename).exists()){
                 writeHeader=false;
             }else{
@@ -430,13 +438,19 @@ TimerTask realTimeBars = new TimerTask(){
             System.out.println("Clean Exit after writing orders");
             //filename="tradesIDT"+fileSuffix+".csv";
             filename=prefix+tradeFile;
-            profitGrid=TradingUtil.applyBrokerage(oms.getTrades(), brokerageRate,pointValue,tradeFile,timeZone);
+            profitGrid=TradingUtil.applyBrokerage(oms.getTrades(), brokerageRate,pointValue,tradeFile,timeZone,startingCapital);
             TradingUtil.writeToFile("body.txt", "-----------------Trades:IDT----------------------");
             TradingUtil.writeToFile("body.txt", "Gross P&L today: "+df.format(profitGrid[0]));
             TradingUtil.writeToFile("body.txt", "Brokerage today: "+df.format(profitGrid[1]));
             TradingUtil.writeToFile("body.txt", "Net P&L today: "+df.format(profitGrid[2]));
             TradingUtil.writeToFile("body.txt", "MTD P&L: "+df.format(profitGrid[3]));
             TradingUtil.writeToFile("body.txt", "YTD P&L: "+df.format(profitGrid[4]));
+            TradingUtil.writeToFile("body.txt", "Max Drawdown (%): "+df.format(profitGrid[5]));
+            TradingUtil.writeToFile("body.txt", "Max Drawdown (days): "+df.format(profitGrid[6]));
+            TradingUtil.writeToFile("body.txt", "Avg Drawdown (days): "+df.format(profitGrid[7]));
+            TradingUtil.writeToFile("body.txt", "Sharpe Ratio: "+df.format(profitGrid[8]));
+            TradingUtil.writeToFile("body.txt", "# sample days: "+df.format(profitGrid[9]));
+            
             if(new File(filename).exists()){
                 writeHeader=false;
             }else{
