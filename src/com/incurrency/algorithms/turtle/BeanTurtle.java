@@ -213,12 +213,12 @@ TimerTask realTimeBars = new TimerTask(){
             lastOrderDate=DateUtil.addDays(lastOrderDate, 1);
             endDate=DateUtil.addDays(endDate, 1);
         }
+        maxOrderDuration = Integer.parseInt(System.getProperty("MaxOrderDuration"));        
         m.setCloseDate(DateUtil.addSeconds(endDate, (this.maxOrderDuration+2)*60));
         double tempprofitTarget= "".equals(System.getProperty("ProfitTarget"))? Double.MAX_VALUE:Double.parseDouble(System.getProperty("ProfitTarget"));
         setProfitTarget(tempprofitTarget);
         //Launch.setProfitTarget(getProfitTarget());
         tickSize = System.getProperty("TickSize");
-        maxOrderDuration = Integer.parseInt(System.getProperty("MaxOrderDuration"));
         dynamicOrderDuration = Integer.parseInt(System.getProperty("DynamicOrderDuration"));
         maVolumeLong=Double.parseDouble(System.getProperty("MAVolumeLong"));
         maVolumeShort=Double.parseDouble(System.getProperty("MAVolumeShort"));
@@ -867,7 +867,7 @@ TimerTask realTimeBars = new TimerTask(){
                     //Buy Condition
                     this.getNotionalPosition().set(id, 1L);
                     int size = this.getExposure() != 0 ? (int) (this.getExposure() / Parameters.symbol.get(id).getLastPrice()) : Parameters.symbol.get(id).getMinsize();
-                    logger.log(Level.FINE, "Buy. Symbol:{0},LL:{1},LastPrice:{2},HH{3},Slope:{4},SlopeThreshold:{5},Volume:{6},VolumeMA:{7}, Breachup:{8},Breachdown:{9}, ADRHigh:{10}, ADRLow:{11}, ADRAvg:{12}, ADR:{13}, ADRRTIN:{14}",
+                    logger.log(Level.INFO, "Buy. Symbol:{0},LL:{1},LastPrice:{2},HH{3},Slope:{4},SlopeThreshold:{5},Volume:{6},VolumeMA:{7}, Breachup:{8},Breachdown:{9}, ADRHigh:{10}, ADRLow:{11}, ADRAvg:{12}, ADR:{13}, ADRRTIN:{14}",
                             new Object[]{Parameters.symbol.get(id).getSymbol(), this.getLowestLow().get(id).toString(), Parameters.symbol.get(id).getLastPrice(), this.getHighestHigh().get(id).toString(), this.getSlope().get(id).toString(), String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeLongMultiplier() / 375), this.getVolume().get(id).toString(), this.getVolumeMA().get(id).toString(), this.getBreachUp().get(id) + 1, this.getBreachDown().get(id),ADR.adrDayHigh,ADR.adrDayLow,ADR.adrAvg, ADR.adr,ADR.adrTRIN
                     });
                     //check for filters
