@@ -325,7 +325,7 @@ public class ADR implements TradeListener,UpdateListener{
             if(buyZone && (tick<45 || tickTRIN>120) && longOnly){
                 entryPrice=price;
                 this.internalOpenOrders.put(id, internalOrderID);
-                trades.put(this.internalOrderID, new Trade(id,EnumOrderSide.BUY,entryPrice,numberOfContracts,internalOrderID++,timeZone));
+                trades.put(this.internalOrderID, new Trade(id,EnumOrderSide.BUY,entryPrice,numberOfContracts,internalOrderID++,timeZone,"Order"));
                 logger.log(Level.INFO," Strategy: ADR. adrHigh: {0},adrLow: {1},adrAvg: {2},adrTRINHigh: {3},adrTRINLow: {4},adrTRINAvg: {5},indexHigh :{6},indexLow :{7},indexAvg: {8}, buyZone1: {9}, buyZone2: {10}, buyZone 3: {11}, shortZone1: {12}, shortZone2: {13}, ShortZone3:{14}, ADR: {15}, ADRTrin: {16}, Tick: {17}, TickTrin: {18}, adrDayHigh: {19}, adrDayLow: {20}, IndexDayHigh: {21}, IndexDayLow: {22}",new Object[]{adrHigh,adrLow,adrAvg,adrTRINHigh,adrTRINLow,adrTRINAvg,indexHigh,indexLow,indexAvg,buyZone1,buyZone2,buyZone3,shortZone1,shortZone2,shortZone3,adr,adrTRIN,tick,tickTRIN,adrDayHigh,adrDayLow,indexDayHigh,indexDayLow});
                 logger.log(Level.INFO,"Strategy: ADR. Buy Order. Price: {0}",new Object[]{price});
                     getOmsADR().tes.fireOrderEvent(internalOrderID-1,internalOrderID-1,Parameters.symbol.get(id), EnumOrderSide.BUY, numberOfContracts, price, 0, "adr", 3, "", EnumOrderIntent.Init, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageEntry());
@@ -334,7 +334,7 @@ public class ADR implements TradeListener,UpdateListener{
             else if(shortZone && (tick>55  || tickTRIN<80) && shortOnly){
                 entryPrice=price;
                 this.internalOpenOrders.put(id, internalOrderID);
-                trades.put(this.internalOrderID, new Trade(id,EnumOrderSide.SHORT,entryPrice,numberOfContracts,internalOrderID++,timeZone));
+                trades.put(this.internalOrderID, new Trade(id,EnumOrderSide.SHORT,entryPrice,numberOfContracts,internalOrderID++,timeZone,"Order"));
                 logger.log(Level.INFO," Strategy: ADR. adrHigh: {0},adrLow: {1},adrAvg: {2},adrTRINHigh: {3},adrTRINLow: {4},adrTRINAvg: {5},indexHigh :{6},indexLow :{7},indexAvg: {8}, buyZone1: {9}, buyZone2: {10}, buyZone 3: {11}, shortZone1: {12}, shortZone2: {13}, ShortZone3:{14}, ADR: {15}, ADRTrin: {16}, Tick: {17}, TickTrin: {18}, adrDayHigh: {19}, adrDayLow: {20}, IndexDayHigh: {21}, IndexDayLow: {22}",new Object[]{adrHigh,adrLow,adrAvg,adrTRINHigh,adrTRINLow,adrTRINAvg,indexHigh,indexLow,indexAvg,buyZone1,buyZone2,buyZone3,shortZone1,shortZone2,shortZone3,adr,adrTRIN,tick,tickTRIN,adrDayHigh,adrDayLow,indexDayHigh,indexDayLow});
                 logger.log(Level.INFO,"Strategy: ADR. Short Order. Price: {0}",new Object[]{price});
                 getOmsADR().tes.fireOrderEvent(internalOrderID-1,internalOrderID-1,Parameters.symbol.get(id), EnumOrderSide.SHORT, numberOfContracts, price, 0, "adr", 3, "", EnumOrderIntent.Init, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageEntry());
@@ -346,7 +346,7 @@ public class ADR implements TradeListener,UpdateListener{
                 if(buyZone || (price>indexLow+stopLoss && !shortZone)||new Date().compareTo(endDate)>0){ //stop loss
                     int tempinternalOrderID=internalOpenOrders.get(id);
                     Trade tempTrade=trades.get(tempinternalOrderID);
-                    tempTrade.updateExit(id, EnumOrderSide.COVER, price, numberOfContracts, internalOrderID++,timeZone);
+                    tempTrade.updateExit(id, EnumOrderSide.COVER, price, numberOfContracts, internalOrderID++,timeZone,"Order");
                     logger.log(Level.INFO," Strategy: ADR. adrHigh: {0},adrLow: {1},adrAvg: {2},adrTRINHigh: {3},adrTRINLow: {4},adrTRINAvg: {5},indexHigh :{6},indexLow :{7},indexAvg: {8}, buyZone1: {9}, buyZone2: {10}, buyZone 3: {11}, shortZone1: {12}, shortZone2: {13}, ShortZone3:{14}, ADR: {15}, ADRTrin: {16}, Tick: {17}, TickTrin: {18}, adrDayHigh: {19}, adrDayLow: {20}, IndexDayHigh: {21}, IndexDayLow: {22}",new Object[]{adrHigh,adrLow,adrAvg,adrTRINHigh,adrTRINLow,adrTRINAvg,indexHigh,indexLow,indexAvg,buyZone1,buyZone2,buyZone3,shortZone1,shortZone2,shortZone3,adr,adrTRIN,tick,tickTRIN,adrDayHigh,adrDayLow,indexDayHigh,indexDayLow});                
                     logger.log(Level.INFO,"Strategy: ADR. Cover Order. StopLoss. Price: {0}",new Object[]{price});
                     getOmsADR().tes.fireOrderEvent(internalOrderID-1,tempinternalOrderID,Parameters.symbol.get(id), EnumOrderSide.COVER, numberOfContracts, price, 0, "adr", 3, "", EnumOrderIntent.Init, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit());
@@ -354,7 +354,7 @@ public class ADR implements TradeListener,UpdateListener{
                 }else if(!shortZone && price<entryPrice-takeProfit){
                     int tempinternalOrderID=internalOpenOrders.get(id);
                     Trade tempTrade=trades.get(tempinternalOrderID);
-                    tempTrade.updateExit(id, EnumOrderSide.COVER, price, numberOfContracts, internalOrderID++,timeZone);
+                    tempTrade.updateExit(id, EnumOrderSide.COVER, price, numberOfContracts, internalOrderID++,timeZone,"Order");
                     logger.log(Level.INFO," Strategy: ADR. adrHigh: {0},adrLow: {1},adrAvg: {2},adrTRINHigh: {3},adrTRINLow: {4},adrTRINAvg: {5},indexHigh :{6},indexLow :{7},indexAvg: {8}, buyZone1: {9}, buyZone2: {10}, buyZone 3: {11}, shortZone1: {12}, shortZone2: {13}, ShortZone3:{14}, ADR: {15}, ADRTrin: {16}, Tick: {17}, TickTrin: {18}, adrDayHigh: {19}, adrDayLow: {20}, IndexDayHigh: {21}, IndexDayLow: {22}",new Object[]{adrHigh,adrLow,adrAvg,adrTRINHigh,adrTRINLow,adrTRINAvg,indexHigh,indexLow,indexAvg,buyZone1,buyZone2,buyZone3,shortZone1,shortZone2,shortZone3,adr,adrTRIN,tick,tickTRIN,adrDayHigh,adrDayLow,indexDayHigh,indexDayLow});               
                     logger.log(Level.INFO," Strategy: ADR. Cover Order. TakeProfit. Price: {0}",new Object[]{price});
                     getOmsADR().tes.fireOrderEvent(internalOrderID-1,tempinternalOrderID,Parameters.symbol.get(id), EnumOrderSide.COVER, numberOfContracts, price, 0, "adr", 3, "", EnumOrderIntent.Init, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit());
@@ -365,7 +365,7 @@ public class ADR implements TradeListener,UpdateListener{
                 if(shortZone || (price<indexHigh-stopLoss && !buyZone)||new Date().compareTo(endDate)>0){
                     int tempinternalOrderID=internalOpenOrders.get(id);
                     Trade tempTrade=trades.get(tempinternalOrderID);
-                    tempTrade.updateExit(id, EnumOrderSide.SELL, price, numberOfContracts, internalOrderID++,timeZone);
+                    tempTrade.updateExit(id, EnumOrderSide.SELL, price, numberOfContracts, internalOrderID++,timeZone,"Order");
                     logger.log(Level.INFO," Strategy: ADR. adrHigh: {0},adrLow: {1},adrAvg: {2},adrTRINHigh: {3},adrTRINLow: {4},adrTRINAvg: {5},indexHigh :{6},indexLow :{7},indexAvg: {8}, buyZone1: {9}, buyZone2: {10}, buyZone 3: {11}, shortZone1: {12}, shortZone2: {13}, ShortZone3:{14}, ADR: {15}, ADRTrin: {16}, Tick: {17}, TickTrin: {18}, adrDayHigh: {19}, adrDayLow: {20}, IndexDayHigh: {21}, IndexDayLow: {22}",new Object[]{adrHigh,adrLow,adrAvg,adrTRINHigh,adrTRINLow,adrTRINAvg,indexHigh,indexLow,indexAvg,buyZone1,buyZone2,buyZone3,shortZone1,shortZone2,shortZone3,adr,adrTRIN,tick,tickTRIN,adrDayHigh,adrDayLow,indexDayHigh,indexDayLow});
                     logger.log(Level.INFO," Strategy: ADR. Sell Order. StopLoss. Price: {0}",new Object[]{price});
                     getOmsADR().tes.fireOrderEvent(internalOrderID-1,tempinternalOrderID,Parameters.symbol.get(id), EnumOrderSide.SELL, numberOfContracts, price, 0, "adr", 3, "", EnumOrderIntent.Init, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit());
@@ -373,7 +373,7 @@ public class ADR implements TradeListener,UpdateListener{
                 }else if(!buyZone && price>entryPrice+takeProfit){
                     int tempinternalOrderID=internalOpenOrders.get(id);
                     Trade tempTrade=trades.get(tempinternalOrderID);
-                    tempTrade.updateExit(id, EnumOrderSide.SELL, price, numberOfContracts, internalOrderID++,timeZone);
+                    tempTrade.updateExit(id, EnumOrderSide.SELL, price, numberOfContracts, internalOrderID++,timeZone,"Order");
                     logger.log(Level.INFO," Strategy: ADR. adrHigh: {0},adrLow: {1},adrAvg: {2},adrTRINHigh: {3},adrTRINLow: {4},adrTRINAvg: {5},indexHigh :{6},indexLow :{7},indexAvg: {8}, buyZone1: {9}, buyZone2: {10}, buyZone 3: {11}, shortZone1: {12}, shortZone2: {13}, ShortZone3:{14}, ADR: {15}, ADRTrin: {16}, Tick: {17}, TickTrin: {18}, adrDayHigh: {19}, adrDayLow: {20}, IndexDayHigh: {21}, IndexDayLow: {22}",new Object[]{adrHigh,adrLow,adrAvg,adrTRINHigh,adrTRINLow,adrTRINAvg,indexHigh,indexLow,indexAvg,buyZone1,buyZone2,buyZone3,shortZone1,shortZone2,shortZone3,adr,adrTRIN,tick,tickTRIN,adrDayHigh,adrDayLow,indexDayHigh,indexDayLow});
                     logger.log(Level.INFO,"Strategy ADR. Sell Order. TakeProfit. Price: {0}",new Object[]{price});
                     getOmsADR().tes.fireOrderEvent(internalOrderID-1,tempinternalOrderID,Parameters.symbol.get(id), EnumOrderSide.SELL, numberOfContracts, price, 0, "adr", 3, "", EnumOrderIntent.Init, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit());
@@ -433,78 +433,81 @@ public class ADR implements TradeListener,UpdateListener{
         }
     };
     
-    public void printOrders(String prefix){
-                FileWriter file;
-                double[] profitGrid=new double[5];
-                DecimalFormat df = new DecimalFormat("#.##");
+    public void printOrders(String prefix) {
+        FileWriter file;
+        double[] profitGrid = new double[5];
+        DecimalFormat df = new DecimalFormat("#.##");
         try {
-            boolean writeHeader=false;
-            String fileSuffix=DateUtil.getFormatedDate("yyyyMMdd_HHmmss", new Date().getTime());
-            //String filename="ordersADR"+fileSuffix+".csv";
-            String filename=prefix+orderFile;
-            profitGrid=TradingUtil.applyBrokerage(trades, brokerageRate,pointValue,orderFile,timeZone,startingCapital);
-            TradingUtil.writeToFile("body.txt", "-----------------Orders:ADR----------------------");
-            TradingUtil.writeToFile("body.txt", "Gross P&L today: "+df.format(profitGrid[0]));
-            TradingUtil.writeToFile("body.txt", "Brokerage today: "+df.format(profitGrid[1]));
-            TradingUtil.writeToFile("body.txt", "Net P&L today: "+df.format(profitGrid[2]));
-            TradingUtil.writeToFile("body.txt", "MTD P&L: "+df.format(profitGrid[3]));
-            TradingUtil.writeToFile("body.txt", "YTD P&L: "+df.format(profitGrid[4]));
-            TradingUtil.writeToFile("body.txt", "Max Drawdown (%): "+df.format(profitGrid[5]));
-            TradingUtil.writeToFile("body.txt", "Max Drawdown (days): "+df.format(profitGrid[6]));
-            TradingUtil.writeToFile("body.txt", "Avg Drawdown (days): "+df.format(profitGrid[7]));
-            TradingUtil.writeToFile("body.txt", "Sharpe Ratio: "+df.format(profitGrid[8]));
-            TradingUtil.writeToFile("body.txt", "# sample days: "+df.format(profitGrid[9]));
-            if(new File(filename).exists()){
-                writeHeader=false;
-            }else{
-                writeHeader=true;
+            boolean writeHeader = false;
+            String filename = prefix + orderFile;
+            profitGrid = TradingUtil.applyBrokerage(trades, brokerageRate, pointValue, orderFile, timeZone, startingCapital, "Order");
+            TradingUtil.writeToFile("body.txt", "-----------------Orders:ADR--------------------------------------------------");
+            TradingUtil.writeToFile("body.txt", "Gross P&L today: " + df.format(profitGrid[0]));
+            TradingUtil.writeToFile("body.txt", "Brokerage today: " + df.format(profitGrid[1]));
+            TradingUtil.writeToFile("body.txt", "Net P&L today: " + df.format(profitGrid[2]));
+            TradingUtil.writeToFile("body.txt", "MTD P&L: " + df.format(profitGrid[3]));
+            TradingUtil.writeToFile("body.txt", "YTD P&L: " + df.format(profitGrid[4]));
+            TradingUtil.writeToFile("body.txt", "Max Drawdown (%): " + df.format(profitGrid[5]));
+            TradingUtil.writeToFile("body.txt", "Max Drawdown (days): " + df.format(profitGrid[6]));
+            TradingUtil.writeToFile("body.txt", "Avg Drawdown (days): " + df.format(profitGrid[7]));
+            TradingUtil.writeToFile("body.txt", "Sharpe Ratio: " + df.format(profitGrid[8]));
+            TradingUtil.writeToFile("body.txt", "# days in history: " + df.format(profitGrid[9]));
+            if (new File(filename).exists()) {
+                writeHeader = false;
+            } else {
+                writeHeader = true;
             }
             file = new FileWriter(filename, true);
             String[] header = new String[]{
                 "entrySymbol", "entryType", "entryExpiry", "entryRight", "entryStrike",
-                "entrySide", "entryPrice", "entrySize", "entryTime", "entryID","entryBrokerage", "filtered","exitSymbol",
+                "entrySide", "entryPrice", "entrySize", "entryTime", "entryID", "entryBrokerage", "filtered", "exitSymbol",
                 "exitType", "exitExpiry", "exitRight", "exitStrike", "exitSide", "exitPrice",
-                "exitSize", "exitTime", "exitID","exitBrokerage"};
+                "exitSize", "exitTime", "exitID", "exitBrokerage"};
             CsvBeanWriter orderWriter = new CsvBeanWriter(file, CsvPreference.EXCEL_PREFERENCE);
-            if(writeHeader){//this ensures header is written only the first time
-            orderWriter.writeHeader(header);
+            if (writeHeader) {//this ensures header is written only the first time
+                orderWriter.writeHeader(header);
             }
             for (Map.Entry<Integer, Trade> order : trades.entrySet()) {
                 orderWriter.write(order.getValue(), header, Parameters.getTradeProcessorsWrite());
             }
             orderWriter.close();
-            logger.log(Level.INFO,"Clean Exit after writing orders");
-            //filename="tradesADR"+fileSuffix+".csv";
-            filename=prefix+tradeFile;
-            profitGrid=TradingUtil.applyBrokerage(getOmsADR().getTrades(), brokerageRate,pointValue,tradeFile,timeZone,startingCapital);
-            TradingUtil.writeToFile("body.txt", "-----------------Trades:ADR----------------------");
-            TradingUtil.writeToFile("body.txt", "Gross P&L today: "+df.format(profitGrid[0]));
-            TradingUtil.writeToFile("body.txt", "Brokerage today: "+df.format(profitGrid[1]));
-            TradingUtil.writeToFile("body.txt", "Net P&L today: "+df.format(profitGrid[2]));
-            TradingUtil.writeToFile("body.txt", "MTD P&L: "+df.format(profitGrid[3]));
-            TradingUtil.writeToFile("body.txt", "YTD P&L: "+df.format(profitGrid[4]));
-            TradingUtil.writeToFile("body.txt", "Max Drawdown (%): "+df.format(profitGrid[5]));
-            TradingUtil.writeToFile("body.txt", "Max Drawdown (days): "+df.format(profitGrid[6]));
-            TradingUtil.writeToFile("body.txt", "Avg Drawdown (days): "+df.format(profitGrid[7]));
-            TradingUtil.writeToFile("body.txt", "Sharpe Ratio: "+df.format(profitGrid[8]));
-            TradingUtil.writeToFile("body.txt", "# sample days: "+df.format(profitGrid[9]));
-            
-            if(new File(filename).exists()){
-                writeHeader=false;
-            }else{
-                writeHeader=true;
+            logger.log(Level.INFO, "Clean Exit after writing orders");
+
+            //Write trade summary for each account
+            for (BeanConnection c : Parameters.connection) {
+                if (c.getStrategy().contains("idt")) {
+                    filename = prefix + tradeFile;
+                    profitGrid = TradingUtil.applyBrokerage(getOmsADR().getTrades(), brokerageRate, pointValue, tradeFile, timeZone, startingCapital, c.getAccountName());
+                    TradingUtil.writeToFile("body.txt", "-----------------Trades: ADR, Account: " + c.getAccountName() + "----------------------");
+                    TradingUtil.writeToFile("body.txt", "Gross P&L today: " + df.format(profitGrid[0]));
+                    TradingUtil.writeToFile("body.txt", "Brokerage today: " + df.format(profitGrid[1]));
+                    TradingUtil.writeToFile("body.txt", "Net P&L today: " + df.format(profitGrid[2]));
+                    TradingUtil.writeToFile("body.txt", "MTD P&L: " + df.format(profitGrid[3]));
+                    TradingUtil.writeToFile("body.txt", "YTD P&L: " + df.format(profitGrid[4]));
+                    TradingUtil.writeToFile("body.txt", "Max Drawdown (%): " + df.format(profitGrid[5]));
+                    TradingUtil.writeToFile("body.txt", "Max Drawdown (days): " + df.format(profitGrid[6]));
+                    TradingUtil.writeToFile("body.txt", "Avg Drawdown (days): " + df.format(profitGrid[7]));
+                    TradingUtil.writeToFile("body.txt", "Sharpe Ratio: " + df.format(profitGrid[8]));
+                    TradingUtil.writeToFile("body.txt", "# days in history: " + df.format(profitGrid[9]));
+
+                    if (new File(filename).exists()) {
+                        writeHeader = false;
+                    } else {
+                        writeHeader = true;
+                    }
+                    file = new FileWriter(filename, true);
+                    CsvBeanWriter tradeWriter = new CsvBeanWriter(file, CsvPreference.EXCEL_PREFERENCE);
+                    if (writeHeader) {//this ensures header is written only the first time
+                        tradeWriter.writeHeader(header);
+                    }
+                    for (Map.Entry<Integer, Trade> trade : getOmsADR().getTrades().entrySet()) {
+                        tradeWriter.write(trade.getValue(), header, Parameters.getTradeProcessorsWrite());
+                    }
+                    tradeWriter.close();
+                    logger.log(Level.INFO, "Clean Exit after writing trades");
+                    //System.exit(0);
+                }
             }
-            file = new FileWriter(filename, true);
-            CsvBeanWriter tradeWriter = new CsvBeanWriter(file, CsvPreference.EXCEL_PREFERENCE);
-            if(writeHeader){//this ensures header is written only the first time
-            tradeWriter.writeHeader(header);
-            }
-            for (Map.Entry<Integer, Trade> trade : getOmsADR().getTrades().entrySet()) {
-                tradeWriter.write(trade.getValue(), header, Parameters.getTradeProcessorsWrite());
-            }
-            tradeWriter.close();
-            logger.log(Level.INFO,"Clean Exit after writing trades");
-            //System.exit(0);
         } catch (IOException ex) {
             logger.log(Level.SEVERE, null, ex);
         }

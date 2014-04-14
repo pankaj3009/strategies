@@ -395,78 +395,83 @@ TimerTask realTimeBars = new TimerTask(){
     }
 };
     
-    public void printOrders(String prefix){
-                FileWriter file;
-                double[] profitGrid=new double[5];
-                boolean writeHeader=false;
-                DecimalFormat df = new DecimalFormat("#.##");
+    public void printOrders(String prefix) {
+        FileWriter file;
+        double[] profitGrid = new double[5];
+        boolean writeHeader = false;
+        DecimalFormat df = new DecimalFormat("#.##");
 
         try {
-            String filename=prefix+orderFile;
-            profitGrid=TradingUtil.applyBrokerage(trades, brokerageRate, pointValue,orderFile,timeZone,startingCapital);
+            String filename = prefix + orderFile;
+            profitGrid = TradingUtil.applyBrokerage(trades, brokerageRate, pointValue, orderFile, timeZone, startingCapital, "Order");
             TradingUtil.writeToFile("body.txt", "-----------------Orders:IDT----------------------");
-            TradingUtil.writeToFile("body.txt", "Gross P&L today: "+df.format(profitGrid[0]));
-            TradingUtil.writeToFile("body.txt", "Brokerage today: "+df.format(profitGrid[1]));
-            TradingUtil.writeToFile("body.txt", "Net P&L today: "+df.format(profitGrid[2]));
-            TradingUtil.writeToFile("body.txt", "MTD P&L: "+df.format(profitGrid[3]));
-            TradingUtil.writeToFile("body.txt", "YTD P&L: "+df.format(profitGrid[4]));
-            TradingUtil.writeToFile("body.txt", "Max Drawdown (%): "+df.format(profitGrid[5]));
-            TradingUtil.writeToFile("body.txt", "Max Drawdown (days): "+df.format(profitGrid[6]));
-            TradingUtil.writeToFile("body.txt", "Avg Drawdown (days): "+df.format(profitGrid[7]));
-            TradingUtil.writeToFile("body.txt", "Sharpe Ratio: "+df.format(profitGrid[8]));
-            TradingUtil.writeToFile("body.txt", "# sample days: "+df.format(profitGrid[9]));
-            
-            if(new File(filename).exists()){
-                writeHeader=false;
-            }else{
-                writeHeader=true;
+            TradingUtil.writeToFile("body.txt", "Gross P&L today: " + df.format(profitGrid[0]));
+            TradingUtil.writeToFile("body.txt", "Brokerage today: " + df.format(profitGrid[1]));
+            TradingUtil.writeToFile("body.txt", "Net P&L today: " + df.format(profitGrid[2]));
+            TradingUtil.writeToFile("body.txt", "MTD P&L: " + df.format(profitGrid[3]));
+            TradingUtil.writeToFile("body.txt", "YTD P&L: " + df.format(profitGrid[4]));
+            TradingUtil.writeToFile("body.txt", "Max Drawdown (%): " + df.format(profitGrid[5]));
+            TradingUtil.writeToFile("body.txt", "Max Drawdown (days): " + df.format(profitGrid[6]));
+            TradingUtil.writeToFile("body.txt", "Avg Drawdown (days): " + df.format(profitGrid[7]));
+            TradingUtil.writeToFile("body.txt", "Sharpe Ratio: " + df.format(profitGrid[8]));
+            TradingUtil.writeToFile("body.txt", "# days in history: " + df.format(profitGrid[9]));
+
+            if (new File(filename).exists()) {
+                writeHeader = false;
+            } else {
+                writeHeader = true;
             }
             file = new FileWriter(filename, true);
             String[] header = new String[]{
                 "entrySymbol", "entryType", "entryExpiry", "entryRight", "entryStrike",
-                "entrySide", "entryPrice", "entrySize", "entryTime", "entryID","entryBrokerage" ,"filtered","exitSymbol",
+                "entrySide", "entryPrice", "entrySize", "entryTime", "entryID", "entryBrokerage", "filtered", "exitSymbol",
                 "exitType", "exitExpiry", "exitRight", "exitStrike", "exitSide", "exitPrice",
-                "exitSize", "exitTime", "exitID","exitBrokerage"};
+                "exitSize", "exitTime", "exitID", "exitBrokerage"};
             CsvBeanWriter ordersWriter = new CsvBeanWriter(file, CsvPreference.EXCEL_PREFERENCE);
-            if(writeHeader){//this ensures header is written only the first time
-            ordersWriter.writeHeader(header);
+            if (writeHeader) {//this ensures header is written only the first time
+                ordersWriter.writeHeader(header);
             }
             for (Map.Entry<Integer, Trade> order : trades.entrySet()) {
                 ordersWriter.write(order.getValue(), header, Parameters.getTradeProcessorsWrite());
             }
             ordersWriter.close();
             System.out.println("Clean Exit after writing orders");
-            //filename="tradesIDT"+fileSuffix+".csv";
-            filename=prefix+tradeFile;
-            profitGrid=TradingUtil.applyBrokerage(oms.getTrades(), brokerageRate,pointValue,tradeFile,timeZone,startingCapital);
-            TradingUtil.writeToFile("body.txt", "-----------------Trades:IDT----------------------");
-            TradingUtil.writeToFile("body.txt", "Gross P&L today: "+df.format(profitGrid[0]));
-            TradingUtil.writeToFile("body.txt", "Brokerage today: "+df.format(profitGrid[1]));
-            TradingUtil.writeToFile("body.txt", "Net P&L today: "+df.format(profitGrid[2]));
-            TradingUtil.writeToFile("body.txt", "MTD P&L: "+df.format(profitGrid[3]));
-            TradingUtil.writeToFile("body.txt", "YTD P&L: "+df.format(profitGrid[4]));
-            TradingUtil.writeToFile("body.txt", "Max Drawdown (%): "+df.format(profitGrid[5]));
-            TradingUtil.writeToFile("body.txt", "Max Drawdown (days): "+df.format(profitGrid[6]));
-            TradingUtil.writeToFile("body.txt", "Avg Drawdown (days): "+df.format(profitGrid[7]));
-            TradingUtil.writeToFile("body.txt", "Sharpe Ratio: "+df.format(profitGrid[8]));
-            TradingUtil.writeToFile("body.txt", "# sample days: "+df.format(profitGrid[9]));
-            
-            if(new File(filename).exists()){
-                writeHeader=false;
-            }else{
-                writeHeader=true;
+
+            //Write trade summary for each account
+            for (BeanConnection c : Parameters.connection) {
+                if (c.getStrategy().contains("adr")) {
+                    filename = prefix + tradeFile;
+                    profitGrid = TradingUtil.applyBrokerage(oms.getTrades(), brokerageRate, pointValue, tradeFile, timeZone, startingCapital, c.getAccountName());
+                    TradingUtil.writeToFile("body.txt", "-----------------Trades: IDT, Account: " + c.getAccountName() + "----------------------");
+                    TradingUtil.writeToFile("body.txt", "Gross P&L today: " + df.format(profitGrid[0]));
+                    TradingUtil.writeToFile("body.txt", "Brokerage today: " + df.format(profitGrid[1]));
+                    TradingUtil.writeToFile("body.txt", "Net P&L today: " + df.format(profitGrid[2]));
+                    TradingUtil.writeToFile("body.txt", "MTD P&L: " + df.format(profitGrid[3]));
+                    TradingUtil.writeToFile("body.txt", "YTD P&L: " + df.format(profitGrid[4]));
+                    TradingUtil.writeToFile("body.txt", "Max Drawdown (%): " + df.format(profitGrid[5]));
+                    TradingUtil.writeToFile("body.txt", "Max Drawdown (days): " + df.format(profitGrid[6]));
+                    TradingUtil.writeToFile("body.txt", "Avg Drawdown (days): " + df.format(profitGrid[7]));
+                    TradingUtil.writeToFile("body.txt", "Sharpe Ratio: " + df.format(profitGrid[8]));
+                    TradingUtil.writeToFile("body.txt", "# days in history: " + df.format(profitGrid[9]));
+
+                    if (new File(filename).exists()) {
+                        writeHeader = false;
+                    } else {
+                        writeHeader = true;
+                    }
+                    file = new FileWriter(filename, true);
+                    CsvBeanWriter tradeWriter = new CsvBeanWriter(file, CsvPreference.EXCEL_PREFERENCE);
+                    if (writeHeader) {//this ensures header is written only the first time
+                        tradeWriter.writeHeader(header);
+                    }
+                    for (Map.Entry<Integer, Trade> trade : oms.getTrades().entrySet()) {
+                        tradeWriter.write(trade.getValue(), header, Parameters.getTradeProcessorsWrite());
+                    }
+                    tradeWriter.close();
+                    System.out.println("Clean Exit after writing trades");
+                    // System.exit(0);
+                }
             }
-            file = new FileWriter(filename, true);            
-            CsvBeanWriter tradeWriter = new CsvBeanWriter(file, CsvPreference.EXCEL_PREFERENCE);
-            if(writeHeader){//this ensures header is written only the first time
-            tradeWriter.writeHeader(header);
-            }
-            for (Map.Entry<Integer, Trade> trade : oms.getTrades().entrySet()) {
-                tradeWriter.write(trade.getValue(), header, Parameters.getTradeProcessorsWrite());
-            }
-            tradeWriter.close();
-            System.out.println("Clean Exit after writing trades");
-           // System.exit(0);
         } catch (IOException ex) {
             logger.log(Level.SEVERE, null, ex);
         }
@@ -889,7 +894,7 @@ TimerTask realTimeBars = new TimerTask(){
                     boolean breaches=checkForDirectionalBreaches==true?breachup > 0.5 && this.getBreachDown().get(id) >= 1:true;
                     boolean donotskip=skipAfterWins==true?lastTradeWasLosing.get(id):true;
                     boolean adrtrend=checkADRTrend==true?(ADR.adr>ADR.adrDayLow+0.75*(ADR.adrDayHigh-ADR.adrDayLow)||ADR.adr>ADR.adrAvg) && ADR.adrTRIN<paramADRTRINBuy:true;
-                    getTrades().put(internalorderID, new Trade(id,EnumOrderSide.BUY,this.getHighestHigh().get(id),size,this.internalorderID++,liquidity && breaches && donotskip && adrtrend,timeZone));
+                    getTrades().put(internalorderID, new Trade(id,EnumOrderSide.BUY,this.getHighestHigh().get(id),size,this.internalorderID++,liquidity && breaches && donotskip && adrtrend,timeZone,"Order"));
                     this.internalOpenOrders.put(id, this.internalorderID-1);
                     if(liquidity && breaches && donotskip && adrtrend){
                     if (this.getAdvanceEntryOrder().get(id) == 0) { //no advance order present
@@ -916,7 +921,7 @@ TimerTask realTimeBars = new TimerTask(){
                     boolean breaches=checkForDirectionalBreaches==true?breachdown > 0.5 && this.getBreachUp().get(id) >= 1:true;
                     boolean donotskip=skipAfterWins==true?lastTradeWasLosing.get(id):true;
                     boolean adrtrend=checkADRTrend==true?(ADR.adr<ADR.adrDayHigh-0.75*(ADR.adrDayHigh-ADR.adrDayLow)||ADR.adr<ADR.adrAvg) && ADR.adrTRIN>paramADRTRINShort:true;
-                    getTrades().put(internalorderID, new Trade(id,EnumOrderSide.SHORT,this.getLowestLow().get(id),size,this.internalorderID++,liquidity && breaches && donotskip && adrtrend,timeZone));
+                    getTrades().put(internalorderID, new Trade(id,EnumOrderSide.SHORT,this.getLowestLow().get(id),size,this.internalorderID++,liquidity && breaches && donotskip && adrtrend,timeZone,"Order"));
                     this.internalOpenOrders.put(id, this.internalorderID-1);
                     if(liquidity && breaches && donotskip && adrtrend){
                     if (this.getAdvanceEntryOrder().get(id) == 0) {
@@ -942,7 +947,7 @@ TimerTask realTimeBars = new TimerTask(){
                     });
                     int entryInternalOrderID=this.internalOpenOrders.get(id);
                     Trade originalTrade=getTrades().get(entryInternalOrderID);
-                    originalTrade.updateExit(id,EnumOrderSide.COVER,this.getHighestHigh().get(id),size,this.internalorderID++,timeZone);                    
+                    originalTrade.updateExit(id,EnumOrderSide.COVER,this.getHighestHigh().get(id),size,this.internalorderID++,timeZone,"Order");                    
                     getTrades().put(entryInternalOrderID, originalTrade);
                     if(entryInternalOrderID!=0){
                    if(  getTrades().get(entryInternalOrderID).getEntryPrice()>=this.getHighestHigh().get(id)){
@@ -980,7 +985,7 @@ TimerTask realTimeBars = new TimerTask(){
                     });
                      int entryInternalOrderID=this.internalOpenOrders.get(id);
                     Trade originalTrade=getTrades().get(entryInternalOrderID);
-                    originalTrade.updateExit(id,EnumOrderSide.SELL,this.getLowestLow().get(id),size,this.internalorderID++,timeZone);                    
+                    originalTrade.updateExit(id,EnumOrderSide.SELL,this.getLowestLow().get(id),size,this.internalorderID++,timeZone,"Order");                    
                     getTrades().put(entryInternalOrderID, originalTrade);
                     if(entryInternalOrderID!=0){
                     if( getTrades().get(entryInternalOrderID).getEntryPrice()<=this.getLowestLow().get(id)){
@@ -1020,7 +1025,7 @@ TimerTask realTimeBars = new TimerTask(){
                         this.getNotionalPosition().set(symb, 0L);
                         int entryInternalOrderID=this.internalOpenOrders.get(symb);
                         Trade originalTrade=getTrades().get(entryInternalOrderID);
-                        originalTrade.updateExit(symb,EnumOrderSide.SELL,this.getClose().get(symb),size,this.internalorderID++,timeZone);                    
+                        originalTrade.updateExit(symb,EnumOrderSide.SELL,this.getClose().get(symb),size,this.internalorderID++,timeZone,"Order");                    
                         getTrades().put(entryInternalOrderID, originalTrade);
                         logger.log(Level.INFO, "Sell. Force Close All Positions.Symbol:{0}", new Object[]{Parameters.symbol.get(symb).getSymbol()});
                         getOms().tes.fireOrderEvent(this.internalorderID-1,entryInternalOrderID,Parameters.symbol.get(symb), EnumOrderSide.SELL, size, this.getClose().get(symb), 0, "idt", maxOrderDuration, "", EnumOrderIntent.Cancel, maxOrderDuration, dynamicOrderDuration, getMaxSlippageExit());
@@ -1032,7 +1037,7 @@ TimerTask realTimeBars = new TimerTask(){
                         this.getNotionalPosition().set(symb, 0L);
                         int entryInternalOrderID=this.internalOpenOrders.get(symb);
                         Trade originalTrade=getTrades().get(entryInternalOrderID);
-                        originalTrade.updateExit(symb,EnumOrderSide.COVER,this.getClose().get(symb),size,this.internalorderID++,timeZone);                    
+                        originalTrade.updateExit(symb,EnumOrderSide.COVER,this.getClose().get(symb),size,this.internalorderID++,timeZone,"Order");                    
                         getTrades().put(entryInternalOrderID, originalTrade);
                         logger.log(Level.INFO, "Cover. Force Close All Positions.Symbol:{0}", new Object[]{Parameters.symbol.get(symb).getSymbol()});
                         getOms().tes.fireOrderEvent(this.internalorderID-1,entryInternalOrderID,Parameters.symbol.get(symb), EnumOrderSide.COVER, size, this.getClose().get(symb), 0, "idt", maxOrderDuration, "", EnumOrderIntent.Cancel, maxOrderDuration, dynamicOrderDuration, getMaxSlippageExit());
