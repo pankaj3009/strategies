@@ -337,12 +337,9 @@ public class ADR implements TradeListener,UpdateListener{
                 logger.log(Level.INFO,"Strategy: ADR. Buy Order. Price: {0}",new Object[]{price});
                     getOmsADR().tes.fireOrderEvent(internalOrderID-1,internalOrderID-1,Parameters.symbol.get(id), EnumOrderSide.BUY, numberOfContracts, price, 0, "adr", 3, "", EnumOrderIntent.Init, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageEntry());
                 position=1;
-                try {
-                    Jsoup.connect("http://www.collective2.com/cgi-perl/signal.mpl").data("cmd", "signal", "systemid","87033713","pw","spark123","instrument","future","action","BTO","quant","3","symbol","@ESM4","duration","DAY").post();
+                    //Jsoup.connect("http://www.collective2.com/cgi-perl/signal.mpl").data("cmd", "signal", "systemid","87033713","pw","spark123","instrument","future","action","BTO","quant","3","symbol","@ESM4","duration","DAY").post();
                    // http://www.collective2.com/cgi-perl/signal.mpl?cmd=signal&systemid=87033713&pw=spark123&instrument=future&action=BTO&quant=1&symbol=@ESM4&limit=1120&duration=DAY
-                } catch (IOException ex) {
-                    logger.log(Level.SEVERE, null, ex);
-                }
+
             }
             else if(shortZone && (tick>55  || tickTRIN<80) && shortOnly){
                 entryPrice=price;
@@ -352,13 +349,8 @@ public class ADR implements TradeListener,UpdateListener{
                 logger.log(Level.INFO,"Strategy: ADR. Short Order. Price: {0}",new Object[]{price});
                 getOmsADR().tes.fireOrderEvent(internalOrderID-1,internalOrderID-1,Parameters.symbol.get(id), EnumOrderSide.SHORT, numberOfContracts, price, 0, "adr", 3, "", EnumOrderIntent.Init, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageEntry());
                 position=-1;
-                try {
-                    Jsoup.connect("http://www.collective2.com/cgi-perl/signal.mpl").data("cmd", "signal", "systemid","87033713","pw","spark123","instrument","future","action","STO","quant","3","symbol","@ESM4","duration","DAY").post();
-                } catch (IOException ex) {
-                    Logger.getLogger(ADR.class.getName()).log(Level.SEVERE, null, ex);
-                }
- 
-                
+                //Jsoup.connect("http://www.collective2.com/cgi-perl/signal.mpl").data("cmd", "signal", "systemid","87033713","pw","spark123","instrument","future","action","STO","quant","3","symbol","@ESM4","duration","DAY").post();
+             
             }
             }
             else if(position==-1){
@@ -370,12 +362,8 @@ public class ADR implements TradeListener,UpdateListener{
                     logger.log(Level.INFO,"Strategy: ADR. Cover Order. StopLoss. Price: {0}",new Object[]{price});
                     getOmsADR().tes.fireOrderEvent(internalOrderID-1,tempinternalOrderID,Parameters.symbol.get(id), EnumOrderSide.COVER, numberOfContracts, price, 0, "adr", 3, "", EnumOrderIntent.Init, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit());
                     position=0;
-                    try {
-                        Jsoup.connect("http://www.collective2.com/cgi-perl/signal.mpl").data("cmd", "signal", "systemid","87033713","pw","spark123","instrument","future","action","BTC","quant","3","symbol","@ESM4","duration","DAY").post();
-                    } catch (IOException ex) {
-                        Logger.getLogger(ADR.class.getName()).log(Level.SEVERE, null, ex);
-                    }
- 
+                      //  Jsoup.connect("http://www.collective2.com/cgi-perl/signal.mpl").data("cmd", "signal", "systemid","87033713","pw","spark123","instrument","future","action","BTC","quant","3","symbol","@ESM4","duration","DAY").post();
+
                 }else if(!shortZone && price<entryPrice-takeProfit){
                     int tempinternalOrderID=internalOpenOrders.get(id);
                     Trade tempTrade=trades.get(tempinternalOrderID);
@@ -384,13 +372,8 @@ public class ADR implements TradeListener,UpdateListener{
                     logger.log(Level.INFO," Strategy: ADR. Cover Order. TakeProfit. Price: {0}",new Object[]{price});
                     getOmsADR().tes.fireOrderEvent(internalOrderID-1,tempinternalOrderID,Parameters.symbol.get(id), EnumOrderSide.COVER, numberOfContracts, price, 0, "adr", 3, "", EnumOrderIntent.Init, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit());
                     position=0;
-                    try {
-                        Jsoup.connect("http://www.collective2.com/cgi-perl/signal.mpl").data("cmd", "signal", "systemid","87033713","pw","spark123","instrument","future","action","BTC","quant","3","symbol","@ESM4","duration","DAY").post();
-                    } catch (IOException ex) {
-                        Logger.getLogger(ADR.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                    
-                    
+                    //    Jsoup.connect("http://www.collective2.com/cgi-perl/signal.mpl").data("cmd", "signal", "systemid","87033713","pw","spark123","instrument","future","action","BTC","quant","3","symbol","@ESM4","duration","DAY").post();
+                      
                 }
             } else if(position==1){
                 if(shortZone || (price<indexHigh-stopLoss && !buyZone)||new Date().compareTo(endDate)>0){
@@ -401,11 +384,8 @@ public class ADR implements TradeListener,UpdateListener{
                     logger.log(Level.INFO," Strategy: ADR. Sell Order. StopLoss. Price: {0}",new Object[]{price});
                     getOmsADR().tes.fireOrderEvent(internalOrderID-1,tempinternalOrderID,Parameters.symbol.get(id), EnumOrderSide.SELL, numberOfContracts, price, 0, "adr", 3, "", EnumOrderIntent.Init, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit());
                     position=0;
-                    try {
-                        Jsoup.connect("http://www.collective2.com/cgi-perl/signal.mpl").data("cmd", "signal", "systemid","87033713","pw","spark123","instrument","future","action","STC","quant","3","symbol","@ESM4","duration","DAY").post();
-                    } catch (IOException ex) {
-                        Logger.getLogger(ADR.class.getName()).log(Level.SEVERE, null, ex);
-                    }
+       //                 Jsoup.connect("http://www.collective2.com/cgi-perl/signal.mpl").data("cmd", "signal", "systemid","87033713","pw","spark123","instrument","future","action","STC","quant","3","symbol","@ESM4","duration","DAY").post();
+
                     
                 }else if(!buyZone && price>entryPrice+takeProfit){
                     int tempinternalOrderID=internalOpenOrders.get(id);
@@ -415,11 +395,7 @@ public class ADR implements TradeListener,UpdateListener{
                     logger.log(Level.INFO,"Strategy ADR. Sell Order. TakeProfit. Price: {0}",new Object[]{price});
                     getOmsADR().tes.fireOrderEvent(internalOrderID-1,tempinternalOrderID,Parameters.symbol.get(id), EnumOrderSide.SELL, numberOfContracts, price, 0, "adr", 3, "", EnumOrderIntent.Init, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit());
                     position=0; 
-                    try {
-                        Jsoup.connect("http://www.collective2.com/cgi-perl/signal.mpl").data("cmd", "signal", "systemid","87033713","pw","spark123","instrument","future","action","STC","quant","3","symbol","@ESM4","duration","DAY").post();
-                    } catch (IOException ex) {
-                        Logger.getLogger(ADR.class.getName()).log(Level.SEVERE, null, ex);
-                    }
+ //                     Jsoup.connect("http://www.collective2.com/cgi-perl/signal.mpl").data("cmd", "signal", "systemid","87033713","pw","spark123","instrument","future","action","STC","quant","3","symbol","@ESM4","duration","DAY").post();
                     
                 }
             }
