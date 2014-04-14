@@ -93,7 +93,9 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
     private boolean paramAdvanceEntryOrders;
     private boolean paramAdvanceExitOrders;
     private ProfitLossManager plmanager;
-    private double profitTarget;
+    private double clawProfitTarget=0;
+    private double dayProfitTarget=0;
+    private double dayStopLoss=0;
     private TurtleOrderManagement oms;
     private int internalorderID=1;
     private HashMap<Integer,Integer> internalOpenOrders=new HashMap();
@@ -156,7 +158,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
                 if (Subscribe.tes!=null){
             Subscribe.tes.addTradeListener(this);
         }
-        plmanager=new ProfitLossManager("idt",tradeableSymbols,pointValue,profitTarget);
+        plmanager=new ProfitLossManager("idt",tradeableSymbols,pointValue,clawProfitTarget,dayProfitTarget,dayStopLoss);
         oms = new TurtleOrderManagement(this.aggression,Double.parseDouble(this.tickSize),endDate,"idt",pointValue,this.maxOpenPositionsLimit,timeZone);		               
         populateLastTradePrice();
         //createAndShowGUI(m);
@@ -216,9 +218,11 @@ TimerTask realTimeBars = new TimerTask(){
         }
         maxOrderDuration = Integer.parseInt(System.getProperty("MaxOrderDuration"));        
         m.setCloseDate(DateUtil.addSeconds(endDate, (this.maxOrderDuration+2)*60));
-        double tempprofitTarget= "".equals(System.getProperty("ProfitTarget"))? Double.MAX_VALUE:Double.parseDouble(System.getProperty("ProfitTarget"));
-        setProfitTarget(tempprofitTarget);
-        //Launch.setProfitTarget(getProfitTarget());
+        double tempprofitTarget= "".equals(System.getProperty("ClawProfitTarget"))? Double.MAX_VALUE:Double.parseDouble(System.getProperty("ClawProfitTarget"));
+        setClawProfitTarget(tempprofitTarget);
+        dayProfitTarget=System.getProperty("DayProfitTarget")!=null?Double.parseDouble(System.getProperty("DayProfitTarget")):0D;
+        dayStopLoss=System.getProperty("DayStopLoss")!=null?Double.parseDouble(System.getProperty("DayStopLoss")):0D;
+         //Launch.setProfitTarget(getProfitTarget());
         tickSize = System.getProperty("TickSize");
         dynamicOrderDuration = Integer.parseInt(System.getProperty("DynamicOrderDuration"));
         maVolumeLong=Double.parseDouble(System.getProperty("MAVolumeLong"));
@@ -270,7 +274,9 @@ TimerTask realTimeBars = new TimerTask(){
         logger.log(Level.INFO, "Dynamic Order Duration: {0}", dynamicOrderDuration);
         logger.log(Level.INFO, "Advance Entry Orders: {0}", paramAdvanceEntryOrders);
         logger.log(Level.INFO, "Advance Exit Orders: {0}", paramAdvanceExitOrders);
-        logger.log(Level.INFO, "Profit Target: {0}", tempprofitTarget);
+        logger.log(Level.INFO, "Claw Profit in increments of: {0}", clawProfitTarget);
+        logger.log(Level.INFO, "Day Profit Target: {0}", dayProfitTarget);
+        logger.log(Level.INFO, "Day Stop Loss: {0}", dayStopLoss);    
         logger.log(Level.INFO, "Max Slippage Entry: {0}", maxSlippageEntry);
         logger.log(Level.INFO, "Max Slippage Exit: {0}", getMaxSlippageExit());
         logger.log(Level.INFO, "PointValue: {0}", pointValue);  
@@ -1554,15 +1560,15 @@ TimerTask realTimeBars = new TimerTask(){
     /**
      * @return the profitTarget
      */
-    public double getProfitTarget() {
-        return profitTarget;
+    public double getClawProfitTarget() {
+        return clawProfitTarget;
     }
 
     /**
      * @param profitTarget the profitTarget to set
      */
-    public void setProfitTarget(double profitTarget) {
-        this.profitTarget = profitTarget;
+    public void setClawProfitTarget(double clawProfitTarget) {
+        this.clawProfitTarget = clawProfitTarget;
     }
 
     /**
@@ -1675,5 +1681,33 @@ TimerTask realTimeBars = new TimerTask(){
      */
     public void setTimeZone(String timeZone) {
         this.timeZone = timeZone;
+    }
+
+    /**
+     * @return the dayProfitTarget
+     */
+    public double getDayProfitTarget() {
+        return dayProfitTarget;
+    }
+
+    /**
+     * @param dayProfitTarget the dayProfitTarget to set
+     */
+    public void setDayProfitTarget(double dayProfitTarget) {
+        this.dayProfitTarget = dayProfitTarget;
+    }
+
+    /**
+     * @return the dayStopLoss
+     */
+    public double getDayStopLoss() {
+        return dayStopLoss;
+    }
+
+    /**
+     * @param dayStopLoss the dayStopLoss to set
+     */
+    public void setDayStopLoss(double dayStopLoss) {
+        this.dayStopLoss = dayStopLoss;
     }
     }

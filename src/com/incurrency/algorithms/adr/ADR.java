@@ -78,7 +78,9 @@ public class ADR implements TradeListener,UpdateListener{
     private Boolean longOnly = true;
     private Boolean shortOnly = true;
     private Boolean aggression = true;
-    private double profitTarget=Double.MAX_VALUE;
+    private double clawProfitTarget=0;
+    private double dayProfitTarget=0;
+    private double dayStopLoss=0;
     private double maxSlippageEntry=0;
     private double maxSlippageExit=0;
     private int maxOrderDuration=3;
@@ -142,7 +144,7 @@ public class ADR implements TradeListener,UpdateListener{
         if (Subscribe.tes!=null){
             Subscribe.tes.addTradeListener(this);
         }
-        plmanager=new ProfitLossManager("adr", this.adrSymbols, pointValue, profitTarget);
+        plmanager=new ProfitLossManager("adr", this.adrSymbols, pointValue, clawProfitTarget,dayProfitTarget,dayStopLoss);
         Timer closeProcessing=new Timer("Timer: ADR CloseProcessing");
         closeProcessing.schedule(runPrintOrders, com.incurrency.framework.DateUtil.addSeconds(endDate, (this.maxOrderDuration+1)*60));
     }
@@ -182,7 +184,9 @@ public class ADR implements TradeListener,UpdateListener{
         dayHurdle=Double.parseDouble(System.getProperty("DayHurdle"));
         takeProfit=Double.parseDouble(System.getProperty("TakeProfit"));
         pointValue="".compareTo(System.getProperty("PointValue"))==0?1:Double.parseDouble(System.getProperty("PointValue"));
-        profitTarget=Double.parseDouble(System.getProperty("ProfitTarget"));
+        clawProfitTarget=System.getProperty("ClawProfitTarget")!=null?Double.parseDouble(System.getProperty("ClawProfitTarget")):0D;
+        dayProfitTarget=System.getProperty("DayProfitTarget")!=null?Double.parseDouble(System.getProperty("DayProfitTarget")):0D;
+        dayStopLoss=System.getProperty("DayStopLoss")!=null?Double.parseDouble(System.getProperty("DayStopLoss")):0D;
         setMaxSlippageEntry(Double.parseDouble(System.getProperty("MaxSlippageEntry"))/100); // divide by 100 as input was a percentage
         setMaxSlippageExit(Double.parseDouble(System.getProperty("MaxSlippageExit"))/100); // divide by 100 as input was a percentage
         setMaxOrderDuration(Integer.parseInt(System.getProperty("MaxOrderDuration")));
@@ -211,7 +215,9 @@ public class ADR implements TradeListener,UpdateListener{
         logger.log(Level.INFO, "Sliding Window Duration: {0}", window);
         logger.log(Level.INFO, "Hurdle Index move needed for window duration: {0}", windowHurdle);
         logger.log(Level.INFO, "Hurdle Index move needed for day: {0}", dayHurdle);
-        logger.log(Level.INFO, "Strategy Profit Target: {0}", profitTarget);
+        logger.log(Level.INFO, "Claw Profit in increments of: {0}", clawProfitTarget);
+        logger.log(Level.INFO, "Day Profit Target: {0}", dayProfitTarget);
+        logger.log(Level.INFO, "Day Stop Loss: {0}", dayStopLoss);        
         logger.log(Level.INFO, "PointValue: {0}", pointValue);
         logger.log(Level.INFO, "Maxmimum slippage allowed for entry: {0}", getMaxSlippageEntry());
         logger.log(Level.INFO, "Maximum slippage allowed for exit: {0}", getMaxSlippageExit());
@@ -572,15 +578,15 @@ public class ADR implements TradeListener,UpdateListener{
     /**
      * @return the profitTarget
      */
-    public double getProfitTarget() {
-        return profitTarget;
+    public double getClawProfitTarget() {
+        return clawProfitTarget;
     }
 
     /**
      * @param profitTarget the profitTarget to set
      */
-    public void setProfitTarget(double profitTarget) {
-        this.profitTarget = profitTarget;
+    public void setClawProfitTarget(double clawProfitTarget) {
+        this.clawProfitTarget = clawProfitTarget;
     }
 
     /**
@@ -679,5 +685,33 @@ public class ADR implements TradeListener,UpdateListener{
      */
     public void setTimeZone(String timeZone) {
         this.timeZone = timeZone;
+    }
+
+    /**
+     * @return the dayProfitTarget
+     */
+    public double getDayProfitTarget() {
+        return dayProfitTarget;
+    }
+
+    /**
+     * @param dayProfitTarget the dayProfitTarget to set
+     */
+    public void setDayProfitTarget(double dayProfitTarget) {
+        this.dayProfitTarget = dayProfitTarget;
+    }
+
+    /**
+     * @return the dayStopLoss
+     */
+    public double getDayStopLoss() {
+        return dayStopLoss;
+    }
+
+    /**
+     * @param dayStopLoss the dayStopLoss to set
+     */
+    public void setDayStopLoss(double dayStopLoss) {
+        this.dayStopLoss = dayStopLoss;
     }
 }
