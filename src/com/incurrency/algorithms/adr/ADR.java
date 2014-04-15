@@ -111,7 +111,7 @@ public class ADR implements TradeListener,UpdateListener{
     public static double adrAvg;
     double adrTRINHigh;
     double adrTRINLow;
-    double adrTRINAvg;
+    static public double adrTRINAvg;
     double tickHigh;
     double tickLow;
     double tickAvg;
