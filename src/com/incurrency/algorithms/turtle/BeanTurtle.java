@@ -432,7 +432,7 @@ TimerTask realTimeBars = new TimerTask(){
                 "entrySymbol", "entryType", "entryExpiry", "entryRight", "entryStrike",
                 "entrySide", "entryPrice", "entrySize", "entryTime", "entryID", "entryBrokerage", "filtered", "exitSymbol",
                 "exitType", "exitExpiry", "exitRight", "exitStrike", "exitSide", "exitPrice",
-                "exitSize", "exitTime", "exitID", "exitBrokerage"};
+                "exitSize", "exitTime", "exitID", "exitBrokerage","accountName"};
             CsvBeanWriter ordersWriter = new CsvBeanWriter(file, CsvPreference.EXCEL_PREFERENCE);
             if (writeHeader) {//this ensures header is written only the first time
                 ordersWriter.writeHeader(header);
@@ -445,7 +445,7 @@ TimerTask realTimeBars = new TimerTask(){
 
             //Write trade summary for each account
             for (BeanConnection c : Parameters.connection) {
-                if (c.getStrategy().contains("adr")) {
+                if (c.getStrategy().contains("idt")) {
                     filename = prefix + tradeFile;
                     profitGrid = TradingUtil.applyBrokerage(oms.getTrades(), brokerageRate, pointValue, tradeFile, timeZone, startingCapital, c.getAccountName());
                     TradingUtil.writeToFile("body.txt", "-----------------Trades: IDT, Account: " + c.getAccountName() + "----------------------");
