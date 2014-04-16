@@ -55,31 +55,32 @@ public class ADR implements TradeListener,UpdateListener{
     List<Integer> adrSymbols=new ArrayList();
     static com.incurrency.framework.rateserver.RateServer adrServer= new com.incurrency.framework.rateserver.RateServer(5557);
     private static final Logger logger = Logger.getLogger(ADR.class.getName());
-    Date endDate;
     boolean trading=false;
     String index;
     String type;
     String expiry;
-    double tickSize;
     public static int threshold=1000000;
-    int numberOfContracts=0;
     double stopLoss=5;
     double takeProfit=10;
     double entryPrice=0;
     static String window;
     double windowHurdle;
     double dayHurdle;
-    double pointValue=1;
-    int internalOrderID=1;
     double lastLongExit;
     double lastShortExit;
     double reentryMinimumMove;
-    HashMap <Integer,Integer> internalOpenOrders=new HashMap(); //holds mapping of symbol id to latest initialization internal order
-    HashMap<Integer,Trade> trades=new HashMap();
     boolean scalpingMode=true;
     
     //--common parameters required for all strategies
     MainAlgorithm m;
+    HashMap <Integer,Integer> internalOpenOrders=new HashMap(); //holds mapping of symbol id to latest initialization internal order
+    HashMap<Integer,Trade> trades=new HashMap();    
+    double tickSize;    
+    double pointValue=1;
+    int internalOrderID=1;  
+    int numberOfContracts=0;
+    Date endDate;
+    Date startDate;
     private Boolean longOnly = true;
     private Boolean shortOnly = true;
     private Boolean aggression = true;
@@ -176,6 +177,10 @@ public class ADR implements TradeListener,UpdateListener{
             //increase enddate by one calendar day
             endDate = DateUtil.addDays(endDate, 1); 
         }
+        setMaxSlippageEntry(Double.parseDouble(System.getProperty("MaxSlippageEntry"))/100); // divide by 100 as input was a percentage
+        setMaxSlippageExit(Double.parseDouble(System.getProperty("MaxSlippageExit"))/100); // divide by 100 as input was a percentage
+        setMaxOrderDuration(Integer.parseInt(System.getProperty("MaxOrderDuration")));
+        setDynamicOrderDuration(Integer.parseInt(System.getProperty("DynamicOrderDuration")));        
         m.setCloseDate(DateUtil.addSeconds(endDate, (this.maxOrderDuration+2)*60)); //2 minutes after the enddate+max order duaration
         trading=Boolean.valueOf(System.getProperty("Trading"));
         index=System.getProperty("Index");
@@ -193,10 +198,6 @@ public class ADR implements TradeListener,UpdateListener{
         clawProfitTarget=System.getProperty("ClawProfitTarget")!=null?Double.parseDouble(System.getProperty("ClawProfitTarget")):0D;
         dayProfitTarget=System.getProperty("DayProfitTarget")!=null?Double.parseDouble(System.getProperty("DayProfitTarget")):0D;
         dayStopLoss=System.getProperty("DayStopLoss")!=null?Double.parseDouble(System.getProperty("DayStopLoss")):0D;
-        setMaxSlippageEntry(Double.parseDouble(System.getProperty("MaxSlippageEntry"))/100); // divide by 100 as input was a percentage
-        setMaxSlippageExit(Double.parseDouble(System.getProperty("MaxSlippageExit"))/100); // divide by 100 as input was a percentage
-        setMaxOrderDuration(Integer.parseInt(System.getProperty("MaxOrderDuration")));
-        setDynamicOrderDuration(Integer.parseInt(System.getProperty("DynamicOrderDuration")));
         futBrokerageFile=System.getProperty("BrokerageFile")==null?"":System.getProperty("BrokerageFile");
         tradeFile=System.getProperty("TradeFile");
         orderFile=System.getProperty("OrderFile");
