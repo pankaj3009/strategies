@@ -9,6 +9,7 @@ import com.incurrency.framework.BeanSymbol;
 import com.incurrency.framework.BrokerageRate;
 import com.incurrency.framework.DateUtil;
 import com.incurrency.framework.MainAlgorithm;
+import com.incurrency.framework.OrderLink;
 import com.incurrency.framework.OrderPlacement;
 import com.incurrency.framework.Parameters;
 import com.incurrency.framework.ProfitLossManager;
@@ -42,7 +43,7 @@ public class Strategy {
     //--common parameters required for all strategies
     MainAlgorithm m;
     HashMap<Integer, Integer> internalOpenOrders = new HashMap(); //holds mapping of symbol id to latest initialization internal order
-    HashMap<Integer, Trade> trades = new HashMap();
+    HashMap<OrderLink, Trade> trades = new HashMap();
     double tickSize;
     double pointValue = 1;
     int internalOrderID = 1;
@@ -231,7 +232,7 @@ public class Strategy {
             if (writeHeader) {//this ensures header is written only the first time
                 orderWriter.writeHeader(header);
             }
-            for (Map.Entry<Integer, Trade> order : trades.entrySet()) {
+            for (Map.Entry<OrderLink, Trade> order : trades.entrySet()) {
                 orderWriter.write(order.getValue(), header, Parameters.getTradeProcessorsWrite());
             }
             orderWriter.close();
@@ -264,7 +265,7 @@ public class Strategy {
                     if (writeHeader) {//this ensures header is written only the first time
                         tradeWriter.writeHeader(header);
                     }
-                    for (Map.Entry<Integer, Trade> trade : getOms().getTrades().entrySet()) {
+                    for (Map.Entry<OrderLink, Trade> trade : getOms().getTrades().entrySet()) {
                         tradeWriter.write(trade.getValue(), header, Parameters.getTradeProcessorsWrite());
                     }
                     tradeWriter.close();

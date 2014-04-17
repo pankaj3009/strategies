@@ -14,6 +14,7 @@ import com.incurrency.framework.BrokerageRate;
 import com.incurrency.framework.DateUtil;
 import com.incurrency.framework.EnumOrderIntent;
 import com.incurrency.framework.EnumOrderSide;
+import com.incurrency.framework.OrderLink;
 import com.incurrency.framework.Parameters;
 import com.incurrency.framework.ProfitLossManager;
 import com.incurrency.framework.Trade;
@@ -74,7 +75,7 @@ public class ADR implements TradeListener,UpdateListener{
     //--common parameters required for all strategies
     MainAlgorithm m;
     HashMap <Integer,Integer> internalOpenOrders=new HashMap(); //holds mapping of symbol id to latest initialization internal order
-    HashMap<Integer,Trade> trades=new HashMap();    
+    HashMap<OrderLink,Trade> trades=new HashMap();    
     double tickSize;    
     double pointValue=1;
     int internalOrderID=1;  
@@ -346,7 +347,7 @@ public class ADR implements TradeListener,UpdateListener{
                 if (tradingSide==0 && buyZone && (tick < 45 || tickTRIN > 120) && longOnly) {
                     entryPrice = price;
                     this.internalOpenOrders.put(id, internalOrderID);
-                    trades.put(this.internalOrderID, new Trade(id, EnumOrderSide.BUY, entryPrice, numberOfContracts, internalOrderID++, timeZone, "Order"));
+                    trades.put(new OrderLink(this.internalOrderID,"Order"), new Trade(id, EnumOrderSide.BUY, entryPrice, numberOfContracts, internalOrderID++, timeZone, "Order"));
                     logger.log(Level.INFO, " Strategy: ADR. adrHigh: {0},adrLow: {1},adrAvg: {2},adrTRINHigh: {3},adrTRINLow: {4},adrTRINAvg: {5},indexHigh :{6},indexLow :{7},indexAvg: {8}, buyZone1: {9}, buyZone2: {10}, buyZone 3: {11}, shortZone1: {12}, shortZone2: {13}, ShortZone3:{14}, ADR: {15}, ADRTrin: {16}, Tick: {17}, TickTrin: {18}, adrDayHigh: {19}, adrDayLow: {20}, IndexDayHigh: {21}, IndexDayLow: {22}", new Object[]{adrHigh, adrLow, adrAvg, adrTRINHigh, adrTRINLow, adrTRINAvg, indexHigh, indexLow, indexAvg, buyZone1, buyZone2, buyZone3, shortZone1, shortZone2, shortZone3, adr, adrTRIN, tick, tickTRIN, adrDayHigh, adrDayLow, indexDayHigh, indexDayLow});
                     logger.log(Level.INFO, "Strategy: ADR. Buy Order. Price: {0}", new Object[]{price});
                     getOmsADR().tes.fireOrderEvent(internalOrderID - 1, internalOrderID - 1, Parameters.symbol.get(id), EnumOrderSide.BUY, numberOfContracts, price, 0, "adr", 3, "", EnumOrderIntent.Init, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageEntry());
@@ -355,7 +356,7 @@ public class ADR implements TradeListener,UpdateListener{
                 } else if (tradingSide==0 && shortZone && (tick > 55 || tickTRIN < 80) && shortOnly) {
                     entryPrice = price;
                     this.internalOpenOrders.put(id, internalOrderID);
-                    trades.put(this.internalOrderID, new Trade(id, EnumOrderSide.SHORT, entryPrice, numberOfContracts, internalOrderID++, timeZone, "Order"));
+                    trades.put(new OrderLink(this.internalOrderID,"Order"), new Trade(id, EnumOrderSide.SHORT, entryPrice, numberOfContracts, internalOrderID++, timeZone, "Order"));
                     logger.log(Level.INFO, " Strategy: ADR. adrHigh: {0},adrLow: {1},adrAvg: {2},adrTRINHigh: {3},adrTRINLow: {4},adrTRINAvg: {5},indexHigh :{6},indexLow :{7},indexAvg: {8}, buyZone1: {9}, buyZone2: {10}, buyZone 3: {11}, shortZone1: {12}, shortZone2: {13}, ShortZone3:{14}, ADR: {15}, ADRTrin: {16}, Tick: {17}, TickTrin: {18}, adrDayHigh: {19}, adrDayLow: {20}, IndexDayHigh: {21}, IndexDayLow: {22}", new Object[]{adrHigh, adrLow, adrAvg, adrTRINHigh, adrTRINLow, adrTRINAvg, indexHigh, indexLow, indexAvg, buyZone1, buyZone2, buyZone3, shortZone1, shortZone2, shortZone3, adr, adrTRIN, tick, tickTRIN, adrDayHigh, adrDayLow, indexDayHigh, indexDayLow});
                     logger.log(Level.INFO, "Strategy: ADR. Short Order. Price: {0}", new Object[]{price});
                     getOmsADR().tes.fireOrderEvent(internalOrderID - 1, internalOrderID - 1, Parameters.symbol.get(id), EnumOrderSide.SHORT, numberOfContracts, price, 0, "adr", 3, "", EnumOrderIntent.Init, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageEntry());
@@ -364,7 +365,7 @@ public class ADR implements TradeListener,UpdateListener{
                  } else if (tradingSide == 1 && price < this.lastLongExit - this.reentryMinimumMove && scalpingMode && this.lastLongExit>0) { //used in scalping mode
                     entryPrice = price;
                     this.internalOpenOrders.put(id, internalOrderID);
-                    trades.put(this.internalOrderID, new Trade(id, EnumOrderSide.BUY, entryPrice, numberOfContracts, internalOrderID++, timeZone, "Order"));
+                    trades.put(new OrderLink(this.internalOrderID,"Order"), new Trade(id, EnumOrderSide.BUY, entryPrice, numberOfContracts, internalOrderID++, timeZone, "Order"));
                     logger.log(Level.INFO, " Strategy: ADR. adrHigh: {0},adrLow: {1},adrAvg: {2},adrTRINHigh: {3},adrTRINLow: {4},adrTRINAvg: {5},indexHigh :{6},indexLow :{7},indexAvg: {8}, buyZone1: {9}, buyZone2: {10}, buyZone 3: {11}, shortZone1: {12}, shortZone2: {13}, ShortZone3:{14}, ADR: {15}, ADRTrin: {16}, Tick: {17}, TickTrin: {18}, adrDayHigh: {19}, adrDayLow: {20}, IndexDayHigh: {21}, IndexDayLow: {22}", new Object[]{adrHigh, adrLow, adrAvg, adrTRINHigh, adrTRINLow, adrTRINAvg, indexHigh, indexLow, indexAvg, buyZone1, buyZone2, buyZone3, shortZone1, shortZone2, shortZone3, adr, adrTRIN, tick, tickTRIN, adrDayHigh, adrDayLow, indexDayHigh, indexDayLow});
                     logger.log(Level.INFO, "Strategy: ADR. Scalping Buy Order. Price: {0}", new Object[]{price});
                     getOmsADR().tes.fireOrderEvent(internalOrderID - 1, internalOrderID - 1, Parameters.symbol.get(id), EnumOrderSide.BUY, numberOfContracts, price, 0, "adr", 3, "", EnumOrderIntent.Init, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageEntry());
@@ -372,7 +373,7 @@ public class ADR implements TradeListener,UpdateListener{
                 } else if (tradingSide == -1 && price > this.lastShortExit + this.reentryMinimumMove && scalpingMode && this.lastShortExit>0) {
                     entryPrice = price;
                     this.internalOpenOrders.put(id, internalOrderID);
-                    trades.put(this.internalOrderID, new Trade(id, EnumOrderSide.SHORT, entryPrice, numberOfContracts, internalOrderID++, timeZone, "Order"));
+                    trades.put(new OrderLink(this.internalOrderID,"Order"), new Trade(id, EnumOrderSide.SHORT, entryPrice, numberOfContracts, internalOrderID++, timeZone, "Order"));
                     logger.log(Level.INFO, " Strategy: ADR. adrHigh: {0},adrLow: {1},adrAvg: {2},adrTRINHigh: {3},adrTRINLow: {4},adrTRINAvg: {5},indexHigh :{6},indexLow :{7},indexAvg: {8}, buyZone1: {9}, buyZone2: {10}, buyZone 3: {11}, shortZone1: {12}, shortZone2: {13}, ShortZone3:{14}, ADR: {15}, ADRTrin: {16}, Tick: {17}, TickTrin: {18}, adrDayHigh: {19}, adrDayLow: {20}, IndexDayHigh: {21}, IndexDayLow: {22}", new Object[]{adrHigh, adrLow, adrAvg, adrTRINHigh, adrTRINLow, adrTRINAvg, indexHigh, indexLow, indexAvg, buyZone1, buyZone2, buyZone3, shortZone1, shortZone2, shortZone3, adr, adrTRIN, tick, tickTRIN, adrDayHigh, adrDayLow, indexDayHigh, indexDayLow});
                     logger.log(Level.INFO, "Strategy: ADR. Scalping Short Order. Price: {0}", new Object[]{price});
                     getOmsADR().tes.fireOrderEvent(internalOrderID - 1, internalOrderID - 1, Parameters.symbol.get(id), EnumOrderSide.SHORT, numberOfContracts, price, 0, "adr", 3, "", EnumOrderIntent.Init, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageEntry());
@@ -505,7 +506,7 @@ public class ADR implements TradeListener,UpdateListener{
             if (writeHeader) {//this ensures header is written only the first time
                 orderWriter.writeHeader(header);
             }
-            for (Map.Entry<Integer, Trade> order : trades.entrySet()) {
+            for (Map.Entry<OrderLink, Trade> order : trades.entrySet()) {
                 orderWriter.write(order.getValue(), header, Parameters.getTradeProcessorsWrite());
             }
             orderWriter.close();
@@ -538,7 +539,7 @@ public class ADR implements TradeListener,UpdateListener{
                     if (writeHeader) {//this ensures header is written only the first time
                         tradeWriter.writeHeader(header);
                     }
-                    for (Map.Entry<Integer, Trade> trade : getOmsADR().getTrades().entrySet()) {
+                    for (Map.Entry<OrderLink, Trade> trade : getOmsADR().getTrades().entrySet()) {
                         tradeWriter.write(trade.getValue(), header, Parameters.getTradeProcessorsWrite());
                     }
                     tradeWriter.close();

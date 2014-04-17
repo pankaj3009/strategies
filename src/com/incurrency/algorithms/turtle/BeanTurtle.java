@@ -58,7 +58,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
     private ArrayList<Boolean> lastTradeWasLosing=new ArrayList();
     private ArrayList<Long> advanceEntryOrder = new ArrayList();
     private ArrayList<Long> advanceExitOrder = new ArrayList();
-    private HashMap<Integer,Trade> trades = new HashMap();
+    private HashMap<OrderLink,Trade> trades = new HashMap();
     private static Date startDate;
     private String startTime;
     private static Date lastOrderDate;
@@ -437,7 +437,7 @@ TimerTask realTimeBars = new TimerTask(){
             if (writeHeader) {//this ensures header is written only the first time
                 ordersWriter.writeHeader(header);
             }
-            for (Map.Entry<Integer, Trade> order : trades.entrySet()) {
+            for (Map.Entry<OrderLink, Trade> order : trades.entrySet()) {
                 ordersWriter.write(order.getValue(), header, Parameters.getTradeProcessorsWrite());
             }
             ordersWriter.close();
@@ -470,7 +470,7 @@ TimerTask realTimeBars = new TimerTask(){
                     if (writeHeader) {//this ensures header is written only the first time
                         tradeWriter.writeHeader(header);
                     }
-                    for (Map.Entry<Integer, Trade> trade : oms.getTrades().entrySet()) {
+                    for (Map.Entry<OrderLink, Trade> trade : oms.getTrades().entrySet()) {
                         tradeWriter.write(trade.getValue(), header, Parameters.getTradeProcessorsWrite());
                     }
                     tradeWriter.close();
@@ -900,7 +900,7 @@ TimerTask realTimeBars = new TimerTask(){
                     boolean breaches=checkForDirectionalBreaches==true?breachup > 0.5 && this.getBreachDown().get(id) >= 1:true;
                     boolean donotskip=skipAfterWins==true?lastTradeWasLosing.get(id):true;
                     boolean adrtrend=checkADRTrend==true?(ADR.adr>ADR.adrDayLow+0.75*(ADR.adrDayHigh-ADR.adrDayLow)||ADR.adr>ADR.adrAvg) && ADR.adrTRIN<paramADRTRINBuy:true;
-                    getTrades().put(internalorderID, new Trade(id,EnumOrderSide.BUY,this.getHighestHigh().get(id),size,this.internalorderID++,liquidity && breaches && donotskip && adrtrend,timeZone,"Order"));
+                    getTrades().put(new OrderLink(internalorderID,"Order"), new Trade(id,EnumOrderSide.BUY,this.getHighestHigh().get(id),size,this.internalorderID++,liquidity && breaches && donotskip && adrtrend,timeZone,"Order"));
                     this.internalOpenOrders.put(id, this.internalorderID-1);
                     if(liquidity && breaches && donotskip && adrtrend){
                     if (this.getAdvanceEntryOrder().get(id) == 0) { //no advance order present
@@ -927,7 +927,7 @@ TimerTask realTimeBars = new TimerTask(){
                     boolean breaches=checkForDirectionalBreaches==true?breachdown > 0.5 && this.getBreachUp().get(id) >= 1:true;
                     boolean donotskip=skipAfterWins==true?lastTradeWasLosing.get(id):true;
                     boolean adrtrend=checkADRTrend==true?(ADR.adr<ADR.adrDayHigh-0.75*(ADR.adrDayHigh-ADR.adrDayLow)||ADR.adr<ADR.adrAvg) && ADR.adrTRIN>paramADRTRINShort:true;
-                    getTrades().put(internalorderID, new Trade(id,EnumOrderSide.SHORT,this.getLowestLow().get(id),size,this.internalorderID++,liquidity && breaches && donotskip && adrtrend,timeZone,"Order"));
+                    getTrades().put(new OrderLink(internalorderID,"Order"), new Trade(id,EnumOrderSide.SHORT,this.getLowestLow().get(id),size,this.internalorderID++,liquidity && breaches && donotskip && adrtrend,timeZone,"Order"));
                     this.internalOpenOrders.put(id, this.internalorderID-1);
                     if(liquidity && breaches && donotskip && adrtrend){
                     if (this.getAdvanceEntryOrder().get(id) == 0) {
@@ -954,7 +954,7 @@ TimerTask realTimeBars = new TimerTask(){
                     int entryInternalOrderID=this.internalOpenOrders.get(id);
                     Trade originalTrade=getTrades().get(entryInternalOrderID);
                     originalTrade.updateExit(id,EnumOrderSide.COVER,this.getHighestHigh().get(id),size,this.internalorderID++,timeZone,"Order");                    
-                    getTrades().put(entryInternalOrderID, originalTrade);
+                    getTrades().put(new OrderLink(entryInternalOrderID,"Order"), originalTrade);
                     if(entryInternalOrderID!=0){
                    if(  getTrades().get(entryInternalOrderID).getEntryPrice()>=this.getHighestHigh().get(id)){
                         this.lastTradeWasLosing.set(id,Boolean.FALSE);
@@ -992,7 +992,7 @@ TimerTask realTimeBars = new TimerTask(){
                      int entryInternalOrderID=this.internalOpenOrders.get(id);
                     Trade originalTrade=getTrades().get(entryInternalOrderID);
                     originalTrade.updateExit(id,EnumOrderSide.SELL,this.getLowestLow().get(id),size,this.internalorderID++,timeZone,"Order");                    
-                    getTrades().put(entryInternalOrderID, originalTrade);
+                    getTrades().put(new OrderLink(entryInternalOrderID,"Order"), originalTrade);
                     if(entryInternalOrderID!=0){
                     if( getTrades().get(entryInternalOrderID).getEntryPrice()<=this.getLowestLow().get(id)){
                         this.lastTradeWasLosing.set(id,Boolean.FALSE);
@@ -1032,7 +1032,7 @@ TimerTask realTimeBars = new TimerTask(){
                         int entryInternalOrderID=this.internalOpenOrders.get(symb);
                         Trade originalTrade=getTrades().get(entryInternalOrderID);
                         originalTrade.updateExit(symb,EnumOrderSide.SELL,this.getClose().get(symb),size,this.internalorderID++,timeZone,"Order");                    
-                        getTrades().put(entryInternalOrderID, originalTrade);
+                        getTrades().put(new OrderLink(entryInternalOrderID,"Order"), originalTrade);
                         logger.log(Level.INFO, "Sell. Force Close All Positions.Symbol:{0}", new Object[]{Parameters.symbol.get(symb).getSymbol()});
                         getOms().tes.fireOrderEvent(this.internalorderID-1,entryInternalOrderID,Parameters.symbol.get(symb), EnumOrderSide.SELL, size, this.getClose().get(symb), 0, "idt", maxOrderDuration, "", EnumOrderIntent.Cancel, maxOrderDuration, dynamicOrderDuration, getMaxSlippageExit());
                         getOms().tes.fireOrderEvent(this.internalorderID-1,entryInternalOrderID,Parameters.symbol.get(symb), EnumOrderSide.SELL, size, this.getClose().get(symb), 0, "idt", maxOrderDuration, "", EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, getMaxSlippageExit());
@@ -1044,7 +1044,7 @@ TimerTask realTimeBars = new TimerTask(){
                         int entryInternalOrderID=this.internalOpenOrders.get(symb);
                         Trade originalTrade=getTrades().get(entryInternalOrderID);
                         originalTrade.updateExit(symb,EnumOrderSide.COVER,this.getClose().get(symb),size,this.internalorderID++,timeZone,"Order");                    
-                        getTrades().put(entryInternalOrderID, originalTrade);
+                        getTrades().put(new OrderLink(entryInternalOrderID,"Order"), originalTrade);
                         logger.log(Level.INFO, "Cover. Force Close All Positions.Symbol:{0}", new Object[]{Parameters.symbol.get(symb).getSymbol()});
                         getOms().tes.fireOrderEvent(this.internalorderID-1,entryInternalOrderID,Parameters.symbol.get(symb), EnumOrderSide.COVER, size, this.getClose().get(symb), 0, "idt", maxOrderDuration, "", EnumOrderIntent.Cancel, maxOrderDuration, dynamicOrderDuration, getMaxSlippageExit());
                         getOms().tes.fireOrderEvent(this.internalorderID-1,entryInternalOrderID,Parameters.symbol.get(symb), EnumOrderSide.COVER, size, this.getClose().get(symb), 0, "idt", maxOrderDuration, "", EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, getMaxSlippageExit());
@@ -1588,14 +1588,14 @@ TimerTask realTimeBars = new TimerTask(){
     /**
      * @return the trades
      */
-    public HashMap<Integer,Trade> getTrades() {
+    public HashMap<OrderLink,Trade> getTrades() {
         return trades;
     }
 
     /**
      * @param trades the trades to set
      */
-    public void setTrades(HashMap<Integer,Trade> trades) {
+    public void setTrades(HashMap<OrderLink,Trade> trades) {
         this.trades = trades;
     }
 
