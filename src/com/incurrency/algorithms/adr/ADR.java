@@ -134,7 +134,7 @@ public class ADR implements TradeListener,UpdateListener{
     public ADR(MainAlgorithm m){
         this.m=m;
         loadParameters();
-        TradingUtil.writeToFile("ADR.csv", "adr"+","+"adrTRIN"+","+"tick"+","+"tickTRIN"+","+"price"+","+"adrHigh"+","+"adrLow"+","+"adrAvg"+","+"adrTRINHigh"+","+"adrTRINLow"+","+"adrTRINAvg"+","+"indexHigh"+","+"indexLow"+","+"indexAvg");
+        TradingUtil.writeToFile("ADR.csv", "adr"+","+"adrTRIN"+","+"tick"+","+"tickTRIN"+","+"price"+","+"adrHigh"+","+"adrLow"+","+"adrAvg"+","+"adrTRINHigh"+","+"adrTRINLow"+","+"adrTRINAvg"+","+"indexHigh"+","+"indexLow"+","+"indexAvg"+ "," + "buyZone1"+ "," + "buyZone2"+ "," + "buyZone3"+ "," + "shortZone1"+ "," + "shortZone2"+ "," + "shortZone3"+ "," + "buyZone"+ "," + "shortZone");
         mEsperEvtProcessor = new EventProcessor();
         mEsperEvtProcessor.ADRStatement.addListener(this);
            //populate adrList with adrSymbols needed for ADR
@@ -333,7 +333,7 @@ public class ADR implements TradeListener,UpdateListener{
 
             Boolean buyZone = (atLeastTwo(buyZone1, buyZone2, buyZone3) && adrTRIN<90 )|| (atLeastTwo(buyZone1, buyZone2, buyZone3)&&adr > adrAvg && adrTRIN < adrTRINAvg);
             Boolean shortZone = (atLeastTwo(shortZone1, shortZone2, shortZone3) && adrTRIN>95)||(atLeastTwo(shortZone1, shortZone2, shortZone3)&& adr<adrAvg && adrTRIN>adrTRINAvg);
-            TradingUtil.writeToFile("ADR.csv", adr + "," + adrTRIN + "," + tick + "," + tickTRIN + "," + price + "," + adrHigh + "," + adrLow + "," + adrAvg + "," + adrTRINHigh + "," + adrTRINLow + "," + adrTRINAvg + "," + indexHigh + "," + indexLow + "," + indexAvg);
+            TradingUtil.writeToFile("ADR.csv", adr + "," + adrTRIN + "," + tick + "," + tickTRIN + "," + price + "," + adrHigh + "," + adrLow + "," + adrAvg + "," + adrTRINHigh + "," + adrTRINLow + "," + adrTRINAvg + "," + indexHigh + "," + indexLow + "," + indexAvg+ "," + buyZone1+ "," + buyZone2+ "," + buyZone3+ "," + shortZone1+ "," + shortZone2+ "," + shortZone3+ "," + buyZone+ "," + shortZone);
             logger.log(Level.FINEST, " adrHigh: {0},adrLow: {1},adrAvg: {2},adrTRINHigh: {3},adrTRINLow: {4},adrTRINAvg: {5},indexHigh :{6},indexLow :{7},indexAvg: {8}, buyZone1: {9}, buyZone2: {10}, buyZone 3: {11}, shortZone1: {12}, shortZone2: {13}, ShortZone3:{14}, ADR: {15}, ADRTrin: {16}, Tick: {17}, TickTrin: {18}, adrDayHigh: {19}, adrDayLow: {20}, IndexDayHigh: {21}, IndexDayLow: {22}", new Object[]{adrHigh, adrLow, adrAvg, adrTRINHigh, adrTRINLow, adrTRINAvg, indexHigh, indexLow, indexAvg, buyZone1, buyZone2, buyZone3, shortZone1, shortZone2, shortZone3, adr, adrTRIN, tick, tickTRIN, adrDayHigh, adrDayLow, indexDayHigh, indexDayLow});
             //tickHigh,tickLow,tickAvg,tickTRINHigh,tickTRINLow,tickTRINAvg
             if((!buyZone && tradingSide==1 && position==0)||(!shortZone && tradingSide==-1 && position==0)){

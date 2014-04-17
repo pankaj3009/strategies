@@ -65,7 +65,7 @@ public class Strategy {
     private String tradeFile;
     private String orderFile;
     private String timeZone;
-    private double startingCapital;
+    private double startingCapital; 
     private ProfitLossManager plmanager;
     List<Integer> strategySymbols = new ArrayList();
     private static final Logger logger = Logger.getLogger(Strategy.class.getName());
@@ -81,8 +81,8 @@ public class Strategy {
             }
         }
         this.strategy = strategy;
-        oms = new OrderPlacement(aggression, this.tickSize, endDate, strategy, pointValue, maxOpenPositions, timeZone);
-        plmanager = new ProfitLossManager(strategy, this.strategySymbols, pointValue, clawProfitTarget, dayProfitTarget, dayStopLoss);
+        oms = new OrderPlacement(getAggression(), this.tickSize, endDate, strategy, pointValue, maxOpenPositions, timeZone);
+        plmanager = new ProfitLossManager(strategy, this.strategySymbols, pointValue, getClawProfitTarget(), getDayProfitTarget(), getDayStopLoss());
         Timer closeProcessing = new Timer("Timer: " + strategy + " CloseProcessing");
         closeProcessing.schedule(runPrintOrders, com.incurrency.framework.DateUtil.addSeconds(endDate, (this.maxOrderDuration + 1) * 60));
 
@@ -112,16 +112,16 @@ public class Strategy {
             endDate = DateUtil.addDays(endDate, 1);
         }
         maxSlippageEntry = Double.parseDouble(System.getProperty("MaxSlippageEntry")) / 100; // divide by 100 as input was a percentage
-        maxSlippageExit = Double.parseDouble(System.getProperty("MaxSlippageExit")) / 100; // divide by 100 as input was a percentage
-        maxOrderDuration = Integer.parseInt(System.getProperty("MaxOrderDuration"));
-        dynamicOrderDuration = Integer.parseInt(System.getProperty("DynamicOrderDuration"));
-        m.setCloseDate(DateUtil.addSeconds(endDate, (this.maxOrderDuration + 2) * 60)); //2 minutes after the enddate+max order duaration
+        setMaxSlippageExit(Double.parseDouble(System.getProperty("MaxSlippageExit")) / 100); // divide by 100 as input was a percentage
+        setMaxOrderDuration(Integer.parseInt(System.getProperty("MaxOrderDuration")));
+        setDynamicOrderDuration(Integer.parseInt(System.getProperty("DynamicOrderDuration")));
+        m.setCloseDate(DateUtil.addSeconds(endDate, (this.getMaxOrderDuration() + 2) * 60)); //2 minutes after the enddate+max order duaration
         tickSize = Double.parseDouble(System.getProperty("TickSize"));
         numberOfContracts = Integer.parseInt(System.getProperty("NumberOfContracts"));
         pointValue = System.getProperty("PointValue") == null ? 1 : Double.parseDouble(System.getProperty("PointValue"));
-        clawProfitTarget = System.getProperty("ClawProfitTarget") != null ? Double.parseDouble(System.getProperty("ClawProfitTarget")) : 0D;
-        dayProfitTarget = System.getProperty("DayProfitTarget") != null ? Double.parseDouble(System.getProperty("DayProfitTarget")) : 0D;
-        dayStopLoss = System.getProperty("DayStopLoss") != null ? Double.parseDouble(System.getProperty("DayStopLoss")) : 0D;
+        setClawProfitTarget(System.getProperty("ClawProfitTarget") != null ? Double.parseDouble(System.getProperty("ClawProfitTarget")) : 0D);
+        setDayProfitTarget(System.getProperty("DayProfitTarget") != null ? Double.parseDouble(System.getProperty("DayProfitTarget")) : 0D);
+        setDayStopLoss(System.getProperty("DayStopLoss") != null ? Double.parseDouble(System.getProperty("DayStopLoss")) : 0D);
         maxOpenPositions = System.getProperty("MaxOpenPositions") == null ? 1 : Integer.parseInt(System.getProperty("MaximumOpenPositions"));
         futBrokerageFile = System.getProperty("BrokerageFile") == null ? "" : System.getProperty("BrokerageFile");
         tradeFile = System.getProperty("TradeFile");
@@ -132,18 +132,18 @@ public class Strategy {
 
         logger.log(Level.INFO, "-----" + strategy.toUpperCase() + " Parameters----");
         logger.log(Level.INFO, "end Time: {0}", endDate);
-        logger.log(Level.INFO, "Print Time: {0}", com.incurrency.framework.DateUtil.addSeconds(endDate, (this.maxOrderDuration + 1) * 60));
-        logger.log(Level.INFO, "ShutDown time: {0}", DateUtil.addSeconds(endDate, (this.maxOrderDuration + 2) * 60));
+        logger.log(Level.INFO, "Print Time: {0}", com.incurrency.framework.DateUtil.addSeconds(endDate, (this.getMaxOrderDuration() + 1) * 60));
+        logger.log(Level.INFO, "ShutDown time: {0}", DateUtil.addSeconds(endDate, (this.getMaxOrderDuration() + 2) * 60));
         logger.log(Level.INFO, "TickSize: {0}", tickSize);
         logger.log(Level.INFO, "Number of contracts to be traded: {0}", numberOfContracts);
-        logger.log(Level.INFO, "Claw Profit in increments of: {0}", clawProfitTarget);
-        logger.log(Level.INFO, "Day Profit Target: {0}", dayProfitTarget);
-        logger.log(Level.INFO, "Day Stop Loss: {0}", dayStopLoss);
+        logger.log(Level.INFO, "Claw Profit in increments of: {0}", getClawProfitTarget());
+        logger.log(Level.INFO, "Day Profit Target: {0}", getDayProfitTarget());
+        logger.log(Level.INFO, "Day Stop Loss: {0}", getDayStopLoss());
         logger.log(Level.INFO, "PointValue: {0}", pointValue);
         logger.log(Level.INFO, "Maxmimum slippage allowed for entry: {0}", maxSlippageEntry);
-        logger.log(Level.INFO, "Maximum slippage allowed for exit: {0}", maxSlippageExit);
-        logger.log(Level.INFO, "Max Order Duration: {0}", maxOrderDuration);
-        logger.log(Level.INFO, "Dynamic Order Duration: {0}", dynamicOrderDuration);
+        logger.log(Level.INFO, "Maximum slippage allowed for exit: {0}", getMaxSlippageExit());
+        logger.log(Level.INFO, "Max Order Duration: {0}", getMaxOrderDuration());
+        logger.log(Level.INFO, "Dynamic Order Duration: {0}", getDynamicOrderDuration());
         logger.log(Level.INFO, "Open Positions Limit: {0}", maxOpenPositions);
         logger.log(Level.INFO, "Brokerage File: {0}", futBrokerageFile);
         logger.log(Level.INFO, "Trade File: {0}", tradeFile);
@@ -241,7 +241,7 @@ public class Strategy {
             for (BeanConnection c : Parameters.connection) {
                 if (c.getStrategy().contains(strategy)) {
                     filename = prefix + tradeFile;
-                    profitGrid = TradingUtil.applyBrokerage(oms.getTrades(), brokerageRate, pointValue, tradeFile, timeZone, startingCapital, c.getAccountName());
+                    profitGrid = TradingUtil.applyBrokerage(getOms().getTrades(), brokerageRate, pointValue, tradeFile, timeZone, startingCapital, c.getAccountName());
                     TradingUtil.writeToFile("body.txt", "-----------------Trades: " + strategy + " , Account: " + c.getAccountName() + "----------------------");
                     TradingUtil.writeToFile("body.txt", "Gross P&L today: " + df.format(profitGrid[0]));
                     TradingUtil.writeToFile("body.txt", "Brokerage today: " + df.format(profitGrid[1]));
@@ -264,7 +264,7 @@ public class Strategy {
                     if (writeHeader) {//this ensures header is written only the first time
                         tradeWriter.writeHeader(header);
                     }
-                    for (Map.Entry<Integer, Trade> trade : oms.getTrades().entrySet()) {
+                    for (Map.Entry<Integer, Trade> trade : getOms().getTrades().entrySet()) {
                         tradeWriter.write(trade.getValue(), header, Parameters.getTradeProcessorsWrite());
                     }
                     tradeWriter.close();
@@ -275,5 +275,159 @@ public class Strategy {
         } catch (IOException ex) {
             logger.log(Level.SEVERE, null, ex);
         }
+    }
+
+    /**
+     * @return the oms
+     */
+    public OrderPlacement getOms() {
+        return oms;
+    }
+
+    /**
+     * @param oms the oms to set
+     */
+    public void setOms(OrderPlacement oms) {
+        this.oms = oms;
+    }
+
+    /**
+     * @return the longOnly
+     */
+    public Boolean getLongOnly() {
+        return longOnly;
+    }
+
+    /**
+     * @param longOnly the longOnly to set
+     */
+    public void setLongOnly(Boolean longOnly) {
+        this.longOnly = longOnly;
+    }
+
+    /**
+     * @return the shortOnly
+     */
+    public Boolean getShortOnly() {
+        return shortOnly;
+    }
+
+    /**
+     * @param shortOnly the shortOnly to set
+     */
+    public void setShortOnly(Boolean shortOnly) {
+        this.shortOnly = shortOnly;
+    }
+
+    /**
+     * @return the aggression
+     */
+    public Boolean getAggression() {
+        return aggression;
+    }
+
+    /**
+     * @param aggression the aggression to set
+     */
+    public void setAggression(Boolean aggression) {
+        this.aggression = aggression;
+    }
+
+    /**
+     * @return the clawProfitTarget
+     */
+    public double getClawProfitTarget() {
+        return clawProfitTarget;
+    }
+
+    /**
+     * @param clawProfitTarget the clawProfitTarget to set
+     */
+    public void setClawProfitTarget(double clawProfitTarget) {
+        this.clawProfitTarget = clawProfitTarget;
+    }
+
+    /**
+     * @return the dayProfitTarget
+     */
+    public double getDayProfitTarget() {
+        return dayProfitTarget;
+    }
+
+    /**
+     * @param dayProfitTarget the dayProfitTarget to set
+     */
+    public void setDayProfitTarget(double dayProfitTarget) {
+        this.dayProfitTarget = dayProfitTarget;
+    }
+
+    /**
+     * @return the dayStopLoss
+     */
+    public double getDayStopLoss() {
+        return dayStopLoss;
+    }
+
+    /**
+     * @param dayStopLoss the dayStopLoss to set
+     */
+    public void setDayStopLoss(double dayStopLoss) {
+        this.dayStopLoss = dayStopLoss;
+    }
+
+    /**
+     * @return the plmanager
+     */
+    public ProfitLossManager getPlmanager() {
+        return plmanager;
+    }
+
+    /**
+     * @param plmanager the plmanager to set
+     */
+    public void setPlmanager(ProfitLossManager plmanager) {
+        this.plmanager = plmanager;
+    }
+
+    /**
+     * @return the maxOrderDuration
+     */
+    public int getMaxOrderDuration() {
+        return maxOrderDuration;
+    }
+
+    /**
+     * @param maxOrderDuration the maxOrderDuration to set
+     */
+    public void setMaxOrderDuration(int maxOrderDuration) {
+        this.maxOrderDuration = maxOrderDuration;
+    }
+
+    /**
+     * @return the dynamicOrderDuration
+     */
+    public int getDynamicOrderDuration() {
+        return dynamicOrderDuration;
+    }
+
+    /**
+     * @param dynamicOrderDuration the dynamicOrderDuration to set
+     */
+    public void setDynamicOrderDuration(int dynamicOrderDuration) {
+        this.dynamicOrderDuration = dynamicOrderDuration;
+    }
+
+    /**
+     * @return the maxSlippageExit
+     */
+    public double getMaxSlippageExit() {
+        return maxSlippageExit;
+    }
+
+    /**
+     * @param maxSlippageExit the maxSlippageExit to set
+     */
+    public void setMaxSlippageExit(double maxSlippageExit) {
+        this.maxSlippageExit = maxSlippageExit;
     }
 }

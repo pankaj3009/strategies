@@ -19,6 +19,7 @@ import com.incurrency.framework.DateUtil;
 import com.incurrency.framework.HistoricalBars;
 import com.incurrency.framework.Launch;
 import com.incurrency.framework.Parameters;
+import com.incurrency.framework.Splits;
 import com.incurrency.framework.Trade;
 import com.incurrency.framework.TradeEvent;
 import com.incurrency.framework.TradeListener;
@@ -27,12 +28,14 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 
@@ -49,6 +52,8 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
     private ArrayList<ArrayList<Integer>> pivotBars = new <ArrayList<Integer>> ArrayList();//internal variable 
     private ArrayList<ArrayList<Integer>> trend = new <ArrayList<Integer>> ArrayList();  //algo parameter 
     private final static Logger logger = Logger.getLogger(BeanSwing.class.getName());
+    private String split;
+    private ArrayList<Splits> splits = new ArrayList();    
     Timer preProcessing;
 
     public BeanSwing(MainAlgorithm m) {
@@ -106,7 +111,22 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
         }
         System.setProperties(p);
         // Initialize Variables
+        split = System.getProperty("Splits")==null?"":System.getProperty("Splits");
+        List<String> items = Arrays.asList(split.split("\\s*;\\s*"));
+        for (String str : items) {
+            List<String> temp = Arrays.asList(str.split("\\s*,\\s*"));
+            try {
+                int id = TradingUtil.getIDFromSymbol(temp.get(0), "STK", "", "", "");
+                int oldShares = Integer.parseInt(temp.get(2).split("\\s*:\\s*")[0]);
+                int newShares = Integer.parseInt(temp.get(2).split("\\s*:\\s*")[1]);
+                long splitDate = Long.parseLong(temp.get(1));
+                splits.add(new Splits(id, temp.get(0), oldShares, newShares, splitDate));
 
+            } catch (Exception e) {
+                logger.log(Level.INFO, "Split could not be processed. {0}", new Object[]{str});
+                logger.log(Level.SEVERE, null, e);
+            }
+        }
     }
 
         private void getDailyHistoricalData(String strategy, String type) {
