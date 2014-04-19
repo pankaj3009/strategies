@@ -528,7 +528,8 @@ public class ADR implements TradeListener,UpdateListener{
                     TradingUtil.writeToFile("body.txt", "Avg Drawdown (days): " + df.format(profitGrid[7]));
                     TradingUtil.writeToFile("body.txt", "Sharpe Ratio: " + df.format(profitGrid[8]));
                     TradingUtil.writeToFile("body.txt", "# days in history: " + df.format(profitGrid[9]));
-
+                }
+            }
                     if (new File(filename).exists()) {
                         writeHeader = false;
                     } else {
@@ -545,8 +546,7 @@ public class ADR implements TradeListener,UpdateListener{
                     tradeWriter.close();
                     logger.log(Level.INFO, "Clean Exit after writing trades");
                     //System.exit(0);
-                }
-            }
+
         } catch (IOException ex) {
             logger.log(Level.SEVERE, null, ex);
         }

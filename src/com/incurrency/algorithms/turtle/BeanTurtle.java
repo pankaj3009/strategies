@@ -462,7 +462,8 @@ TimerTask realTimeBars = new TimerTask(){
                     TradingUtil.writeToFile("body.txt", "Avg Drawdown (days): " + df.format(profitGrid[7]));
                     TradingUtil.writeToFile("body.txt", "Sharpe Ratio: " + df.format(profitGrid[8]));
                     TradingUtil.writeToFile("body.txt", "# days in history: " + df.format(profitGrid[9]));
-
+                }
+            }
                     if (new File(filename).exists()) {
                         writeHeader = false;
                     } else {
@@ -479,8 +480,7 @@ TimerTask realTimeBars = new TimerTask(){
                     tradeWriter.close();
                     System.out.println("Clean Exit after writing trades");
                     // System.exit(0);
-                }
-            }
+
         } catch (IOException ex) {
             logger.log(Level.SEVERE, null, ex);
         }
@@ -960,11 +960,11 @@ TimerTask realTimeBars = new TimerTask(){
                             new Object[]{Parameters.symbol.get(id).getSymbol(), this.getLowestLow().get(id).toString(), Parameters.symbol.get(id).getLastPrice(), this.getHighestHigh().get(id).toString(), this.getSlope().get(id).toString(), String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeLongMultiplier() / 375), this.getVolume().get(id).toString(), this.getVolumeMA().get(id).toString()
                     });
                     int entryInternalOrderID=this.internalOpenOrders.get(id);
-                    Trade originalTrade=getTrades().get(entryInternalOrderID);
+                    Trade originalTrade=getTrades().get(new OrderLink(entryInternalOrderID,"Order"));
                     originalTrade.updateExit(id,EnumOrderSide.COVER,this.getHighestHigh().get(id),size,this.internalorderID++,timeZone,"Order");                    
                     getTrades().put(new OrderLink(entryInternalOrderID,"Order"), originalTrade);
                     if(entryInternalOrderID!=0){
-                   if(  getTrades().get(entryInternalOrderID).getEntryPrice()>=this.getHighestHigh().get(id)){
+                   if(  getTrades().get(new OrderLink(entryInternalOrderID,"Order")).getEntryPrice()>=this.getHighestHigh().get(id)){
                         this.lastTradeWasLosing.set(id,Boolean.FALSE);
                     }
                     else{
@@ -1002,7 +1002,7 @@ TimerTask realTimeBars = new TimerTask(){
                     originalTrade.updateExit(id,EnumOrderSide.SELL,this.getLowestLow().get(id),size,this.internalorderID++,timeZone,"Order");                    
                     getTrades().put(new OrderLink(entryInternalOrderID,"Order"), originalTrade);
                     if(entryInternalOrderID!=0){
-                    if( getTrades().get(entryInternalOrderID).getEntryPrice()<=this.getLowestLow().get(id)){
+                    if( getTrades().get(new OrderLink(entryInternalOrderID,"Order")).getEntryPrice()<=this.getLowestLow().get(id)){
                         this.lastTradeWasLosing.set(id,Boolean.FALSE);
                     }
                     else{
@@ -1038,7 +1038,7 @@ TimerTask realTimeBars = new TimerTask(){
                         int size = this.getExposure() != 0 ? (int) (this.getExposure() / Parameters.symbol.get(symb).getLastPrice()) : Parameters.symbol.get(symb).getMinsize();
                         this.getNotionalPosition().set(symb, 0L);
                         int entryInternalOrderID=this.internalOpenOrders.get(symb);
-                        Trade originalTrade=getTrades().get(entryInternalOrderID);
+                        Trade originalTrade=getTrades().get(new OrderLink(entryInternalOrderID,"Order"));
                         originalTrade.updateExit(symb,EnumOrderSide.SELL,this.getClose().get(symb),size,this.internalorderID++,timeZone,"Order");                    
                         getTrades().put(new OrderLink(entryInternalOrderID,"Order"), originalTrade);
                         logger.log(Level.INFO, "Sell. Force Close All Positions.Symbol:{0}", new Object[]{Parameters.symbol.get(symb).getSymbol()});
@@ -1050,7 +1050,7 @@ TimerTask realTimeBars = new TimerTask(){
                         int size = this.getExposure() != 0 ? (int) (this.getExposure() / Parameters.symbol.get(symb).getLastPrice()) : Parameters.symbol.get(symb).getMinsize();
                         this.getNotionalPosition().set(symb, 0L);
                         int entryInternalOrderID=this.internalOpenOrders.get(symb);
-                        Trade originalTrade=getTrades().get(entryInternalOrderID);
+                        Trade originalTrade=getTrades().get(new OrderLink(entryInternalOrderID,"Order"));
                         originalTrade.updateExit(symb,EnumOrderSide.COVER,this.getClose().get(symb),size,this.internalorderID++,timeZone,"Order");                    
                         getTrades().put(new OrderLink(entryInternalOrderID,"Order"), originalTrade);
                         logger.log(Level.INFO, "Cover. Force Close All Positions.Symbol:{0}", new Object[]{Parameters.symbol.get(symb).getSymbol()});
