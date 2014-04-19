@@ -4,7 +4,6 @@
  */
 package com.incurrency.algorithms.others;
 
-import com.incurrency.algorithms.others.BeanGuds;
 import com.incurrency.framework.BeanSymbol;
 import com.incurrency.framework.EnumOrderIntent;
 import com.incurrency.framework.EnumOrderSide;

@@ -131,7 +131,7 @@ public class Strategy {
         startingCapital = System.getProperty("StartingCapital") == null ? 0D : Double.parseDouble(System.getProperty("StartingCapital"));
 
 
-        logger.log(Level.INFO, "-----" + strategy.toUpperCase() + " Parameters----");
+        logger.log(Level.INFO, "-----{0} Parameters----", strategy.toUpperCase());
         logger.log(Level.INFO, "end Time: {0}", endDate);
         logger.log(Level.INFO, "Print Time: {0}", com.incurrency.framework.DateUtil.addSeconds(endDate, (this.getMaxOrderDuration() + 1) * 60));
         logger.log(Level.INFO, "ShutDown time: {0}", DateUtil.addSeconds(endDate, (this.getMaxOrderDuration() + 2) * 60));
@@ -191,6 +191,7 @@ public class Strategy {
 
     }
     TimerTask runPrintOrders = new TimerTask() {
+        @Override
         public void run() {
             System.out.println("In Printorders");
             logger.log(Level.INFO, "Print Orders Called in {0}", strategy);

@@ -143,11 +143,11 @@ public class BeanGuds implements Serializable, TradeListener {
                 Double close = 0D;
                 Double high = Double.MIN_VALUE;
                 Double low = Double.MAX_VALUE;
-                ArrayList<Double> returns = new ArrayList<Double>();
-                ArrayList<Double> histclose = new ArrayList<Double>();
-                ArrayList<Double> histlow = new ArrayList<Double>();
-                ArrayList<Double> histhigh = new ArrayList<Double>();
-                ArrayList<Long> histvolume = new ArrayList<Long>();
+                ArrayList<Double> returns = new ArrayList<>();
+                ArrayList<Double> histclose = new ArrayList<>();
+                ArrayList<Double> histlow = new ArrayList<>();
+                ArrayList<Double> histhigh = new ArrayList<>();
+                ArrayList<Long> histvolume = new ArrayList<>();
                 System.out.println("Symbol:" + Parameters.symbol.get(j).getSymbol());
                 while (rs.next()) {
                     priorDate = priorDate == null ? rs.getDate("date") : priorDate;

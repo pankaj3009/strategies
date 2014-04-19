@@ -6,7 +6,6 @@
 package com.incurrency.algorithms.adr;
 import com.espertech.esper.client.UpdateListener;
 import com.espertech.esper.client.EventBean;
-import com.incurrency.framework.Parameters;
 import java.text.DecimalFormat;
 import java.util.Date;
 import java.util.logging.Logger;
@@ -20,6 +19,7 @@ public class ADRListener implements UpdateListener{
 
     private static final Logger logger = Logger.getLogger(ADRListener.class.getName());
     
+    @Override
     public void update(EventBean[] newEvents, EventBean[] oldEvents) {
 
         DecimalFormat df = new DecimalFormat("0.00");

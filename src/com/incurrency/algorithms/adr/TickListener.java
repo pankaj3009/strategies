@@ -18,6 +18,7 @@ import java.util.logging.Logger;
 public class TickListener implements UpdateListener{
 
     private static final Logger logger = Logger.getLogger(TickListener.class.getName());
+    @Override
     public void update(EventBean[] newEvents, EventBean[] oldEvents) {
 
         DecimalFormat df = new DecimalFormat("0.00");

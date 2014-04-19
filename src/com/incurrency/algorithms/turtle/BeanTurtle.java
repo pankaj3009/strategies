@@ -399,6 +399,7 @@ TimerTask realTimeBars = new TimerTask(){
     }
     
     TimerTask runPrintOrders = new TimerTask(){
+    @Override
     public void run(){
         logger.log(Level.INFO,"PrintOrders called in IDT");
         printOrders("");
@@ -407,7 +408,7 @@ TimerTask realTimeBars = new TimerTask(){
     
     public void printOrders(String prefix) {
         FileWriter file;
-        double[] profitGrid = new double[5];
+        double[] profitGrid;
         boolean writeHeader = false;
         DecimalFormat df = new DecimalFormat("#.##");
 
@@ -733,7 +734,7 @@ TimerTask realTimeBars = new TimerTask(){
        
         //Place entry orders
         if (tradeable && this.getNotionalPosition().get(id) == 0 && this.getCumVolume().get(id).size() >= this.getChannelDuration()) {
-            if (notionalPosition.get(id) == 0 && getAdvanceEntryOrder().get(id) == 0 && longOnly && exPriceBarLong.get(id) && this.getLastOrderDate().compareTo(new Date()) > 0 && this.getBreachUp().get(id) >= this.getBreachDown().get(id) && this.getBreachDown().get(id) >= 1) {
+            if (notionalPosition.get(id) == 0 && getAdvanceEntryOrder().get(id) == 0 && longOnly && exPriceBarLong.get(id) && BeanTurtle.getLastOrderDate().compareTo(new Date()) > 0 && this.getBreachUp().get(id) >= this.getBreachDown().get(id) && this.getBreachDown().get(id) >= 1) {
                 if ((Parameters.symbol.get(id).getLastPrice() + threshold) > this.getHighestHigh().get(id)
                         && (Parameters.symbol.get(id).getLastPrice() - threshold) > this.getLowestLow().get(id)
                         && this.longOnly) {
@@ -742,7 +743,7 @@ TimerTask realTimeBars = new TimerTask(){
                     logger.log(Level.FINE, "place advance order to buy. Symbol:{0},LastPrice: {1}, LowPrice: :{2} ,HighPrice: :{3} ,Threshold: {4}", new Object[]{Parameters.symbol.get(id).getSymbol(), Parameters.symbol.get(id).getLastPrice(), this.getLowestLow().get(id), this.getHighestHigh().get(id), threshold});
                     getOms().tes.fireOrderEvent(-1,-1,Parameters.symbol.get(id), EnumOrderSide.BUY, size, this.getHighestHigh().get(id) + Parameters.symbol.get(id).getAggression(), highTriggerPrice, "idt", 0, exit, EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageEntry);
                 }
-            } else if (notionalPosition.get(id) == 0 && getAdvanceEntryOrder().get(id) == 0 && shortOnly && exPriceBarShort.get(id) && this.getLastOrderDate().compareTo(new Date()) > 0 && this.getBreachDown().get(id) >= this.getBreachUp().get(id) && this.getBreachUp().get(id) >= 1) {
+            } else if (notionalPosition.get(id) == 0 && getAdvanceEntryOrder().get(id) == 0 && shortOnly && exPriceBarShort.get(id) && BeanTurtle.getLastOrderDate().compareTo(new Date()) > 0 && this.getBreachDown().get(id) >= this.getBreachUp().get(id) && this.getBreachUp().get(id) >= 1) {
                 if ((Parameters.symbol.get(id).getLastPrice() - threshold) < this.getLowestLow().get(id)
                         && (Parameters.symbol.get(id).getLastPrice() + threshold) < this.getHighestHigh().get(id)
                         && this.shortOnly) {

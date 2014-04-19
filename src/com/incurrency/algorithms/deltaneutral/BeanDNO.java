@@ -12,7 +12,6 @@ import com.incurrency.framework.BeanSymbol;
 import com.incurrency.framework.BidAskEvent;
 import com.incurrency.framework.BidAskListener;
 import com.incurrency.framework.DateUtil;
-import com.incurrency.framework.EnumBarSize;
 import com.incurrency.framework.HistoricalBarEvent;
 import com.incurrency.framework.HistoricalBarListener;
 import com.incurrency.framework.HistoricalBars;
@@ -32,7 +31,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -66,14 +64,14 @@ public class BeanDNO implements TradeListener, BidAskListener, HistoricalBarList
     private ArrayList<TreeMap<Long, BeanOHLC>> historicalData = new ArrayList();
     private ArrayList<Double> dailyReturns=new ArrayList();
     private ArrayList<Double> opencloseReturns=new ArrayList();
-    private ArrayList<ArrayList<Double>> sevenDayMeanReturn= new ArrayList<ArrayList<Double>>();
-    private ArrayList<ArrayList<Double>> oneMonthMeanReturn= new ArrayList<ArrayList<Double>>();
-    private ArrayList<ArrayList<Double>> sevenDayHistoricalVol= new ArrayList<ArrayList<Double>>();
-    private ArrayList<ArrayList<Double>> oneMonthHistoricalVol= new ArrayList<ArrayList<Double>>();
-    private ArrayList<ArrayList<Double>> sevenDayOpenCloseMeanReturn= new ArrayList<ArrayList<Double>>();
-    private ArrayList<ArrayList<Double>> oneMonthOpenCloseMeanReturn= new ArrayList<ArrayList<Double>>();
-    private ArrayList<ArrayList<Double>> sevenDayOpenCloseHistoricalVol= new ArrayList<ArrayList<Double>>();
-    private ArrayList<ArrayList<Double>> oneMonthOpenCloseHistoricalVol= new ArrayList<ArrayList<Double>>();
+    private ArrayList<ArrayList<Double>> sevenDayMeanReturn= new ArrayList<>();
+    private ArrayList<ArrayList<Double>> oneMonthMeanReturn= new ArrayList<>();
+    private ArrayList<ArrayList<Double>> sevenDayHistoricalVol= new ArrayList<>();
+    private ArrayList<ArrayList<Double>> oneMonthHistoricalVol= new ArrayList<>();
+    private ArrayList<ArrayList<Double>> sevenDayOpenCloseMeanReturn= new ArrayList<>();
+    private ArrayList<ArrayList<Double>> oneMonthOpenCloseMeanReturn= new ArrayList<>();
+    private ArrayList<ArrayList<Double>> sevenDayOpenCloseHistoricalVol= new ArrayList<>();
+    private ArrayList<ArrayList<Double>> oneMonthOpenCloseHistoricalVol= new ArrayList<>();
     private List<Integer> tradeableSymbols = new ArrayList();
 
     

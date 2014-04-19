@@ -128,8 +128,6 @@ public class ADR implements TradeListener,UpdateListener{
     int tradingSide=0;
     private com.incurrency.framework.OrderPlacement omsADR;
     private ProfitLossManager plmanager;
-
-
     
     public ADR(MainAlgorithm m){
         this.m=m;

@@ -4,7 +4,6 @@
  */
 package com.incurrency.algorithms.deltaneutral;
 
-import com.incurrency.framework.OrderPlacement;
 import java.util.Date;
 /**
  *

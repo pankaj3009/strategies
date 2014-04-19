@@ -4,7 +4,6 @@
  */
 package com.incurrency.algorithms.adr;
 
-import com.ib.client.*;
 import java.util.logging.Logger;
 
 

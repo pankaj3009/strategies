@@ -4,7 +4,6 @@
  */
 package com.incurrency.algorithms.adr;
 
-import com.incurrency.algorithms.turtle.*;
 import java.util.Date;
 
 /**
