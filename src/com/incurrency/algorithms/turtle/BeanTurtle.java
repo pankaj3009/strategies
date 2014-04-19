@@ -175,6 +175,9 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
     }
     
     
+    // <editor-fold defaultstate="collapsed" desc="Helper Functions">
+
+    
 TimerTask realTimeBars = new TimerTask(){
     public void run(){
         requestRealTimeBars();
@@ -483,6 +486,9 @@ TimerTask realTimeBars = new TimerTask(){
         }
     }
 
+
+// </editor-fold>
+    
     @Override
     public void barsReceived(HistoricalBarEvent event) {
         int outsideid = event.getSymbol().getSerialno() - 1;
@@ -677,6 +683,8 @@ TimerTask realTimeBars = new TimerTask(){
             }
         }
     }
+
+    //<editor-fold defaultstate="collapsed" desc="Trade Rules">  
 
     public void placeAdvancedEntryOrders(int id) {
         //Place advance orders
@@ -1060,6 +1068,9 @@ TimerTask realTimeBars = new TimerTask(){
         }
     }
 
+    //</editor-fold>
+    
+    //<editor-fold defaultstate="collapsed" desc="getter-setter">
     /**
      * @return the logger
      */
@@ -1710,4 +1721,6 @@ TimerTask realTimeBars = new TimerTask(){
     public void setDayStopLoss(double dayStopLoss) {
         this.dayStopLoss = dayStopLoss;
     }
+    
+    //</editor-fold>
     }
