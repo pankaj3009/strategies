@@ -44,7 +44,7 @@ import org.supercsv.prefs.CsvPreference;
 public class BeanTurtle implements Serializable, HistoricalBarListener, TradeListener {
 
     public MainAlgorithm m;
-    private ArrayList<ArrayList<Long>> cumVolume = new ArrayList<ArrayList<Long>>();
+    private ArrayList<ArrayList<Long>> cumVolume = new ArrayList<>();
     private ArrayList<Double> highestHigh = new <Double> ArrayList();  //algo parameter 
     private ArrayList<Double> lowestLow = new <Double> ArrayList(); //algo parameter 
     private ArrayList<Double> close = new <Double> ArrayList();
@@ -179,6 +179,7 @@ public class BeanTurtle implements Serializable, HistoricalBarListener, TradeLis
 
     
 TimerTask realTimeBars = new TimerTask(){
+    @Override
     public void run(){
         requestRealTimeBars();
     }
@@ -356,9 +357,9 @@ TimerTask realTimeBars = new TimerTask(){
     
     private void populateLastTradePrice() {
         try {
-            Connection connect = null;
-            PreparedStatement preparedStatement = null;
-            ResultSet rs = null;
+            Connection connect;
+            PreparedStatement preparedStatement;
+            ResultSet rs;
             connect = DriverManager.getConnection("jdbc:mysql://72.55.179.5:3306/histdata", "root", "spark123");
             //statement = connect.createStatement();
             for (int j = 0; j < Parameters.symbol.size(); j++) {
@@ -575,7 +576,7 @@ TimerTask realTimeBars = new TimerTask(){
                         //Set Highest High and Lowest Low
 
                         if (event.barNumber() >= this.getChannelDuration()) {
-                            Map<Long, BeanOHLC> temp = new HashMap();
+                            Map<Long, BeanOHLC> temp;
                             temp = (SortedMap<Long, BeanOHLC>) event.list().subMap(event.ohlc().getOpenTime() - this.getChannelDuration() * 60 * 1000 + 1, event.ohlc().getOpenTime() + 1);
                             double HH = 0;
                             double LL = Double.MAX_VALUE;
@@ -587,7 +588,7 @@ TimerTask realTimeBars = new TimerTask(){
                             this.getLowestLow().set(id, LL);
                         }
                         //Set Slope
-                        List<Long> tempCumVolume = new ArrayList();
+                        List<Long> tempCumVolume;
                         if (event.barNumber() >= this.getRegressionLookBack()) {
                             tempCumVolume = (List<Long>) this.getCumVolume().get(id).subList(event.barNumber() - this.getRegressionLookBack(), event.barNumber());
                             SimpleRegression regression = new SimpleRegression();
@@ -613,7 +614,7 @@ TimerTask realTimeBars = new TimerTask(){
                         }
                         //set MA of volume
                         if (event.barNumber() >= this.getChannelDuration() - 1) {
-                            Map<Long, BeanOHLC> temp = new HashMap();
+                            Map<Long, BeanOHLC> temp;
                             temp = (SortedMap<Long, BeanOHLC>) event.list().subMap(event.ohlc().getOpenTime() - (this.getChannelDuration() - 1) * 60 * 1000 + 1, event.ohlc().getOpenTime() + 1);
                             DescriptiveStatistics stats = new DescriptiveStatistics();
                             for (Map.Entry<Long, BeanOHLC> entry : temp.entrySet()) {
@@ -673,7 +674,7 @@ TimerTask realTimeBars = new TimerTask(){
                         int id = event.getSymbol().getSerialno() - 1;
                         BeanSymbol s = Parameters.symbol.get(id);
                         if (Long.toString(event.list().lastKey()).equals(DateUtil.getFormatedDate("yyyyMMdd", System.currentTimeMillis()))) {
-                            return;
+                                //do nothing
                         } else {
                             s.setAdditionalInput(String.valueOf(event.list().lastEntry().getValue().getVolume()));
                         }
@@ -701,7 +702,7 @@ TimerTask realTimeBars = new TimerTask(){
             if ((Parameters.symbol.get(id).getLastPrice() + threshold) > this.getHighestHigh().get(id)
                     && (Parameters.symbol.get(id).getLastPrice() - threshold) > this.getLowestLow().get(id)
                     && this.getBreachUp().get(id) >= this.getBreachDown().get(id)
-                    && exPriceBarLong.get(id) && this.getLastOrderDate().compareTo(new Date()) > 0 && this.getBreachUp().get(id) >= this.getBreachDown().get(id) && this.getBreachDown().get(id) >= 1) {
+                    && exPriceBarLong.get(id) && BeanTurtle.getLastOrderDate().compareTo(new Date()) > 0 && this.getBreachUp().get(id) >= this.getBreachDown().get(id) && this.getBreachDown().get(id) >= 1) {
                 //amend existing advance long order
                 logger.log(Level.FINE, "Amend existing advance long order. Symbol:{0},LastPrice: {1}, LowPrice: :{2} ,HighPrice: :{3} ,Threshold: {4}", new Object[]{Parameters.symbol.get(id).getSymbol(), Parameters.symbol.get(id).getLastPrice(), this.getLowestLow().get(id), this.getHighestHigh().get(id), threshold});
                 getOms().tes.fireOrderEvent(-1,-1,Parameters.symbol.get(id), EnumOrderSide.BUY, size, this.getHighestHigh().get(id) + Parameters.symbol.get(id).getAggression(), this.getHighestHigh().get(id), "idt", 0, exit, EnumOrderIntent.Amend, maxOrderDuration, dynamicOrderDuration, maxSlippageEntry);
@@ -718,7 +719,7 @@ TimerTask realTimeBars = new TimerTask(){
             if ((Parameters.symbol.get(id).getLastPrice() - threshold) < this.getLowestLow().get(id)
                     && (Parameters.symbol.get(id).getLastPrice() + threshold) < this.getHighestHigh().get(id)
                     && this.getBreachDown().get(id) >= this.getBreachUp().get(id)
-                    && exPriceBarShort.get(id) && this.getLastOrderDate().compareTo(new Date()) > 0 && this.getBreachDown().get(id) >= this.getBreachUp().get(id) && this.getBreachUp().get(id) >= 1) {
+                    && exPriceBarShort.get(id) && BeanTurtle.getLastOrderDate().compareTo(new Date()) > 0 && this.getBreachDown().get(id) >= this.getBreachUp().get(id) && this.getBreachUp().get(id) >= 1) {
                 //amend existing advance short order
                 logger.log(Level.FINE, "Amend existing advance short order. Symbol:{0},LastPrice: {1}, LowPrice: :{2} ,HighPrice: :{3} ,Threshold: {4}", new Object[]{Parameters.symbol.get(id).getSymbol(), Parameters.symbol.get(id).getLastPrice(), this.getLowestLow().get(id), this.getHighestHigh().get(id), threshold});
                 getOms().tes.fireOrderEvent(-1,-1,Parameters.symbol.get(id), EnumOrderSide.SHORT, size, this.getLowestLow().get(id) - Parameters.symbol.get(id).getAggression(), lowTriggerPrice, "idt", 0, exit, EnumOrderIntent.Amend, maxOrderDuration, dynamicOrderDuration, maxSlippageEntry);
@@ -998,7 +999,7 @@ TimerTask realTimeBars = new TimerTask(){
                             new Object[]{Parameters.symbol.get(id).getSymbol(), this.getLowestLow().get(id).toString(), Parameters.symbol.get(id).getLastPrice(), this.getHighestHigh().get(id).toString(), this.getSlope().get(id).toString(), String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeLongMultiplier() / 375), this.getVolume().get(id).toString(), this.getVolumeMA().get(id).toString()
                     });
                      int entryInternalOrderID=this.internalOpenOrders.get(id);
-                    Trade originalTrade=getTrades().get(entryInternalOrderID);
+                    Trade originalTrade=getTrades().get(new OrderLink(entryInternalOrderID,"Order"));
                     originalTrade.updateExit(id,EnumOrderSide.SELL,this.getLowestLow().get(id),size,this.internalorderID++,timeZone,"Order");                    
                     getTrades().put(new OrderLink(entryInternalOrderID,"Order"), originalTrade);
                     if(entryInternalOrderID!=0){
