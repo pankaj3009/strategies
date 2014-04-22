@@ -64,8 +64,8 @@ public class Strategy {
     private String futBrokerageFile;
     private ArrayList<BrokerageRate> brokerageRate = new ArrayList<>();
     private String tradeFile;
-    private String orderFile;
-    private String timeZone;
+    String orderFile;
+    String timeZone;
     private double startingCapital; 
     private ProfitLossManager plmanager;
     List<Integer> strategySymbols = new ArrayList();
@@ -190,6 +190,11 @@ public class Strategy {
         }
 
     }
+    
+    private void loadPositions(){
+        
+    }
+    
     TimerTask runPrintOrders = new TimerTask() {
         @Override
         public void run() {
