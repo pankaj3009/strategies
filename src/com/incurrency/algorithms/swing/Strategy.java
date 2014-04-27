@@ -8,6 +8,8 @@ import com.incurrency.framework.BeanConnection;
 import com.incurrency.framework.BeanSymbol;
 import com.incurrency.framework.BrokerageRate;
 import com.incurrency.framework.DateUtil;
+import com.incurrency.framework.EnumOrderIntent;
+import com.incurrency.framework.EnumOrderSide;
 import com.incurrency.framework.MainAlgorithm;
 import com.incurrency.framework.OrderLink;
 import com.incurrency.framework.OrderPlacement;
@@ -44,6 +46,8 @@ public class Strategy {
     MainAlgorithm m;
     HashMap<Integer, Integer> internalOpenOrders = new HashMap(); //holds mapping of symbol id to latest initialization internal order
     HashMap<OrderLink, Trade> trades = new HashMap();
+    HashMap<Integer, Integer> position = new HashMap<>();
+    HashMap<Integer,Double> positionPrice=new HashMap<>();
     double tickSize;
     double pointValue = 1;
     int internalOrderID = 1;
@@ -67,11 +71,13 @@ public class Strategy {
     String orderFile;
     String timeZone;
     private double startingCapital; 
+    private String exitType;
     private ProfitLossManager plmanager;
     List<Integer> strategySymbols = new ArrayList();
     private static final Logger logger = Logger.getLogger(Strategy.class.getName());
-    private OrderPlacement oms;
+    OrderPlacement oms;
     private String strategy;
+
 
     public Strategy(MainAlgorithm m, String strategy, String type) {
         this.m = m;
@@ -129,7 +135,7 @@ public class Strategy {
         orderFile = System.getProperty("OrderFile");
         timeZone = System.getProperty("TradeTimeZone") == null ? "" : System.getProperty("TradeTimeZone");
         startingCapital = System.getProperty("StartingCapital") == null ? 0D : Double.parseDouble(System.getProperty("StartingCapital"));
-
+        exitType=System.getProperty("ExitType")==null?"":System.getProperty("ExitType");
 
         logger.log(Level.INFO, "-----{0} Parameters----", strategy.toUpperCase());
         logger.log(Level.INFO, "end Time: {0}", endDate);
@@ -151,6 +157,8 @@ public class Strategy {
         logger.log(Level.INFO, "Order File: {0}", orderFile);
         logger.log(Level.INFO, "Time Zone: {0}", timeZone);
         logger.log(Level.INFO, "Starting Capital: {0}", startingCapital);
+        logger.log(Level.INFO, "Exit Type : {0}", exitType);
+        
         if (futBrokerageFile.compareTo("") != 0) {
             try {
                 p.clear();
@@ -283,7 +291,30 @@ public class Strategy {
             logger.log(Level.SEVERE, null, ex);
         }
     }
+    
+    void entry(int id, EnumOrderSide side, double limitPrice, double triggerPrice) {
+        if (side == EnumOrderSide.BUY) {
+            position.put(id, 1);
+        } else {
+            position.put(id, -1);
+        }
+        this.internalOpenOrders.put(id, internalOrderID);
+        trades.put(new OrderLink(this.internalOrderID, "Order"), new Trade(id, side, Parameters.symbol.get(id).getLastPrice(), numberOfContracts, internalOrderID++, timeZone, "Order"));
+        oms.tes.fireOrderEvent(internalOrderID, internalOrderID, Parameters.symbol.get(id), side, numberOfContracts, limitPrice, triggerPrice, strategy, maxOrderDuration, exitType, EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageExit);
+    }
 
+        void exit(int id, EnumOrderSide side, double limitPrice, double triggerPrice, String link,boolean transmit, String validity) {
+        if (side == EnumOrderSide.COVER) {
+            position.put(id, 0);
+        } else {
+            position.put(id, 0);
+        }
+        int tempinternalOrderID = internalOpenOrders.get(id);
+        Trade tempTrade = trades.get(new OrderLink(tempinternalOrderID,"Order"));
+        tempTrade.updateExit(id, EnumOrderSide.COVER, Parameters.symbol.get(id).getLastPrice(), numberOfContracts, internalOrderID++, timeZone, "Order");
+        oms.tes.fireOrderEvent(internalOrderID, internalOrderID, Parameters.symbol.get(id), side, numberOfContracts, limitPrice, triggerPrice, strategy, maxOrderDuration, exitType, EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageExit,link,transmit,validity);
+    }
+    
     /**
      * @return the oms
      */
