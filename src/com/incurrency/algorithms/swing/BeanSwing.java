@@ -93,8 +93,11 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
         super(m, "swing", "FUT");
         loadParameters("swing");
         for (int i = 0; i < strategySymbols.size(); i++) {
+            if(Parameters.symbol.get(strategySymbols.get(i)).getType().compareTo("STK")==0){
             int futureID=TradingUtil.getFutureIDFromSymbol(strategySymbols.get(i), firstMonthExpiry);
             allPositions.put(i, new PositionDetails(futureID));
+            logger.log(Level.INFO," Symbol Name: {0}, id: {1}, futureid: {2}",new Object[]{Parameters.symbol.get(strategySymbols.get(i)).getSymbol(),strategySymbols.get(i),futureID});
+            }
         }
         for (BeanConnection c : Parameters.connection) {
             c.getWrapper().addTradeListener(this);
@@ -246,7 +249,9 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
 
     @Override
     public void tradeReceived(TradeEvent event) {
+
         int id = event.getSymbolID(); //here symbolID is with zero base.
+        if (Parameters.symbol.get(id).getType().compareTo("STK")==0 && this.strategySymbols.contains(id)){
         int futureID=TradingUtil.getFutureIDFromSymbol(id,firstMonthExpiry);
         if(allPositions.size()==this.strategySymbols.size()){ //allPositions has been initialized
         PositionDetails p = allPositions.get(futureID);
@@ -306,6 +311,7 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
                 p.setPositionPrice(Parameters.symbol.get(futureID).getLastPrice());
             }
         }
+    }
     }
     }
 }
