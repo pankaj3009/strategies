@@ -49,6 +49,7 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
     private ArrayList<ArrayList<Double>> swing = new <ArrayList<Double>> ArrayList();  //algo parameter
     private ArrayList<ArrayList<Integer>> trend = new <ArrayList<Integer>> ArrayList();  //algo parameter
     private String split;
+    private String firstMonthExpiry;
     private ArrayList<Splits> splits = new ArrayList();
     Timer preProcessing;
     private HashMap<Integer, PositionDetails> allPositions = new HashMap<>();
@@ -209,6 +210,7 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
         System.setProperties(p);
         // Initialize Variables
         split = System.getProperty("Splits") == null ? "" : System.getProperty("Splits");
+        firstMonthExpiry=System.getProperty("FirstMonthExpiry");
         List<String> items = Arrays.asList(split.split("\\s*;\\s*"));
         for (String str : items) {
             List<String> temp = Arrays.asList(str.split("\\s*,\\s*"));
@@ -244,8 +246,9 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
     @Override
     public void tradeReceived(TradeEvent event) {
         int id = event.getSymbolID(); //here symbolID is with zero base.
+        int futureID=TradingUtil.getFutureIDFromSymbol(id,firstMonthExpiry);
         if(allPositions.size()==this.strategySymbols.size()){ //allPositions has been initialized
-        PositionDetails p = allPositions.get(id);
+        PositionDetails p = allPositions.get(futureID);
         if (event.getTickType() == com.ib.client.TickType.LAST && this.strategySymbols.contains(id) && p.getPosition() == 0 && endDate.before(new Date())) {//check for entry
             BeanOHLC lastBar = ohlcv.get(id).get(ohlcv.get(id).size() - 1);
             long today;
@@ -282,20 +285,24 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
             Boolean S2 = lastBar.getVolume() > volumeMA.get(volumeMA.size() - 2);
             Boolean S3 = macdPercentageOfPrice < 0 && macdPercentageOfPrice > -100;
             Boolean S4 = rsi.get(rsi.size() - 1) < 30 && rsi.get(rsi.size() - 1) > 10;
+            //log scan
+            logger.log(Level.INFO,"Symbol: {0}, tempSwing: {1}, tempTrend: {2}, volumeMA: {3}, macd: {4}, rsi: {5},B1: {6}, B2: {7}, B3: {8}, B4: {9}, S1: {10}, S2: {11}, S3: {12}, S4 :{13}",
+                    new Object[]{Parameters.symbol.get(id).getSymbol(),tempSwing.get(tempSwing.size() - 1),tempTrend.get(tempTrend.size() - 1),volumeMA.get(volumeMA.size() - 2),macd.get(macd.size() - 2),rsi.get(rsi.size() - 1)
+                    ,B1,B2,B3,B4,S1,S2,S3,S4});            
+            
             if (B1 && B2 && B3 && B4) {
-                position.put(id, 1);
                 logger.log(Level.INFO, "Buy Entry");
-                entry(id, EnumOrderSide.BUY, Parameters.symbol.get(id).getLastPrice(), 0);
-                p.setId(id);
-                p.setPosition(Parameters.symbol.get(id).getMinsize() * this.numberOfContracts);
-                p.setPositionPrice(Parameters.symbol.get(id).getLastPrice());
+                entry(futureID, EnumOrderSide.BUY, Parameters.symbol.get(futureID).getLastPrice(), 0);
+                p.setId(futureID);
+                p.setPosition(Parameters.symbol.get(futureID).getMinsize() * this.numberOfContracts);
+                p.setPositionPrice(Parameters.symbol.get(futureID).getLastPrice());
 
             } else if (S1 && S2 && S3 && S4) {
-                logger.log(Level.INFO, "Buy Entry");
-                entry(id, EnumOrderSide.SHORT, Parameters.symbol.get(id).getLastPrice(), 0);
-                p.setId(id);
-                p.setPosition(-Parameters.symbol.get(id).getMinsize() * this.numberOfContracts);
-                p.setPositionPrice(Parameters.symbol.get(id).getLastPrice());
+                logger.log(Level.INFO, "Short Entry");
+                entry(futureID, EnumOrderSide.SHORT, Parameters.symbol.get(id).getLastPrice(), 0);
+                p.setId(futureID);
+                p.setPosition(-Parameters.symbol.get(futureID).getMinsize() * this.numberOfContracts);
+                p.setPositionPrice(Parameters.symbol.get(futureID).getLastPrice());
             }
         }
     }
