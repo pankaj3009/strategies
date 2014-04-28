@@ -93,7 +93,8 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
         super(m, "swing", "FUT");
         loadParameters("swing");
         for (int i = 0; i < strategySymbols.size(); i++) {
-            allPositions.put(i, new PositionDetails(strategySymbols.get(i)));
+            int futureID=TradingUtil.getFutureIDFromSymbol(strategySymbols.get(i), firstMonthExpiry);
+            allPositions.put(i, new PositionDetails(futureID));
         }
         for (BeanConnection c : Parameters.connection) {
             c.getWrapper().addTradeListener(this);
