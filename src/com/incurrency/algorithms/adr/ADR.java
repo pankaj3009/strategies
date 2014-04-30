@@ -128,8 +128,6 @@ public class ADR implements TradeListener,UpdateListener{
     int tradingSide=0;
     private com.incurrency.framework.OrderPlacement omsADR;
     private ProfitLossManager plmanager;
-    private double trailingStop=0;
-    private double stop;
     
     public ADR(MainAlgorithm m){
         this.m=m;
@@ -398,7 +396,7 @@ public class ADR implements TradeListener,UpdateListener{
                     getOmsADR().tes.fireOrderEvent(internalOrderID - 1, tempinternalOrderID, Parameters.symbol.get(id), EnumOrderSide.COVER, numberOfContracts, price, 0, "adr", 3, "", EnumOrderIntent.Init, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit());
                     position = 0;
                     tradingSide = 0;
-                 } else if ((!shortZone) && (price < entryPrice - takeProfit)) {
+                 } else if ((scalpingMode || !shortZone) && (price < entryPrice - takeProfit)) {
                     int tempinternalOrderID = internalOpenOrders.get(id);
                     Trade tempTrade = trades.get(new OrderLink(tempinternalOrderID,"Order"));
                     tempTrade.updateExit(id, EnumOrderSide.COVER, price, numberOfContracts, internalOrderID++, timeZone, "Order");
@@ -417,7 +415,7 @@ public class ADR implements TradeListener,UpdateListener{
                     logger.log(Level.INFO, " Strategy: ADR. Sell Order. StopLoss. Price: {0}", new Object[]{price});
                     getOmsADR().tes.fireOrderEvent(internalOrderID - 1, tempinternalOrderID, Parameters.symbol.get(id), EnumOrderSide.SELL, numberOfContracts, price, 0, "adr", 3, "", EnumOrderIntent.Init, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit());
                     position = 0;
-                 } else if ((!buyZone) && price > entryPrice + takeProfit) {
+                 } else if ((scalpingMode || !buyZone) && price > entryPrice + takeProfit) {
                     int tempinternalOrderID = internalOpenOrders.get(id);
                     Trade tempTrade = trades.get(new OrderLink(tempinternalOrderID,"Order"));
                     tempTrade.updateExit(id, EnumOrderSide.SELL, price, numberOfContracts, internalOrderID++, timeZone, "Order");
