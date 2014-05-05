@@ -253,9 +253,8 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
         int id = event.getSymbolID(); //here symbolID is with zero base.
         if (Parameters.symbol.get(id).getType().compareTo("STK")==0 && this.strategySymbols.contains(id)){
         int futureID=TradingUtil.getFutureIDFromSymbol(id,firstMonthExpiry);
-        if(allPositions.size()==this.strategySymbols.size()){ //allPositions has been initialized
-        PositionDetails p = allPositions.get(futureID);
-        if (event.getTickType() == com.ib.client.TickType.LAST && this.strategySymbols.contains(id) && p.getPosition() == 0 && endDate.before(new Date())) {//check for entry
+        PositionDetails p = allPositions.get(id);
+        if (p!=null && event.getTickType() == com.ib.client.TickType.LAST && this.strategySymbols.contains(id) && p.getPosition() == 0 && endDate.before(new Date())) {//check for entry
             BeanOHLC lastBar = ohlcv.get(id).get(ohlcv.get(id).size() - 1);
             long today;
             if (timeZone.compareTo("") == 0) {
@@ -311,7 +310,7 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
                 p.setPositionPrice(Parameters.symbol.get(futureID).getLastPrice());
             }
         }
-    }
+    
     }
     }
 }
