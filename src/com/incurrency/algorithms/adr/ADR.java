@@ -279,7 +279,7 @@ public class ADR implements TradeListener,UpdateListener{
     @Override
     public void tradeReceived(TradeEvent event) {
         int id = event.getSymbolID(); //zero based id
-        if (adrSymbols.contains(id)) {
+        if (adrSymbols.contains(id) && Parameters.symbol.get(id).getType().compareTo("STK")==0) {
             switch (event.getTickType()) {
                 case com.ib.client.TickType.LAST_SIZE:
                     //System.out.println("LASTSIZE, Symbol:"+Parameters.symbol.get(id).getSymbol()+" Value: "+Parameters.symbol.get(id).getLastSize()+" tickerID: "+id);
