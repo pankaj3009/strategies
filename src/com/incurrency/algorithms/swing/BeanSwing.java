@@ -89,9 +89,9 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
         }
     };
 
-    public BeanSwing(MainAlgorithm m) {
-        super(m, "swing", "FUT");
-        loadParameters("swing");
+    public BeanSwing(MainAlgorithm m, String parameterFile, ArrayList<String> accounts) {
+        super(m, "swing", "FUT",parameterFile, accounts);
+        loadParameters("swing",parameterFile);
         for (int i = 0; i < strategySymbols.size(); i++) {
             if(Parameters.symbol.get(strategySymbols.get(i)).getType().compareTo("STK")==0){
             int futureID=TradingUtil.getFutureIDFromSymbol(strategySymbols.get(i), firstMonthExpiry);
@@ -198,11 +198,11 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
         }
     }
 
-    private void loadParameters(String strategy) {
+    private void loadParameters(String strategy, String parameterFile) {
         Properties p = new Properties(System.getProperties());
         FileInputStream propFile;
         try {
-            propFile = new FileInputStream(MainAlgorithm.input.get(strategy));
+            propFile = new FileInputStream(parameterFile);
             try {
                 p.load(propFile);
             } catch (Exception ex) {

@@ -77,17 +77,19 @@ public class Strategy {
     private static final Logger logger = Logger.getLogger(Strategy.class.getName());
     OrderPlacement oms;
     private String strategy;
+    private ArrayList<String> accounts;
 
 
-    public Strategy(MainAlgorithm m, String strategy, String type) {
+    public Strategy(MainAlgorithm m, String strategy, String type, String parameterFile, ArrayList<String> accounts) {
         this.m = m;
-        loadParameters(strategy, type);
+        this.accounts=accounts;
+        loadParameters(strategy, type, parameterFile,accounts);
         for (BeanSymbol s : Parameters.symbol) {
             if (Pattern.compile(Pattern.quote(strategy), Pattern.CASE_INSENSITIVE).matcher(s.getStrategy()).find()) {
                 strategySymbols.add(s.getSerialno() - 1);
             }
         }
-        this.strategy = strategy;
+        this.strategy = strategy+"-"+parameterFile.split(".")[0];
         oms = new OrderPlacement(getAggression(), this.tickSize, endDate, strategy, pointValue, maxOpenPositions, timeZone);
         plmanager = new ProfitLossManager(strategy, this.strategySymbols, pointValue, getClawProfitTarget(), getDayProfitTarget(), getDayStopLoss());
         Timer closeProcessing = new Timer("Timer: " + strategy + " CloseProcessing");
@@ -95,11 +97,11 @@ public class Strategy {
 
     }
 
-    private void loadParameters(String strategy, String type) {
+    private void loadParameters(String strategy, String type, String parameterFile, ArrayList<String>Accounts) {
         Properties p = new Properties(System.getProperties());
         FileInputStream propFile;
         try {
-            propFile = new FileInputStream(MainAlgorithm.input.get(strategy));
+            propFile = new FileInputStream(parameterFile);
             try {
                 p.load(propFile);
             } catch (Exception ex) {
@@ -136,8 +138,12 @@ public class Strategy {
         timeZone = System.getProperty("TradeTimeZone") == null ? "" : System.getProperty("TradeTimeZone");
         startingCapital = System.getProperty("StartingCapital") == null ? 0D : Double.parseDouble(System.getProperty("StartingCapital"));
         exitType=System.getProperty("ExitType")==null?"":System.getProperty("ExitType");
-
-        logger.log(Level.INFO, "-----{0} Parameters----", strategy.toUpperCase());
+        
+        String concatAccountNames="";
+        for(String account: getAccounts()){
+            concatAccountNames=":"+account;
+        }
+        logger.log(Level.INFO, "-----{0} Parameters----Accounts used {1}", new Object[]{strategy.toUpperCase(),concatAccountNames});
         logger.log(Level.INFO, "end Time: {0}", endDate);
         logger.log(Level.INFO, "Print Time: {0}", com.incurrency.framework.DateUtil.addSeconds(endDate, (this.getMaxOrderDuration() + 1) * 60));
         logger.log(Level.INFO, "ShutDown time: {0}", DateUtil.addSeconds(endDate, (this.getMaxOrderDuration() + 2) * 60));
@@ -207,7 +213,7 @@ public class Strategy {
         @Override
         public void run() {
             System.out.println("In Printorders");
-            logger.log(Level.INFO, "Print Orders Called in {0}", strategy);
+            logger.log(Level.INFO, "Print Orders Called in {0}", getStrategy());
             printOrders("");
         }
     };
@@ -220,7 +226,7 @@ public class Strategy {
             boolean writeHeader = false;
             String filename = prefix + orderFile;
             profitGrid = TradingUtil.applyBrokerage(trades, brokerageRate, pointValue, orderFile, timeZone, startingCapital, "Order");
-            TradingUtil.writeToFile("body.txt", "-----------------Orders:" + strategy + " --------------------------------------------------");
+            TradingUtil.writeToFile("body.txt", "-----------------Orders:" + getStrategy() + " --------------------------------------------------");
             TradingUtil.writeToFile("body.txt", "Gross P&L today: " + df.format(profitGrid[0]));
             TradingUtil.writeToFile("body.txt", "Brokerage today: " + df.format(profitGrid[1]));
             TradingUtil.writeToFile("body.txt", "Net P&L today: " + df.format(profitGrid[2]));
@@ -254,10 +260,10 @@ public class Strategy {
 
             //Write trade summary for each account
             for (BeanConnection c : Parameters.connection) {
-                if (c.getStrategy().contains(strategy)) {
+                if (c.getStrategy().contains(getStrategy())) {
                     filename = prefix + tradeFile;
                     profitGrid = TradingUtil.applyBrokerage(getOms().getTrades(), brokerageRate, pointValue, tradeFile, timeZone, startingCapital, c.getAccountName());
-                    TradingUtil.writeToFile("body.txt", "-----------------Trades: " + strategy + " , Account: " + c.getAccountName() + "----------------------");
+                    TradingUtil.writeToFile("body.txt", "-----------------Trades: " + getStrategy() + " , Account: " + c.getAccountName() + "----------------------");
                     TradingUtil.writeToFile("body.txt", "Gross P&L today: " + df.format(profitGrid[0]));
                     TradingUtil.writeToFile("body.txt", "Brokerage today: " + df.format(profitGrid[1]));
                     TradingUtil.writeToFile("body.txt", "Net P&L today: " + df.format(profitGrid[2]));
@@ -300,7 +306,7 @@ public class Strategy {
         }
         this.internalOpenOrders.put(id, internalOrderID);
         trades.put(new OrderLink(this.internalOrderID, "Order"), new Trade(id, side, Parameters.symbol.get(id).getLastPrice(), numberOfContracts, internalOrderID++, timeZone, "Order"));
-        oms.tes.fireOrderEvent(internalOrderID, internalOrderID, Parameters.symbol.get(id), side, numberOfContracts, limitPrice, triggerPrice, strategy, maxOrderDuration, exitType, EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageExit);
+        oms.tes.fireOrderEvent(internalOrderID, internalOrderID, Parameters.symbol.get(id), side, numberOfContracts, limitPrice, triggerPrice, getStrategy(), maxOrderDuration, exitType, EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageExit);
     }
 
         void exit(int id, EnumOrderSide side, double limitPrice, double triggerPrice, String link,boolean transmit, String validity) {
@@ -312,7 +318,7 @@ public class Strategy {
         int tempinternalOrderID = internalOpenOrders.get(id);
         Trade tempTrade = trades.get(new OrderLink(tempinternalOrderID,"Order"));
         tempTrade.updateExit(id, EnumOrderSide.COVER, Parameters.symbol.get(id).getLastPrice(), numberOfContracts, internalOrderID++, timeZone, "Order");
-        oms.tes.fireOrderEvent(internalOrderID, internalOrderID, Parameters.symbol.get(id), side, numberOfContracts, limitPrice, triggerPrice, strategy, maxOrderDuration, exitType, EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageExit,link,transmit,validity);
+        oms.tes.fireOrderEvent(internalOrderID, internalOrderID, Parameters.symbol.get(id), side, numberOfContracts, limitPrice, triggerPrice, getStrategy(), maxOrderDuration, exitType, EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippageExit,link,transmit,validity);
     }
     
     /**
@@ -467,5 +473,33 @@ public class Strategy {
      */
     public void setMaxSlippageExit(double maxSlippageExit) {
         this.maxSlippageExit = maxSlippageExit;
+    }
+
+    /**
+     * @return the strategy
+     */
+    public String getStrategy() {
+        return strategy;
+    }
+
+    /**
+     * @param strategy the strategy to set
+     */
+    public void setStrategy(String strategy) {
+        this.strategy = strategy;
+    }
+
+    /**
+     * @return the accounts
+     */
+    public ArrayList<String> getAccounts() {
+        return accounts;
+    }
+
+    /**
+     * @param accounts the accounts to set
+     */
+    public void setAccounts(ArrayList<String> accounts) {
+        this.accounts = accounts;
     }
 }
