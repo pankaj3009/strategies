@@ -30,14 +30,21 @@ public class EventProcessor implements ActionListener {
     private EPServiceProvider esperEngine;
     private static final Logger logger = Logger.getLogger(EventProcessor.class.getName());
     public EPStatement ADRStatement=null;
+    public ADR adrStrategy;
+    public ADRListener adrListener;
+    public TickListener tickListener;
     
-    public  EventProcessor()
+    public  EventProcessor(ADR adr)
     {
+        this.adrStrategy=adr;
+        adrListener=new ADRListener(adr);
+        tickListener=new TickListener(adr);
+        
         // Register event class alias for simplicity
         Configuration config = new Configuration();
         config.getEngineDefaults().getThreading().setListenerDispatchPreserveOrder(false);
         config.getEngineDefaults().getThreading().setInsertIntoDispatchPreserveOrder(false); 
-//        config.addEventType("TickPrice", "com.adr.TickPriceEvent");
+//        config.addEventType("TickPrice", "com.adrStrategy.TickPriceEvent");
        config.addEventType("TickPrice", com.incurrency.algorithms.adr.TickPriceEvent.class);
        config.addEventType("ADRPrice", com.incurrency.algorithms.adr.ADREvent.class);
 
@@ -82,7 +89,7 @@ public class EventProcessor implements ActionListener {
 
 
         statement = esperEngine.getEPAdministrator().createEPL(stmt);
-        // Create the statement to calculate adr as count(+symbs)/count(-symbs) since prv day close
+        // Create the statement to calculate adrStrategy as count(+symbs)/count(-symbs) since prv day close
         stmt = "select count(*, lastPrice > closePrice) as pTicks, ";
         stmt += "sum(volume, lastPrice > closePrice) as pVolume, ";
         stmt += "count(*, lastPrice < closePrice) as nTicks, ";
@@ -90,7 +97,7 @@ public class EventProcessor implements ActionListener {
         stmt += "count(*) as tTicks, ";
         stmt += "sum(volume) as volume from PriceWin";
         statement = esperEngine.getEPAdministrator().createEPL(stmt);
-        statement.addListener(new ADRListener());
+        statement.addListener(adrListener);
 
         // Create a named window to get the last and previous last for each ticker
         stmt = "create window LastPriceWin.std:unique(tickerID) as ";
@@ -109,7 +116,7 @@ public class EventProcessor implements ActionListener {
         stmt = "select count(*, price > lPrice) as pTicks,sum(lastSize, price > lPrice) as pLastSize, count(*, price < lPrice) as nTicks,sum(lastSize, price < lPrice) as nLastSize, ";
         stmt += "count(*,price=lPrice) as uTicks, sum(lastSize,price=lPrice) as uLastSize, count(*) as tTicks, sum(lastSize) as tLastSize from LastPriceWin ";
         statement = esperEngine.getEPAdministrator().createEPL(stmt);
-        statement.addListener(new TickListener());
+        statement.addListener(tickListener);
         
         
         //Once ADR volume, count data is available, we move to ADR processing
@@ -125,7 +132,7 @@ public class EventProcessor implements ActionListener {
         
         stmt = "select field,max(price) as high ,min(price) as low, avg(price) as average "
                 + "from ADRPrice.win:time("
-                +ADR.window
+                +adrStrategy.window
                 +" minutes) "
                 + "group by field";
         

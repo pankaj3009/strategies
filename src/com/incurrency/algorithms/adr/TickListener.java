@@ -18,6 +18,12 @@ import java.util.logging.Logger;
 public class TickListener implements UpdateListener{
 
     private static final Logger logger = Logger.getLogger(TickListener.class.getName());
+    private ADR adrStrategy;
+    
+    public TickListener(ADR adr){
+        this.adrStrategy=adr;
+    }
+    
     @Override
     public void update(EventBean[] newEvents, EventBean[] oldEvents) {
 
@@ -49,15 +55,11 @@ public class TickListener implements UpdateListener{
         double tick=pTicks+nTicks>0?pTicks*100/(pTicks+nTicks):0;
         double tickTRIN=pVolume+nVolume>0?tick*100/(pVolume*100/(pVolume+nVolume)):0;
 
-        if(tTicks>ADR.threshold){
-          ADR.tick=tick;
-          ADR.tickTRIN=tickTRIN;
-          ADR.mEsperEvtProcessor.sendEvent(new TickPriceEvent(ADRTickType.T_TICK,ADRTickType.T_TICK,tick));
-          ADR.mEsperEvtProcessor.sendEvent(new TickPriceEvent(ADRTickType.T_TRIN,ADRTickType.T_TRIN,tickTRIN));         
+        if(tTicks>adrStrategy.threshold){
+          adrStrategy.tick=tick;
+          adrStrategy.tickTRIN=tickTRIN;
+          adrStrategy.mEsperEvtProcessor.sendEvent(new TickPriceEvent(ADRTickType.T_TICK,ADRTickType.T_TICK,tick));
+          adrStrategy.mEsperEvtProcessor.sendEvent(new TickPriceEvent(ADRTickType.T_TRIN,ADRTickType.T_TRIN,tickTRIN));         
           }
- 
-        //System.out.println(message);
-        //System.out.println("Listner update: " + message);
-        //MarketApp.setADRLP(df.format(adr), message); //ADR Tick
     }
 }

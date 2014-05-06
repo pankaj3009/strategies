@@ -18,6 +18,11 @@ import java.util.logging.Logger;
 public class ADRListener implements UpdateListener{
 
     private static final Logger logger = Logger.getLogger(ADRListener.class.getName());
+    private ADR adrStrategy;
+    
+    public ADRListener(ADR adr){
+        this.adrStrategy=adr;
+    }
     
     @Override
     public void update(EventBean[] newEvents, EventBean[] oldEvents) {
@@ -45,21 +50,14 @@ public class ADRListener implements UpdateListener{
         
         double adr=pTicks+nTicks>0?pTicks*100/(pTicks+nTicks):0;
         double adrTRIN=pVolume+nVolume>0?adr*100/(pVolume*100/(pVolume+nVolume)):0;
-        if(tTicks>ADR.threshold){
-          ADR.adr=adr;
-          ADR.adrTRIN=adrTRIN;
-          ADR.adrDayHigh=adr>ADR.adrDayHigh?adr:ADR.adrDayHigh;
-          ADR.adrDayLow=adr<ADR.adrDayLow?adr:ADR.adrDayLow;
-          ADR.mEsperEvtProcessor.sendEvent(new ADREvent(ADRTickType.D_ADR,adr));
-          ADR.mEsperEvtProcessor.sendEvent(new ADREvent(ADRTickType.D_TRIN,adrTRIN));
+        if(tTicks>this.adrStrategy.threshold){
+          adrStrategy.adr=adr;
+          adrStrategy.adrTRIN=adrTRIN;
+          adrStrategy.adrDayHigh=adr>adrStrategy.adrDayHigh?adr:adrStrategy.adrDayHigh;
+          adrStrategy.adrDayLow=adr<adrStrategy.adrDayLow?adr:adrStrategy.adrDayLow;
+          adrStrategy.mEsperEvtProcessor.sendEvent(new ADREvent(ADRTickType.D_ADR,adr));
+          adrStrategy.mEsperEvtProcessor.sendEvent(new ADREvent(ADRTickType.D_TRIN,adrTRIN));
         }
-    
-        
-        
-
-       // System.out.println(message);
-        //System.out.println("Listner update: " + message);
-//        MarketApp.setADRLC(df.format(adr), message); //ADR Market
     }
     
 }
