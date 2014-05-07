@@ -100,9 +100,10 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
             logger.log(Level.INFO," Symbol Name: {0}, id: {1}, futureid: {2}",new Object[]{Parameters.symbol.get(strategySymbols.get(i)).getSymbol(),strategySymbols.get(i),futureID});
             }
         }
+        String[] tempStrategyArray=parameterFile.split("\\.")[0].split("-");
         for (BeanConnection c : Parameters.connection) {
             c.getWrapper().addTradeListener(this);
-            c.initializeConnection("swing");
+        c.initializeConnection(tempStrategyArray[tempStrategyArray.length-1]);
         }
         if (Subscribe.tes != null) {
             Subscribe.tes.addTradeListener(this);

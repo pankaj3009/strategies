@@ -43,6 +43,7 @@ public class TickListener implements UpdateListener{
         String message = "Tick: TotalTicks: " + tTicks + " (+)Ticks: " + pTicks + " (-)Ticks: " + nTicks + " Unchanged: " + uTicks;
         message += " (+)Vol: "+pVolume+" (-)Vol:"+nVolume+" Tot LastSize:"+ tVolume;
                 long now =new Date().getTime();
+        /*
         ADR.adrServer.send("IND:CUS:ALL",6+","+now+","+pTicks +","+"ADR");
         ADR.adrServer.send("IND:CUS:ALL",7+","+now+","+nTicks +","+"ADR" );
         ADR.adrServer.send("IND:CUS:ALL",8+","+now+","+tTicks +","+"ADR");
@@ -51,7 +52,8 @@ public class TickListener implements UpdateListener{
         ADR.adrServer.send("IND:CUS:ALL",11+","+now+","+tVolume +","+"ADR" );
         ADR.adrServer.send("IND:CUS:ALL",12+","+now+","+uTicks +","+"ADR");
         ADR.adrServer.send("IND:CUS:ALL",13+","+now+","+uVolume +","+"ADR");
-
+        */
+        
         double tick=pTicks+nTicks>0?pTicks*100/(pTicks+nTicks):0;
         double tickTRIN=pVolume+nVolume>0?tick*100/(pVolume*100/(pVolume+nVolume)):0;
 

@@ -41,13 +41,14 @@ public class ADRListener implements UpdateListener{
         Long uChg = tTicks - (pTicks + nTicks);
         String message = "ADR: TotalMoves: " + tTicks + " (+)Advances: " + pTicks + " (-)Declines: " + nTicks + " Unchanged: " + uChg +" Advancing Volume: "+pVolume +" Declining Volume: "+nVolume+ " Total Volume: "+tVolume;
         long now =new Date().getTime();
+        /*
         ADR.adrServer.send("IND-CUS-ALL",0+","+now+","+pTicks+","+"ADR");
         ADR.adrServer.send("IND-CUS-ALL",1+","+now+","+nTicks+","+"ADR" );
         ADR.adrServer.send("IND-CUS-ALL",2+","+now+","+tTicks+","+"ADR");
         ADR.adrServer.send("IND-CUS-ALL",3+","+now+","+pVolume+","+"ADR" );
         ADR.adrServer.send("IND-CUS-ALL",4+","+now+","+nVolume+","+"ADR" );
         ADR.adrServer.send("IND-CUS-ALL",5+","+now+","+tVolume+","+"ADR" );
-        
+        */
         double adr=pTicks+nTicks>0?pTicks*100/(pTicks+nTicks):0;
         double adrTRIN=pVolume+nVolume>0?adr*100/(pVolume*100/(pVolume+nVolume)):0;
         if(tTicks>this.adrStrategy.threshold){

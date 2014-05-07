@@ -37,8 +37,8 @@ public class EventProcessor implements ActionListener {
     public  EventProcessor(ADR adr)
     {
         this.adrStrategy=adr;
-        adrListener=new ADRListener(adr);
-        tickListener=new TickListener(adr);
+        adrListener=new ADRListener(adrStrategy);
+        tickListener=new TickListener(adrStrategy);
         
         // Register event class alias for simplicity
         Configuration config = new Configuration();
@@ -49,12 +49,12 @@ public class EventProcessor implements ActionListener {
        config.addEventType("ADRPrice", com.incurrency.algorithms.adr.ADREvent.class);
 
         // Get an engine instance
-        esperEngine=EPServiceProviderManager.getDefaultProvider(config);
+        esperEngine=EPServiceProviderManager.getProvider(adrStrategy.getStrategy(),config);
    //     String test=TickPriceEvent.class.getName();
   //      esperEngine.getEPAdministrator().getConfiguration().addEventType("TickPrice", TickPriceEvent.class);
         //Make sure the following jars are in classpath. 1.CGILIB, 2.ANTLR
         esperEngine.initialize();
-        System.out.println("Esper engine= " + esperEngine.toString());
+        System.out.println("Esper engine= " + esperEngine.getURI());
 
         EPStatement statement = null;
         String stmt = null;
@@ -147,6 +147,7 @@ public class EventProcessor implements ActionListener {
         JFrame myFrame = new JFrame("Debug Window");
         myFrame.setLayout( new FlowLayout() );
         myFrame.setSize(300,400);
+        myFrame.setTitle(adrStrategy.getStrategy());
         myFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
          JButton debugButton = new JButton("Debug");
         myFrame.add(debugButton);
@@ -154,9 +155,11 @@ public class EventProcessor implements ActionListener {
          myFrame.setVisible(true);
         debugButton.setVisible(true);
         debugButton.addActionListener(this);
+        
         }
     
     }
+    
     
   
     @Override
@@ -165,27 +168,27 @@ public class EventProcessor implements ActionListener {
         System.out.println("PriceWin aggregation output");
         String query="select * from LastPriceWin";
         EPOnDemandQueryResult result = epRuntime.executeQuery(query);
-        TradingUtil.writeToFile("Tick.csv", "tickerID,Price,lPrice,lastSize,lLastSize\n");
+        TradingUtil.writeToFile("DebugTick.csv", "tickerID,Price,lPrice,lastSize,lLastSize");
         for (EventBean row : result.getArray()) {
             String tickerID=row.get("tickerID")!=null?row.get("tickerID").toString():"";
             String price=row.get("price")!=null?row.get("price").toString():"";
             String lPrice=row.get("lPrice")!=null?row.get("lPrice").toString():"";
             String lastSize=row.get("lastSize")!=null?row.get("lastSize").toString():"";
             String lLastSize=row.get("lLastSize")!=null?row.get("lLastSize").toString():"";
-            TradingUtil.writeToFile("Tick.csv", tickerID+","+price+","+lPrice+","+lastSize+","+lLastSize+"\n");
+            TradingUtil.writeToFile("DebugTick.csv", tickerID+","+price+","+lPrice+","+lastSize+","+lLastSize);
         }
         
         //write ADR
             query="select * from PriceWin";
             EPOnDemandQueryResult result2 = epRuntime.executeQuery(query);
-             TradingUtil.writeToFile("ADR.csv", "tickerID,lastPrice,closePrice,lastSize,volume\n");
+             TradingUtil.writeToFile("DebugADR.csv", "tickerID,lastPrice,closePrice,lastSize,volume");
              for (EventBean ADRrow : result2.getArray()) {
             String tickerID=ADRrow.get("tickerID")!=null?ADRrow.get("tickerID").toString():"";
             String lastPrice=ADRrow.get("lastPrice")!=null?ADRrow.get("lastPrice").toString():"";
             String closePrice=ADRrow.get("closePrice")!=null?ADRrow.get("closePrice").toString():"";
             String lastSize=ADRrow.get("lastSize")!=null?ADRrow.get("lastSize").toString():"";
             String volume=ADRrow.get("volume")!=null?ADRrow.get("volume").toString():"";
-            TradingUtil.writeToFile("ADR.csv", tickerID+","+lastPrice+","+closePrice+","+lastSize+","+volume+"\n");
+            TradingUtil.writeToFile("DebugADR.csv", tickerID+","+lastPrice+","+closePrice+","+lastSize+","+volume);
                     
              }
        }
