@@ -68,8 +68,6 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
     private ArrayList<Double> slope = new <Double>ArrayList();
     private ArrayList<Long> Volume = new ArrayList();
     private ArrayList<Double> VolumeMA = new ArrayList();
-    private ArrayList<Long> longVolume = new ArrayList();
-    private ArrayList<Long> shortVolume = new ArrayList();
     private ArrayList<Boolean> lastTradeWasLosing = new ArrayList();
     private ArrayList<Long> advanceEntryOrder = new ArrayList();
     private ArrayList<Long> advanceExitOrder = new ArrayList();
@@ -120,8 +118,6 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
             slope.add(0D);
             Volume.add(Long.MIN_VALUE);
             VolumeMA.add(Double.MIN_VALUE);
-            longVolume.add(Parameters.symbol.get(i).getLongvolume());
-            shortVolume.add(Parameters.symbol.get(i).getShortvolume());
             advanceEntryOrder.add(0L);
             advanceExitOrder.add(0L);
             breachUpInBar.add(Boolean.FALSE);
@@ -272,9 +268,6 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
             Launch.setMessage("Starting request of RealTime Bars");
         }
         new RealTimeBars();
-        logger.log(Level.FINE, ",Symbol" + "," + "BarNo" + "," + "HighestHigh" + "," + "LowestLow" + "," + "LastPrice" + "," + "Volume" + "," + "CumulativeVol" + "," + "VolumeSlope" + "," + "MinSlopeReqd" + "," + "MA" + "," + "LongVolume" + "," + "ShortVolume" + "," + "DateTime" + ","
-                + "ruleHighestHigh" + "," + "ruleCumVolumeLong" + "," + "ruleSlopeLong" + "," + "ruleVolumeLong" + "," + "ruleLowestLow" + ","
-                + "ruleCumVolumeShort" + "," + "ruleSlopeShort" + "," + "ruleVolumeShort");
     }
 
     // </editor-fold>
@@ -410,10 +403,10 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                             this.getVolumeMA().set(id, stats.getMean());
 
                         }
-                        boolean ruleCumVolumeLong = this.getCumVolume().get(id).get(this.getCumVolume().get(id).size() - 1) >= 0.05 * Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput());
-                        boolean ruleCumVolumeShort = this.getCumVolume().get(id).get(this.getCumVolume().get(id).size() - 1) <= Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput());
-                        boolean ruleSlopeLong = this.getSlope().get(id) > Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeLongMultiplier() / 375;
-                        boolean ruleSlopeShort = this.getSlope().get(id) < -Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeLongMultiplier() / 375;
+                        boolean ruleCumVolumeLong = this.getCumVolume().get(id).get(this.getCumVolume().get(id).size() - 1) >= 0.05 * Double.parseDouble(Parameters.symbol.get(id).getPriorDayVolume());
+                        boolean ruleCumVolumeShort = this.getCumVolume().get(id).get(this.getCumVolume().get(id).size() - 1) <= Double.parseDouble(Parameters.symbol.get(id).getPriorDayVolume());
+                        boolean ruleSlopeLong = this.getSlope().get(id) > Double.parseDouble(Parameters.symbol.get(id).getPriorDayVolume()) * this.getVolumeSlopeLongMultiplier() / 375;
+                        boolean ruleSlopeShort = this.getSlope().get(id) < -Double.parseDouble(Parameters.symbol.get(id).getPriorDayVolume()) * this.getVolumeSlopeLongMultiplier() / 375;
                         boolean ruleVolumeLong = this.getVolume().get(id) > maVolumeLong * this.getVolumeMA().get(id);
                         boolean ruleVolumeShort = this.getVolume().get(id) > maVolumeShort * this.getVolumeMA().get(id);
                         ruleCumVolumeLong = true;
@@ -445,10 +438,10 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                             this.getHighestHigh().get(id).toString(),
                             this.getLowestLow().get(id).toString(),
                             this.getCumVolume().get(id).get(event.barNumber() - 1).toString(),
-                            String.valueOf(0.05 * Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput())).replace(",", ""),
-                            String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput())).replace(",", ""),
+                            String.valueOf(0.05 * Double.parseDouble(Parameters.symbol.get(id).getPriorDayVolume())).replace(",", ""),
+                            String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getPriorDayVolume())).replace(",", ""),
                             this.getSlope().get(id).toString(),
-                            String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeLongMultiplier() / 375).replace(",", ""),
+                            String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getPriorDayVolume()) * this.getVolumeSlopeLongMultiplier() / 375).replace(",", ""),
                             this.getVolume().get(id).toString(),
                             this.getVolumeMA().get(id).toString(),
                             this.getBreachUp().get(id),
@@ -462,7 +455,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                     if (Long.toString(event.list().lastKey()).equals(DateUtil.getFormatedDate("yyyyMMdd", System.currentTimeMillis()))) {
                         //do nothing
                     } else {
-                        s.setAdditionalInput(String.valueOf(event.list().lastEntry().getValue().getVolume()));
+                        s.setPriorDayVolume(String.valueOf(event.list().lastEntry().getValue().getVolume()));
                     }
                 }
             } catch (Exception e) {
@@ -475,7 +468,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
     public void placeAdvancedEntryOrders(int id) {
         //Place advance orders
         double threshold = this.getHighestHigh().get(id) - this.getLowestLow().get(id) > 1 ? 0.5 : (this.getHighestHigh().get(id) - this.getLowestLow().get(id)) / 2;
-        boolean tradeable = Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) / (Parameters.symbol.get(id).getMinsize() * 375) >= 6.0 && this.getCumVolume().get(id).size() > this.getStartBars() && Parameters.symbol.get(id).getLastPrice() > 0;
+        boolean tradeable = Double.parseDouble(Parameters.symbol.get(id).getPriorDayVolume()) / (Parameters.symbol.get(id).getMinsize() * 375) >= 6.0 && this.getCumVolume().get(id).size() > this.getStartBars() && Parameters.symbol.get(id).getLastPrice() > 0;
         if (this.getExposure() != 0 && this.getCumVolume().get(id).size() > this.getStartBars() && Parameters.symbol.get(id).getLastPrice() > 0) {
             tradeable = true;
         }
@@ -490,11 +483,11 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                     && exPriceBarLong.get(id) && BeanTurtle.getLastOrderDate().compareTo(new Date()) > 0 && this.getBreachUp().get(id) >= this.getBreachDown().get(id) && this.getBreachDown().get(id) >= 1) {
                 //amend existing advance long order
                 logger.log(Level.FINE, "Amend existing advance long order. Symbol:{0},LastPrice: {1}, LowPrice: :{2} ,HighPrice: :{3} ,Threshold: {4}", new Object[]{Parameters.symbol.get(id).getSymbol(), Parameters.symbol.get(id).getLastPrice(), this.getLowestLow().get(id), this.getHighestHigh().get(id), threshold});
-                getOms().tes.fireOrderEvent(-1, -1, Parameters.symbol.get(id), EnumOrderSide.BUY, size, this.getHighestHigh().get(id) + Parameters.symbol.get(id).getAggression(), this.getHighestHigh().get(id), getStrategy(), 0, getExitType(), EnumOrderIntent.Amend, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageEntry());
+                getOms().tes.fireOrderEvent(-1, -1, Parameters.symbol.get(id), EnumOrderSide.BUY, size, this.getHighestHigh().get(id), this.getHighestHigh().get(id), getStrategy(), 0, getExitType(), EnumOrderIntent.Amend, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageEntry());
             } else {
                 //cancel order. There is no need for advance buy order.
                 logger.log(Level.FINE, "cancel order. There is no need for advance buy order. Symbol:{0},LastPrice: {1}, LowPrice: :{2} ,HighPrice: :{3} ,Threshold: {4}", new Object[]{Parameters.symbol.get(id).getSymbol(), Parameters.symbol.get(id).getLastPrice(), this.getLowestLow().get(id), this.getHighestHigh().get(id), threshold});
-                getOms().tes.fireOrderEvent(-1, -1, Parameters.symbol.get(id), EnumOrderSide.BUY, size, this.getHighestHigh().get(id) + Parameters.symbol.get(id).getAggression(), highTriggerPrice, getStrategy(), 0, getExitType(), EnumOrderIntent.Cancel, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageEntry());
+                getOms().tes.fireOrderEvent(-1, -1, Parameters.symbol.get(id), EnumOrderSide.BUY, size, this.getHighestHigh().get(id), highTriggerPrice, getStrategy(), 0, getExitType(), EnumOrderIntent.Cancel, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageEntry());
                 this.getAdvanceEntryOrder().set(id, 0L);
             }
         }
@@ -507,11 +500,11 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                     && exPriceBarShort.get(id) && BeanTurtle.getLastOrderDate().compareTo(new Date()) > 0 && this.getBreachDown().get(id) >= this.getBreachUp().get(id) && this.getBreachUp().get(id) >= 1) {
                 //amend existing advance short order
                 logger.log(Level.FINE, "Amend existing advance short order. Symbol:{0},LastPrice: {1}, LowPrice: :{2} ,HighPrice: :{3} ,Threshold: {4}", new Object[]{Parameters.symbol.get(id).getSymbol(), Parameters.symbol.get(id).getLastPrice(), this.getLowestLow().get(id), this.getHighestHigh().get(id), threshold});
-                getOms().tes.fireOrderEvent(-1, -1, Parameters.symbol.get(id), EnumOrderSide.SHORT, size, this.getLowestLow().get(id) - Parameters.symbol.get(id).getAggression(), lowTriggerPrice, getStrategy(), 0, getExitType(), EnumOrderIntent.Amend, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageEntry());
+                getOms().tes.fireOrderEvent(-1, -1, Parameters.symbol.get(id), EnumOrderSide.SHORT, size, this.getLowestLow().get(id) , lowTriggerPrice, getStrategy(), 0, getExitType(), EnumOrderIntent.Amend, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageEntry());
             } else {
                 //cancel order. There is no need for advance short order.
                 logger.log(Level.FINE, "cancel order. There is no need for advance short order. Symbol:{0},LastPrice: {1}, LowPrice: :{2} ,HighPrice: :{3} ,Threshold: {4}", new Object[]{Parameters.symbol.get(id).getSymbol(), Parameters.symbol.get(id).getLastPrice(), this.getLowestLow().get(id), this.getHighestHigh().get(id), threshold});
-                getOms().tes.fireOrderEvent(-1, -1, Parameters.symbol.get(id), EnumOrderSide.SHORT, size, this.getLowestLow().get(id) - Parameters.symbol.get(id).getAggression(), lowTriggerPrice, getStrategy(), 0, getExitType(), EnumOrderIntent.Cancel, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageEntry());
+                getOms().tes.fireOrderEvent(-1, -1, Parameters.symbol.get(id), EnumOrderSide.SHORT, size, this.getLowestLow().get(id), lowTriggerPrice, getStrategy(), 0, getExitType(), EnumOrderIntent.Cancel, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageEntry());
                 this.getAdvanceEntryOrder().set(id, 0L);
             }
         }
@@ -525,7 +518,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                     //place advance order to buy
                     this.getAdvanceEntryOrder().set(id, 1L);
                     logger.log(Level.FINE, "place advance order to buy. Symbol:{0},LastPrice: {1}, LowPrice: :{2} ,HighPrice: :{3} ,Threshold: {4}", new Object[]{Parameters.symbol.get(id).getSymbol(), Parameters.symbol.get(id).getLastPrice(), this.getLowestLow().get(id), this.getHighestHigh().get(id), threshold});
-                    getOms().tes.fireOrderEvent(-1, -1, Parameters.symbol.get(id), EnumOrderSide.BUY, size, this.getHighestHigh().get(id) + Parameters.symbol.get(id).getAggression(), highTriggerPrice, getStrategy(), 0, getExitType(), EnumOrderIntent.Init, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageEntry());
+                    getOms().tes.fireOrderEvent(-1, -1, Parameters.symbol.get(id), EnumOrderSide.BUY, size, this.getHighestHigh().get(id) , highTriggerPrice, getStrategy(), 0, getExitType(), EnumOrderIntent.Init, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageEntry());
                 }
             } else if (position.get(id) == 0 && getAdvanceEntryOrder().get(id) == 0 && getShortOnly() && exPriceBarShort.get(id) && BeanTurtle.getLastOrderDate().compareTo(new Date()) > 0 && this.getBreachDown().get(id) >= this.getBreachUp().get(id) && this.getBreachUp().get(id) >= 1) {
                 if ((Parameters.symbol.get(id).getLastPrice() - threshold) < this.getLowestLow().get(id)
@@ -534,7 +527,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                     //place advance order to short
                     this.getAdvanceEntryOrder().set(id, -1L);
                     logger.log(Level.FINE, "place advance order to short. Symbol:{0},LastPrice: {1}, LowPrice: :{2} ,HighPrice: :{3} ,Threshold: {4}", new Object[]{Parameters.symbol.get(id).getSymbol(), Parameters.symbol.get(id).getLastPrice(), this.getLowestLow().get(id), this.getHighestHigh().get(id), threshold});
-                    getOms().tes.fireOrderEvent(-1, -1, Parameters.symbol.get(id), EnumOrderSide.SHORT, size, this.getLowestLow().get(id) - Parameters.symbol.get(id).getAggression(), lowTriggerPrice, getStrategy(), 0, getExitType(), EnumOrderIntent.Init, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageEntry());
+                    getOms().tes.fireOrderEvent(-1, -1, Parameters.symbol.get(id), EnumOrderSide.SHORT, size, this.getLowestLow().get(id), lowTriggerPrice, getStrategy(), 0, getExitType(), EnumOrderIntent.Init, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageEntry());
                 }
             }
         }
@@ -543,7 +536,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
     public void placeAdvancedExitOrders(int id) {
         //Place advance orders
         double threshold = this.getHighestHigh().get(id) - this.getLowestLow().get(id) > 1 ? 0.5 : (this.getHighestHigh().get(id) - this.getLowestLow().get(id)) / 2;
-        boolean tradeable = Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) / (Parameters.symbol.get(id).getMinsize() * 375) >= 6.0 && this.getCumVolume().get(id).size() > this.getStartBars() && Parameters.symbol.get(id).getLastPrice() > 0;
+        boolean tradeable = Double.parseDouble(Parameters.symbol.get(id).getPriorDayVolume()) / (Parameters.symbol.get(id).getMinsize() * 375) >= 6.0 && this.getCumVolume().get(id).size() > this.getStartBars() && Parameters.symbol.get(id).getLastPrice() > 0;
         if (this.getExposure() != 0 && this.getCumVolume().get(id).size() > this.getStartBars() && Parameters.symbol.get(id).getLastPrice() > 0) {
             tradeable = true;
         }
@@ -557,11 +550,11 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                     && (Parameters.symbol.get(id).getLastPrice() + threshold) < this.getHighestHigh().get(id)) {
                 //amend existing advance sell order
                 logger.log(Level.FINE, "Amend existing advance sell order. Symbol:{0},LastPrice: {1}, LowPrice: :{2} ,HighPrice: :{3} ,Threshold: {4}", new Object[]{Parameters.symbol.get(id).getSymbol(), Parameters.symbol.get(id).getLastPrice(), this.getLowestLow().get(id), this.getHighestHigh().get(id), threshold});
-                getOms().tes.fireOrderEvent(-1, -1, Parameters.symbol.get(id), EnumOrderSide.SELL, size, this.getLowestLow().get(id) - Parameters.symbol.get(id).getAggression(), lowTriggerPrice, getStrategy(), 0, getExitType(), EnumOrderIntent.Amend, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit());
+                getOms().tes.fireOrderEvent(-1, -1, Parameters.symbol.get(id), EnumOrderSide.SELL, size, this.getLowestLow().get(id), lowTriggerPrice, getStrategy(), 0, getExitType(), EnumOrderIntent.Amend, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit());
             } else {
                 //cancel order. There is no need for advance sell order.
                 logger.log(Level.FINE, "cancel order. There is no need for advance sell order. Symbol:{0},LastPrice: {1}, LowPrice: :{2} ,HighPrice: :{3} ,Threshold: {4}", new Object[]{Parameters.symbol.get(id).getSymbol(), Parameters.symbol.get(id).getLastPrice(), this.getLowestLow().get(id), this.getHighestHigh().get(id), threshold});
-                getOms().tes.fireOrderEvent(-1, -1, Parameters.symbol.get(id), EnumOrderSide.SELL, size, this.getLowestLow().get(id) - Parameters.symbol.get(id).getAggression(), lowTriggerPrice, getStrategy(), 0, getExitType(), EnumOrderIntent.Cancel, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit());
+                getOms().tes.fireOrderEvent(-1, -1, Parameters.symbol.get(id), EnumOrderSide.SELL, size, this.getLowestLow().get(id), lowTriggerPrice, getStrategy(), 0, getExitType(), EnumOrderIntent.Cancel, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit());
                 this.getAdvanceExitOrder().set(id, 0L);
             }
         }
@@ -571,11 +564,11 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                     && (Parameters.symbol.get(id).getLastPrice() - threshold) > this.getLowestLow().get(id)) {
                 //amend existing advance cover order
                 logger.log(Level.FINE, "Amend existing advance cover order. Symbol:{0},LastPrice: {1}, LowPrice: :{2} ,HighPrice: :{3} ,Threshold: {4}", new Object[]{Parameters.symbol.get(id).getSymbol(), Parameters.symbol.get(id).getLastPrice(), this.getLowestLow().get(id), this.getHighestHigh().get(id), threshold});
-                getOms().tes.fireOrderEvent(-1, -1, Parameters.symbol.get(id), EnumOrderSide.COVER, size, this.getHighestHigh().get(id) + Parameters.symbol.get(id).getAggression(), highTriggerPrice, getStrategy(), 0, getExitType(), EnumOrderIntent.Amend, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit());
+                getOms().tes.fireOrderEvent(-1, -1, Parameters.symbol.get(id), EnumOrderSide.COVER, size, this.getHighestHigh().get(id), highTriggerPrice, getStrategy(), 0, getExitType(), EnumOrderIntent.Amend, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit());
             } else {
                 //cancel order. There is no need for advance cover order.
                 logger.log(Level.FINE, "cancel order. There is no need for advance cover order. Symbol:{0},LastPrice: {1}, LowPrice: :{2} ,HighPrice: :{3} ,Threshold: {4}", new Object[]{Parameters.symbol.get(id).getSymbol(), Parameters.symbol.get(id).getLastPrice(), this.getLowestLow().get(id), this.getHighestHigh().get(id), threshold});
-                getOms().tes.fireOrderEvent(-1, -1, Parameters.symbol.get(id), EnumOrderSide.COVER, size, this.getHighestHigh().get(id) + Parameters.symbol.get(id).getAggression(), highTriggerPrice, getStrategy(), 0, getExitType(), EnumOrderIntent.Cancel, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit());
+                getOms().tes.fireOrderEvent(-1, -1, Parameters.symbol.get(id), EnumOrderSide.COVER, size, this.getHighestHigh().get(id), highTriggerPrice, getStrategy(), 0, getExitType(), EnumOrderIntent.Cancel, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit());
                 this.getAdvanceExitOrder().set(id, 0L);
             }
         }
@@ -588,7 +581,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                 this.getAdvanceExitOrder().set(id, 1L);
 
                 logger.log(Level.FINE, "place advance order to cover. Symbol:{0},LastPrice: {1}, LowPrice: :{2} ,HighPrice: :{3} ,Threshold: {4}", new Object[]{Parameters.symbol.get(id).getSymbol(), Parameters.symbol.get(id).getLastPrice(), this.getLowestLow().get(id), this.getHighestHigh().get(id), threshold});
-                getOms().tes.fireOrderEvent(-1, -1, Parameters.symbol.get(id), EnumOrderSide.COVER, size, this.getHighestHigh().get(id) + Parameters.symbol.get(id).getAggression(), highTriggerPrice, getStrategy(), 0, getExitType(), EnumOrderIntent.Init, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit());
+                getOms().tes.fireOrderEvent(-1, -1, Parameters.symbol.get(id), EnumOrderSide.COVER, size, this.getHighestHigh().get(id), highTriggerPrice, getStrategy(), 0, getExitType(), EnumOrderIntent.Init, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit());
             }
         }
 
@@ -597,7 +590,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
             if ((Parameters.symbol.get(id).getLastPrice() - threshold) < this.getLowestLow().get(id)) {
                 //place advance order to sell
                 logger.log(Level.FINE, "place advance order to sell. Symbol:{0},LastPrice: {1}, LowPrice: :{2} ,HighPrice: :{3} ,Threshold: {4}", new Object[]{Parameters.symbol.get(id).getSymbol(), Parameters.symbol.get(id).getLastPrice(), this.getLowestLow().get(id), this.getHighestHigh().get(id), threshold});
-                getOms().tes.fireOrderEvent(-1, -1, Parameters.symbol.get(id), EnumOrderSide.SELL, size, this.getLowestLow().get(id) - Parameters.symbol.get(id).getAggression(), lowTriggerPrice, getStrategy(), 0, getExitType(), EnumOrderIntent.Init, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit());
+                getOms().tes.fireOrderEvent(-1, -1, Parameters.symbol.get(id), EnumOrderSide.SELL, size, this.getLowestLow().get(id), lowTriggerPrice, getStrategy(), 0, getExitType(), EnumOrderIntent.Init, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit());
                 this.getAdvanceExitOrder().set(id, -1L);
             }
         }
@@ -611,10 +604,10 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
             if (this.strategySymbols.contains(id) && event.getTickType() == com.ib.client.TickType.LAST) {
                 boolean ruleHighestHigh = Parameters.symbol.get(id).getLastPrice() > this.getHighestHigh().get(id);
                 boolean ruleLowestLow = Parameters.symbol.get(id).getLastPrice() < this.getLowestLow().get(id);
-                boolean ruleCumVolumeLong = this.getCumVolume().get(id).get(this.getCumVolume().get(id).size() - 1) >= 0.05 * Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput());
-                boolean ruleCumVolumeShort = this.getCumVolume().get(id).get(this.getCumVolume().get(id).size() - 1) <= Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput());
-                boolean ruleSlopeLong = this.getSlope().get(id) > Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeLongMultiplier() / 375;
-                boolean ruleSlopeShort = this.getSlope().get(id) < -Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeShortMultipler() / 375;
+                boolean ruleCumVolumeLong = this.getCumVolume().get(id).get(this.getCumVolume().get(id).size() - 1) >= 0.05 * Double.parseDouble(Parameters.symbol.get(id).getPriorDayVolume());
+                boolean ruleCumVolumeShort = this.getCumVolume().get(id).get(this.getCumVolume().get(id).size() - 1) <= Double.parseDouble(Parameters.symbol.get(id).getPriorDayVolume());
+                boolean ruleSlopeLong = this.getSlope().get(id) > Double.parseDouble(Parameters.symbol.get(id).getPriorDayVolume()) * this.getVolumeSlopeLongMultiplier() / 375;
+                boolean ruleSlopeShort = this.getSlope().get(id) < -Double.parseDouble(Parameters.symbol.get(id).getPriorDayVolume()) * this.getVolumeSlopeShortMultipler() / 375;
                 boolean ruleVolumeLong = this.getVolume().get(id) > maVolumeLong * this.getVolumeMA().get(id);
                 boolean ruleVolumeShort = this.getVolume().get(id) > maVolumeShort * this.getVolumeMA().get(id);
                 ruleCumVolumeLong = true;
@@ -633,7 +626,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
 
     private synchronized void generateOrders(int id, boolean ruleHighestHigh, boolean ruleLowestLow, boolean ruleCumVolumeLong, boolean ruleCumVolumeShort, boolean ruleSlopeLong, boolean ruleSlopeShort, boolean ruleVolumeLong, boolean ruleVolumeShort, boolean sourceBars) {
         try {
-            boolean tradeable = Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) / (Parameters.symbol.get(id).getMinsize() * 375) >= 6.0 && this.getCumVolume().get(id).size() > this.getStartBars() && Parameters.symbol.get(id).getLastPrice() > 0;
+            boolean tradeable = Double.parseDouble(Parameters.symbol.get(id).getPriorDayVolume()) / (Parameters.symbol.get(id).getMinsize() * 375) >= 6.0 && this.getCumVolume().get(id).size() > this.getStartBars() && Parameters.symbol.get(id).getLastPrice() > 0;
             if (this.getExposure() != 0 && this.getCumVolume().get(id).size() > this.getStartBars() && Parameters.symbol.get(id).getLastPrice() > 0) {
                 tradeable = true;
             }
@@ -656,10 +649,10 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                     this.getVolume().get(id).toString(),
                     this.getCumVolume().get(id).get(this.getCumVolume().get(id).size() - 1).toString(),
                     this.getSlope().get(id).toString(),
-                    String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeLongMultiplier() / 375),
+                    String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getPriorDayVolume()) * this.getVolumeSlopeLongMultiplier() / 375),
                     this.getVolumeMA().get(id).toString(),
-                    0.05 * Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()),
-                    Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()),
+                    0.05 * Double.parseDouble(Parameters.symbol.get(id).getPriorDayVolume()),
+                    Double.parseDouble(Parameters.symbol.get(id).getPriorDayVolume()),
                     DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss z", Parameters.symbol.get(id).getLastPriceTime()),
                     this.getBreachUp().get(id),
                     this.getBreachDown().get(id),
@@ -686,7 +679,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                     position.put(id, 1);
                     int size = this.getExposure() != 0 ? (int) (this.getExposure() / Parameters.symbol.get(id).getLastPrice()) : Parameters.symbol.get(id).getMinsize();
                     logger.log(Level.INFO, "Buy. Symbol:{0},LL:{1},LastPrice:{2},HH{3},Slope:{4},SlopeThreshold:{5},Volume:{6},VolumeMA:{7}, Breachup:{8},Breachdown:{9}, ADRHigh:{10}, ADRLow:{11}, ADRAvg:{12}, ADR:{13}, ADRRTIN:{14}",
-                            new Object[]{Parameters.symbol.get(id).getSymbol(), this.getLowestLow().get(id).toString(), Parameters.symbol.get(id).getLastPrice(), this.getHighestHigh().get(id).toString(), this.getSlope().get(id).toString(), String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeLongMultiplier() / 375), this.getVolume().get(id).toString(), this.getVolumeMA().get(id).toString(), this.getBreachUp().get(id) + 1, this.getBreachDown().get(id), Launch.algo.getParamADR().adrDayHigh, Launch.algo.getParamADR().adrDayLow, Launch.algo.getParamADR().adrAvg, Launch.algo.getParamADR().adr, Launch.algo.getParamADR().adrTRIN
+                            new Object[]{Parameters.symbol.get(id).getSymbol(), this.getLowestLow().get(id).toString(), Parameters.symbol.get(id).getLastPrice(), this.getHighestHigh().get(id).toString(), this.getSlope().get(id).toString(), String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getPriorDayVolume()) * this.getVolumeSlopeLongMultiplier() / 375), this.getVolume().get(id).toString(), this.getVolumeMA().get(id).toString(), this.getBreachUp().get(id) + 1, this.getBreachDown().get(id), Launch.algo.getParamADR().adrDayHigh, Launch.algo.getParamADR().adrDayLow, Launch.algo.getParamADR().adrAvg, Launch.algo.getParamADR().adr, Launch.algo.getParamADR().adrTRIN
                     });
                     //check for filters
                     boolean liquidity = this.checkForHistoricalLiquidity == true ? tradeable : true;
@@ -697,12 +690,12 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                     this.internalOpenOrders.put(id, internalOrderID - 1);
                     if (liquidity && breaches && donotskip && adrtrend) {
                         if (this.getAdvanceEntryOrder().get(id) == 0) { //no advance order present
-                            getOms().tes.fireOrderEvent(this.internalOrderID - 1, this.internalOrderID - 1, Parameters.symbol.get(id), EnumOrderSide.BUY, size, this.getHighestHigh().get(id) + Parameters.symbol.get(id).getAggression(), 0, getStrategy(), getMaxOrderDuration(), getExitType(), EnumOrderIntent.Init, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageEntry());
+                            getOms().tes.fireOrderEvent(this.internalOrderID - 1, this.internalOrderID - 1, Parameters.symbol.get(id), EnumOrderSide.BUY, size, this.getHighestHigh().get(id) , 0, getStrategy(), getMaxOrderDuration(), getExitType(), EnumOrderIntent.Init, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageEntry());
                         } else if (this.getAdvanceEntryOrder().get(id) == 1) {
-                            getOms().tes.fireOrderEvent(this.internalOrderID - 1, this.internalOrderID - 1, Parameters.symbol.get(id), EnumOrderSide.BUY, size, this.getHighestHigh().get(id) + Parameters.symbol.get(id).getAggression(), 0, getStrategy(), getMaxOrderDuration(), getExitType(), EnumOrderIntent.Amend, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageEntry());
+                            getOms().tes.fireOrderEvent(this.internalOrderID - 1, this.internalOrderID - 1, Parameters.symbol.get(id), EnumOrderSide.BUY, size, this.getHighestHigh().get(id) , 0, getStrategy(), getMaxOrderDuration(), getExitType(), EnumOrderIntent.Amend, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageEntry());
                         } else if (this.getAdvanceEntryOrder().get(id) == -1) { //advance order is short.
-                            getOms().tes.fireOrderEvent(this.internalOrderID - 1, this.internalOrderID - 1, Parameters.symbol.get(id), EnumOrderSide.BUY, size, this.getHighestHigh().get(id) + Parameters.symbol.get(id).getAggression(), 0, getStrategy(), getMaxOrderDuration(), getExitType(), EnumOrderIntent.Cancel, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageEntry());
-                            getOms().tes.fireOrderEvent(this.internalOrderID - 1, this.internalOrderID - 1, Parameters.symbol.get(id), EnumOrderSide.BUY, size, this.getHighestHigh().get(id) + Parameters.symbol.get(id).getAggression(), 0, getStrategy(), getMaxOrderDuration(), getExitType(), EnumOrderIntent.Init, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageEntry());
+                            getOms().tes.fireOrderEvent(this.internalOrderID - 1, this.internalOrderID - 1, Parameters.symbol.get(id), EnumOrderSide.BUY, size, this.getHighestHigh().get(id) , 0, getStrategy(), getMaxOrderDuration(), getExitType(), EnumOrderIntent.Cancel, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageEntry());
+                            getOms().tes.fireOrderEvent(this.internalOrderID - 1, this.internalOrderID - 1, Parameters.symbol.get(id), EnumOrderSide.BUY, size, this.getHighestHigh().get(id) , 0, getStrategy(), getMaxOrderDuration(), getExitType(), EnumOrderIntent.Init, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageEntry());
                         }
                         this.advanceEntryOrder.set(id, 0L);
                     } else {
@@ -713,7 +706,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                     position.put(id, -1);
                     int size = this.getExposure() != 0 ? (int) (this.getExposure() / Parameters.symbol.get(id).getLastPrice()) : Parameters.symbol.get(id).getMinsize();
                     logger.log(Level.FINE, "Short. Symbol:{0},LL:{1},LastPrice:{2},HH{3},Slope:{4},SlopeThreshold:{5},Volume:{6},VolumeMA:{7},Breachup:{8},Breachdown:{9}, ADRHigh:{10}, ADRLow:{11}, ADRAvg:{12}, ADR:{13}, ADRRTIN:{14}",
-                            new Object[]{Parameters.symbol.get(id).getSymbol(), this.getLowestLow().get(id).toString(), Parameters.symbol.get(id).getLastPrice(), this.getHighestHigh().get(id).toString(), this.getSlope().get(id).toString(), String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeLongMultiplier() / 375), this.getVolume().get(id).toString(), this.getVolumeMA().get(id).toString(), this.getBreachUp().get(id), this.getBreachUp().get(id) + 1, Launch.algo.getParamADR().adrDayHigh, Launch.algo.getParamADR().adrDayLow, Launch.algo.getParamADR().adrAvg, Launch.algo.getParamADR().adr, Launch.algo.getParamADR().adrTRIN
+                            new Object[]{Parameters.symbol.get(id).getSymbol(), this.getLowestLow().get(id).toString(), Parameters.symbol.get(id).getLastPrice(), this.getHighestHigh().get(id).toString(), this.getSlope().get(id).toString(), String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getPriorDayVolume()) * this.getVolumeSlopeLongMultiplier() / 375), this.getVolume().get(id).toString(), this.getVolumeMA().get(id).toString(), this.getBreachUp().get(id), this.getBreachUp().get(id) + 1, Launch.algo.getParamADR().adrDayHigh, Launch.algo.getParamADR().adrDayLow, Launch.algo.getParamADR().adrAvg, Launch.algo.getParamADR().adr, Launch.algo.getParamADR().adrTRIN
                     });
                     //check for filters
                     boolean liquidity = this.checkForHistoricalLiquidity == true ? tradeable : true;
@@ -724,12 +717,12 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                     this.internalOpenOrders.put(id, this.internalOrderID - 1);
                     if (liquidity && breaches && donotskip && adrtrend) {
                         if (this.getAdvanceEntryOrder().get(id) == 0) {
-                            getOms().tes.fireOrderEvent(this.internalOrderID - 1, this.internalOrderID - 1, Parameters.symbol.get(id), EnumOrderSide.SHORT, size, this.getLowestLow().get(id) - Parameters.symbol.get(id).getAggression(), 0, getStrategy(), getMaxOrderDuration(), getExitType(), EnumOrderIntent.Init, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageEntry());
+                            getOms().tes.fireOrderEvent(this.internalOrderID - 1, this.internalOrderID - 1, Parameters.symbol.get(id), EnumOrderSide.SHORT, size, this.getLowestLow().get(id), 0, getStrategy(), getMaxOrderDuration(), getExitType(), EnumOrderIntent.Init, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageEntry());
                         } else if (this.getAdvanceEntryOrder().get(id) == -1) {
-                            getOms().tes.fireOrderEvent(this.internalOrderID - 1, this.internalOrderID - 1, Parameters.symbol.get(id), EnumOrderSide.SHORT, size, this.getLowestLow().get(id) - Parameters.symbol.get(id).getAggression(), 0, getStrategy(), getMaxOrderDuration(), getExitType(), EnumOrderIntent.Amend, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageEntry());
+                            getOms().tes.fireOrderEvent(this.internalOrderID - 1, this.internalOrderID - 1, Parameters.symbol.get(id), EnumOrderSide.SHORT, size, this.getLowestLow().get(id), 0, getStrategy(), getMaxOrderDuration(), getExitType(), EnumOrderIntent.Amend, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageEntry());
                         } else if (this.getAdvanceEntryOrder().get(id) == 1) {
-                            getOms().tes.fireOrderEvent(this.internalOrderID - 1, this.internalOrderID - 1, Parameters.symbol.get(id), EnumOrderSide.SHORT, size, this.getLowestLow().get(id) - Parameters.symbol.get(id).getAggression(), 0, getStrategy(), getMaxOrderDuration(), getExitType(), EnumOrderIntent.Cancel, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageEntry());
-                            getOms().tes.fireOrderEvent(this.internalOrderID - 1, this.internalOrderID - 1, Parameters.symbol.get(id), EnumOrderSide.SHORT, size, this.getLowestLow().get(id) - Parameters.symbol.get(id).getAggression(), 0, getStrategy(), getMaxOrderDuration(), getExitType(), EnumOrderIntent.Init, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageEntry());
+                            getOms().tes.fireOrderEvent(this.internalOrderID - 1, this.internalOrderID - 1, Parameters.symbol.get(id), EnumOrderSide.SHORT, size, this.getLowestLow().get(id) , 0, getStrategy(), getMaxOrderDuration(), getExitType(), EnumOrderIntent.Cancel, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageEntry());
+                            getOms().tes.fireOrderEvent(this.internalOrderID - 1, this.internalOrderID - 1, Parameters.symbol.get(id), EnumOrderSide.SHORT, size, this.getLowestLow().get(id) , 0, getStrategy(), getMaxOrderDuration(), getExitType(), EnumOrderIntent.Init, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageEntry());
                         }
                         this.advanceEntryOrder.set(id, 0L);
                     } else {
@@ -742,7 +735,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                     position.put(id, 0);;
                     int size = this.getExposure() != 0 ? (int) (this.getExposure() / Parameters.symbol.get(id).getLastPrice()) : Parameters.symbol.get(id).getMinsize();
                     logger.log(Level.FINE, "Cover.Symbol:{0},LL:{1},LastPrice:{2},HH{3},Slope:{4},SlopeThreshold:{5},Volume:{6},VolumeMA:{7}",
-                            new Object[]{Parameters.symbol.get(id).getSymbol(), this.getLowestLow().get(id).toString(), Parameters.symbol.get(id).getLastPrice(), this.getHighestHigh().get(id).toString(), this.getSlope().get(id).toString(), String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeLongMultiplier() / 375), this.getVolume().get(id).toString(), this.getVolumeMA().get(id).toString()
+                            new Object[]{Parameters.symbol.get(id).getSymbol(), this.getLowestLow().get(id).toString(), Parameters.symbol.get(id).getLastPrice(), this.getHighestHigh().get(id).toString(), this.getSlope().get(id).toString(), String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getPriorDayVolume()) * this.getVolumeSlopeLongMultiplier() / 375), this.getVolume().get(id).toString(), this.getVolumeMA().get(id).toString()
                     });
                     int entryInternalOrderID = this.internalOpenOrders.get(id);
                     Trade originalTrade = getTrades().get(new OrderLink(entryInternalOrderID, "Order"));
@@ -780,7 +773,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                     position.put(id, 0);
                     int size = this.getExposure() != 0 ? (int) (this.getExposure() / Parameters.symbol.get(id).getLastPrice()) : Parameters.symbol.get(id).getMinsize();
                     logger.log(Level.FINE, "Sell.Symbol:{0},LL:{1},LastPrice:{2},HH{3},Slope:{4},SlopeThreshold:{5},Volume:{6},VolumeMA:{7}",
-                            new Object[]{Parameters.symbol.get(id).getSymbol(), this.getLowestLow().get(id).toString(), Parameters.symbol.get(id).getLastPrice(), this.getHighestHigh().get(id).toString(), this.getSlope().get(id).toString(), String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getAdditionalInput()) * this.getVolumeSlopeLongMultiplier() / 375), this.getVolume().get(id).toString(), this.getVolumeMA().get(id).toString()
+                            new Object[]{Parameters.symbol.get(id).getSymbol(), this.getLowestLow().get(id).toString(), Parameters.symbol.get(id).getLastPrice(), this.getHighestHigh().get(id).toString(), this.getSlope().get(id).toString(), String.valueOf(Double.parseDouble(Parameters.symbol.get(id).getPriorDayVolume()) * this.getVolumeSlopeLongMultiplier() / 375), this.getVolume().get(id).toString(), this.getVolumeMA().get(id).toString()
                     });
                     int entryInternalOrderID = this.internalOpenOrders.get(id);
                     Trade originalTrade = getTrades().get(new OrderLink(entryInternalOrderID, "Order"));
@@ -961,34 +954,6 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
      */
     public void setVolumeMA(ArrayList<Double> VolumeMA) {
         this.VolumeMA = VolumeMA;
-    }
-
-    /**
-     * @return the longVolume
-     */
-    public ArrayList<Long> getLongVolume() {
-        return longVolume;
-    }
-
-    /**
-     * @param longVolume the longVolume to set
-     */
-    public void setLongVolume(ArrayList<Long> longVolume) {
-        this.longVolume = longVolume;
-    }
-
-    /**
-     * @return the shortVolume
-     */
-    public ArrayList<Long> getShortVolume() {
-        return shortVolume;
-    }
-
-    /**
-     * @param shortVolume the shortVolume to set
-     */
-    public void setShortVolume(ArrayList<Long> shortVolume) {
-        this.shortVolume = shortVolume;
     }
 
     /**

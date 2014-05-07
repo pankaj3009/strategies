@@ -5,9 +5,6 @@
 package com.incurrency.algorithms.others;
 
 import com.incurrency.framework.BeanSymbol;
-import com.incurrency.framework.EnumOrderIntent;
-import com.incurrency.framework.EnumOrderSide;
-import com.incurrency.framework.Launch;
 import com.incurrency.framework.Parameters;
 import java.util.ArrayList;
 import java.util.Iterator;
