@@ -98,7 +98,8 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
     private double lastShortExit;
     private boolean customADR=false;
     private String adrRuleName;
-    ArrayList <Integer> dataReceived=new ArrayList<>();
+    ArrayList <Integer> lastdataReceived=new ArrayList<>();
+    ArrayList <Integer> closedataReceived=new ArrayList<>();
 
     public ADR(MainAlgorithm m, String parameterFile, ArrayList<String> accounts) {
         super(m, "adr", "FUT", parameterFile, accounts);
@@ -197,9 +198,9 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                     //mEsperEvtProcessor.debugFireADRQuery();
                     break;
                 case com.ib.client.TickType.LAST:
-                    if(!dataReceived.contains(id) && getStrategy().equals("inradrnifty")){
-                        dataReceived.add(id);
-                        System.out.println("Strategy: "+getStrategy()+"Data Received for Symbol:"+Parameters.symbol.get(id).getSymbol()+"total symbols recd:"+dataReceived.size());
+                    if(!lastdataReceived.contains(id) && getStrategy().equals("inradrnifty")){
+                        lastdataReceived.add(id);
+                        System.out.println("Strategy: "+getStrategy()+"Last Price Received for Symbol:"+Parameters.symbol.get(id).getSymbol()+"total symbols recd:"+lastdataReceived.size());
                     }
                     //System.out.println("LAST, Symbol:"+Parameters.symbol.get(id).getSymbol()+" Value: "+Parameters.symbol.get(id).getLastPrice()+" tickerID: "+id);
                     mEsperEvtProcessor.sendEvent(new TickPriceEvent(id, com.ib.client.TickType.LAST, Parameters.symbol.get(id).getLastPrice()));
@@ -207,7 +208,11 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                     //mEsperEvtProcessor.debugFireADRQuery();
                     break;
                 case com.ib.client.TickType.CLOSE:
-                    //System.out.println("CLOSE, Symbol:"+Parameters.symbol.get(id).getSymbol()+" Value: "+Parameters.symbol.get(id).getClosePrice()+" tickerID: "+id);
+                        if(!closedataReceived.contains(id) && getStrategy().equals("inradrnifty")){
+                        closedataReceived.add(id);
+                        System.out.println("Strategy: "+getStrategy()+"Close Price Received for Symbol:"+Parameters.symbol.get(id).getSymbol()+"total symbols recd:"+closedataReceived.size());
+                    }
+                     //System.out.println("CLOSE, Symbol:"+Parameters.symbol.get(id).getSymbol()+" Value: "+Parameters.symbol.get(id).getClosePrice()+" tickerID: "+id);
                     mEsperEvtProcessor.sendEvent(new TickPriceEvent(id, com.ib.client.TickType.CLOSE, Parameters.symbol.get(id).getClosePrice()));
                     //mEsperEvtProcessor.debugFireADRQuery();
                     break;
