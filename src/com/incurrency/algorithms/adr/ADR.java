@@ -96,7 +96,6 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
     private double entryPrice;
     private double lastLongExit;
     private double lastShortExit;
-    private boolean customADR=false;
     private String adrRuleName;
     //ArrayList <Integer> lastdataReceived=new ArrayList<>();
     //ArrayList <Integer> closedataReceived=new ArrayList<>();
@@ -160,7 +159,6 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
         scalpingMode = System.getProperty("ScalpingMode") == null ? false : Boolean.parseBoolean(System.getProperty("ScalpingMode"));
         reentryMinimumMove = System.getProperty("ReentryMinimumMove") == null ? 0D : Double.parseDouble(System.getProperty("ReentryMinimumMove"));
         reentryMinimumMove = System.getProperty("ReentryMinimumMove") == null ? 0D : Double.parseDouble(System.getProperty("ReentryMinimumMove"));
-        customADR = System.getProperty("customADR") == null ? false : Boolean.parseBoolean(System.getProperty("CustomADR"));
         adrRuleName = System.getProperty("ADRSymbolTag") == null ? "": System.getProperty("ADRSymbolTag");
                 
         String concatAccountNames = "";
@@ -182,6 +180,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
         logger.log(Level.INFO, "Order File: {0}", orderFile);
         logger.log(Level.INFO, "Scalping Mode: {0}", scalpingMode);
         logger.log(Level.INFO, "Minimum move before re-entry: {0}", reentryMinimumMove);
+        logger.log(Level.INFO, "Symbol tag picked for ADR Calculation: {0}", adrRuleName);        
     }
 
     @Override
@@ -262,7 +261,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                 shortZone = (atLeastTwo(shortZone1, shortZone2, shortZone3) && adrTRIN > 95) || (atLeastTwo(shortZone1, shortZone2, shortZone3) && adr < adrAvg && adrTRIN > adrTRINAvg);
             }
 
-            TradingUtil.writeToFile("ADR.csv", adr + "," + adrTRIN + "," + tick + "," + tickTRIN + "," + price + "," + adrHigh + "," + adrLow + "," + adrAvg + "," + adrTRINHigh + "," + adrTRINLow + "," + adrTRINAvg + "," + indexHigh + "," + indexLow + "," + indexAvg + "," + indexDayHigh + "," + indexDayLow + "," + buyZone1 + "," + buyZone2 + "," + buyZone3 + "," + shortZone1 + "," + shortZone2 + "," + shortZone3 + "," + buyZone + "," + shortZone);
+            TradingUtil.writeToFile(getStrategy()+".csv", adr + "," + adrTRIN + "," + tick + "," + tickTRIN + "," + price + "," + adrHigh + "," + adrLow + "," + adrAvg + "," + adrTRINHigh + "," + adrTRINLow + "," + adrTRINAvg + "," + indexHigh + "," + indexLow + "," + indexAvg + "," + indexDayHigh + "," + indexDayLow + "," + buyZone1 + "," + buyZone2 + "," + buyZone3 + "," + shortZone1 + "," + shortZone2 + "," + shortZone3 + "," + buyZone + "," + shortZone);
             logger.log(Level.FINEST, " adrHigh: {0},adrLow: {1},adrAvg: {2},adrTRINHigh: {3},adrTRINLow: {4},adrTRINAvg: {5},indexHigh :{6},indexLow :{7},indexAvg: {8}, buyZone1: {9}, buyZone2: {10}, buyZone 3: {11}, shortZone1: {12}, shortZone2: {13}, ShortZone3:{14}, ADR: {15}, ADRTrin: {16}, Tick: {17}, TickTrin: {18}, adrDayHigh: {19}, adrDayLow: {20}, IndexDayHigh: {21}, IndexDayLow: {22}", new Object[]{adrHigh, adrLow, adrAvg, adrTRINHigh, adrTRINLow, adrTRINAvg, indexHigh, indexLow, indexAvg, buyZone1, buyZone2, buyZone3, shortZone1, shortZone2, shortZone3, adr, adrTRIN, tick, tickTRIN, adrDayHigh, adrDayLow, indexDayHigh, indexDayLow});
             //tickHigh,tickLow,tickAvg,tickTRINHigh,tickTRINLow,tickTRINAvg
             if ((!buyZone && tradingSide == 1 && position.get(id) == 0) || (!shortZone && tradingSide == -1 && position.get(id) == 0)) {
