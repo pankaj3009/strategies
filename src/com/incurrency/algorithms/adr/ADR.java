@@ -109,7 +109,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                 strategySymbols.add(s.getSerialno() - 1);
                 position.put(s.getSerialno()-1, 0);
             }
-            if (Pattern.compile(Pattern.quote("adr"), Pattern.CASE_INSENSITIVE).matcher(s.getStrategy()).find()) {
+            if (Pattern.compile(Pattern.quote("adr"), Pattern.CASE_INSENSITIVE).matcher(s.getStrategy()).find() && s.getType().equals("FUT")) {
                 strategySymbols.add(s.getSerialno() - 1);
                 position.put(s.getSerialno()-1, 0);
             }
