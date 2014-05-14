@@ -194,7 +194,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
         regressionLookBack = Integer.parseInt(System.getProperty("RegressionLookBack"));
         startBars = Integer.parseInt(System.getProperty("StartBars"));
         index = TradingUtil.getIDFromSymbol(System.getProperty("Index"), "IND", "", "", "");
-        expiry = System.getProperty("FutureExpiry");
+        expiry = System.getProperty("FutureExpiry")==null?"":System.getProperty("FutureExpiry");
         String concatAccountNames = "";
         for (String account : getAccounts()) {
             concatAccountNames = ":" + account;
