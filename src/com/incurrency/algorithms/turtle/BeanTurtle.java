@@ -413,7 +413,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
             double zscore = (symbolClose - this.yesterdayClose.get(id)) / symbolClose / this.sd.get(id);
             double highBoundary = getHighestHigh().get(id);
             double lowBoundary = getLowestLow().get(id);
-            int futureid = TradingUtil.getFutureIDFromSymbol(id, expiry);
+            int futureid = expiry.equals("")?id:TradingUtil.getFutureIDFromSymbol(id, expiry);
             if (getLongOnly() && this.getCumVolume().get(id).size() >= this.getChannelDuration() && position.get(futureid) == 0 && indexZScoreYesterday > 1 && symbolZScoreYesterday > indexZScoreYesterday && zscore > 0.5 && zscore < indexZScoreYesterday && Parameters.symbol.get(id).getLastPrice() >= highBoundary && getLastOrderDate().compareTo(new Date()) > 0) {
                 entry(futureid, EnumOrderSide.BUY, Parameters.symbol.get(futureid).getLastPrice(), 0);
                 TradingUtil.writeToFile(getStrategy() + "datalogs.csv", Parameters.symbol.get(id).getSymbol() + "," +cumVolume.get(id).size()+","+ 0 + "," + indexZScoreYesterday + "," + symbolZScoreYesterday + "," + zscore + "," + highBoundary + "," + lowBoundary + "," + Parameters.symbol.get(id).getLastPrice() + "," + close.get(id)+","+"BUY");
