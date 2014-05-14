@@ -426,7 +426,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
             } else if (position.get(futureid) < 0 && (zscore > 0 || System.currentTimeMillis() > endDate.getTime())) {
                 this.exit(futureid, EnumOrderSide.COVER, Parameters.symbol.get(futureid).getLastPrice(), 0, "", true, "DAY");
                 TradingUtil.writeToFile(getStrategy() + "datalogs.csv", Parameters.symbol.get(id).getSymbol() + "," +cumVolume.get(id).size()+","+ 0 + "," + indexZScoreYesterday + "," + symbolZScoreYesterday + "," + zscore + "," + highBoundary + "," + lowBoundary + "," + Parameters.symbol.get(id).getLastPrice() + "," + close.get(id)+","+"COVER");
-            }else{
+            }else if(this.getCumVolume().get(id).size() >= this.getChannelDuration()){
                 TradingUtil.writeToFile(getStrategy() + "datalogs.csv", Parameters.symbol.get(id).getSymbol() + "," +cumVolume.get(id).size()+","+ 0 + "," + indexZScoreYesterday + "," + symbolZScoreYesterday + "," + zscore + "," + highBoundary + "," + lowBoundary + "," + Parameters.symbol.get(id).getLastPrice() + "," + close.get(id)+","+"");
             }
         }
