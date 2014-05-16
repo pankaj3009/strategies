@@ -60,10 +60,10 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
         public void run() {
             System.out.println("In runOpeningOrders");
             long today;
-            if (timeZone.compareTo("") == 0) {
+            if (getTimeZone().compareTo("") == 0) {
                 today = Long.parseLong(DateUtil.getFormatedDate("yyyymmdd", new Date().getTime(), TimeZone.getDefault()));
             } else {
-                today = Long.parseLong(DateUtil.getFormatedDate("yyyymmdd", new Date().getTime(), TimeZone.getTimeZone(timeZone)));
+                today = Long.parseLong(DateUtil.getFormatedDate("yyyymmdd", new Date().getTime(), TimeZone.getTimeZone(getTimeZone())));
             }
             //place SL and TP OCO orders
             for (PositionDetails p : allPositions.values()) {
@@ -93,11 +93,11 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
     public BeanSwing(MainAlgorithm m, String parameterFile, ArrayList<String> accounts) {
         super(m, "swing", "FUT",parameterFile, accounts);
         loadParameters("swing",parameterFile);
-        for (int i = 0; i < strategySymbols.size(); i++) {
-            if(Parameters.symbol.get(strategySymbols.get(i)).getType().compareTo("STK")==0){
-            int futureID=TradingUtil.getFutureIDFromSymbol(strategySymbols.get(i), firstMonthExpiry);
+        for (int i = 0; i < getStrategySymbols().size(); i++) {
+            if(Parameters.symbol.get(getStrategySymbols().get(i)).getType().compareTo("STK")==0){
+            int futureID=TradingUtil.getFutureIDFromSymbol(getStrategySymbols().get(i), firstMonthExpiry);
             allPositions.put(i, new PositionDetails(futureID));
-            logger.log(Level.INFO," Symbol Name: {0}, id: {1}, futureid: {2}",new Object[]{Parameters.symbol.get(strategySymbols.get(i)).getSymbol(),strategySymbols.get(i),futureID});
+            logger.log(Level.INFO," Symbol Name: {0}, id: {1}, futureid: {2}",new Object[]{Parameters.symbol.get(getStrategySymbols().get(i)).getSymbol(),getStrategySymbols().get(i),futureID});
             }
         }
         String[] tempStrategyArray=parameterFile.split("\\.")[0].split("-");
@@ -110,9 +110,9 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
         }
         try {
             // Load open positions in the program.
-            File f=new File(orderFile);
+            File f=new File(getOrderFile());
             if(f.exists() && !f.isDirectory()){
-            ArrayList<Trade> allTrades = Parameters.readTradesWithCsvBeanReader(orderFile);
+            ArrayList<Trade> allTrades = Parameters.readTradesWithCsvBeanReader(getOrderFile());
             Timer openProcessing = new Timer("Timer: Swing Opening Orders");
             openProcessing.schedule(runOpeningOrders, com.incurrency.framework.DateUtil.addSeconds(new Date(), (1) * 60));
             Iterator<Trade> iter = allTrades.iterator();
@@ -131,11 +131,11 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
                 String right = "";
                 int tempPosition = 0;
                 int id = TradingUtil.getIDFromSymbol(symbol, type, expiry, option, right);
-                if (id >= 0 && strategySymbols.contains(id)) {
+                if (id >= 0 && getStrategySymbols().contains(id)) {
                     tempPosition = allPositions.get(id).getPosition();
                     tempPosition = tr.getEntrySide() == EnumOrderSide.BUY ? tempPosition + tr.getEntrySize() : tempPosition - tr.getEntrySize();
                     PositionDetails p = new PositionDetails(id);
-                    p.setPositionInitDate(DateUtil.parseDate("yyyy-MM-dd HH:mm:ss", tr.getEntryTime(), timeZone));
+                    p.setPositionInitDate(DateUtil.parseDate("yyyy-MM-dd HH:mm:ss", tr.getEntryTime(), getTimeZone()));
                     p.setPosition(tempPosition);
                     p.setPositionPrice(tr.getEntryPrice());
                     p.setId(id);
@@ -164,15 +164,15 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
          }
          */
 
-        for (int i = 0; i < this.strategySymbols.size(); i++) {
-            int id = strategySymbols.get(i);
+        for (int i = 0; i < this.getStrategySymbols().size(); i++) {
+            int id = getStrategySymbols().get(i);
             BeanSymbol s = Parameters.symbol.get(id);
             ArrayList<BeanOHLC> tempOHLCV = new ArrayList();
             for (Map.Entry<Long, BeanOHLC> entry : s.getDailyBar().getHistoricalBars().entrySet()) {
                 tempOHLCV.add(entry.getValue());
             }
             ohlcv.put(id, tempOHLCV);
-            position.put(id, 0);
+            getPosition().put(id, 0);
         }
 
         // Process Splits
@@ -253,16 +253,16 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
     public void tradeReceived(TradeEvent event) {
 
         int id = event.getSymbolID(); //here symbolID is with zero base.
-        if (Parameters.symbol.get(id).getType().compareTo("STK")==0 && this.strategySymbols.contains(id)){
+        if (Parameters.symbol.get(id).getType().compareTo("STK")==0 && getStrategySymbols().contains(id)){
         int futureID=TradingUtil.getFutureIDFromSymbol(id,firstMonthExpiry);
         PositionDetails p = allPositions.get(id);
-        if (p!=null && event.getTickType() == com.ib.client.TickType.LAST && this.strategySymbols.contains(id) && p.getPosition() == 0 && endDate.before(new Date())) {//check for entry
+        if (p!=null && event.getTickType() == com.ib.client.TickType.LAST && getStrategySymbols().contains(id) && p.getPosition() == 0 && getEndDate().before(new Date())) {//check for entry
             BeanOHLC lastBar = ohlcv.get(id).get(ohlcv.get(id).size() - 1);
             long today;
-            if (timeZone.compareTo("") == 0) {
+            if (getTimeZone().compareTo("") == 0) {
                 today = Long.parseLong(DateUtil.getFormatedDate("yyyymmdd", new Date().getTime(), TimeZone.getDefault()));
             } else {
-                today = Long.parseLong(DateUtil.getFormatedDate("yyyymmdd", new Date().getTime(), TimeZone.getTimeZone(timeZone)));
+                today = Long.parseLong(DateUtil.getFormatedDate("yyyymmdd", new Date().getTime(), TimeZone.getTimeZone(getTimeZone())));
             }
             lastBar.setClose(Parameters.symbol.get(id).getLastPrice());
             lastBar.setHigh(Parameters.symbol.get(id).getHighPrice());
@@ -301,14 +301,14 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
                 logger.log(Level.INFO, "Buy Entry");
                 entry(futureID, EnumOrderSide.BUY, Parameters.symbol.get(futureID).getLastPrice(), 0);
                 p.setId(futureID);
-                p.setPosition(Parameters.symbol.get(futureID).getMinsize() * this.numberOfContracts);
+                p.setPosition(Parameters.symbol.get(futureID).getMinsize() * getNumberOfContracts());
                 p.setPositionPrice(Parameters.symbol.get(futureID).getLastPrice());
 
             } else if (S1 && S2 && S3 && S4) {
                 logger.log(Level.INFO, "Short Entry");
                 entry(futureID, EnumOrderSide.SHORT, Parameters.symbol.get(id).getLastPrice(), 0);
                 p.setId(futureID);
-                p.setPosition(-Parameters.symbol.get(futureID).getMinsize() * this.numberOfContracts);
+                p.setPosition(-Parameters.symbol.get(futureID).getMinsize() * getNumberOfContracts());
                 p.setPositionPrice(Parameters.symbol.get(futureID).getLastPrice());
             }
         }

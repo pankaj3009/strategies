@@ -104,16 +104,16 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
     public ADR(MainAlgorithm m, String parameterFile, ArrayList<String> accounts) {
         super(m, "adr", "FUT", parameterFile, accounts);
         loadParameters("adr", parameterFile);
-            strategySymbols.clear();
+            getStrategySymbols().clear();
             for (BeanSymbol s : Parameters.symbol) {
             if (Pattern.compile(Pattern.quote(adrRuleName), Pattern.CASE_INSENSITIVE).matcher(s.getStrategy()).find()) {
-                strategySymbols.add(s.getSerialno() - 1);
-                position.put(s.getSerialno()-1, 0);
+                getStrategySymbols().add(s.getSerialno() - 1);
+                getPosition().put(s.getSerialno()-1, 0);
                 closePriceReceived.put(s.getSerialno()-1,Boolean.FALSE);
             }
             if (Pattern.compile(Pattern.quote("adr"), Pattern.CASE_INSENSITIVE).matcher(s.getStrategy()).find() && s.getType().equals("FUT")) {
-                strategySymbols.add(s.getSerialno() - 1);
-                position.put(s.getSerialno()-1, 0);
+                getStrategySymbols().add(s.getSerialno() - 1);
+                getPosition().put(s.getSerialno()-1, 0);
             }
         }
         
@@ -177,7 +177,6 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
         logger.log(Level.INFO, "Sliding Window Duration: {0}", window);
         logger.log(Level.INFO, "Hurdle Index move needed for window duration: {0}", windowHurdle);
         logger.log(Level.INFO, "Hurdle Index move needed for day: {0}", dayHurdle);
-        logger.log(Level.INFO, "Order File: {0}", orderFile);
         logger.log(Level.INFO, "Scalping Mode: {0}", scalpingMode);
         logger.log(Level.INFO, "Minimum move before re-entry: {0}", reentryMinimumMove);
         logger.log(Level.INFO, "Symbol tag picked for ADR Calculation: {0}", adrRuleName);        
@@ -186,7 +185,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
     @Override
     public void tradeReceived(TradeEvent event) {
         int id = event.getSymbolID(); //zero based id
-        if (strategySymbols.contains(id) && Parameters.symbol.get(id).getType().compareTo("STK") == 0) {
+        if (getStrategySymbols().contains(id) && Parameters.symbol.get(id).getType().compareTo("STK") == 0) {
             switch (event.getTickType()) {
                 case com.ib.client.TickType.LAST_SIZE:
                     //System.out.println("LASTSIZE, Symbol:"+Parameters.symbol.get(id).getSymbol()+" Value: "+Parameters.symbol.get(id).getLastSize()+" tickerID: "+id);
@@ -264,13 +263,13 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
             TradingUtil.writeToFile(getStrategy()+".csv", adr + "," + adrTRIN + "," + tick + "," + tickTRIN + "," + price + "," + adrHigh + "," + adrLow + "," + adrAvg + "," + adrTRINHigh + "," + adrTRINLow + "," + adrTRINAvg + "," + indexHigh + "," + indexLow + "," + indexAvg + "," + indexDayHigh + "," + indexDayLow + "," + buyZone1 + "," + buyZone2 + "," + buyZone3 + "," + shortZone1 + "," + shortZone2 + "," + shortZone3 + "," + buyZone + "," + shortZone);
             logger.log(Level.FINEST, " adrHigh: {0},adrLow: {1},adrAvg: {2},adrTRINHigh: {3},adrTRINLow: {4},adrTRINAvg: {5},indexHigh :{6},indexLow :{7},indexAvg: {8}, buyZone1: {9}, buyZone2: {10}, buyZone 3: {11}, shortZone1: {12}, shortZone2: {13}, ShortZone3:{14}, ADR: {15}, ADRTrin: {16}, Tick: {17}, TickTrin: {18}, adrDayHigh: {19}, adrDayLow: {20}, IndexDayHigh: {21}, IndexDayLow: {22}", new Object[]{adrHigh, adrLow, adrAvg, adrTRINHigh, adrTRINLow, adrTRINAvg, indexHigh, indexLow, indexAvg, buyZone1, buyZone2, buyZone3, shortZone1, shortZone2, shortZone3, adr, adrTRIN, tick, tickTRIN, adrDayHigh, adrDayLow, indexDayHigh, indexDayLow});
             //tickHigh,tickLow,tickAvg,tickTRINHigh,tickTRINLow,tickTRINAvg
-            if ((!buyZone && tradingSide == 1 && position.get(id) == 0) || (!shortZone && tradingSide == -1 && position.get(id) == 0)) {
+            if ((!buyZone && tradingSide == 1 && getPosition().get(id) == 0) || (!shortZone && tradingSide == -1 && getPosition().get(id) == 0)) {
                 logger.log(Level.INFO, " Strategy: {0}. adrHigh: {1},adrLow: {2},adrAvg: {3},adrTRINHigh: {4},adrTRINLow: {5},adrTRINAvg: {6},indexHigh :{7},indexLow :{8},indexAvg: {9}, buyZone1: {10}, buyZone2: {11}, buyZone 3: {12}, shortZone1: {13}, shortZone2: {14}, ShortZone3:{15}, ADR: {16}, ADRTrin: {17}, Tick: {18}, TickTrin: {19}, adrDayHigh: {20}, adrDayLow: {21}, IndexDayHigh: {22}, IndexDayLow: {23}", new Object[]{getStrategy(),adrHigh, adrLow, adrAvg, adrTRINHigh, adrTRINLow, adrTRINAvg, indexHigh, indexLow, indexAvg, buyZone1, buyZone2, buyZone3, shortZone1, shortZone2, shortZone3, adr, adrTRIN, tick, tickTRIN, adrDayHigh, adrDayLow, indexDayHigh, indexDayLow});
                 logger.log(Level.INFO, "Trading Side Reset. New Trading Side: {0}, Earlier trading Side: {1}", new Object[]{0, tradingSide});
                 tradingSide = 0;
             }
 
-            if (position.get(id) == 0 && new Date().compareTo(endDate) < 0) {
+            if (getPosition().get(id) == 0 && new Date().compareTo(getEndDate()) < 0) {
                 if (tradingSide == 0 && buyZone && (tick < 45 || tickTRIN > 120) && getLongOnly()) {
                     entryPrice = price;
                 logger.log(Level.INFO, " Strategy: {0}. adrHigh: {1},adrLow: {2},adrAvg: {3},adrTRINHigh: {4},adrTRINLow: {5},adrTRINAvg: {6},indexHigh :{7},indexLow :{8},indexAvg: {9}, buyZone1: {10}, buyZone2: {11}, buyZone 3: {12}, shortZone1: {13}, shortZone2: {14}, ShortZone3:{15}, ADR: {16}, ADRTrin: {17}, Tick: {18}, TickTrin: {19}, adrDayHigh: {20}, adrDayLow: {21}, IndexDayHigh: {22}, IndexDayLow: {23}", new Object[]{getStrategy(),adrHigh, adrLow, adrAvg, adrTRINHigh, adrTRINLow, adrTRINAvg, indexHigh, indexLow, indexAvg, buyZone1, buyZone2, buyZone3, shortZone1, shortZone2, shortZone3, adr, adrTRIN, tick, tickTRIN, adrDayHigh, adrDayLow, indexDayHigh, indexDayLow});
@@ -288,39 +287,39 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                 logger.log(Level.INFO, " Strategy: {0}. adrHigh: {1},adrLow: {2},adrAvg: {3},adrTRINHigh: {4},adrTRINLow: {5},adrTRINAvg: {6},indexHigh :{7},indexLow :{8},indexAvg: {9}, buyZone1: {10}, buyZone2: {11}, buyZone 3: {12}, shortZone1: {13}, shortZone2: {14}, ShortZone3:{15}, ADR: {16}, ADRTrin: {17}, Tick: {18}, TickTrin: {19}, adrDayHigh: {20}, adrDayLow: {21}, IndexDayHigh: {22}, IndexDayLow: {23}", new Object[]{getStrategy(),adrHigh, adrLow, adrAvg, adrTRINHigh, adrTRINLow, adrTRINAvg, indexHigh, indexLow, indexAvg, buyZone1, buyZone2, buyZone3, shortZone1, shortZone2, shortZone3, adr, adrTRIN, tick, tickTRIN, adrDayHigh, adrDayLow, indexDayHigh, indexDayLow});
                     logger.log(Level.INFO, "Strategy: {0}. Scalping Buy Order. Price: {1}", new Object[]{getStrategy(),price});
                     entry(id, EnumOrderSide.BUY, entryPrice, 0);;
-                    position.put(id, 1);
+                    getPosition().put(id, 1);
                 } else if (tradingSide == -1 && price > this.lastShortExit + this.reentryMinimumMove && scalpingMode && this.lastShortExit > 0) {
                     entryPrice = price;
                 logger.log(Level.INFO, " Strategy: {0}. adrHigh: {1},adrLow: {2},adrAvg: {3},adrTRINHigh: {4},adrTRINLow: {5},adrTRINAvg: {6},indexHigh :{7},indexLow :{8},indexAvg: {9}, buyZone1: {10}, buyZone2: {11}, buyZone 3: {12}, shortZone1: {13}, shortZone2: {14}, ShortZone3:{15}, ADR: {16}, ADRTrin: {17}, Tick: {18}, TickTrin: {19}, adrDayHigh: {20}, adrDayLow: {21}, IndexDayHigh: {22}, IndexDayLow: {23}", new Object[]{getStrategy(),adrHigh, adrLow, adrAvg, adrTRINHigh, adrTRINLow, adrTRINAvg, indexHigh, indexLow, indexAvg, buyZone1, buyZone2, buyZone3, shortZone1, shortZone2, shortZone3, adr, adrTRIN, tick, tickTRIN, adrDayHigh, adrDayLow, indexDayHigh, indexDayLow});
                     logger.log(Level.INFO, "Strategy: {0}. Scalping Short Order. Price: {1}", new Object[]{getStrategy(),price});
                     entry(id, EnumOrderSide.SHORT, entryPrice, 0);
-                    position.put(id, -1);
+                    getPosition().put(id, -1);
                 }
-            } else if (position.get(id) == -1) {
-                if (buyZone || (price > indexLow + stopLoss && !shortZone) || new Date().compareTo(endDate) > 0) { //stop loss
+            } else if (getPosition().get(id) == -1) {
+                if (buyZone || (price > indexLow + stopLoss && !shortZone) || new Date().compareTo(getEndDate()) > 0) { //stop loss
                 logger.log(Level.INFO, " Strategy: {0}. adrHigh: {1},adrLow: {2},adrAvg: {3},adrTRINHigh: {4},adrTRINLow: {5},adrTRINAvg: {6},indexHigh :{7},indexLow :{8},indexAvg: {9}, buyZone1: {10}, buyZone2: {11}, buyZone 3: {12}, shortZone1: {13}, shortZone2: {14}, ShortZone3:{15}, ADR: {16}, ADRTrin: {17}, Tick: {18}, TickTrin: {19}, adrDayHigh: {20}, adrDayLow: {21}, IndexDayHigh: {22}, IndexDayLow: {23}", new Object[]{getStrategy(),adrHigh, adrLow, adrAvg, adrTRINHigh, adrTRINLow, adrTRINAvg, indexHigh, indexLow, indexAvg, buyZone1, buyZone2, buyZone3, shortZone1, shortZone2, shortZone3, adr, adrTRIN, tick, tickTRIN, adrDayHigh, adrDayLow, indexDayHigh, indexDayLow});
                     logger.log(Level.INFO, "Strategy: {0}. Cover Order. StopLoss. Price: {1}", new Object[]{getStrategy(),price});
                     exit(id, EnumOrderSide.COVER, price, 0, "", true, "DAY");
-                    position.put(id, 0);
+                    getPosition().put(id, 0);
                     tradingSide = 0;
                 } else if ((scalpingMode || !shortZone) && (price < entryPrice - takeProfit)) {
                 logger.log(Level.INFO, " Strategy: {0}. adrHigh: {1},adrLow: {2},adrAvg: {3},adrTRINHigh: {4},adrTRINLow: {5},adrTRINAvg: {6},indexHigh :{7},indexLow :{8},indexAvg: {9}, buyZone1: {10}, buyZone2: {11}, buyZone 3: {12}, shortZone1: {13}, shortZone2: {14}, ShortZone3:{15}, ADR: {16}, ADRTrin: {17}, Tick: {18}, TickTrin: {19}, adrDayHigh: {20}, adrDayLow: {21}, IndexDayHigh: {22}, IndexDayLow: {23}", new Object[]{getStrategy(),adrHigh, adrLow, adrAvg, adrTRINHigh, adrTRINLow, adrTRINAvg, indexHigh, indexLow, indexAvg, buyZone1, buyZone2, buyZone3, shortZone1, shortZone2, shortZone3, adr, adrTRIN, tick, tickTRIN, adrDayHigh, adrDayLow, indexDayHigh, indexDayLow});
                     logger.log(Level.INFO, " Strategy: {0}. Cover Order. TakeProfit. Price: {1}", new Object[]{getStrategy(),price});
                     exit(id, EnumOrderSide.COVER, price, 0, "", true, "DAY");
-                    position.put(id, 0);
+                    getPosition().put(id, 0);
                     lastShortExit = price;
                 }
-            } else if (position.get(id) == 1) {
-                if (shortZone || (price < indexHigh - stopLoss && !buyZone) || new Date().compareTo(endDate) > 0) {
+            } else if (getPosition().get(id) == 1) {
+                if (shortZone || (price < indexHigh - stopLoss && !buyZone) || new Date().compareTo(getEndDate()) > 0) {
                 logger.log(Level.INFO, " Strategy: {0}. adrHigh: {1},adrLow: {2},adrAvg: {3},adrTRINHigh: {4},adrTRINLow: {5},adrTRINAvg: {6},indexHigh :{7},indexLow :{8},indexAvg: {9}, buyZone1: {10}, buyZone2: {11}, buyZone 3: {12}, shortZone1: {13}, shortZone2: {14}, ShortZone3:{15}, ADR: {16}, ADRTrin: {17}, Tick: {18}, TickTrin: {19}, adrDayHigh: {20}, adrDayLow: {21}, IndexDayHigh: {22}, IndexDayLow: {23}", new Object[]{getStrategy(),adrHigh, adrLow, adrAvg, adrTRINHigh, adrTRINLow, adrTRINAvg, indexHigh, indexLow, indexAvg, buyZone1, buyZone2, buyZone3, shortZone1, shortZone2, shortZone3, adr, adrTRIN, tick, tickTRIN, adrDayHigh, adrDayLow, indexDayHigh, indexDayLow});
                     logger.log(Level.INFO, " Strategy: {0}. Sell Order. StopLoss. Price: {1}", new Object[]{getStrategy(),price});
                     exit(id, EnumOrderSide.SELL, price, 0, "", true, "DAY");
-                    position.put(id, 0);
+                    getPosition().put(id, 0);
                 } else if ((scalpingMode || !buyZone) && price > entryPrice + takeProfit) {
                    logger.log(Level.INFO, " Strategy: {0}. adrHigh: {1},adrLow: {2},adrAvg: {3},adrTRINHigh: {4},adrTRINLow: {5},adrTRINAvg: {6},indexHigh :{7},indexLow :{8},indexAvg: {9}, buyZone1: {10}, buyZone2: {11}, buyZone 3: {12}, shortZone1: {13}, shortZone2: {14}, ShortZone3:{15}, ADR: {16}, ADRTrin: {17}, Tick: {18}, TickTrin: {19}, adrDayHigh: {20}, adrDayLow: {21}, IndexDayHigh: {22}, IndexDayLow: {23}", new Object[]{getStrategy(),adrHigh, adrLow, adrAvg, adrTRINHigh, adrTRINLow, adrTRINAvg, indexHigh, indexLow, indexAvg, buyZone1, buyZone2, buyZone3, shortZone1, shortZone2, shortZone3, adr, adrTRIN, tick, tickTRIN, adrDayHigh, adrDayLow, indexDayHigh, indexDayLow});
                  logger.log(Level.INFO, "Strategy {0}. Sell Order. TakeProfit. Price: {1}", new Object[]{getStrategy(),price});
                     exit(id, EnumOrderSide.SELL, price, 0, "", true, "DAY");
-                    position.put(id, 0);
+                    getPosition().put(id, 0);
                     lastLongExit = price;
                 }
             }
