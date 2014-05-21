@@ -427,7 +427,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                 this.exit(futureid, EnumOrderSide.COVER, Parameters.symbol.get(futureid).getLastPrice(), 0, "", true, "DAY");
                 TradingUtil.writeToFile(getStrategy() + "datalogs.csv", Parameters.symbol.get(id).getSymbol() + "," +cumVolume.get(id).size()+","+ 0 + "," + indexZScoreYesterday + "," + symbolZScoreYesterday + "," + zscore + "," + highBoundary + "," + lowBoundary + "," + Parameters.symbol.get(id).getLastPrice() + "," + close.get(id)+","+"COVER");
             }else if(this.getCumVolume().get(id).size() >= this.getChannelDuration()){
-                TradingUtil.writeToFile(getStrategy() + "datalogs.csv", Parameters.symbol.get(id).getSymbol() + "," +cumVolume.get(id).size()+","+ 0 + "," + indexZScoreYesterday + "," + symbolZScoreYesterday + "," + zscore + "," + highBoundary + "," + lowBoundary + "," + Parameters.symbol.get(id).getLastPrice() + "," + close.get(id)+","+"");
+                //TradingUtil.writeToFile(getStrategy() + "datalogs.csv", Parameters.symbol.get(id).getSymbol() + "," +cumVolume.get(id).size()+","+ 0 + "," + indexZScoreYesterday + "," + symbolZScoreYesterday + "," + zscore + "," + highBoundary + "," + lowBoundary + "," + Parameters.symbol.get(id).getLastPrice() + "," + close.get(id)+","+"");
             }
         }
 
@@ -445,6 +445,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                     logger.log(Level.INFO, "Sell. Force Close All Positions.Symbol:{0}", new Object[]{Parameters.symbol.get(j.getKey()).getSymbol()});
                     getOms().tes.fireOrderEvent(this.internalOrderID - 1, entryInternalOrderID, Parameters.symbol.get(j.getKey()), EnumOrderSide.SELL, size, Parameters.symbol.get(j.getKey()).getLastPrice(), 0, getStrategy(), getMaxOrderDuration(), "", EnumOrderIntent.Cancel, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit());
                     getOms().tes.fireOrderEvent(this.internalOrderID - 1, entryInternalOrderID, Parameters.symbol.get(j.getKey()), EnumOrderSide.SELL, size, Parameters.symbol.get(j.getKey()).getLastPrice(), 0, getStrategy(), getMaxOrderDuration(), "", EnumOrderIntent.Init, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit());
+                    TradingUtil.writeToFile(getStrategy() + "datalogs.csv", Parameters.symbol.get(id).getSymbol() + "," +cumVolume.get(id).size()+","+ 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + Parameters.symbol.get(id).getLastPrice() + "," + close.get(id)+","+"SELL CLOSE");
                     this.advanceExitOrder.set(j.getKey(), 0L);
                 } else if (j.getValue() < 0) {
                     //close short
@@ -457,6 +458,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                     logger.log(Level.INFO, "Cover. Force Close All Positions.Symbol:{0}", new Object[]{Parameters.symbol.get(j.getKey()).getSymbol()});
                     getOms().tes.fireOrderEvent(this.internalOrderID - 1, entryInternalOrderID, Parameters.symbol.get(j.getKey()), EnumOrderSide.COVER, size, Parameters.symbol.get(j.getKey()).getLastPrice(), 0, getStrategy(), getMaxOrderDuration(), "", EnumOrderIntent.Cancel, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit());
                     getOms().tes.fireOrderEvent(this.internalOrderID - 1, entryInternalOrderID, Parameters.symbol.get(j.getKey()), EnumOrderSide.COVER, size, Parameters.symbol.get(j.getKey()).getLastPrice(), 0, getStrategy(), getMaxOrderDuration(), "", EnumOrderIntent.Init, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit());
+                    TradingUtil.writeToFile(getStrategy() + "datalogs.csv", Parameters.symbol.get(id).getSymbol() + "," +cumVolume.get(id).size()+","+ 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + Parameters.symbol.get(id).getLastPrice() + "," + close.get(id)+","+"COVER CLOSE");
                     this.advanceExitOrder.set(j.getKey(), 0L);
                 }
             }
