@@ -415,10 +415,20 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
             double lowBoundary = getLowestLow().get(id);
             int futureid = expiry.equals("")?id:TradingUtil.getFutureIDFromSymbol(id, expiry);
             if (getLongOnly() && this.getCumVolume().get(id).size() >= this.getChannelDuration() && getPosition().get(futureid) == 0 && symbolZScoreYesterday > 0 && zscore > 1  && Parameters.symbol.get(id).getLastPrice() >= highBoundary && getLastOrderDate().compareTo(new Date()) > 0) {
+                if(futureid==id){
                 entry(futureid, EnumOrderSide.BUY, Parameters.symbol.get(futureid).getLastPrice(), 0);
+                }else{
+                double cushion=((int)(1000/Parameters.symbol.get(futureid).getMinsize()/getTickSize()))*getTickSize();
+                entry(futureid, EnumOrderSide.BUY, Parameters.symbol.get(futureid).getLastPrice()-cushion, 0);
+                }
                 TradingUtil.writeToFile(getStrategy() + "datalogs.csv", Parameters.symbol.get(id).getSymbol() + "," +cumVolume.get(id).size()+","+ 0 + "," + indexZScoreYesterday + "," + symbolZScoreYesterday + "," + zscore + "," + highBoundary + "," + lowBoundary + "," + Parameters.symbol.get(id).getLastPrice() + "," + close.get(id)+","+"BUY");
             } else if (getShortOnly() && this.getCumVolume().get(id).size() >= this.getChannelDuration() && getPosition().get(futureid) == 0 && zscore < -1  && Parameters.symbol.get(id).getLastPrice() <= lowBoundary && getLastOrderDate().compareTo(new Date()) > 0) {
+                if(futureid==id){
                 entry(futureid, EnumOrderSide.SHORT, Parameters.symbol.get(futureid).getLastPrice(),0);
+                }else{
+                double cushion=((int)(1000/Parameters.symbol.get(futureid).getMinsize()/getTickSize()))*getTickSize();
+                entry(futureid, EnumOrderSide.SHORT, Parameters.symbol.get(futureid).getLastPrice()+cushion,0);                    
+                }
                 TradingUtil.writeToFile(getStrategy() + "datalogs.csv", Parameters.symbol.get(id).getSymbol() + "," +cumVolume.get(id).size()+","+ 0 + "," + indexZScoreYesterday + "," + symbolZScoreYesterday + "," + zscore + "," + highBoundary + "," + lowBoundary + "," + Parameters.symbol.get(id).getLastPrice() + "," + close.get(id)+","+"SHORT");
             } else if (getPosition().get(futureid) > 0 && (zscore < 0 || System.currentTimeMillis() > getEndDate().getTime())) {
                 this.exit(futureid, EnumOrderSide.SELL, Parameters.symbol.get(futureid).getLastPrice(), 0, "", true, "DAY");
