@@ -453,9 +453,13 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                     originalTrade.updateExit(j.getKey(), EnumOrderSide.SELL, Parameters.symbol.get(j.getKey()).getLastPrice(), size, this.internalOrderID++, getTimeZone(), "Order");
                     getTrades().put(new OrderLink(entryInternalOrderID, "Order"), originalTrade);
                     logger.log(Level.INFO, "Sell. Force Close All Positions.Symbol:{0}", new Object[]{Parameters.symbol.get(j.getKey()).getSymbol()});
-                    getOms().tes.fireOrderEvent(this.internalOrderID - 1, entryInternalOrderID, Parameters.symbol.get(j.getKey()), EnumOrderSide.SELL, size, Parameters.symbol.get(j.getKey()).getLastPrice(), 0, getStrategy(), getMaxOrderDuration(), "", EnumOrderIntent.Cancel, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit());
-                    getOms().tes.fireOrderEvent(this.internalOrderID - 1, entryInternalOrderID, Parameters.symbol.get(j.getKey()), EnumOrderSide.SELL, size, Parameters.symbol.get(j.getKey()).getLastPrice(), 0, getStrategy(), getMaxOrderDuration(), "", EnumOrderIntent.Init, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit());
-                    TradingUtil.writeToFile(getStrategy() + "datalogs.csv", Parameters.symbol.get(id).getSymbol() + "," +cumVolume.get(id).size()+","+ 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + Parameters.symbol.get(id).getLastPrice() + "," + close.get(id)+","+"SELL CLOSE");
+                    double cushion=0;
+                    if(!expiry.equals("")){
+                        cushion=((int)(1000/Parameters.symbol.get(j.getKey()).getMinsize()/getTickSize()))*getTickSize();
+                    }
+                    getOms().tes.fireOrderEvent(this.internalOrderID - 1, entryInternalOrderID, Parameters.symbol.get(j.getKey()), EnumOrderSide.SELL, size, Parameters.symbol.get(j.getKey()).getLastPrice()+cushion, 0, getStrategy(), getMaxOrderDuration(), "", EnumOrderIntent.Cancel, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit());
+                    getOms().tes.fireOrderEvent(this.internalOrderID - 1, entryInternalOrderID, Parameters.symbol.get(j.getKey()), EnumOrderSide.SELL, size, Parameters.symbol.get(j.getKey()).getLastPrice()+cushion, 0, getStrategy(), getMaxOrderDuration(), "", EnumOrderIntent.Init, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit());
+                    TradingUtil.writeToFile(getStrategy() + "datalogs.csv", Parameters.symbol.get(j.getKey()).getSymbol() + "," +cumVolume.get(j.getKey()).size()+","+ 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + Parameters.symbol.get(j.getKey()).getLastPrice() + "," + close.get(id)+","+"SELL CLOSE");
                     this.advanceExitOrder.set(j.getKey(), 0L);
                 } else if (j.getValue() < 0) {
                     //close short
@@ -466,9 +470,13 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                     originalTrade.updateExit(j.getKey(), EnumOrderSide.COVER, Parameters.symbol.get(j.getKey()).getLastPrice(), size, this.internalOrderID++, getTimeZone(), "Order");
                     getTrades().put(new OrderLink(entryInternalOrderID, "Order"), originalTrade);
                     logger.log(Level.INFO, "Cover. Force Close All Positions.Symbol:{0}", new Object[]{Parameters.symbol.get(j.getKey()).getSymbol()});
-                    getOms().tes.fireOrderEvent(this.internalOrderID - 1, entryInternalOrderID, Parameters.symbol.get(j.getKey()), EnumOrderSide.COVER, size, Parameters.symbol.get(j.getKey()).getLastPrice(), 0, getStrategy(), getMaxOrderDuration(), "", EnumOrderIntent.Cancel, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit());
-                    getOms().tes.fireOrderEvent(this.internalOrderID - 1, entryInternalOrderID, Parameters.symbol.get(j.getKey()), EnumOrderSide.COVER, size, Parameters.symbol.get(j.getKey()).getLastPrice(), 0, getStrategy(), getMaxOrderDuration(), "", EnumOrderIntent.Init, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit());
-                    TradingUtil.writeToFile(getStrategy() + "datalogs.csv", Parameters.symbol.get(id).getSymbol() + "," +cumVolume.get(id).size()+","+ 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + Parameters.symbol.get(id).getLastPrice() + "," + close.get(id)+","+"COVER CLOSE");
+                    double cushion=0;
+                    if(!expiry.equals("")){
+                        cushion=((int)(1000/Parameters.symbol.get(j.getKey()).getMinsize()/getTickSize()))*getTickSize();
+                    }
+                    getOms().tes.fireOrderEvent(this.internalOrderID - 1, entryInternalOrderID, Parameters.symbol.get(j.getKey()), EnumOrderSide.COVER, size, Parameters.symbol.get(j.getKey()).getLastPrice()-cushion, 0, getStrategy(), getMaxOrderDuration(), "", EnumOrderIntent.Cancel, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit());
+                    getOms().tes.fireOrderEvent(this.internalOrderID - 1, entryInternalOrderID, Parameters.symbol.get(j.getKey()), EnumOrderSide.COVER, size, Parameters.symbol.get(j.getKey()).getLastPrice()-cushion, 0, getStrategy(), getMaxOrderDuration(), "", EnumOrderIntent.Init, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit());
+                    TradingUtil.writeToFile(getStrategy() + "datalogs.csv", Parameters.symbol.get(j.getKey()).getSymbol() + "," +cumVolume.get(j.getKey()).size()+","+ 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + Parameters.symbol.get(j.getKey()).getLastPrice() + "," + close.get(id)+","+"COVER CLOSE");
                     this.advanceExitOrder.set(j.getKey(), 0L);
                 }
             }
