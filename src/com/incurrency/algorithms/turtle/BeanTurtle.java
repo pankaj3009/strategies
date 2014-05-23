@@ -418,7 +418,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                 if(futureid==id){
                 entry(futureid, EnumOrderSide.BUY, Parameters.symbol.get(futureid).getLastPrice(), 0);
                 }else{
-                double cushion=((int)(1000/Parameters.symbol.get(futureid).getMinsize()/getTickSize()))*getTickSize();
+                double cushion=((int)(1000D/Parameters.symbol.get(futureid).getMinsize()/getTickSize()))*getTickSize();
                 entry(futureid, EnumOrderSide.BUY, Parameters.symbol.get(futureid).getLastPrice()-cushion, 0);
                 }
                 TradingUtil.writeToFile(getStrategy() + "datalogs.csv", Parameters.symbol.get(id).getSymbol() + "," +cumVolume.get(id).size()+","+ 0 + "," + indexZScoreYesterday + "," + symbolZScoreYesterday + "," + zscore + "," + highBoundary + "," + lowBoundary + "," + Parameters.symbol.get(futureid).getLastPrice() + "," + close.get(id)+","+"BUY");
@@ -426,7 +426,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                 if(futureid==id){
                 entry(futureid, EnumOrderSide.SHORT, Parameters.symbol.get(futureid).getLastPrice(),0);
                 }else{
-                double cushion=((int)(1000/Parameters.symbol.get(futureid).getMinsize()/getTickSize()))*getTickSize();
+                double cushion=((int)(1000D/Parameters.symbol.get(futureid).getMinsize()/getTickSize()))*getTickSize();
                 entry(futureid, EnumOrderSide.SHORT, Parameters.symbol.get(futureid).getLastPrice()+cushion,0);                    
                 }
                 TradingUtil.writeToFile(getStrategy() + "datalogs.csv", Parameters.symbol.get(id).getSymbol() + "," +cumVolume.get(id).size()+","+ 0 + "," + indexZScoreYesterday + "," + symbolZScoreYesterday + "," + zscore + "," + highBoundary + "," + lowBoundary + "," + Parameters.symbol.get(futureid).getLastPrice() + "," + close.get(id)+","+"SHORT");
@@ -455,7 +455,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                     logger.log(Level.INFO, "Sell. Force Close All Positions.Symbol:{0}", new Object[]{Parameters.symbol.get(j.getKey()).getSymbol()});
                     double cushion=0;
                     if(!expiry.equals("")){
-                        cushion=((int)(1000/Parameters.symbol.get(j.getKey()).getMinsize()/getTickSize()))*getTickSize();
+                        cushion=((int)(1000D/Parameters.symbol.get(j.getKey()).getMinsize()/getTickSize()))*getTickSize();
                     }
                     getOms().tes.fireOrderEvent(this.internalOrderID - 1, entryInternalOrderID, Parameters.symbol.get(j.getKey()), EnumOrderSide.SELL, size, Parameters.symbol.get(j.getKey()).getLastPrice()+cushion, 0, getStrategy(), getMaxOrderDuration(), "", EnumOrderIntent.Cancel, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit());
                     getOms().tes.fireOrderEvent(this.internalOrderID - 1, entryInternalOrderID, Parameters.symbol.get(j.getKey()), EnumOrderSide.SELL, size, Parameters.symbol.get(j.getKey()).getLastPrice()+cushion, 0, getStrategy(), getMaxOrderDuration(), "", EnumOrderIntent.Init, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit());
@@ -472,7 +472,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                     logger.log(Level.INFO, "Cover. Force Close All Positions.Symbol:{0}", new Object[]{Parameters.symbol.get(j.getKey()).getSymbol()});
                     double cushion=0;
                     if(!expiry.equals("")){
-                        cushion=((int)(1000/Parameters.symbol.get(j.getKey()).getMinsize()/getTickSize()))*getTickSize();
+                        cushion=((int)(1000D/Parameters.symbol.get(j.getKey()).getMinsize()/getTickSize()))*getTickSize();
                     }
                     getOms().tes.fireOrderEvent(this.internalOrderID - 1, entryInternalOrderID, Parameters.symbol.get(j.getKey()), EnumOrderSide.COVER, size, Parameters.symbol.get(j.getKey()).getLastPrice()-cushion, 0, getStrategy(), getMaxOrderDuration(), "", EnumOrderIntent.Cancel, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit());
                     getOms().tes.fireOrderEvent(this.internalOrderID - 1, entryInternalOrderID, Parameters.symbol.get(j.getKey()), EnumOrderSide.COVER, size, Parameters.symbol.get(j.getKey()).getLastPrice()-cushion, 0, getStrategy(), getMaxOrderDuration(), "", EnumOrderIntent.Init, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit());
