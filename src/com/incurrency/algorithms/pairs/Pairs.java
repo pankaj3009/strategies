@@ -68,10 +68,14 @@ public class Pairs extends Strategy implements BidAskListener {
     TimerTask readTrades = new TimerTask() {
         @Override
         public void run() {
+            try{
             System.out.println("Reading Trades");
             logger.log(Level.INFO, "Print Orders and Trades Called in {0}", getStrategy());
             readTrades("tradingpairs.csv");
+        }catch (Exception ex) {
+                logger.log(Level.SEVERE, null, ex);
         }
+            }
     };
 
     private void readTrades(String filename) {
@@ -145,6 +149,7 @@ public class Pairs extends Strategy implements BidAskListener {
     public void bidaskChanged(BidAskEvent event) {
 
         //buy logic. There is no short logic
+        try{
         int id = event.getSymbolID();
         ArrayList<PairDefinition> inScope = new ArrayList<>();
         if (getStrategySymbols().contains(id)) {
@@ -186,6 +191,9 @@ public class Pairs extends Strategy implements BidAskListener {
                 }
             }
 
+        }catch (Exception ex) {
+                logger.log(Level.SEVERE, null, ex);
         }
+    }
     }
 
