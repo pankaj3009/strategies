@@ -4,7 +4,7 @@
  */
 package com.incurrency.algorithms.others;
 
-import com.incurrency.algorithm.pairs.*;
+import com.incurrency.algorithms.pairs.Pairs;
 import com.RatesClient.Subscribe;
 import com.incurrency.framework.BeanConnection;
 import com.incurrency.framework.BeanSymbol;

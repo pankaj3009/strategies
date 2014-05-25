@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.incurrency.algorithm.pairs;
+package com.incurrency.algorithms.pairs;
 
 import com.RatesClient.Subscribe;
 import com.incurrency.framework.BeanConnection;
