@@ -21,6 +21,7 @@ public class PairDefinition {
     boolean active;
     double positionPrice;
 
+
     public PairDefinition(String buySymbol, String shortSymbol, String timeStamp, String entryPrice, String expiry) {
         this.buySymbol = buySymbol;
         this.shortSymbol = shortSymbol;

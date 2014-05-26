@@ -68,44 +68,47 @@ public class Pairs extends Strategy implements BidAskListener {
     TimerTask readTrades = new TimerTask() {
         @Override
         public void run() {
-            try{
-            System.out.println("Reading Trades");
-            logger.log(Level.INFO, "Print Orders and Trades Called in {0}", getStrategy());
-            readTrades("tradingpairs.csv");
-        }catch (Exception ex) {
+            try {
+                System.out.println("Reading Trades");
+                logger.log(Level.INFO, "Print Orders and Trades Called in {0}", getStrategy());
+                readTrades("tradingpairs.csv");
+            } catch (Exception ex) {
                 logger.log(Level.SEVERE, null, ex);
-        }
             }
+        }
     };
 
     private void readTrades(String filename) {
-        logger.log(Level.INFO,"Reading Trades");
-        File dir = new File ("/mnt/pairtrade");
-        File inputFile = new File(dir,filename);
+        logger.log(Level.INFO, "Reading Trades");
+        File dir = new File("C:\\Users\\pankaj\\Documents\\");
+        File inputFile = new File(dir, filename);
         if (inputFile.exists() && !inputFile.isDirectory()) {
             try {
                 List<String> initialLoad = Files.readAllLines(Paths.get(inputFile.getCanonicalPath()), StandardCharsets.UTF_8);
                 int size = Math.min(initialLoad.size(), 4);
-                //targetOrders.clear();
-
+                for (PairDefinition p : targetOrders) {
+                    p.active = false;
+                }
                 for (int i = 0; i < size; i++) {
                     if (i > 0) {
                         boolean updated = false;
                         String[] tempLine = initialLoad.get(i).split(",");
+
                         for (PairDefinition p : targetOrders) {
                             if (p.buySymbol.equals(tempLine[0]) && p.shortSymbol.equals(tempLine[2])) {
                                 p.entryPrice = tempLine[11];
                                 p.timeStamp = tempLine[8];
+                                p.active = true;
                                 updated = true;
                             }
-                            if (!updated) {
-                                PairDefinition tempPair = new PairDefinition(tempLine[0], tempLine[2], tempLine[8], tempLine[11], "expiry");
-                                targetOrders.add(tempPair);
-                            }
+                        }
+                        if (!updated) {
+                            PairDefinition tempPair = new PairDefinition(tempLine[0], tempLine[2], tempLine[8], tempLine[11], expiry);
+                            targetOrders.add(tempPair);
                         }
                     }
                 }
-                logger.log(Level.INFO,"Pairs read: {0}, Size of Pairs being monitored: {1}",new Object[]{size,targetOrders.size()});
+                logger.log(Level.INFO, "Pairs read: {0}, Size of Pairs being monitored: {1}", new Object[]{size, targetOrders.size()});
             } catch (IOException ex) {
                 logger.log(Level.SEVERE, null, ex);
             }
@@ -133,9 +136,9 @@ public class Pairs extends Strategy implements BidAskListener {
         if (lastOrderDate.compareTo(getStartDate()) < 0 && new Date().compareTo(lastOrderDate) > 0) {
             lastOrderDate = DateUtil.addDays(lastOrderDate, 1); //system date is > start date time. Therefore we have not crossed the 12:00 am barrier
         }
-        expiry=System.getProperty("Expiry");
-        pairProfitTarget=Double.parseDouble(System.getProperty("PairProfitTarget"));
-                String concatAccountNames = "";
+        expiry = System.getProperty("Expiry");
+        pairProfitTarget = Double.parseDouble(System.getProperty("PairProfitTarget"));
+        String concatAccountNames = "";
         for (String account : getAccounts()) {
             concatAccountNames = ":" + account;
         }
@@ -149,37 +152,37 @@ public class Pairs extends Strategy implements BidAskListener {
     public void bidaskChanged(BidAskEvent event) {
 
         //buy logic. There is no short logic
-        try{
-        int id = event.getSymbolID();
-        ArrayList<PairDefinition> inScope = new ArrayList<>();
-        if (getStrategySymbols().contains(id)) {
-            for (PairDefinition p : targetOrders) {
-                if (id == p.buyid || id == p.shortid) {
-                    inScope.add(p);
+        try {
+            int id = event.getSymbolID();
+            ArrayList<PairDefinition> inScope = new ArrayList<>();
+            if (getStrategySymbols().contains(id)) {
+                for (PairDefinition p : targetOrders) {
+                    if (id == p.buyid || id == p.shortid) {
+                        inScope.add(p);
+                    }
                 }
             }
-        }
 
-        for (PairDefinition p : inScope) {
+            for (PairDefinition p : inScope) {
                 int buySize = Parameters.symbol.get(p.buyid).getMinsize() * this.getNumberOfContracts();
                 int shortSize = Parameters.symbol.get(p.shortid).getMinsize() * this.getNumberOfContracts();
                 double level = Parameters.symbol.get(p.buyid).getAskPrice() * buySize - Parameters.symbol.get(p.shortid).getBidPrice() * shortSize;
-                 if (p.position == 0 && DateUtil.addSeconds(DateUtil.parseDate("yyyyMMddHHmmss", p.timeStamp),10*60).after(new Date()) && lastOrderDate.after(new Date())) {
-                if (level > Double.parseDouble(p.entryPrice)) {
-                    this.entry(p.buyid, EnumOrderSide.BUY, 0, 0);
-                    this.entry(p.shortid, EnumOrderSide.SHORT, 0, 0);
-                    p.position = 1;
-                    p.positionPrice=level;
-                }
-            }else if(p.position >0){
-                if(level>p.positionPrice+5000){ //profit by a threshold
+                if (p.position == 0 && DateUtil.addSeconds(DateUtil.parseDate("yyyyMMddHHmmss", p.timeStamp), 10 * 60).after(new Date()) && lastOrderDate.after(new Date())) {
+                    if (level > Double.parseDouble(p.entryPrice) && Parameters.symbol.get(p.buyid).getAskPrice()>0 && Parameters.symbol.get(p.shortid).getBidPrice()>0) {
+                        this.entry(p.buyid, EnumOrderSide.BUY, 0, 0);
+                        this.entry(p.shortid, EnumOrderSide.SHORT, 0, 0);
+                        p.position = 1;
+                        p.positionPrice = level;
+                    }
+                } else if (p.position > 0) {
+                    if (level > p.positionPrice + 5000) { //profit by a threshold
                         this.exit(p.buyid, EnumOrderSide.SELL, 0, 0, "", true, "");
                         this.exit(p.shortid, EnumOrderSide.COVER, 0, 0, "", true, "");
                         p.position = 0;
-                        p.positionPrice=0D;
+                        p.positionPrice = 0D;
+                    }
                 }
             }
-        }
 
             if (new Date().after(this.getEndDate())) {
                 for (PairDefinition p : targetOrders) {
@@ -191,9 +194,8 @@ public class Pairs extends Strategy implements BidAskListener {
                 }
             }
 
-        }catch (Exception ex) {
-                logger.log(Level.SEVERE, null, ex);
+        } catch (Exception ex) {
+            logger.log(Level.SEVERE, null, ex);
         }
     }
-    }
-
+}
