@@ -44,6 +44,8 @@ public class Pairs extends Strategy implements BidAskListener {
     private Date lastOrderDate;
     private double pairProfitTarget;
     private String expiry;
+    private String path;
+    private String pairsFileName;
 
     public Pairs(MainAlgorithm m, String parameterFile, ArrayList<String> accounts) {
         super(m, "pair", "FUT", parameterFile, accounts);
@@ -71,7 +73,7 @@ public class Pairs extends Strategy implements BidAskListener {
             try {
                 System.out.println("Reading Trades");
                 logger.log(Level.INFO, "Print Orders and Trades Called in {0}", getStrategy());
-                readTrades("tradingpairs.csv");
+                readTrades(pairsFileName);
             } catch (Exception ex) {
                 logger.log(Level.SEVERE, null, ex);
             }
@@ -80,7 +82,7 @@ public class Pairs extends Strategy implements BidAskListener {
 
     private void readTrades(String filename) {
         logger.log(Level.INFO, "Reading Trades");
-        File dir = new File("C:\\Users\\pankaj\\Documents\\");
+        File dir = new File(path);
         File inputFile = new File(dir, filename);
         if (inputFile.exists() && !inputFile.isDirectory()) {
             try {
@@ -138,6 +140,8 @@ public class Pairs extends Strategy implements BidAskListener {
         }
         expiry = System.getProperty("Expiry");
         pairProfitTarget = Double.parseDouble(System.getProperty("PairProfitTarget"));
+        path=System.getProperty("Path");
+        pairsFileName=System.getProperty("PairsFileName");
         String concatAccountNames = "";
         for (String account : getAccounts()) {
             concatAccountNames = ":" + account;
@@ -146,6 +150,8 @@ public class Pairs extends Strategy implements BidAskListener {
         logger.log(Level.INFO, "Last Order Time: {0}", lastOrderDate);
         logger.log(Level.INFO, "futures expiry being traded: {0}", expiry);
         logger.log(Level.INFO, "Pair Profit Target: {0}", pairProfitTarget);
+        logger.log(Level.INFO, "File Path: {0}", path);
+        logger.log(Level.INFO, "Pairs File: {0}", pairsFileName);   
     }
 
     @Override
