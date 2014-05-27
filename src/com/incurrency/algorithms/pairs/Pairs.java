@@ -167,6 +167,7 @@ public class Pairs extends Strategy implements BidAskListener {
                 int buySize = Parameters.symbol.get(p.buyid).getMinsize() * this.getNumberOfContracts();
                 int shortSize = Parameters.symbol.get(p.shortid).getMinsize() * this.getNumberOfContracts();
                 double level = Parameters.symbol.get(p.buyid).getAskPrice() * buySize - Parameters.symbol.get(p.shortid).getBidPrice() * shortSize;
+                TradingUtil.writeToFile(getStrategy() + ".csv",Parameters.symbol.get(p.buyid).getSymbol()+","+Parameters.symbol.get(p.shortid).getSymbol()+","+p.entryPrice+","+level+","+"SCAN");
                 if (p.position == 0 && DateUtil.addSeconds(DateUtil.parseDate("yyyyMMddHHmmss", p.timeStamp), 10 * 60).after(new Date()) && lastOrderDate.after(new Date())) {
                     if (level > Double.parseDouble(p.entryPrice) && Parameters.symbol.get(p.buyid).getAskPrice()>0 && Parameters.symbol.get(p.shortid).getBidPrice()>0) {
                         this.entry(p.buyid, EnumOrderSide.BUY, 0, 0);
