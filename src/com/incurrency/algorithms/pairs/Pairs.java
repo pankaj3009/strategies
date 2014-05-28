@@ -203,8 +203,11 @@ public class Pairs extends Strategy implements BidAskListener {
                         this.exit(p.buyid, EnumOrderSide.SELL, 0, 0, "", true, "",true);
                         this.exit(p.shortid, EnumOrderSide.COVER, 0, 0, "", true, "",true);
                         p.position = 0;
-                        TradingUtil.writeToFile(getStrategy() + ".csv",Parameters.symbol.get(p.buyid).getSymbol()+","+Parameters.symbol.get(p.shortid).getSymbol()+","+p.positionPrice+","+level+","+"EOD Close");
-
+                        if(level>p.positionPrice){
+                        TradingUtil.writeToFile(getStrategy() + ".csv",Parameters.symbol.get(p.buyid).getSymbol()+","+Parameters.symbol.get(p.shortid).getSymbol()+","+p.positionPrice+","+level+","+"EOD Close Profit");
+                        }else{
+                        TradingUtil.writeToFile(getStrategy() + ".csv",Parameters.symbol.get(p.buyid).getSymbol()+","+Parameters.symbol.get(p.shortid).getSymbol()+","+p.positionPrice+","+level+","+"EOD Close Loss");                            
+                        }
                     }
                 }
             }
