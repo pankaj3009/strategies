@@ -227,7 +227,8 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                     || (adrDayHigh - adrDayLow > 10 && adr > adrDayLow + 0.75 * (adrDayHigh - adrDayLow)));// && adrTRIN < 90;
             boolean buyZone2 = ((indexHigh - indexLow > windowHurdle && price > indexLow + 0.75 * (indexHigh - indexLow) && price > indexAvg)
                     || (indexDayHigh - indexDayLow > dayHurdle && price > indexDayLow + 0.75 * (indexDayHigh - indexDayLow) && price > indexAvg));// && adrTRIN < 90;
-            boolean buyZone3 = this.adrTRINAvg < 90 && this.adrTRINAvg > 0;
+            //boolean buyZone3 = this.adrTRINAvg < 90 && this.adrTRINAvg > 0;
+            boolean buyZone3 = this.adrTRIN<this.adrTRINAvg-0.05 && this.adrTRIN<1.1;
 
 //            boolean shortZone1 = ((adrHigh - adrLow > 5 && adr < adrHigh - 0.75 * (adrHigh - adrLow) && adr < adrAvg)
 //                    || (adrDayHigh - adrDayLow > 10 && adr < adrDayHigh - 0.75 * (adrDayHigh - adrDayLow) && adr < adrAvg));// && adrTRIN > 95;
@@ -235,11 +236,15 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                     || (adrDayHigh - adrDayLow > 10 && adr < adrDayHigh - 0.75 * (adrDayHigh - adrDayLow)));// && adrTRIN > 95;
             boolean shortZone2 = ((indexHigh - indexLow > windowHurdle && price < indexHigh - 0.75 * (indexHigh - indexLow) && price < indexAvg)
                     || (indexDayHigh - indexDayLow > dayHurdle && price < indexDayHigh - 0.75 * (indexDayHigh - indexDayLow) && price < indexAvg));// && adrTRIN > 95;
-            boolean shortZone3 = this.adrTRINAvg > 95;
-
+            //boolean shortZone3 = this.adrTRINAvg > 95;
+            boolean shortZone3=this.adrTRIN>this.adrTRINAvg+0.05 && this.adrTRIN>0.9;
+            
             Boolean buyZone = false;
             Boolean shortZone = false;
 
+            buyZone = atLeastTwo(buyZone1, buyZone2, buyZone3) ;
+            shortZone = atLeastTwo(shortZone1, shortZone2, shortZone3) ;
+            /*
             if (!scalpingMode) {
                 buyZone = (atLeastTwo(buyZone1, buyZone2, buyZone3) && adrTRIN < 90) || ((adr > 80 || adr < 20) && atLeastTwo(buyZone1, buyZone2, buyZone3) && adrTRIN < adrTRINAvg);
                 shortZone = (atLeastTwo(shortZone1, shortZone2, shortZone3) && adrTRIN > 95) || ((adr > 80 || adr < 20) && atLeastTwo(shortZone1, shortZone2, shortZone3) && adrTRIN > adrTRINAvg);
@@ -247,7 +252,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                 buyZone = (atLeastTwo(buyZone1, buyZone2, buyZone3) && adrTRIN < 90) || (atLeastTwo(buyZone1, buyZone2, buyZone3) && adrTRIN < adrTRINAvg);
                 shortZone = (atLeastTwo(shortZone1, shortZone2, shortZone3) && adrTRIN > 95) || (atLeastTwo(shortZone1, shortZone2, shortZone3) && adrTRIN > adrTRINAvg);
             }
-
+*/
             /*            
             if (!scalpingMode) {
                 buyZone = (atLeastTwo(buyZone1, buyZone2, buyZone3) && adrTRIN < 90) || ((adr > 80 || adr < 20) && atLeastTwo(buyZone1, buyZone2, buyZone3) && adr > adrAvg && adrTRIN < adrTRINAvg);
