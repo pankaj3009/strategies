@@ -80,11 +80,11 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
                 }
                 if (p.getPosition() > 0) {
                     //get take profit
-                    exit(p.getId(), EnumOrderSide.SELL, p.getPositionPrice() + takeProfit, 0, Parameters.symbol.get(p.getId()).getSymbol(), false, "DAY"); //take profit
-                    exit(p.getId(), EnumOrderSide.SELL, p.getPositionPrice() - stopLoss, p.getPositionPrice() - stopLoss, Parameters.symbol.get(p.getId()).getSymbol(), true, "DAY"); //stop loss
+                    exit(p.getId(), EnumOrderSide.SELL, p.getPositionPrice() + takeProfit, 0, Parameters.symbol.get(p.getId()).getSymbol(), false, "DAY",true); //take profit
+                    exit(p.getId(), EnumOrderSide.SELL, p.getPositionPrice() - stopLoss, p.getPositionPrice() - stopLoss, Parameters.symbol.get(p.getId()).getSymbol(), true, "DAY",true); //stop loss
                 } else if (p.getPosition() < 0) {
-                    exit(p.getId(), EnumOrderSide.COVER, p.getPositionPrice() - takeProfit, 0, Parameters.symbol.get(p.getId()).getSymbol(), false, "DAY"); //take profit
-                    exit(p.getId(), EnumOrderSide.COVER, p.getPositionPrice() + stopLoss, p.getPositionPrice() + stopLoss, Parameters.symbol.get(p.getId()).getSymbol(), true, "DAY"); //stop loss
+                    exit(p.getId(), EnumOrderSide.COVER, p.getPositionPrice() - takeProfit, 0, Parameters.symbol.get(p.getId()).getSymbol(), false, "DAY",true); //take profit
+                    exit(p.getId(), EnumOrderSide.COVER, p.getPositionPrice() + stopLoss, p.getPositionPrice() + stopLoss, Parameters.symbol.get(p.getId()).getSymbol(), true, "DAY",true); //stop loss
                 }
             }
         }
@@ -299,14 +299,14 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
             
             if (B1 && B2 && B3 && B4) {
                 logger.log(Level.INFO, "Buy Entry");
-                entry(futureID, EnumOrderSide.BUY, Parameters.symbol.get(futureID).getLastPrice(), 0);
+                entry(futureID, EnumOrderSide.BUY, Parameters.symbol.get(futureID).getLastPrice(), 0,true);
                 p.setId(futureID);
                 p.setPosition(Parameters.symbol.get(futureID).getMinsize() * getNumberOfContracts());
                 p.setPositionPrice(Parameters.symbol.get(futureID).getLastPrice());
 
             } else if (S1 && S2 && S3 && S4) {
                 logger.log(Level.INFO, "Short Entry");
-                entry(futureID, EnumOrderSide.SHORT, Parameters.symbol.get(id).getLastPrice(), 0);
+                entry(futureID, EnumOrderSide.SHORT, Parameters.symbol.get(id).getLastPrice(), 0,true);
                 p.setId(futureID);
                 p.setPosition(-Parameters.symbol.get(futureID).getMinsize() * getNumberOfContracts());
                 p.setPositionPrice(Parameters.symbol.get(futureID).getLastPrice());
