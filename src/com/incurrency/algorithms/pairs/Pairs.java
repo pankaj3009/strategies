@@ -190,9 +190,9 @@ TradingUtil.writeToFile(getStrategy() + ".csv",Parameters.symbol.get(p.buyid).ge
                     if (level!=0 && level < p.positionPrice - 5000) { //profit by a threshold
                         this.exit(p.buyid, EnumOrderSide.SELL, 0, 0, "", true, "",false);
                         this.exit(p.shortid, EnumOrderSide.COVER, 0, 0, "", true, "",false);
+                        TradingUtil.writeToFile(getStrategy() + ".csv",Parameters.symbol.get(p.buyid).getSymbol()+","+Parameters.symbol.get(p.shortid).getSymbol()+","+p.positionPrice+","+level+","+"PROFIT");
                         p.position = 0;
                         p.positionPrice = 0D;
-                        TradingUtil.writeToFile(getStrategy() + ".csv",Parameters.symbol.get(p.buyid).getSymbol()+","+Parameters.symbol.get(p.shortid).getSymbol()+","+p.positionPrice+","+level+","+"PROFIT");
 
                     }
                 }
