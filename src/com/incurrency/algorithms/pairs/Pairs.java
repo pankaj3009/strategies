@@ -97,7 +97,7 @@ public class Pairs extends Strategy implements BidAskListener {
                         String[] tempLine = initialLoad.get(i).split(",");
 
                         for (PairDefinition p : targetOrders) {
-                            if (p.buySymbol.equals(tempLine[0]) && p.shortSymbol.equals(tempLine[2])) {
+                            if (p.buySymbol.equals(tempLine[2]) && p.shortSymbol.equals(tempLine[0])) {
                                 p.entryPrice = tempLine[11];
                                 p.timeStamp = tempLine[8];
                                 p.active = true;
@@ -105,7 +105,7 @@ public class Pairs extends Strategy implements BidAskListener {
                             }
                         }
                         if (!updated) {
-                            PairDefinition tempPair = new PairDefinition(tempLine[0], tempLine[2], tempLine[8], tempLine[11], expiry);
+                            PairDefinition tempPair = new PairDefinition(tempLine[2], tempLine[0], tempLine[8], tempLine[11], expiry);
                             targetOrders.add(tempPair);
                         }
                     }
@@ -183,7 +183,7 @@ public class Pairs extends Strategy implements BidAskListener {
                         TradingUtil.writeToFile(getStrategy() + ".csv",Parameters.symbol.get(p.buyid).getSymbol()+","+Parameters.symbol.get(p.shortid).getSymbol()+","+p.entryPrice+","+level+","+"ENTRY");
                     }
                 } else if (p.position > 0) {
-                    if (level > p.positionPrice + 5000) { //profit by a threshold
+                    if (level < p.positionPrice - 5000) { //profit by a threshold
                         this.exit(p.buyid, EnumOrderSide.SELL, 0, 0, "", true, "",false);
                         this.exit(p.shortid, EnumOrderSide.COVER, 0, 0, "", true, "",false);
                         p.position = 0;
@@ -203,7 +203,7 @@ public class Pairs extends Strategy implements BidAskListener {
                         this.exit(p.buyid, EnumOrderSide.SELL, 0, 0, "", true, "",true);
                         this.exit(p.shortid, EnumOrderSide.COVER, 0, 0, "", true, "",true);
                         p.position = 0;
-                        if(level>p.positionPrice){
+                        if(level<p.positionPrice){
                         TradingUtil.writeToFile(getStrategy() + ".csv",Parameters.symbol.get(p.buyid).getSymbol()+","+Parameters.symbol.get(p.shortid).getSymbol()+","+p.positionPrice+","+level+","+"EOD Close Profit");
                         }else{
                         TradingUtil.writeToFile(getStrategy() + ".csv",Parameters.symbol.get(p.buyid).getSymbol()+","+Parameters.symbol.get(p.shortid).getSymbol()+","+p.positionPrice+","+level+","+"EOD Close Loss");                            
