@@ -188,7 +188,7 @@ public class Pairs extends Strategy implements BidAskListener {
                         this.exit(p.shortid, EnumOrderSide.COVER, 0, 0, "", true, "",false);
                         p.position = 0;
                         p.positionPrice = 0D;
-                        TradingUtil.writeToFile(getStrategy() + ".csv",Parameters.symbol.get(p.buyid).getSymbol()+","+Parameters.symbol.get(p.shortid).getSymbol()+","+p.positionPrice+5000+","+level+","+"PROFIT");
+                        TradingUtil.writeToFile(getStrategy() + ".csv",Parameters.symbol.get(p.buyid).getSymbol()+","+Parameters.symbol.get(p.shortid).getSymbol()+","+p.positionPrice+","+level+","+"PROFIT");
 
                     }
                 }
