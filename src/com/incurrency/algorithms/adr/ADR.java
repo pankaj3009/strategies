@@ -228,7 +228,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
             boolean buyZone2 = ((indexHigh - indexLow > windowHurdle && price > indexLow + 0.75 * (indexHigh - indexLow) && price > indexAvg)
                     || (indexDayHigh - indexDayLow > dayHurdle && price > indexDayLow + 0.75 * (indexDayHigh - indexDayLow) && price > indexAvg));// && adrTRIN < 90;
             //boolean buyZone3 = this.adrTRINAvg < 90 && this.adrTRINAvg > 0;
-            boolean buyZone3 = this.adrTRIN<this.adrTRINAvg-0.05 && this.adrTRIN<1;
+            boolean buyZone3 = this.adrTRIN<this.adrTRINAvg-1 && this.adrTRIN<110;
 
 //            boolean shortZone1 = ((adrHigh - adrLow > 5 && adr < adrHigh - 0.75 * (adrHigh - adrLow) && adr < adrAvg)
 //                    || (adrDayHigh - adrDayLow > 10 && adr < adrDayHigh - 0.75 * (adrDayHigh - adrDayLow) && adr < adrAvg));// && adrTRIN > 95;
@@ -237,7 +237,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
             boolean shortZone2 = ((indexHigh - indexLow > windowHurdle && price < indexHigh - 0.75 * (indexHigh - indexLow) && price < indexAvg)
                     || (indexDayHigh - indexDayLow > dayHurdle && price < indexDayHigh - 0.75 * (indexDayHigh - indexDayLow) && price < indexAvg));// && adrTRIN > 95;
             //boolean shortZone3 = this.adrTRINAvg > 95;
-            boolean shortZone3=this.adrTRIN>this.adrTRINAvg+0.05 && this.adrTRIN>1;
+            boolean shortZone3=this.adrTRIN>this.adrTRINAvg+1 && this.adrTRIN>90;
             
             Boolean buyZone = false;
             Boolean shortZone = false;
