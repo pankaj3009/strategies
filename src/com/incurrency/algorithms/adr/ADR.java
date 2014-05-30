@@ -228,7 +228,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
             boolean buyZone2 = ((indexHigh - indexLow > windowHurdle && price > indexLow + 0.75 * (indexHigh - indexLow) && price > indexAvg)
                     || (indexDayHigh - indexDayLow > dayHurdle && price > indexDayLow + 0.75 * (indexDayHigh - indexDayLow) && price > indexAvg));// && adrTRIN < 90;
             //boolean buyZone3 = this.adrTRINAvg < 90 && this.adrTRINAvg > 0;
-            boolean buyZone3 = (this.adrTRIN<this.adrTRINAvg-1 && this.adrTRIN>90 && this.adrTRIN<110)||(this.adrTRIN<90 && this.adrTRINAvg<90);
+            boolean buyZone3 = (this.adrTRIN<this.adrTRINAvg-5 && this.adrTRIN>90 && this.adrTRIN<110)||(this.adrTRIN<90 && this.adrTRINAvg<90);
 
 //            boolean shortZone1 = ((adrHigh - adrLow > 5 && adr < adrHigh - 0.75 * (adrHigh - adrLow) && adr < adrAvg)
 //                    || (adrDayHigh - adrDayLow > 10 && adr < adrDayHigh - 0.75 * (adrDayHigh - adrDayLow) && adr < adrAvg));// && adrTRIN > 95;
@@ -237,7 +237,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
             boolean shortZone2 = ((indexHigh - indexLow > windowHurdle && price < indexHigh - 0.75 * (indexHigh - indexLow) && price < indexAvg)
                     || (indexDayHigh - indexDayLow > dayHurdle && price < indexDayHigh - 0.75 * (indexDayHigh - indexDayLow) && price < indexAvg));// && adrTRIN > 95;
             //boolean shortZone3 = this.adrTRINAvg > 95;
-            boolean shortZone3=(this.adrTRIN>this.adrTRINAvg+1 && this.adrTRIN>90 && this.adrTRIN<110)||(this.adrTRIN>110 && this.adrTRINAvg>110);
+            boolean shortZone3=(this.adrTRIN>this.adrTRINAvg+5 && this.adrTRIN>90 && this.adrTRIN<110)||(this.adrTRIN>110 && this.adrTRINAvg>110);
             
             Boolean buyZone = false;
             Boolean shortZone = false;
@@ -302,7 +302,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                     TradingUtil.writeToFile(getStrategy()+".csv", adr + "," + adrTRIN + "," + tick + "," + tickTRIN + "," + price + "," + adrHigh + "," + adrLow + "," + adrAvg + "," + adrTRINHigh + "," + adrTRINLow + "," + adrTRINAvg + "," + indexHigh + "," + indexLow + "," + indexAvg + "," + indexDayHigh + "," + indexDayLow + "," + buyZone1 + "," + buyZone2 + "," + buyZone3 + "," + shortZone1 + "," + shortZone2 + "," + shortZone3 + "," + buyZone + "," + shortZone+","+"SCALPING SHORT");
                  }
             } else if (getPosition().get(id) == -1) {
-                if (buyZone || (price > indexLow + stopLoss && !shortZone) || new Date().compareTo(getEndDate()) > 0) { //stop loss
+                if (buyZone || ((price > indexLow + stopLoss && !shortZone)||(price<entryPrice+stopLoss)) || new Date().compareTo(getEndDate()) > 0) { //stop loss
                 logger.log(Level.INFO, " Strategy: {0}. adrHigh: {1},adrLow: {2},adrAvg: {3},adrTRINHigh: {4},adrTRINLow: {5},adrTRINAvg: {6},indexHigh :{7},indexLow :{8},indexAvg: {9}, buyZone1: {10}, buyZone2: {11}, buyZone 3: {12}, shortZone1: {13}, shortZone2: {14}, ShortZone3:{15}, ADR: {16}, ADRTrin: {17}, Tick: {18}, TickTrin: {19}, adrDayHigh: {20}, adrDayLow: {21}, IndexDayHigh: {22}, IndexDayLow: {23}", new Object[]{getStrategy(),adrHigh, adrLow, adrAvg, adrTRINHigh, adrTRINLow, adrTRINAvg, indexHigh, indexLow, indexAvg, buyZone1, buyZone2, buyZone3, shortZone1, shortZone2, shortZone3, adr, adrTRIN, tick, tickTRIN, adrDayHigh, adrDayLow, indexDayHigh, indexDayLow});
                     logger.log(Level.INFO, "Strategy: {0}. Cover Order. StopLoss. Price: {1}", new Object[]{getStrategy(),price});
                     exit(id, EnumOrderSide.COVER, price, 0, "", true, "DAY",true);
@@ -319,7 +319,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                     TradingUtil.writeToFile(getStrategy()+".csv", adr + "," + adrTRIN + "," + tick + "," + tickTRIN + "," + price + "," + adrHigh + "," + adrLow + "," + adrAvg + "," + adrTRINHigh + "," + adrTRINLow + "," + adrTRINAvg + "," + indexHigh + "," + indexLow + "," + indexAvg + "," + indexDayHigh + "," + indexDayLow + "," + buyZone1 + "," + buyZone2 + "," + buyZone3 + "," + shortZone1 + "," + shortZone2 + "," + shortZone3 + "," + buyZone + "," + shortZone+","+"COVER TAKE PROFIT");
                  }
             } else if (getPosition().get(id) == 1) {
-                if (shortZone || (price < indexHigh - stopLoss && !buyZone) || new Date().compareTo(getEndDate()) > 0) {
+                if (shortZone || ((price < indexHigh - stopLoss && !buyZone) ||(price<entryPrice-stopLoss)) || new Date().compareTo(getEndDate()) > 0) {
                 logger.log(Level.INFO, " Strategy: {0}. adrHigh: {1},adrLow: {2},adrAvg: {3},adrTRINHigh: {4},adrTRINLow: {5},adrTRINAvg: {6},indexHigh :{7},indexLow :{8},indexAvg: {9}, buyZone1: {10}, buyZone2: {11}, buyZone 3: {12}, shortZone1: {13}, shortZone2: {14}, ShortZone3:{15}, ADR: {16}, ADRTrin: {17}, Tick: {18}, TickTrin: {19}, adrDayHigh: {20}, adrDayLow: {21}, IndexDayHigh: {22}, IndexDayLow: {23}", new Object[]{getStrategy(),adrHigh, adrLow, adrAvg, adrTRINHigh, adrTRINLow, adrTRINAvg, indexHigh, indexLow, indexAvg, buyZone1, buyZone2, buyZone3, shortZone1, shortZone2, shortZone3, adr, adrTRIN, tick, tickTRIN, adrDayHigh, adrDayLow, indexDayHigh, indexDayLow});
                     logger.log(Level.INFO, " Strategy: {0}. Sell Order. StopLoss. Price: {1}", new Object[]{getStrategy(),price});
                     exit(id, EnumOrderSide.SELL, price, 0, "", true, "DAY",true);
