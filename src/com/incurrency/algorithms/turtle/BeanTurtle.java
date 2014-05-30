@@ -447,7 +447,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                 zScoreOnEntry.set(id, zscore);
                 entryBar.set(id, this.getCumVolume().get(id).size());
                 TradingUtil.writeToFile(getStrategy() + "datalogs.csv", Parameters.symbol.get(id).getSymbol() + "," +cumVolume.get(id).size()+","+ 0 + "," + indexZScoreYesterday + "," + symbolZScoreYesterday + "," + zscore + "," + highBoundary + "," + lowBoundary + "," + Parameters.symbol.get(futureid).getLastPrice() + "," + close.get(id)+","+relativeVol+","+entryBar.get(id)+","+zScoreOnEntry.get(id)+","+(zScoreOnEntry.get(id)-worstCaseLoss)*(this.getCumVolume().get(id).size()-entryBar.get(id))/(365-entryBar.get(id))+","+"SHORT");
-            } else if (getPosition().get(futureid) > 0 && (zscore < worstCaseLoss-(zScoreOnEntry.get(id)-worstCaseLoss)*(this.getCumVolume().get(id).size()-entryBar.get(id))/(365-entryBar.get(id)) || System.currentTimeMillis() > getEndDate().getTime())) {
+            } else if (getPosition().get(futureid) > 0 && (zscore < worstCaseLoss+(zScoreOnEntry.get(id)-worstCaseLoss)*(this.getCumVolume().get(id).size()-entryBar.get(id))/(365-entryBar.get(id)) || System.currentTimeMillis() > getEndDate().getTime())) {
                 this.exit(futureid, EnumOrderSide.SELL, Parameters.symbol.get(futureid).getLastPrice(), 0, "", true, "DAY",true);
                 zScoreOnEntry.set(id, 0D);
                 entryBar.set(id, 0);
