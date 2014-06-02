@@ -69,8 +69,9 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
             for (PositionDetails p : allPositions.values()) {
                 double takeProfit;
                 double stopLoss;
-                ArrayList<Double> atr = TechnicalUtil.getATR(ohlcv.get(p.getId()), 10);
-                ArrayList<BeanOHLC> b = ohlcv.get(p.getId());
+                int stockid=TradingUtil.getIDFromFuture(p.getId());
+                ArrayList<Double> atr = TechnicalUtil.getATR(ohlcv.get(stockid), 10);
+                ArrayList<BeanOHLC> b = ohlcv.get(stockid);
                 if (b.get(b.size() - 1).getOpenTime() == today) {
                     takeProfit = atr.get(atr.size() - 2) * 2; //market has opened and the last beanOHLC is for today. So take the second last bar.
                     stopLoss = atr.get(atr.size() - 2) * 3;
@@ -96,7 +97,7 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
         for (int i = 0; i < getStrategySymbols().size(); i++) {
             if(Parameters.symbol.get(getStrategySymbols().get(i)).getType().compareTo("STK")==0){
             int futureID=TradingUtil.getFutureIDFromSymbol(getStrategySymbols().get(i), firstMonthExpiry);
-            allPositions.put(i, new PositionDetails(futureID));
+            allPositions.put(futureID, new PositionDetails(futureID));
             logger.log(Level.INFO," Symbol Name: {0}, id: {1}, futureid: {2}",new Object[]{Parameters.symbol.get(getStrategySymbols().get(i)).getSymbol(),getStrategySymbols().get(i),futureID});
             }
         }
@@ -255,8 +256,8 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
         int id = event.getSymbolID(); //here symbolID is with zero base.
         if (Parameters.symbol.get(id).getType().compareTo("STK")==0 && getStrategySymbols().contains(id)){
         int futureID=TradingUtil.getFutureIDFromSymbol(id,firstMonthExpiry);
-        PositionDetails p = allPositions.get(id);
-        if (p!=null && event.getTickType() == com.ib.client.TickType.LAST && getStrategySymbols().contains(id) && p.getPosition() == 0 && getEndDate().before(new Date())) {//check for entry
+        PositionDetails p = allPositions.get(futureID);
+        if (p!=null && event.getTickType() == com.ib.client.TickType.LAST && getStrategySymbols().contains(id) && p.getPosition() == 0 && getEndDate().after(new Date())) {//check for entry
             BeanOHLC lastBar = ohlcv.get(id).get(ohlcv.get(id).size() - 1);
             long today;
             if (getTimeZone().compareTo("") == 0) {
