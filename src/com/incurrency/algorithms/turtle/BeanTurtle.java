@@ -232,6 +232,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
             i.setName("Index");
             i.start();
             i.join();
+            Thread.sleep(10000);
         } catch (InterruptedException ex) {
             logger.log(Level.SEVERE, null, ex);
         }
