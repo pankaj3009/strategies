@@ -150,6 +150,10 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                 Collections.reverse(prices);
                 ArrayList<Double> sdArray = TechnicalUtil.getStandardDeviationOfReturns(prices, 30, 9);
                 int size = sdArray.size();
+                if(sdArray==null){
+                    logger.log(Level.INFO, "ALL,{0},SD Array was null. Symbol:{1}",new Object[]{"IDT",Parameters.symbol.get(i).getSymbol()});
+                    sd.set(i, 0D);
+                }else{
                 double symbolSD = sdArray.get(size - 1);
                 sd.set(i, symbolSD);
                 long today = Long.parseLong(DateUtil.getFormatedDate("yyyyMMdd", getStartDate().getTime()));
@@ -160,7 +164,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                 yesterdayZScore.set(i, ((close_1 / close_2) - 1) / symbolSD);
                 yesterdayClose.set(i, close_1);
                 TradingUtil.writeToFile(getStrategy() + "datalogs.csv", Parameters.symbol.get(i).getSymbol() + "," + 0+","+close_1 + "," + 0 + "," + (close_1 / close_2 - 1) / symbolSD + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0+","+"initialization");
-
+                }
             }
         }
         if (!Launch.headless) {
