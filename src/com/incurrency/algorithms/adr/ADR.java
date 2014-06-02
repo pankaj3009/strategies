@@ -249,6 +249,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
             if ((!buyZone && tradingSide == 1 && getPosition().get(id) == 0) || (!shortZone && tradingSide == -1 && getPosition().get(id) == 0)) {
                 logger.log(Level.INFO, "Trading Side Reset. New Trading Side: {0}, Earlier trading Side: {1}", new Object[]{0, tradingSide});
                 tradingSide = 0;
+                TradingUtil.writeToFile(getStrategy() + ".csv", buyZone + "," + shortZone + "," + adr + "," + adrHigh + "," + adrLow + "," + adrDayHigh + "," + adrDayLow + "," + adrAvg + "," + buyZone1 + "," + shortZone1 + "," + price + "," + indexHigh + "," + indexLow + "," + indexDayHigh + "," + indexDayLow + "," + indexAvg + "," + buyZone2 + "," + shortZone2 + "," + adrTRIN + "," + adrTRINAvg + "," + buyZone3 + "," + shortZone3 + "," + tick + "," + tickTRIN + "," + adrTRINHigh + "," + adrTRINLow + "," + "TRADING SIDE RESET");               
             }
 
             if (getPosition().get(id) == 0 && new Date().compareTo(getEndDate()) < 0) {
