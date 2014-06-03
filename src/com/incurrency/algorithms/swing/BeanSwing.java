@@ -257,7 +257,7 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
         if (Parameters.symbol.get(id).getType().compareTo("STK")==0 && getStrategySymbols().contains(id)){
         int futureID=TradingUtil.getFutureIDFromSymbol(id,firstMonthExpiry);
         PositionDetails p = allPositions.get(futureID);
-        if (p!=null && event.getTickType() == com.ib.client.TickType.LAST && getStrategySymbols().contains(id) && p.getPosition() == 0 && getEndDate().after(new Date())) {//check for entry
+        if (p!=null && ohlcv.get(id) !=null && ohlcv.get(id).size()>0 && event.getTickType() == com.ib.client.TickType.LAST && getStrategySymbols().contains(id) && p.getPosition() == 0 && getEndDate().after(new Date())) {//check for entry
             BeanOHLC lastBar = ohlcv.get(id).get(ohlcv.get(id).size() - 1);
             long today;
             if (getTimeZone().compareTo("") == 0) {

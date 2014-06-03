@@ -46,6 +46,8 @@ public class Pairs extends Strategy implements BidAskListener {
     private String expiry;
     private String path;
     private String pairsFileName;
+    private double takeProfit;
+    private double stopLoss;
 
     public Pairs(MainAlgorithm m, String parameterFile, ArrayList<String> accounts) {
         super(m, "pair", "FUT", parameterFile, accounts);
@@ -142,6 +144,8 @@ public class Pairs extends Strategy implements BidAskListener {
         pairProfitTarget = Double.parseDouble(System.getProperty("PairProfitTarget"));
         path=System.getProperty("Path");
         pairsFileName=System.getProperty("PairsFileName");
+        takeProfit=System.getProperty("TakeProfit")!=null?Double.parseDouble(System.getProperty("TakeProfit")):0D;
+        stopLoss=System.getProperty("StopLoss")!=null?Double.parseDouble(System.getProperty("StopLoss")):0D;
         String concatAccountNames = "";
         for (String account : getAccounts()) {
             concatAccountNames = ":" + account;
@@ -151,7 +155,10 @@ public class Pairs extends Strategy implements BidAskListener {
         logger.log(Level.INFO, "futures expiry being traded: {0}", expiry);
         logger.log(Level.INFO, "Pair Profit Target: {0}", pairProfitTarget);
         logger.log(Level.INFO, "File Path: {0}", path);
-        logger.log(Level.INFO, "Pairs File: {0}", pairsFileName);   
+        logger.log(Level.INFO, "Pairs File: {0}", pairsFileName); 
+        logger.log(Level.INFO, "Take Profit: {0}", takeProfit);
+        logger.log(Level.INFO, "Stop Loss: {0}", stopLoss);
+        
     }
 
     @Override
@@ -187,13 +194,19 @@ public class Pairs extends Strategy implements BidAskListener {
                         TradingUtil.writeToFile(getStrategy() + ".csv",Parameters.symbol.get(p.buyid).getSymbol()+","+Parameters.symbol.get(p.shortid).getSymbol()+","+p.entryPrice+","+level+","+"ENTRY");
                     }
                 } else if (p.position > 0) {
-                    if (level!=0 && level < p.positionPrice - 5000) { //profit by a threshold
+                    if (level!=0 && takeProfit>0 && level < p.positionPrice - takeProfit) { //profit by a threshold
                         this.exit(p.buyid, EnumOrderSide.SELL, 0, 0, "", true, "",false);
                         this.exit(p.shortid, EnumOrderSide.COVER, 0, 0, "", true, "",false);
                         TradingUtil.writeToFile(getStrategy() + ".csv",Parameters.symbol.get(p.buyid).getSymbol()+","+Parameters.symbol.get(p.shortid).getSymbol()+","+p.positionPrice+","+level+","+"PROFIT");
                         p.position = 0;
                         p.positionPrice = 0D;
 
+                    }else if(level!=0 && stopLoss>0 && level > p.positionPrice + stopLoss){
+                        this.exit(p.buyid, EnumOrderSide.SELL, 0, 0, "", true, "",false);
+                        this.exit(p.shortid, EnumOrderSide.COVER, 0, 0, "", true, "",false);
+                        TradingUtil.writeToFile(getStrategy() + ".csv",Parameters.symbol.get(p.buyid).getSymbol()+","+Parameters.symbol.get(p.shortid).getSymbol()+","+p.positionPrice+","+level+","+"STOP LOSS");
+                        p.position = 0;
+                        p.positionPrice = 0D;                        
                     }
                 }
             }
