@@ -261,9 +261,9 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
             BeanOHLC lastBar = ohlcv.get(id).get(ohlcv.get(id).size() - 1);
             long today;
             if (getTimeZone().compareTo("") == 0) {
-                today = Long.parseLong(DateUtil.getFormatedDate("yyyymmdd", new Date().getTime(), TimeZone.getDefault()));
+                today = Long.parseLong(DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getDefault()));
             } else {
-                today = Long.parseLong(DateUtil.getFormatedDate("yyyymmdd", new Date().getTime(), TimeZone.getTimeZone(getTimeZone())));
+                today = Long.parseLong(DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getTimeZone(getTimeZone())));
             }
             lastBar.setClose(Parameters.symbol.get(id).getLastPrice());
             lastBar.setHigh(Parameters.symbol.get(id).getHighPrice());
@@ -273,7 +273,7 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
             lastBar.setOpenTime(today);
             ArrayList<BeanOHLC> tempHistoricalData = ohlcv.get(id);
             if (lastBar.getOpenTime() == today) { //replace the last bar
-                tempHistoricalData.add(tempHistoricalData.size() - 1, lastBar);
+                tempHistoricalData.set(tempHistoricalData.size() - 1, lastBar);
                 ohlcv.put(id, tempHistoricalData);
             } else { //insert a new bar
                 tempHistoricalData.add(lastBar);
