@@ -55,9 +55,6 @@ public class Pairs extends Strategy implements BidAskListener {
     public Pairs(MainAlgorithm m, String parameterFile, ArrayList<String> accounts) {
         super(m, "pair", "FUT", parameterFile, accounts);
         loadParameters("pair", parameterFile);
-        for (BeanSymbol s : Parameters.symbol) {
-            getPosition().put(s.getSerialno() - 1, 0);
-        }
         TradingUtil.writeToFile(getStrategy() + ".csv", "Bought Symbol, Sold Symbol,Target Spread, Spread Available,Trade Type");
 
         String[] tempStrategyArray = parameterFile.split("\\.")[0].split("-");
