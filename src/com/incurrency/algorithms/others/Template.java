@@ -7,10 +7,10 @@ package com.incurrency.algorithms.others;
 import com.incurrency.algorithms.pairs.Pairs;
 import com.RatesClient.Subscribe;
 import com.incurrency.framework.BeanConnection;
+import com.incurrency.framework.BeanPosition;
 import com.incurrency.framework.BeanSymbol;
 import com.incurrency.framework.MainAlgorithm;
 import com.incurrency.framework.Parameters;
-import com.incurrency.framework.PositionDetails;
 import com.incurrency.framework.Strategy;
 import com.incurrency.framework.TradeEvent;
 import com.incurrency.framework.TradeListener;
@@ -33,7 +33,7 @@ public class Template extends Strategy implements TradeListener {
         super(m, "pair", "FUT", parameterFile, accounts);
         loadParameters("pair", parameterFile);
         for (BeanSymbol s : Parameters.symbol) {
-            getPosition().put(s.getSerialno() - 1, new PositionDetails(s.getSerialno()-1));
+            getPosition().put(s.getSerialno() - 1, new BeanPosition(s.getSerialno()-1,getStrategy()));
         }
         TradingUtil.writeToFile(getStrategy() + ".csv","comma seperated header columns ");
         
