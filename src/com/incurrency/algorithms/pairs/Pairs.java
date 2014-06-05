@@ -48,9 +48,9 @@ public class Pairs extends Strategy implements BidAskListener {
     private String pairsFileName;
     private double takeProfit;
     private double stopLoss;
-    private int minutesToStale; //time that is allowed to elapse after order timestamp becomes stale
-    private int orderReadingFrequency; //frequency at which timer is run and orders read
-    private int restPeriodAfterSLHit; //rest after a SL is hit
+    private int minutesToStale=15; //time that is allowed to elapse after order timestamp becomes stale
+    private int orderReadingFrequency=10; //frequency at which timer is run and orders read
+    private int restPeriodAfterSLHit=20; //rest after a SL is hit
 
     public Pairs(MainAlgorithm m, String parameterFile, ArrayList<String> accounts) {
         super(m, "pair", "FUT", parameterFile, accounts);
