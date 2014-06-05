@@ -146,7 +146,7 @@ public class Pairs extends Strategy implements BidAskListener {
         pairsFileName=System.getProperty("PairsFileName");
         takeProfit=System.getProperty("TakeProfit")!=null?Double.parseDouble(System.getProperty("TakeProfit")):0D;
         stopLoss=System.getProperty("StopLoss")!=null?Double.parseDouble(System.getProperty("StopLoss")):0D;
-        minutesToStale=System.getProperty("MinutesToStale")!=null?Integer.parseInt("MinutesToStale"):15;
+        //minutesToStale=System.getProperty("MinutesToStale")!=null?Integer.parseInt("MinutesToStale"):15;
         orderReadingFrequency=System.getProperty("OrderReadingFrequency")!=null?Integer.parseInt("OrderReadingFrequency"):10;
         restPeriodAfterSLHit=System.getProperty("RestPeriodAfterSLHit")!=null?Integer.parseInt("RestPeriodAfterSLHit"):20;
         String concatAccountNames = "";
