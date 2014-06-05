@@ -16,22 +16,18 @@ import com.incurrency.framework.EnumOrderSide;
 import com.incurrency.framework.HistoricalBars;
 import com.incurrency.framework.Launch;
 import com.incurrency.framework.MainAlgorithm;
-import com.incurrency.framework.OrderLink;
 import com.incurrency.framework.Parameters;
 import com.incurrency.framework.Splits;
 import com.incurrency.framework.TechnicalUtil;
-import com.incurrency.framework.Trade;
 import com.incurrency.framework.TradeEvent;
 import com.incurrency.framework.TradeListener;
 import com.incurrency.framework.TradingUtil;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -55,7 +51,7 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
     private String firstMonthExpiry;
     private ArrayList<Splits> splits = new ArrayList();
     Timer preProcessing;
-    private HashMap<Integer, BeanPosition> allPositions = new HashMap<>();
+
     TimerTask runOpeningOrders = new TimerTask() {
         @Override
         public void run() {
@@ -67,7 +63,7 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
                 today = Long.parseLong(DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getTimeZone(getTimeZone())));
             }
             //place SL and TP OCO orders
-            for (BeanPosition p : allPositions.values()) {
+            for (BeanPosition p : getPosition().values()) {
                 double takeProfit;
                 double stopLoss;
                 int stockid = TradingUtil.getIDFromFuture(p.getSymbolid());
@@ -95,13 +91,6 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
     public BeanSwing(MainAlgorithm m, String parameterFile, ArrayList<String> accounts) {
         super(m, "swing", "FUT", parameterFile, accounts);
         loadParameters("swing", parameterFile);
-        for (int i = 0; i < getStrategySymbols().size(); i++) {
-            if (Parameters.symbol.get(getStrategySymbols().get(i)).getType().compareTo("STK") == 0) {
-                int futureID = TradingUtil.getFutureIDFromSymbol(getStrategySymbols().get(i), firstMonthExpiry);
-                allPositions.put(futureID, new BeanPosition(futureID,getStrategy()));
-                logger.log(Level.INFO, " Symbol Name: {0}, id: {1}, futureid: {2}", new Object[]{Parameters.symbol.get(getStrategySymbols().get(i)).getSymbol(), getStrategySymbols().get(i), futureID});
-            }
-        }
         String[] tempStrategyArray = parameterFile.split("\\.")[0].split("-");
         for (BeanConnection c : Parameters.connection) {
             c.getWrapper().addTradeListener(this);
@@ -110,58 +99,7 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
         if (Subscribe.tes != null) {
             Subscribe.tes.addTradeListener(this);
         }
-        try {
-            // Load open positions in the program.
-            File f = new File(getOrderFile());
-            if (f.exists() && !f.isDirectory()) {
-                ArrayList<Trade> allOrders = Parameters.readTradesWithCsvBeanReader(getOrderFile());
-                Iterator<Trade> iter = allOrders.iterator();
-                while (iter.hasNext()) {
-                    if (iter.next().getExitPrice() > 0) {
-                        iter.remove();
-                    }
-                }
-                iter = allOrders.iterator();
-                while (iter.hasNext()) {
-                    Trade tr = iter.next();
-                    int tempPosition = 0;
-                    int id = TradingUtil.getIDFromSymbol(tr);
-                    if (id >= 0 && getStrategySymbols().contains(id)) {
-                        tempPosition = allPositions.get(id).getPosition();
-                        tempPosition = tr.getEntrySide() == EnumOrderSide.BUY ? tempPosition + tr.getEntrySize() : tempPosition - tr.getEntrySize();
-                        BeanPosition p = new BeanPosition(id,getStrategy());
-                        p.setPositionInitDate(DateUtil.parseDate("yyyy-MM-dd HH:mm:ss", tr.getEntryTime(), getTimeZone()));
-                        p.setPosition(tempPosition);
-                        p.setPrice(tr.getEntryPrice());
-                        p.setSymbolid(id);
-                        iter.remove();
-                    } else {
-                        logger.log(Level.SEVERE, "Error compiling open positions. No symbol found for symbol:{0},Type:{1}", new Object[]{Parameters.symbol.get(id).getSymbol(),Parameters.symbol.get(id).getType()});
-                    }
-                }
-               for(Trade tr: allOrders){
-                  getTrades().put(new OrderLink(tr.getEntryID(),"Order"), tr);
-               }
-               
-               ArrayList<Trade> allTrades = Parameters.readTradesWithCsvBeanReader(getTradeFile());
-                iter = allTrades.iterator();
-                while (iter.hasNext()) {
-                    if (iter.next().getExitPrice() > 0) {
-                        iter.remove();
-                    }
-                }
-               for(Trade tr: allOrders){
-                  getTrades().put(new OrderLink(tr.getEntryID(),"Order"), tr);
-               }                
                 
-                Timer openProcessing = new Timer("Timer: Swing Opening Orders");
-                openProcessing.schedule(runOpeningOrders, com.incurrency.framework.DateUtil.addSeconds(new Date(), (1) * 60));
-                
-            }
-        } catch (Exception ex) {
-            logger.log(Level.SEVERE, null, ex);
-        }
-        
         getDailyHistoricalData("swing", "STK");
         
         try {
@@ -268,7 +206,7 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
             int id = event.getSymbolID(); //here symbolID is with zero base.
             if (Parameters.symbol.get(id).getType().compareTo("STK") == 0 && getStrategySymbols().contains(id)) {
                 int futureID = TradingUtil.getFutureIDFromSymbol(id, firstMonthExpiry);
-                BeanPosition p = allPositions.get(futureID);
+                BeanPosition p = getPosition().get(futureID);
                 if (p != null && ohlcv.get(id) != null && ohlcv.get(id).size() > 0 && event.getTickType() == com.ib.client.TickType.LAST && getStrategySymbols().contains(id) && p.getPosition() == 0 && getEndDate().after(new Date())) {//check for entry
                     BeanOHLC lastBar = ohlcv.get(id).get(ohlcv.get(id).size() - 1);
                     long today;
@@ -323,8 +261,7 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
                         p.setPosition(-Parameters.symbol.get(futureID).getMinsize() * getNumberOfContracts());
                         p.setPrice(Parameters.symbol.get(futureID).getLastPrice());
                     }
-                }
-                
+                }                
             }
         } catch (Exception e) {
             logger.log(Level.SEVERE, null, e);
