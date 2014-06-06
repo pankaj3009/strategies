@@ -10,6 +10,7 @@ import com.incurrency.framework.BeanConnection;
 import com.incurrency.framework.BeanOHLC;
 import com.incurrency.framework.BeanPosition;
 import com.incurrency.framework.BeanSymbol;
+import com.incurrency.framework.BrokerageRate;
 import com.incurrency.framework.DateUtil;
 import com.incurrency.framework.EnumBarValue;
 import com.incurrency.framework.EnumOrderSide;
@@ -50,6 +51,7 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
     private String split;
     private String firstMonthExpiry;
     private ArrayList<Splits> splits = new ArrayList();
+    boolean tradeFutures=true;
     Timer preProcessing;
 
     TimerTask runOpeningOrders = new TimerTask() {
@@ -90,6 +92,11 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
     
     public BeanSwing(MainAlgorithm m, String parameterFile, ArrayList<String> accounts) {
         super(m, "swing", "FUT", parameterFile, accounts);
+        if(!tradeFutures){
+         for (BrokerageRate b: getBrokerageRate()){
+            b.type="STK";
+        }
+        }
         loadParameters("swing", parameterFile);
         String[] tempStrategyArray = parameterFile.split("\\.")[0].split("-");
         for (BeanConnection c : Parameters.connection) {
@@ -168,6 +175,7 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
         // Initialize Variables
         split = System.getProperty("Splits") == null ? "" : System.getProperty("Splits");
         firstMonthExpiry = System.getProperty("FirstMonthExpiry");
+        tradeFutures=Boolean.parseBoolean(System.getProperty("TradeFutures"));
         List<String> items = Arrays.asList(split.split("\\s*;\\s*"));
         for (String str : items) {
             List<String> temp = Arrays.asList(str.split("\\s*,\\s*"));
@@ -205,7 +213,12 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
         try {
             int id = event.getSymbolID(); //here symbolID is with zero base.
             if (Parameters.symbol.get(id).getType().compareTo("STK") == 0 && getStrategySymbols().contains(id)) {
-                int futureID = TradingUtil.getFutureIDFromSymbol(id, firstMonthExpiry);
+                int futureID=-1;
+                if(tradeFutures){
+                futureID = TradingUtil.getFutureIDFromSymbol(id, firstMonthExpiry);
+                }else{
+                    futureID=id;
+                }
                 BeanPosition p = getPosition().get(futureID);
                 if (p != null && ohlcv.get(id) != null && ohlcv.get(id).size() > 0 && event.getTickType() == com.ib.client.TickType.LAST && getStrategySymbols().contains(id) && p.getPosition() == 0 && getEndDate().after(new Date())) {//check for entry
                     BeanOHLC lastBar = ohlcv.get(id).get(ohlcv.get(id).size() - 1);
