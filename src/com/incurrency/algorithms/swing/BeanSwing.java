@@ -106,7 +106,7 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
         if (Subscribe.tes != null) {
             Subscribe.tes.addTradeListener(this);
         }
-                
+        TradingUtil.writeToFile(getStrategy() + ".csv", "symbol, stock price,future price,volume,trend yesterday,trend today,swing level today,MA Volume yesterday, MACD yesterday,MACD Price Percentage,RSI,B1,B2,B3,B4,S1,S2,S3,S4,Current Position,Event");                
         getDailyHistoricalData("swing", "STK");
         
         try {
@@ -256,19 +256,19 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
                     Boolean S2 = lastBar.getVolume() > volumeMA.get(volumeMA.size() - 2);
                     Boolean S3 = macdPercentageOfPrice < 0 && macdPercentageOfPrice > -100;
                     Boolean S4 = rsi.get(rsi.size() - 1) < 30 && rsi.get(rsi.size() - 1) > 10;
+                    int position=getPosition().get(futureID)==null?0:getPosition().get(futureID).getPosition();
                     //log scan
-                    logger.log(Level.INFO, "Symbol: {0}, tempSwing: {1}, tempTrend: {2}, volumeMA: {3}, macd: {4}, rsi: {5},B1: {6}, B2: {7}, B3: {8}, B4: {9}, S1: {10}, S2: {11}, S3: {12}, S4 :{13}",
-                            new Object[]{Parameters.symbol.get(id).getSymbol(), tempSwing.get(tempSwing.size() - 1), tempTrend.get(tempTrend.size() - 1), volumeMA.get(volumeMA.size() - 2), macd.get(macd.size() - 2), rsi.get(rsi.size() - 1), B1, B2, B3, B4, S1, S2, S3, S4});                    
-                    
-                    if (B1 && B2 && B3 && B4) {
-                        logger.log(Level.INFO, "Buy Entry");
+                    TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(id).getSymbol()+","+Parameters.symbol.get(id).getLastPrice()+","+Parameters.symbol.get(futureID).getLastPrice()+","+Parameters.symbol.get(id).getVolume()+","+
+                            tempTrend.get(tempTrend.size() - 2)+","+tempTrend.get(tempTrend.size()-1)+","+tempSwing.get(tempSwing.size()-1)+","+volumeMA.get(volumeMA.size() - 2)+","+macd.get(macd.size() - 2)+","+
+                            macdPercentageOfPrice+","+rsi.get(rsi.size() - 1)+","+B1+","+B2+","+B3+","+B4+","+S1+","+S2+","+S3+","+S4+","+position+","+"SCAN");
+
+                    if (B1 && B2 && B3 && B4 && position<=0) {
                         entry(futureID, EnumOrderSide.BUY, Parameters.symbol.get(futureID).getLastPrice(), 0, true);
                         p.setSymbolid(futureID);
                         p.setPosition(Parameters.symbol.get(futureID).getMinsize() * getNumberOfContracts());
                         p.setPrice(Parameters.symbol.get(futureID).getLastPrice());
                         
-                    } else if (S1 && S2 && S3 && S4) {
-                        logger.log(Level.INFO, "Short Entry");
+                    } else if (S1 && S2 && S3 && S4 && position>=0) {
                         entry(futureID, EnumOrderSide.SHORT, Parameters.symbol.get(id).getLastPrice(), 0, true);
                         p.setSymbolid(futureID);
                         p.setPosition(-Parameters.symbol.get(futureID).getMinsize() * getNumberOfContracts());
