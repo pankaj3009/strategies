@@ -202,8 +202,7 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
                 Launch.setMessage("Starting request of Historical Data");
             }
             t.start();
-            t.join();
-        } catch (InterruptedException ex) {
+            } catch (Exception ex) {
             logger.log(Level.SEVERE, null, ex);
         }
     }
