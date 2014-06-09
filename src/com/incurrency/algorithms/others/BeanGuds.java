@@ -10,7 +10,7 @@ import com.incurrency.framework.OrderPlacement;
 import com.incurrency.framework.Algorithm;
 import com.incurrency.framework.BeanSymbol;
 import com.incurrency.framework.DateUtil;
-import com.incurrency.framework.EnumOrderIntent;
+import com.incurrency.framework.EnumOrderStage;
 import com.incurrency.framework.EnumOrderSide;
 import com.incurrency.framework.Launch;
 import com.incurrency.framework.Parameters;
@@ -210,10 +210,10 @@ public class BeanGuds implements Serializable, TradeListener {
             if (true) {
                 //Short Signal
                 if (lastPrice > highThreshold.get(id) || Parameters.symbol.get(id).getOpenPrice() > highThreshold.get(id)) {
-                    //MainAlgorithm.strategyInstances.tes.fireOrderEvent(-1, -1, Parameters.symbol.get(id), EnumOrderSide.SHORT, Parameters.symbol.get(id).getMinsize(), Math.ceil(highThreshold.get(id) * 20) / 20, 0, "GUDS", 3, exit, EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippage);
+                    //MainAlgorithm.strategyInstances.tes.fireOrderEvent(-1, -1, Parameters.symbol.get(id), EnumOrderSide.SHORT, Parameters.symbol.get(id).getMinsize(), Math.ceil(highThreshold.get(id) * 20) / 20, 0, "GUDS", 3, exit, EnumOrderStage.Init, maxOrderDuration, dynamicOrderDuration, maxSlippage);
                 } //Buy Signal
                 else if (lastPrice < lowThreshold.get(id) || Parameters.symbol.get(id).getOpenPrice() < lowThreshold.get(id)) {
-                    //Launch.algo.getParamTurtle().getOms().tes.fireOrderEvent(-1, -1, Parameters.symbol.get(id), EnumOrderSide.BUY, Parameters.symbol.get(id).getMinsize(), Math.ceil(lowThreshold.get(id) * 20) / 20, 0, "GUDS", 3, exit, EnumOrderIntent.Init, maxOrderDuration, dynamicOrderDuration, maxSlippage);
+                    //Launch.algo.getParamTurtle().getOms().tes.fireOrderEvent(-1, -1, Parameters.symbol.get(id), EnumOrderSide.BUY, Parameters.symbol.get(id).getMinsize(), Math.ceil(lowThreshold.get(id) * 20) / 20, 0, "GUDS", 3, exit, EnumOrderStage.Init, maxOrderDuration, dynamicOrderDuration, maxSlippage);
                 }
             } else if (!luckyOrdersPlaced.get(id)) {
                 //amend orders and replace

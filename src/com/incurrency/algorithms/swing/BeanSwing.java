@@ -13,10 +13,14 @@ import com.incurrency.framework.BeanSymbol;
 import com.incurrency.framework.BrokerageRate;
 import com.incurrency.framework.DateUtil;
 import com.incurrency.framework.EnumBarValue;
+import com.incurrency.framework.EnumNotification;
+import com.incurrency.framework.EnumOrderStage;
 import com.incurrency.framework.EnumOrderSide;
+import com.incurrency.framework.EnumOrderType;
 import com.incurrency.framework.HistoricalBars;
 import com.incurrency.framework.Launch;
 import com.incurrency.framework.MainAlgorithm;
+import com.incurrency.framework.NotificationEvent;
 import com.incurrency.framework.Parameters;
 import com.incurrency.framework.Splits;
 import com.incurrency.framework.TechnicalUtil;
@@ -80,11 +84,13 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
                 }
                 if (p.getPosition() > 0) {
                     //get take profit
-                    exit(p.getSymbolid(), EnumOrderSide.SELL, p.getPrice() + takeProfit, 0, Parameters.symbol.get(p.getSymbolid()).getSymbol(), false, "DAY", true); //take profit
-                    exit(p.getSymbolid(), EnumOrderSide.SELL, p.getPrice() - stopLoss, p.getPrice() - stopLoss, Parameters.symbol.get(p.getSymbolid()).getSymbol(), true, "DAY", true); //stop loss
+                    String passToOrderObject=p.getSymbolid()+DateUtil.getFormatedDate("yyyyMMdd", p.getPositionInitDate().getTime());
+                    exit(p.getSymbolid(), EnumOrderSide.SELL,EnumOrderType.LMT, p.getPrice() + takeProfit, 0, Parameters.symbol.get(p.getSymbolid()).getSymbol(), false, "DAY", false,EnumNotification.OCOTP,passToOrderObject); //take profit
+                    exit(p.getSymbolid(), EnumOrderSide.SELL,EnumOrderType.LMT, p.getPrice() - stopLoss, p.getPrice() - stopLoss, Parameters.symbol.get(p.getSymbolid()).getSymbol(), true, "DAY", false,EnumNotification.OCOSL,passToOrderObject); //stop loss
                 } else if (p.getPosition() < 0) {
-                    exit(p.getSymbolid(), EnumOrderSide.COVER, p.getPrice() - takeProfit, 0, Parameters.symbol.get(p.getSymbolid()).getSymbol(), false, "DAY", true); //take profit
-                    exit(p.getSymbolid(), EnumOrderSide.COVER, p.getPrice() + stopLoss, p.getPrice() + stopLoss, Parameters.symbol.get(p.getSymbolid()).getSymbol(), true, "DAY", true); //stop loss
+                    String passToOrderObject=p.getSymbolid()+DateUtil.getFormatedDate("yyyyMMdd", p.getPositionInitDate().getTime());
+                    exit(p.getSymbolid(), EnumOrderSide.COVER,EnumOrderType.LMT, p.getPrice() - takeProfit, 0, Parameters.symbol.get(p.getSymbolid()).getSymbol(), false, "DAY", false,EnumNotification.OCOTP,passToOrderObject); //take profit
+                    exit(p.getSymbolid(), EnumOrderSide.COVER,EnumOrderType.LMT, p.getPrice() + stopLoss, p.getPrice() + stopLoss, Parameters.symbol.get(p.getSymbolid()).getSymbol(), true, "DAY", false,EnumNotification.OCOSL,passToOrderObject); //stop loss
                 }
             }
         }
@@ -108,6 +114,7 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
         }
         TradingUtil.writeToFile(getStrategy() + ".csv", "symbol, stock price,future price,volume,trend yesterday,trend today,swing level today,MA Volume yesterday, MACD yesterday,MACD Price Percentage,RSI,B1,B2,B3,B4,S1,S2,S3,S4,Current Position,Event");                
         getDailyHistoricalData("swing", "STK");
+        getOms().addNotificationListeners(this);
         
         try {
             Class.forName("com.mysql.jdbc.Driver");
@@ -192,6 +199,28 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
         }
     }
     
+    @Override
+        public void notificationReceived(NotificationEvent event) {
+        switch (event.getNotify().getNotificationType()){
+            case SL:
+                logger.log(Level.INFO,"{0},{1},SL Triggered, Symbol:{2}",new Object[]{event.getNotify().getStrategy(),event.getNotify().getAccount(),Parameters.symbol.get(event.getNotify().getId()).getSymbol()});
+                //update SL order to a fast execution for accounts and update positions
+                int id=event.getNotify().getId();
+               // getOms().tes.fireOrderEvent(-1, internalOpenOrders.get(id), Parameters.symbol.get(id), EnumOrderSide.SELL, size, Parameters.symbol.get(j.getKey()).getLastPrice() + cushion, 0, getStrategy(), getMaxOrderDuration(), "", EnumOrderStage.Amend, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit(), true);
+
+                
+                break;
+            case TP:
+                 logger.log(Level.INFO,"{0},{1},TP Triggered, Symbol:{2}",new Object[]{event.getNotify().getStrategy(),event.getNotify().getAccount(),Parameters.symbol.get(event.getNotify().getId()).getSymbol()});
+                //update TP order to a fast execution for accounts.
+
+                break;
+            default:
+                break;
+        }
+        
+    }
+    
     private void getDailyHistoricalData(String strategy, String type) {
         try {
             //get historical data - this can be done before start time, assuming the program is started next day
@@ -262,13 +291,13 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
                             macdPercentageOfPrice+","+rsi.get(rsi.size() - 1)+","+B1+","+B2+","+B3+","+B4+","+S1+","+S2+","+S3+","+S4+","+position+","+"SCAN");
 
                     if (B1 && B2 && B3 && B4 && position<=0) {
-                        entry(futureID, EnumOrderSide.BUY, Parameters.symbol.get(futureID).getLastPrice(), 0, true);
+                        entry(futureID, EnumOrderSide.BUY, EnumOrderType.LMT,Parameters.symbol.get(futureID).getLastPrice(), 0, false,EnumNotification.REGULARENTRY,"");
                         p.setSymbolid(futureID);
                         p.setPosition(Parameters.symbol.get(futureID).getMinsize() * getNumberOfContracts());
                         p.setPrice(Parameters.symbol.get(futureID).getLastPrice());
                         
                     } else if (S1 && S2 && S3 && S4 && position>=0) {
-                        entry(futureID, EnumOrderSide.SHORT, Parameters.symbol.get(id).getLastPrice(), 0, true);
+                        entry(futureID, EnumOrderSide.SHORT,EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, false,EnumNotification.REGULARENTRY,"");
                         p.setSymbolid(futureID);
                         p.setPosition(-Parameters.symbol.get(futureID).getMinsize() * getNumberOfContracts());
                         p.setPrice(Parameters.symbol.get(futureID).getLastPrice());
