@@ -454,7 +454,13 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
 
     @Override
     public synchronized void tradeReceived(TradeEvent event) {
+        if(getStrategySymbols().contains(event.getSymbolID())){
+            new Thread(new IDTTradeReceived(this,event)).start();
+        }
 
+    }
+
+    void processTradeReceived(TradeEvent event){
         int id = event.getSymbolID(); //here symbolID is with zero base.
         int futureid = expiry.equals("") ? id : TradingUtil.getFutureIDFromSymbol(id, expiry);
         if (getPosition().get(futureid) != null && yesterdayClose.get(id)>0) { //do initialization checks 
@@ -544,7 +550,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
             }
         }
     }
-
+    
     /**
      * @return the cumVolume
      */

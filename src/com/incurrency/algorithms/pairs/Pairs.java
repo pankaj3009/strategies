@@ -47,9 +47,9 @@ public class Pairs extends Strategy implements BidAskListener {
     private String pairsFileName;
     private double takeProfit;
     private double stopLoss;
-    private int minutesToStale=15; //time that is allowed to elapse after order timestamp becomes stale
-    private int orderReadingFrequency=10; //frequency at which timer is run and orders read
-    private int restPeriodAfterSLHit=20; //rest after a SL is hit
+    private int minutesToStale = 15; //time that is allowed to elapse after order timestamp becomes stale
+    private int orderReadingFrequency = 10; //frequency at which timer is run and orders read
+    private int restPeriodAfterSLHit = 20; //rest after a SL is hit
 
     public Pairs(MainAlgorithm m, String parameterFile, ArrayList<String> accounts) {
         super(m, "pair", "FUT", parameterFile, accounts);
@@ -106,7 +106,7 @@ public class Pairs extends Strategy implements BidAskListener {
                             }
                         }
                         if (!updated) {
-                            PairDefinition tempPair = new PairDefinition(tempLine[2], tempLine[0], tempLine[8], tempLine[11], expiry,tempLine[12],tempLine[13]);
+                            PairDefinition tempPair = new PairDefinition(tempLine[2], tempLine[0], tempLine[8], tempLine[11], expiry, tempLine[12], tempLine[13]);
                             targetOrders.add(tempPair);
                         }
                     }
@@ -141,10 +141,10 @@ public class Pairs extends Strategy implements BidAskListener {
         }
         expiry = System.getProperty("Expiry");
         pairProfitTarget = Double.parseDouble(System.getProperty("PairProfitTarget"));
-        path=System.getProperty("Path");
-        pairsFileName=System.getProperty("PairsFileName");
-        takeProfit=System.getProperty("TakeProfit")!=null?Double.parseDouble(System.getProperty("TakeProfit")):0D;
-        stopLoss=System.getProperty("StopLoss")!=null?Double.parseDouble(System.getProperty("StopLoss")):0D;
+        path = System.getProperty("Path");
+        pairsFileName = System.getProperty("PairsFileName");
+        takeProfit = System.getProperty("TakeProfit") != null ? Double.parseDouble(System.getProperty("TakeProfit")) : 0D;
+        stopLoss = System.getProperty("StopLoss") != null ? Double.parseDouble(System.getProperty("StopLoss")) : 0D;
         //minutesToStale=System.getProperty("MinutesToStale")!=null?Integer.parseInt("MinutesToStale"):15;
         //orderReadingFrequency=System.getProperty("OrderReadingFrequency")!=null?Integer.parseInt("OrderReadingFrequency"):10;
         //restPeriodAfterSLHit=System.getProperty("RestPeriodAfterSLHit")!=null?Integer.parseInt("RestPeriodAfterSLHit"):20;
@@ -157,17 +157,22 @@ public class Pairs extends Strategy implements BidAskListener {
         logger.log(Level.INFO, "futures expiry being traded: {0}", expiry);
         logger.log(Level.INFO, "Pair Profit Target: {0}", pairProfitTarget);
         logger.log(Level.INFO, "File Path: {0}", path);
-        logger.log(Level.INFO, "Pairs File: {0}", pairsFileName); 
+        logger.log(Level.INFO, "Pairs File: {0}", pairsFileName);
         logger.log(Level.INFO, "Take Profit: {0}", takeProfit);
         logger.log(Level.INFO, "Stop Loss: {0}", stopLoss);
         logger.log(Level.INFO, "Minutes before an order is deemed stale: {0}", minutesToStale);
         logger.log(Level.INFO, "Frequency for reading order files: {0}", orderReadingFrequency);
-        logger.log(Level.INFO, "Minutes for which new trades prevented after SL hit: {0}", restPeriodAfterSLHit);        
+        logger.log(Level.INFO, "Minutes for which new trades prevented after SL hit: {0}", restPeriodAfterSLHit);
     }
 
     @Override
     public void bidaskChanged(BidAskEvent event) {
+        if (getStrategySymbols().contains(event.getSymbolID())) {
+            new Thread(new PairsBidAskReceived(this, event)).start();
+        }
+    }
 
+    void processBidAskChanged(BidAskEvent event) {
         //buy logic. There is no short logic
         try {
             int id = event.getSymbolID();
@@ -183,38 +188,38 @@ public class Pairs extends Strategy implements BidAskListener {
             for (PairDefinition p : inScope) {
                 int buySize = Parameters.symbol.get(p.buyid).getMinsize() * this.getNumberOfContracts();
                 int shortSize = Parameters.symbol.get(p.shortid).getMinsize() * this.getNumberOfContracts();
-                double level=0;
-                if (Parameters.symbol.get(p.buyid).getAskPrice()>0 && Parameters.symbol.get(p.shortid).getBidPrice()>0){
-                level = -Parameters.symbol.get(p.buyid).getAskPrice() * buySize + Parameters.symbol.get(p.shortid).getBidPrice() * shortSize;
+                double level = 0;
+                if (Parameters.symbol.get(p.buyid).getAskPrice() > 0 && Parameters.symbol.get(p.shortid).getBidPrice() > 0) {
+                    level = -Parameters.symbol.get(p.buyid).getAskPrice() * buySize + Parameters.symbol.get(p.shortid).getBidPrice() * shortSize;
                 }
-                TradingUtil.writeToFile(getStrategy() + ".csv",Parameters.symbol.get(p.buyid).getSymbol()+","+Parameters.symbol.get(p.shortid).getSymbol()+","+p.entryPrice+","+level+","+"SCAN");
-                
-                if (p.position == 0 && DateUtil.addSeconds(DateUtil.parseDate("yyyyMMddHHmmss", p.timeStamp), minutesToStale * 60).after(new Date()) && (p.slHitTime.getTime()+60000*restPeriodAfterSLHit)<(new Date().getTime()) && lastOrderDate.after(new Date())) {
+                TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(p.buyid).getSymbol() + "," + Parameters.symbol.get(p.shortid).getSymbol() + "," + p.entryPrice + "," + level + "," + "SCAN");
+
+                if (p.position == 0 && DateUtil.addSeconds(DateUtil.parseDate("yyyyMMddHHmmss", p.timeStamp), minutesToStale * 60).after(new Date()) && (p.slHitTime.getTime() + 60000 * restPeriodAfterSLHit) < (new Date().getTime()) && lastOrderDate.after(new Date())) {
 //                    if (level < Double.parseDouble(p.entryPrice) && Parameters.symbol.get(p.buyid).getAskPrice()>0 && Parameters.symbol.get(p.shortid).getBidPrice()>0) {
-                    if (Parameters.symbol.get(p.buyid).getAskPrice()>0 && Parameters.symbol.get(p.shortid).getBidPrice()>0) {
-                        this.entry(p.buyid, EnumOrderSide.BUY,EnumOrderType.MKT, 0, 0,true,EnumNotification.REGULARENTRY,"");
-                        this.entry(p.shortid, EnumOrderSide.SHORT,EnumOrderType.MKT, 0, 0,true,EnumNotification.REGULARENTRY,"");
+                    if (Parameters.symbol.get(p.buyid).getAskPrice() > 0 && Parameters.symbol.get(p.shortid).getBidPrice() > 0) {
+                        this.entry(p.buyid, EnumOrderSide.BUY, EnumOrderType.MKT, 0, 0, true, EnumNotification.REGULARENTRY, "");
+                        this.entry(p.shortid, EnumOrderSide.SHORT, EnumOrderType.MKT, 0, 0, true, EnumNotification.REGULARENTRY, "");
                         p.position = 1;
                         p.positionPrice = level;
-                        TradingUtil.writeToFile(getStrategy() + ".csv",Parameters.symbol.get(p.buyid).getSymbol()+","+Parameters.symbol.get(p.shortid).getSymbol()+","+p.entryPrice+","+level+","+"ENTRY");
+                        TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(p.buyid).getSymbol() + "," + Parameters.symbol.get(p.shortid).getSymbol() + "," + p.entryPrice + "," + level + "," + "ENTRY");
                     }
                 } else if (p.position > 0) {
-                    double tp=p.pairTakeProfit>0?p.pairTakeProfit:takeProfit;
-                    double sl=p.pairStopLoss>0?p.pairStopLoss:stopLoss;
-                    if (level!=0 && tp>0 && level < p.positionPrice - tp) { //profit by a threshold
-                        this.exit(p.buyid, EnumOrderSide.SELL,EnumOrderType.MKT, 0, 0, "", true, "",true,EnumNotification.REGULAREXIT,"");
-                        this.exit(p.shortid, EnumOrderSide.COVER,EnumOrderType.MKT, 0, 0, "", true, "",true,EnumNotification.REGULAREXIT,"");
-                        TradingUtil.writeToFile(getStrategy() + ".csv",Parameters.symbol.get(p.buyid).getSymbol()+","+Parameters.symbol.get(p.shortid).getSymbol()+","+p.positionPrice+","+level+","+"PROFIT");
+                    double tp = p.pairTakeProfit > 0 ? p.pairTakeProfit : takeProfit;
+                    double sl = p.pairStopLoss > 0 ? p.pairStopLoss : stopLoss;
+                    if (level != 0 && tp > 0 && level < p.positionPrice - tp) { //profit by a threshold
+                        this.exit(p.buyid, EnumOrderSide.SELL, EnumOrderType.MKT, 0, 0, "", true, "", true, EnumNotification.REGULAREXIT, "");
+                        this.exit(p.shortid, EnumOrderSide.COVER, EnumOrderType.MKT, 0, 0, "", true, "", true, EnumNotification.REGULAREXIT, "");
+                        TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(p.buyid).getSymbol() + "," + Parameters.symbol.get(p.shortid).getSymbol() + "," + p.positionPrice + "," + level + "," + "PROFIT");
                         p.position = 0;
                         p.positionPrice = 0D;
 
-                    }else if(level!=0 && sl>0 && level > p.positionPrice + sl){
-                        this.exit(p.buyid, EnumOrderSide.SELL,EnumOrderType.MKT, 0, 0, "", true, "",true,EnumNotification.REGULAREXIT,"");
-                        this.exit(p.shortid, EnumOrderSide.COVER,EnumOrderType.MKT, 0, 0, "", true, "",true,EnumNotification.REGULAREXIT,"");
-                        TradingUtil.writeToFile(getStrategy() + ".csv",Parameters.symbol.get(p.buyid).getSymbol()+","+Parameters.symbol.get(p.shortid).getSymbol()+","+p.positionPrice+","+level+","+"STOP LOSS");
+                    } else if (level != 0 && sl > 0 && level > p.positionPrice + sl) {
+                        this.exit(p.buyid, EnumOrderSide.SELL, EnumOrderType.MKT, 0, 0, "", true, "", true, EnumNotification.REGULAREXIT, "");
+                        this.exit(p.shortid, EnumOrderSide.COVER, EnumOrderType.MKT, 0, 0, "", true, "", true, EnumNotification.REGULAREXIT, "");
+                        TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(p.buyid).getSymbol() + "," + Parameters.symbol.get(p.shortid).getSymbol() + "," + p.positionPrice + "," + level + "," + "STOP LOSS");
                         p.position = 0;
-                        p.positionPrice = 0D; 
-                        p.slHitTime=new Date();
+                        p.positionPrice = 0D;
+                        p.slHitTime = new Date();
                     }
                 }
             }
@@ -225,13 +230,13 @@ public class Pairs extends Strategy implements BidAskListener {
                         int buySize = Parameters.symbol.get(p.buyid).getMinsize() * this.getNumberOfContracts();
                         int shortSize = Parameters.symbol.get(p.shortid).getMinsize() * this.getNumberOfContracts();
                         double level = Parameters.symbol.get(p.buyid).getAskPrice() * buySize - Parameters.symbol.get(p.shortid).getBidPrice() * shortSize;
-                        this.exit(p.buyid, EnumOrderSide.SELL, EnumOrderType.MKT,0, 0, "", true, "",false,EnumNotification.REGULAREXIT,"");
-                        this.exit(p.shortid, EnumOrderSide.COVER,EnumOrderType.MKT,0, 0, "", true, "",false,EnumNotification.REGULAREXIT,"");
+                        this.exit(p.buyid, EnumOrderSide.SELL, EnumOrderType.MKT, 0, 0, "", true, "", false, EnumNotification.REGULAREXIT, "");
+                        this.exit(p.shortid, EnumOrderSide.COVER, EnumOrderType.MKT, 0, 0, "", true, "", false, EnumNotification.REGULAREXIT, "");
                         p.position = 0;
-                        if(level<p.positionPrice){
-                        TradingUtil.writeToFile(getStrategy() + ".csv",Parameters.symbol.get(p.buyid).getSymbol()+","+Parameters.symbol.get(p.shortid).getSymbol()+","+p.positionPrice+","+level+","+"EOD Close Profit");
-                        }else{
-                        TradingUtil.writeToFile(getStrategy() + ".csv",Parameters.symbol.get(p.buyid).getSymbol()+","+Parameters.symbol.get(p.shortid).getSymbol()+","+p.positionPrice+","+level+","+"EOD Close Loss");                            
+                        if (level < p.positionPrice) {
+                            TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(p.buyid).getSymbol() + "," + Parameters.symbol.get(p.shortid).getSymbol() + "," + p.positionPrice + "," + level + "," + "EOD Close Profit");
+                        } else {
+                            TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(p.buyid).getSymbol() + "," + Parameters.symbol.get(p.shortid).getSymbol() + "," + p.positionPrice + "," + level + "," + "EOD Close Loss");
                         }
                     }
                 }
@@ -240,5 +245,6 @@ public class Pairs extends Strategy implements BidAskListener {
         } catch (Exception ex) {
             logger.log(Level.SEVERE, null, ex);
         }
+
     }
 }
