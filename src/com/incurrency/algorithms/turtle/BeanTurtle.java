@@ -177,6 +177,8 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
         if (new Date().compareTo(getStartDate()) < 0) { // if time is before startdate, schedule realtime bars
             openProcessing.schedule(realTimeBars, getStartDate());
         } else {
+            Launch.setMessage("Requesting Realtime Bars");
+            logger.log(Level.INFO,"Starting request of realtime bars");
             requestRealTimeBars();
         }
     }
