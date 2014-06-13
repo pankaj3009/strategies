@@ -32,6 +32,10 @@ public class ADRTradeReceived implements Runnable {
     @Override
     public void run() {
         s.processTradeReceived(event);
+         if(event.getSymbolID()==0){
+             logger.log(Level.INFO,"Time:{0} ",new Object[]{new Date().getTime()});
+        }
+
 /*        
                 int id = event.getSymbolID(); //zero based id
         if (s.getStrategySymbols().contains(id) && Parameters.symbol.get(id).getType().compareTo("STK") == 0) {

@@ -162,7 +162,10 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
 
     @Override
     public void tradeReceived(TradeEvent event) {
-        if(getStrategySymbols().contains(event.getSymbolID())){
+         if(event.getSymbolID()==0){
+             logger.log(Level.INFO,"Time:{0} ",new Object[]{new Date().getTime()});
+        }
+        if(getStrategySymbols().contains(event.getSymbolID()) && event.getTickType()==com.ib.client.TickType.LAST){
         new Thread(new ADRTradeReceived(this,event)).start();            
         }    
     }
@@ -308,6 +311,10 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                 }
             }
         }
+             if(event.getSymbolID()==0){
+             logger.log(Level.INFO,"Time:{0} ",new Object[]{new Date().getTime()});
+        }
+
     }
 
     @Override
