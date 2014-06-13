@@ -171,7 +171,8 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
     }
     
     void processTradeReceived(TradeEvent event){
-                int id = event.getSymbolID(); //zero based id
+        try{
+        int id = event.getSymbolID(); //zero based id
         if (getStrategySymbols().contains(id) && Parameters.symbol.get(id).getType().compareTo("STK") == 0) {
             switch (event.getTickType()) {
                 case com.ib.client.TickType.LAST_SIZE:
@@ -315,7 +316,9 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
              logger.log(Level.INFO,"Completed Processing.Time:{0},LastPrice:{1} ",new Object[]{new Date().getTime(),Parameters.symbol.get(event.getSymbolID()).getLastPrice()});
 
         }
-
+        }catch (Exception e){
+            logger.log(Level.SEVERE,null,e);
+        }
     }
 
     @Override
