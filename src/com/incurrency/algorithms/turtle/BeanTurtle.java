@@ -277,7 +277,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
         }
     }
 
-    private synchronized void requestRealTimeBars() {
+    private void requestRealTimeBars() {
         if (!Launch.headless) {
             //TurtleMainUI.setStart(false);
             Launch.setMessage("Starting request of RealTime Bars");
@@ -455,7 +455,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
     }
 
     @Override
-    public synchronized void tradeReceived(TradeEvent event) {
+    public void tradeReceived(TradeEvent event) {
         if(getStrategySymbols().contains(event.getSymbolID())){
             new Thread(new IDTTradeReceived(this,event)).start();
         }
