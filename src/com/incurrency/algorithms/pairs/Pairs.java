@@ -167,12 +167,6 @@ public class Pairs extends Strategy implements BidAskListener {
 
     @Override
     public void bidaskChanged(BidAskEvent event) {
-        if (getStrategySymbols().contains(event.getSymbolID())) {
-            new Thread(new PairsBidAskReceived(this, event)).start();
-        }
-    }
-
-    void processBidAskChanged(BidAskEvent event) {
         //buy logic. There is no short logic
         try {
             int id = event.getSymbolID();
