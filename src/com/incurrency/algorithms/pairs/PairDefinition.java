@@ -18,7 +18,7 @@ public class PairDefinition {
     String entryPrice;
     int buyid;
     int shortid;
-    int position;
+    private int position;
     boolean active;
     double positionPrice;
     Date slHitTime=new Date(0);
@@ -34,6 +34,20 @@ public class PairDefinition {
         shortid=TradingUtil.getIDFromSymbol(shortSymbol, "FUT", expiry, "", "");
         this.pairStopLoss=TradingUtil.isDouble(stopLoss)?Double.parseDouble(stopLoss):0D;
         this.pairTakeProfit=TradingUtil.isDouble(takeProfit)?Double.parseDouble(takeProfit):0D;
+    }
+
+    /**
+     * @return the position
+     */
+    public synchronized int getPosition() {
+        return position;
+    }
+
+    /**
+     * @param position the position to set
+     */
+    public synchronized void setPosition(int position) {
+        this.position = position;
     }
     
     
