@@ -170,12 +170,12 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
             }
         }
         */
-        if (!Launch.headless) {
-            Launch.setMessage("Waiting for market open");
-        }
         openProcessing = new Timer("Timer: IDT Waiting for Market Open");
         if (new Date().compareTo(getStartDate()) < 0) { // if time is before startdate, schedule realtime bars
             openProcessing.schedule(realTimeBars, getStartDate());
+            if (!Launch.headless) {
+            Launch.setMessage("Waiting for market open");
+        }
         } else {
             Launch.setMessage("Requesting Realtime Bars");
             logger.log(Level.INFO,"Starting request of realtime bars");
@@ -307,8 +307,8 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                     int id = event.getSymbol().getSerialno() - 1;
                     this.close.set(id, event.ohlc().getClose());
                     int barno = event.barNumber();
-                    //logger.log(Level.FINE, "Bar No:{0}, Date={1}, Symbol:{2},FirstBarTime:{3}, LastBarTime:{4}, LastKey-FirstKey:{5}",
-                    //new Object[]{barno, DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", event.ohlc().getOpenTime()), Parameters.symbol.get(id).getSymbol(), DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", event.list().firstKey()), DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", event.list().lastKey()), (event.list().lastKey() - event.list().firstKey()) / (1000 * 60)});
+                    logger.log(Level.INFO, "Bar No:{0}, Date={1}, Symbol:{2},FirstBarTime:{3}, LastBarTime:{4}, LastKey-FirstKey:{5}",
+                    new Object[]{barno, DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", event.ohlc().getOpenTime()), Parameters.symbol.get(id).getSymbol(), DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", event.list().firstKey()), DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", event.list().lastKey()), (event.list().lastKey() - event.list().firstKey()) / (1000 * 60)});
                     SimpleDateFormat sdfDate = new SimpleDateFormat("HH:mm:ss");//dd/MM/yyyy
                     String firstBarTime = sdfDate.format(event.list().firstEntry().getKey());
                     if (firstBarTime.contains(Parameters.symbol.get(id).getBarsstarttime()) && event.barNumber() == (event.list().lastEntry().getKey() - event.list().firstEntry().getKey()) / 60000 + 1) {//all bars till the latest bar are available
