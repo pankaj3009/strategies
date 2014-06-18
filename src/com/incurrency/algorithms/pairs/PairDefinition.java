@@ -24,6 +24,7 @@ public class PairDefinition {
     Date slHitTime=new Date(0);
     double pairStopLoss;
     double pairTakeProfit;
+    final Object lockPosition=new Object();
 
     public PairDefinition(String buySymbol, String shortSymbol, String timeStamp, String entryPrice, String expiry,String stopLoss, String takeProfit) {
         this.buySymbol = buySymbol;
@@ -39,14 +40,14 @@ public class PairDefinition {
     /**
      * @return the position
      */
-    public synchronized int getPosition() {
+    public int getPosition() {
         return position;
     }
 
     /**
      * @param position the position to set
      */
-    public synchronized void setPosition(int position) {
+    public void setPosition(int position) {
         this.position = position;
     }
     

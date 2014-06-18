@@ -50,7 +50,7 @@ public class Pairs extends Strategy implements BidAskListener {
     private int minutesToStale = 15; //time that is allowed to elapse after order timestamp becomes stale
     private int orderReadingFrequency = 10; //frequency at which timer is run and orders read
     private int restPeriodAfterSLHit = 20; //rest after a SL is hit
-
+    
     public Pairs(MainAlgorithm m, String parameterFile, ArrayList<String> accounts) {
         super(m, "pair", "FUT", parameterFile, accounts);
         loadParameters("pair", parameterFile);
@@ -180,6 +180,7 @@ public class Pairs extends Strategy implements BidAskListener {
             }
 
             for (PairDefinition p : inScope) {
+                synchronized(p.lockPosition){
                 int buySize = Parameters.symbol.get(p.buyid).getMinsize() * this.getNumberOfContracts();
                 int shortSize = Parameters.symbol.get(p.shortid).getMinsize() * this.getNumberOfContracts();
                 double level = 0;
@@ -187,7 +188,7 @@ public class Pairs extends Strategy implements BidAskListener {
                     level = -Parameters.symbol.get(p.buyid).getAskPrice() * buySize + Parameters.symbol.get(p.shortid).getBidPrice() * shortSize;
                 }
                 TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(p.buyid).getSymbol() + "," + Parameters.symbol.get(p.shortid).getSymbol() + "," + p.entryPrice + "," + level + "," + "SCAN");
-
+                
                 if (p.getPosition() == 0 && DateUtil.addSeconds(DateUtil.parseDate("yyyyMMddHHmmss", p.timeStamp), minutesToStale * 60).after(new Date()) && (p.slHitTime.getTime() + 60000 * restPeriodAfterSLHit) < (new Date().getTime()) && lastOrderDate.after(new Date())) {
 //                    if (level < Double.parseDouble(p.entryPrice) && Parameters.symbol.get(p.buyid).getAskPrice()>0 && Parameters.symbol.get(p.shortid).getBidPrice()>0) {
                     if (Parameters.symbol.get(p.buyid).getAskPrice() > 0 && Parameters.symbol.get(p.shortid).getBidPrice() > 0) {
@@ -216,10 +217,12 @@ public class Pairs extends Strategy implements BidAskListener {
                         p.slHitTime = new Date();
                     }
                 }
+                }
             }
 
             if (new Date().after(this.getEndDate())) {
                 for (PairDefinition p : targetOrders) {
+                    synchronized(p.lockPosition){
                     if (p.getPosition() != 0) {
                         int buySize = Parameters.symbol.get(p.buyid).getMinsize() * this.getNumberOfContracts();
                         int shortSize = Parameters.symbol.get(p.shortid).getMinsize() * this.getNumberOfContracts();
@@ -232,6 +235,7 @@ public class Pairs extends Strategy implements BidAskListener {
                         } else {
                             TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(p.buyid).getSymbol() + "," + Parameters.symbol.get(p.shortid).getSymbol() + "," + p.positionPrice + "," + level + "," + "EOD Close Loss");
                         }
+                    }
                     }
                 }
             }
