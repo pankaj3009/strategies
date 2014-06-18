@@ -263,6 +263,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                 TradingUtil.writeToFile(getStrategy() + ".csv", buyZone + "," + shortZone + ","+ tradingSide + ","+ adr + "," + adrHigh + "," + adrLow + "," + adrDayHigh + "," + adrDayLow + "," + adrAvg + "," + buyZone1 + "," + shortZone1 + "," + price + "," + indexHigh + "," + indexLow + "," + indexDayHigh + "," + indexDayLow + "," + indexAvg + "," + buyZone2 + "," + shortZone2 + "," + adrTRIN + "," + adrTRINAvg + "," + buyZone3 + "," + shortZone3 + "," + tick + "," + tickTRIN + "," + adrTRINHigh + "," + adrTRINLow + "," + "TRADING SIDE RESET");               
             }
 
+            synchronized(getPosition().get(id).lock){
             if (getPosition().get(id).getPosition()  == 0 && new Date().compareTo(getEndDate()) < 0) {
                 if (tradingSide == 0 && buyZone && (tick < 45 || tickTRIN > 120) && getLongOnly() && price > indexHigh - 0.75 * getStopLoss()) {
                     setEntryPrice(price);
@@ -311,6 +312,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                     setLastLongExit(price);
                     TradingUtil.writeToFile(getStrategy() + ".csv", buyZone + "," + shortZone + ","+tradingSide+"," + adr + "," + adrHigh + "," + adrLow + "," + adrDayHigh + "," + adrDayLow + "," + adrAvg + "," + buyZone1 + "," + shortZone1 + "," + price + "," + indexHigh + "," + indexLow + "," + indexDayHigh + "," + indexDayLow + "," + indexAvg + "," + buyZone2 + "," + shortZone2 + "," + adrTRIN + "," + adrTRINAvg + "," + buyZone3 + "," + shortZone3 + "," + tick + "," + tickTRIN + "," + adrTRINHigh + "," + adrTRINLow + "," + "TAKEPROFIT SELL");
                 }
+            }
             }
         }
              if(event.getSymbolID()==0){
