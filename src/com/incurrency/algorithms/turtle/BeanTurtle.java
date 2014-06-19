@@ -175,6 +175,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
             openProcessing.schedule(realTimeBars, getStartDate());
             if (!Launch.headless) {
             Launch.setMessage("Waiting for market open");
+            logger.log(Level.INFO,"Strategy IDT, Real time bars request waiting for market open");
         }
         } else {
             Launch.setMessage("Requesting Realtime Bars");
@@ -307,7 +308,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                     int id = event.getSymbol().getSerialno() - 1;
                     this.close.set(id, event.ohlc().getClose());
                     int barno = event.barNumber();
-                    logger.log(Level.INFO, "Bar No:{0}, Date={1}, Symbol:{2},FirstBarTime:{3}, LastBarTime:{4}, LastKey-FirstKey:{5}",
+                    logger.log(Level.FINE, "Bar No:{0}, Date={1}, Symbol:{2},FirstBarTime:{3}, LastBarTime:{4}, LastKey-FirstKey:{5}",
                     new Object[]{barno, DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", event.ohlc().getOpenTime()), Parameters.symbol.get(id).getSymbol(), DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", event.list().firstKey()), DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", event.list().lastKey()), (event.list().lastKey() - event.list().firstKey()) / (1000 * 60)});
                     SimpleDateFormat sdfDate = new SimpleDateFormat("HH:mm:ss");//dd/MM/yyyy
                     String firstBarTime = sdfDate.format(event.list().firstEntry().getKey());
