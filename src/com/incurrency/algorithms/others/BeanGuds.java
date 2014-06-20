@@ -6,7 +6,7 @@ package com.incurrency.algorithms.others;
 
 import com.incurrency.algorithms.turtle.BeanTurtle;
 import com.incurrency.framework.MainAlgorithm;
-import com.incurrency.framework.OrderPlacement;
+import com.incurrency.framework.ExecutionManager;
 import com.incurrency.framework.Algorithm;
 import com.incurrency.framework.BeanSymbol;
 import com.incurrency.framework.DateUtil;
@@ -55,7 +55,7 @@ public class BeanGuds implements Serializable, TradeListener {
     private MainAlgorithm m;
     private Date startDate;
     private Date endDate;
-    private OrderPlacement ordManagement;
+    private ExecutionManager ordManagement;
     private final static Logger logger = Logger.getLogger(Algorithm.class.getName());
     private ArrayList<Boolean> openPrice;
     private String exit;

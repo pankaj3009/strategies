@@ -175,11 +175,11 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
             openProcessing.schedule(realTimeBars, getStartDate());
             if (!Launch.headless) {
             Launch.setMessage("Waiting for market open");
-            logger.log(Level.INFO,"Strategy IDT, Real time bars request waiting for market open");
+            logger.log(Level.INFO,"Strategy,{0},{1}, Real time bars request waiting for market open", new Object[]{allAccounts,getStrategy()});
         }
         } else {
             Launch.setMessage("Requesting Realtime Bars");
-            logger.log(Level.INFO,"Starting request of realtime bars");
+            logger.log(Level.INFO," Strategy,{0},{1},Starting request of realtime bars", new Object[]{allAccounts,getStrategy()});
             requestRealTimeBars();
         }
     }
@@ -407,7 +407,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                             this.getVolumeMA().set(id, stats.getMean());
 
                         }
-                        logger.log(Level.INFO,"Strategy IDT, Bars Updated, Symbol:{0}, BarCount:{1}",new Object[]{Parameters.symbol.get(id).getSymbol(),this.cumVolume.get(id).size()});
+                        logger.log(Level.FINE,"Strategy,{0},{1} Bars Updated, Symbol:{2}, BarCount:{3}",new Object[]{allAccounts,getStrategy(),Parameters.symbol.get(id).getSymbol(),this.cumVolume.get(id).size()});
                     }
                 } else if (event.ohlc().getPeriodicity() == EnumBarSize.Daily) {
                     //update symbol volumes
@@ -430,7 +430,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                 Collections.reverse(prices);
                 ArrayList<Double> sdArray = TechnicalUtil.getStandardDeviationOfReturns(prices, 30, 9);
                 if (sdArray == null) {
-                    logger.log(Level.INFO, "ALL,{0},SD Array was null. Symbol:{1}", new Object[]{"IDT", s.getSymbol()});
+                    logger.log(Level.INFO, "Strategy,{0},{1},SD Array was null. Symbol:{2}", new Object[]{allAccounts,getStrategy(), s.getSymbol()});
                     sd.set(id, 0D);
                 } else {
                     int size = sdArray.size();
@@ -521,7 +521,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                     Trade originalTrade = getTrades().get(new OrderLink(entryInternalOrderID, "Order"));
                     originalTrade.updateExit(j.getKey(), EnumOrderSide.SELL, Parameters.symbol.get(j.getKey()).getLastPrice(), size, this.internalOrderID++, getTimeZone(), "Order");
                     getTrades().put(new OrderLink(entryInternalOrderID, "Order"), originalTrade);
-                    logger.log(Level.INFO, "Sell. Force Close All Positions.Symbol:{0}", new Object[]{Parameters.symbol.get(j.getKey()).getSymbol()});
+                    logger.log(Level.INFO, "Strategy,{0},{1},Sell. Force Close All Positions,Symbol:{2}", new Object[]{allAccounts,getStrategy(),Parameters.symbol.get(j.getKey()).getSymbol()});
                     double cushion = 0;
                     if (!expiry.equals("")) {
                         cushion = ((int) (exitCushion / Parameters.symbol.get(j.getKey()).getMinsize() / getTickSize())) * getTickSize();
@@ -538,7 +538,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                     Trade originalTrade = getTrades().get(new OrderLink(entryInternalOrderID, "Order"));
                     originalTrade.updateExit(j.getKey(), EnumOrderSide.COVER, Parameters.symbol.get(j.getKey()).getLastPrice(), size, this.internalOrderID++, getTimeZone(), "Order");
                     getTrades().put(new OrderLink(entryInternalOrderID, "Order"), originalTrade);
-                    logger.log(Level.INFO, "Cover. Force Close All Positions.Symbol:{0}", new Object[]{Parameters.symbol.get(j.getKey()).getSymbol()});
+                    logger.log(Level.INFO, "Strategy,{0},{1},Cover. Force Close All Positions,Symbol:{2}", new Object[]{allAccounts,getStrategy(),Parameters.symbol.get(j.getKey()).getSymbol()});
                     double cushion = 0;
                     if (!expiry.equals("")) {
                         cushion = ((int) (exitCushion / Parameters.symbol.get(j.getKey()).getMinsize() / getTickSize())) * getTickSize();
