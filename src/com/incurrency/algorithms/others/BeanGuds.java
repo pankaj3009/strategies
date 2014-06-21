@@ -109,11 +109,14 @@ public class BeanGuds implements Serializable, TradeListener {
         for (int i = 0; i < Parameters.connection.size(); i++) {
             Parameters.connection.get(i).getWrapper().addTradeListener(this);
         }
+        /*
         try {
             Class.forName("com.mysql.jdbc.Driver");
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(BeanGuds.class.getName()).log(Level.SEVERE, null, ex);
         }
+        
+        */ 
         calculateSD();
         preopenProcessing = new Timer("Timer: Pre Open Processing");
         long t = m.getPreopenDate().getTime();

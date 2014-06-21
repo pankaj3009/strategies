@@ -115,12 +115,13 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
         TradingUtil.writeToFile(getStrategy() + ".csv", "symbol, stock price,future price,volume,trend yesterday,trend today,swing level today,MA Volume yesterday, MACD yesterday,MACD Price Percentage,RSI,B1,B2,B3,B4,S1,S2,S3,S4,Current Position,Event");                
         getDailyHistoricalData("swing", "STK");
         getOms().addNotificationListeners(this);
-        
+        /*
         try {
             Class.forName("com.mysql.jdbc.Driver");
         } catch (ClassNotFoundException ex) {
             logger.log(Level.SEVERE, null, ex);
         }
+        */
         /*      This code segment commented out as we are retrieving historical data from IB only.
          for (BeanSymbol s : Parameters.symbol) {
          ArrayList<BeanOHLC> temp = TradingUtil.getDailyBarsFromOneMinCandle(90, s.getSymbol());
