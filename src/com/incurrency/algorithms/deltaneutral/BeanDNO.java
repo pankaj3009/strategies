@@ -4,8 +4,8 @@
  */
 package com.incurrency.algorithms.deltaneutral;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
+//import com.google.common.collect.Iterables;
+//import com.google.common.collect.Lists;
 import com.incurrency.framework.BeanConnection;
 import com.incurrency.framework.BeanOHLC;
 import com.incurrency.framework.BeanSymbol;
@@ -224,14 +224,12 @@ public class BeanDNO implements TradeListener, BidAskListener, HistoricalBarList
                 this.opencloseReturns.add(0D);
             } else {
                 List<BeanOHLC> lastValues;
-                lastValues = Lists.newArrayList(Iterables.limit(symb.getDailyBar().getHistoricalBars().descendingMap().values(), 300));
-                lastValues = com.google.common.collect.Lists.reverse(lastValues);
-                for (int i = 0; i < lastValues.size() - 1; i++) {
-                    //this.dailyReturns.add((lastValues.get(i + 1).getClose() - lastValues.get(i).getClose()) / lastValues.get(i).getClose());
-                    //this.opencloseReturns.add((lastValues.get(i + 1).getOpen() - lastValues.get(i).getClose()) / lastValues.get(i).getClose());
-                    this.dailyReturns.add(Math.log(lastValues.get(i + 1).getClose()/lastValues.get(i).getClose()));
-                    this.opencloseReturns.add(Math.log(lastValues.get(i + 1).getOpen()/lastValues.get(i).getClose()));
-                }
+//                lastValues = Lists.newArrayList(Iterables.limit(symb.getDailyBar().getHistoricalBars().descendingMap().values(), 300));
+                //lastValues = com.google.common.collect.Lists.reverse(lastValues);
+//                for (int i = 0; i < lastValues.size() - 1; i++) {
+                 //        this.dailyReturns.add(Math.log(lastValues.get(i + 1).getClose()/lastValues.get(i).getClose()));
+                 //   this.opencloseReturns.add(Math.log(lastValues.get(i + 1).getOpen()/lastValues.get(i).getClose()));
+               // }
                 DescriptiveStatistics dailystats7 = new DescriptiveStatistics();
                 dailystats7.setWindowSize(7);
                 int count = 0;
