@@ -100,7 +100,7 @@ public class Pairs extends Strategy {
                 }
                 TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(p.buyid).getSymbol() + "," + Parameters.symbol.get(p.shortid).getSymbol() + "," + p.entryPrice + "," + level + "," + "SCAN");
                 
-                if (p.getPosition() == 0 && DateUtil.addSeconds(DateUtil.parseDate("yyyyMMddHHmmss", p.timeStamp), minutesToStale * 60).after(new Date()) && (p.slHitTime.getTime() + 60000 * restPeriodAfterSLHit) < (new Date().getTime()) && lastOrderDate.after(new Date())) {
+                if (p.getPosition() == 0 && DateUtil.addSeconds(DateUtil.parseDate("yyyyMMddHHmmss", p.timeStamp,getTimeZone()), minutesToStale * 60).after(new Date()) && (p.slHitTime.getTime() + 60000 * restPeriodAfterSLHit) < (new Date().getTime()) && lastOrderDate.after(new Date())) {
 //                    if (level < Double.parseDouble(p.entryPrice) && Parameters.symbol.get(p.buyid).getAskPrice()>0 && Parameters.symbol.get(p.shortid).getBidPrice()>0) {
                     if (Parameters.symbol.get(p.buyid).getAskPrice() > 0 && Parameters.symbol.get(p.shortid).getBidPrice() > 0) {
                         entry(p.buyid, EnumOrderSide.BUY, EnumOrderType.MKT, 0, 0, true, EnumNotification.REGULARENTRY, "");
