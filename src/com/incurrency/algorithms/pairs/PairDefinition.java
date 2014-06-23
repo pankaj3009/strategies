@@ -40,6 +40,20 @@ public class PairDefinition {
         this.buyratio=Double.parseDouble(buyratio);
         this.shortratio=Double.parseDouble(shortratio);
     }
+    
+        public PairDefinition(String buySymbol, String shortSymbol, String timeStamp, String entryPrice, String expiry,String stopLoss, String takeProfit,String buyratio,String shortratio, String type) {
+        this.buySymbol = buySymbol;
+        this.shortSymbol = shortSymbol;
+        this.timeStamp = timeStamp;
+        this.entryPrice = entryPrice;
+        expiry=expiry==null?"":expiry;
+        buyid=TradingUtil.getIDFromSymbol(buySymbol, type, expiry, "", "");
+        shortid=TradingUtil.getIDFromSymbol(shortSymbol, type, expiry, "", "");
+        this.pairStopLoss=TradingUtil.isDouble(stopLoss)?Double.parseDouble(stopLoss):0D;
+        this.pairTakeProfit=TradingUtil.isDouble(takeProfit)?Double.parseDouble(takeProfit):0D;
+        this.buyratio=Double.parseDouble(buyratio);
+        this.shortratio=Double.parseDouble(shortratio);
+    }
 
     /**
      * @return the position

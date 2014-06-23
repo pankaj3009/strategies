@@ -88,15 +88,10 @@ public class Pairs extends Strategy {
       public void run(){
                   //buy logic. There is no short logic
         try {
-            logger.log(Level.INFO,"Leve11");
-            ArrayList<PairDefinition> inScope = new ArrayList<>();
-            logger.log(Level.INFO,"Leve12");
             for (PairDefinition p : targetOrders) {
-            logger.log(Level.INFO,"Leve13");
                 synchronized(p.lockPosition){
-            logger.log(Level.INFO,"Leve14, BuySymbol:{0}, Buyid:{2},ShortSymbol:{3},Shortid:{4}",new Object[]{p.buySymbol,p.buyid,p.shortSymbol,p.shortid});
+            logger.log(Level.FINE,"Leve14, BuySymbol:{0}, Buyid:{2},ShortSymbol:{3},Shortid:{4}",new Object[]{p.buySymbol,p.buyid,p.shortSymbol,p.shortid});
                 logger.log(Level.INFO,"{0},{1},Strategy,Parameters,Symbol:{2},Minimum Size;{3},BuyRatio:{4},ShortRatio:{5},Exposure{6}",new Object[]{allAccounts,getStrategy(),Parameters.symbol.get(p.buyid).getSymbol(),Parameters.symbol.get(p.buyid).getMinsize(),p.buyratio,p.shortratio,getExposure()} );
-                logger.log(Level.INFO,"Leve15");
                int buySize = getExposure()==0?(int)(Parameters.symbol.get(p.buyid).getMinsize() * getNumberOfContracts()*p.buyratio):(int)(Parameters.symbol.get(p.buyid).getMinsize() * getExposure()/Parameters.symbol.get(p.buyid).getLastPrice()*p.buyratio);
                 int shortSize = getExposure()==0?(int)(Parameters.symbol.get(p.shortid).getMinsize() * getNumberOfContracts()*p.shortratio):(int)(Parameters.symbol.get(p.shortid).getMinsize() * getExposure()/Parameters.symbol.get(p.shortid).getLastPrice()*p.shortratio);
                 double level = 0;
@@ -188,8 +183,14 @@ public class Pairs extends Strategy {
                             }
                         }
                         if (!updated) {
-                            PairDefinition tempPair = new PairDefinition(tempLine[2], tempLine[0], tempLine[8], tempLine[11], expiry, tempLine[12], tempLine[13],tempLine[3],tempLine[1]);
+                            if(getExposure()==0){ //futures being read
+                            PairDefinition tempPair = new PairDefinition(tempLine[2], tempLine[0], tempLine[8], tempLine[11], expiry, tempLine[12], tempLine[13],tempLine[3],tempLine[1],"FUT");
                             targetOrders.add(tempPair);
+                            }else{
+                            PairDefinition tempPair = new PairDefinition(tempLine[2], tempLine[0], tempLine[8], tempLine[11], expiry, tempLine[12], tempLine[13],tempLine[3],tempLine[1],"STK");
+                            targetOrders.add(tempPair);
+                                
+                            }
                         }
                     }
                 }
@@ -221,7 +222,7 @@ public class Pairs extends Strategy {
         if (lastOrderDate.compareTo(getStartDate()) < 0 && new Date().compareTo(lastOrderDate) > 0) {
             lastOrderDate = DateUtil.addDays(lastOrderDate, 1); //system date is > start date time. Therefore we have not crossed the 12:00 am barrier
         }
-        expiry = System.getProperty("Expiry");
+        expiry = System.getProperty("Expiry")==null?"":System.getProperty("Expiry");
         pairProfitTarget = Double.parseDouble(System.getProperty("PairProfitTarget"));
         path = System.getProperty("Path");
         pairsFileName = System.getProperty("PairsFileName");
