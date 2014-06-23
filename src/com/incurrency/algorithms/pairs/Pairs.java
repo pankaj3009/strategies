@@ -164,7 +164,7 @@ public class Pairs extends Strategy {
         if (inputFile.exists() && !inputFile.isDirectory()) {
             try {
                 List<String> initialLoad = Files.readAllLines(Paths.get(inputFile.getCanonicalPath()), StandardCharsets.UTF_8);
-                int size = Math.min(initialLoad.size(), 4);
+                int size = initialLoad.size();
                 for (PairDefinition p : targetOrders) {
                     p.active = false;
                 }
