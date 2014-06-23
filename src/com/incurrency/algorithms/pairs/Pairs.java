@@ -92,6 +92,7 @@ public class Pairs extends Strategy {
             ArrayList<PairDefinition> inScope = new ArrayList<>();
             for (PairDefinition p : targetOrders) {
                 synchronized(p.lockPosition){
+                logger.log(Level.INFO,"{0},{1},Strategy,Parameters,Symbol:{2},Minimum Size;{3},BuyRatio:{4},ShortRatio:{5},Exposure{6}",new Object[]{allAccounts,getStrategy(),Parameters.symbol.get(p.buyid).getSymbol(),Parameters.symbol.get(p.buyid).getMinsize(),p.buyratio,p.shortratio,getExposure()} );
                 int buySize = getExposure()==0?(int)(Parameters.symbol.get(p.buyid).getMinsize() * getNumberOfContracts()*p.buyratio):(int)(Parameters.symbol.get(p.buyid).getMinsize() * getExposure()/Parameters.symbol.get(p.buyid).getLastPrice()*p.buyratio);
                 int shortSize = getExposure()==0?(int)(Parameters.symbol.get(p.shortid).getMinsize() * getNumberOfContracts()*p.shortratio):(int)(Parameters.symbol.get(p.shortid).getMinsize() * getExposure()/Parameters.symbol.get(p.shortid).getLastPrice()*p.shortratio);
                 double level = 0;
