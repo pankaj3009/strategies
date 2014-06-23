@@ -25,8 +25,10 @@ public class PairDefinition {
     double pairStopLoss;
     double pairTakeProfit;
     final Object lockPosition=new Object();
+    double buyratio=1;
+    double shortratio=1;
 
-    public PairDefinition(String buySymbol, String shortSymbol, String timeStamp, String entryPrice, String expiry,String stopLoss, String takeProfit) {
+    public PairDefinition(String buySymbol, String shortSymbol, String timeStamp, String entryPrice, String expiry,String stopLoss, String takeProfit,String buyratio,String shortratio) {
         this.buySymbol = buySymbol;
         this.shortSymbol = shortSymbol;
         this.timeStamp = timeStamp;
@@ -35,6 +37,8 @@ public class PairDefinition {
         shortid=TradingUtil.getIDFromSymbol(shortSymbol, "FUT", expiry, "", "");
         this.pairStopLoss=TradingUtil.isDouble(stopLoss)?Double.parseDouble(stopLoss):0D;
         this.pairTakeProfit=TradingUtil.isDouble(takeProfit)?Double.parseDouble(takeProfit):0D;
+        this.buyratio=Double.parseDouble(buyratio);
+        this.shortratio=Double.parseDouble(shortratio);
     }
 
     /**

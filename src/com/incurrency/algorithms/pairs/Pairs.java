@@ -35,7 +35,7 @@ import java.util.logging.Logger;
  *
  * @author pankaj
  */
-public class Pairs extends Strategy implements BidAskListener {
+public class Pairs extends Strategy {
 
     private static final Logger logger = Logger.getLogger(Pairs.class.getName());
     ArrayList<PairDefinition> targetOrders = new ArrayList<>();
@@ -58,14 +58,17 @@ public class Pairs extends Strategy implements BidAskListener {
 
         String[] tempStrategyArray = parameterFile.split("\\.")[0].split("-");
         for (BeanConnection c : Parameters.connection) {
-            c.getWrapper().addBidAskListener(this);
+//            c.getWrapper().addBidAskListener(this);
             c.initializeConnection(tempStrategyArray[tempStrategyArray.length - 1]);
         }
         if (Subscribe.tes != null) {
-            Subscribe.tes.addBidAskListener(this);
+  //          Subscribe.tes.addBidAskListener(this);
         }
-        Timer TradeReader = new Timer("Timer: " + getStrategy() + " CloseProcessing");
+        Timer TradeReader = new Timer("Timer: " + getStrategy() + " TradeReader");
         TradeReader.schedule(readTrades, getStartDate(), orderReadingFrequency * 60 * 1000);
+        Timer TradeExecutor = new Timer("Timer: " + getStrategy() + " TradeExecutor");
+        TradeExecutor.schedule(executeTrades, getStartDate(), orderReadingFrequency * 60 * 1000+5000);
+        
         //TradeReader.schedule(readTrades, new Date(),10*60*1000);
     }
     TimerTask readTrades = new TimerTask() {
@@ -81,6 +84,79 @@ public class Pairs extends Strategy implements BidAskListener {
         }
     };
 
+    TimerTask executeTrades=new TimerTask(){
+      public void run(){
+                  //buy logic. There is no short logic
+        try {
+            
+            ArrayList<PairDefinition> inScope = new ArrayList<>();
+            for (PairDefinition p : targetOrders) {
+                synchronized(p.lockPosition){
+                int buySize = getExposure()==0?(int)(Parameters.symbol.get(p.buyid).getMinsize() * getNumberOfContracts()*p.buyratio):(int)(Parameters.symbol.get(p.buyid).getMinsize() * getExposure()/Parameters.symbol.get(p.buyid).getLastPrice()*p.buyratio);
+                int shortSize = getExposure()==0?(int)(Parameters.symbol.get(p.shortid).getMinsize() * getNumberOfContracts()*p.shortratio):(int)(Parameters.symbol.get(p.shortid).getMinsize() * getExposure()/Parameters.symbol.get(p.shortid).getLastPrice()*p.shortratio);
+                double level = 0;
+                if (Parameters.symbol.get(p.buyid).getAskPrice() > 0 && Parameters.symbol.get(p.shortid).getBidPrice() > 0) {
+                    level = -Parameters.symbol.get(p.buyid).getAskPrice() * buySize + Parameters.symbol.get(p.shortid).getBidPrice() * shortSize;
+                }
+                TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(p.buyid).getSymbol() + "," + Parameters.symbol.get(p.shortid).getSymbol() + "," + p.entryPrice + "," + level + "," + "SCAN");
+                
+                if (p.getPosition() == 0 && DateUtil.addSeconds(DateUtil.parseDate("yyyyMMddHHmmss", p.timeStamp), minutesToStale * 60).after(new Date()) && (p.slHitTime.getTime() + 60000 * restPeriodAfterSLHit) < (new Date().getTime()) && lastOrderDate.after(new Date())) {
+//                    if (level < Double.parseDouble(p.entryPrice) && Parameters.symbol.get(p.buyid).getAskPrice()>0 && Parameters.symbol.get(p.shortid).getBidPrice()>0) {
+                    if (Parameters.symbol.get(p.buyid).getAskPrice() > 0 && Parameters.symbol.get(p.shortid).getBidPrice() > 0) {
+                        entry(p.buyid, EnumOrderSide.BUY, EnumOrderType.MKT, 0, 0, true, EnumNotification.REGULARENTRY, "");
+                        entry(p.shortid, EnumOrderSide.SHORT, EnumOrderType.MKT, 0, 0, true, EnumNotification.REGULARENTRY, "");
+                        p.setPosition(1);
+                        p.positionPrice = level;
+                        TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(p.buyid).getSymbol() + "," + Parameters.symbol.get(p.shortid).getSymbol() + "," + p.entryPrice + "," + level + "," + "ENTRY");
+                    }
+                } else if (p.getPosition() > 0) {
+                    double tp = p.pairTakeProfit > 0 ? p.pairTakeProfit : takeProfit;
+                    double sl = p.pairStopLoss > 0 ? p.pairStopLoss : stopLoss;
+                    if (level != 0 && tp > 0 && level < p.positionPrice - tp) { //profit by a threshold
+                        exit(p.buyid, EnumOrderSide.SELL, EnumOrderType.MKT, 0, 0, "", true, "", true, EnumNotification.REGULAREXIT, "");
+                        exit(p.shortid, EnumOrderSide.COVER, EnumOrderType.MKT, 0, 0, "", true, "", true, EnumNotification.REGULAREXIT, "");
+                        TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(p.buyid).getSymbol() + "," + Parameters.symbol.get(p.shortid).getSymbol() + "," + p.positionPrice + "," + level + "," + "PROFIT");
+                        p.setPosition(0);
+                        p.positionPrice = 0D;
+
+                    } else if (level != 0 && sl > 0 && level > p.positionPrice + sl) {
+                        exit(p.buyid, EnumOrderSide.SELL, EnumOrderType.MKT, 0, 0, "", true, "", true, EnumNotification.REGULAREXIT, "");
+                        exit(p.shortid, EnumOrderSide.COVER, EnumOrderType.MKT, 0, 0, "", true, "", true, EnumNotification.REGULAREXIT, "");
+                        TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(p.buyid).getSymbol() + "," + Parameters.symbol.get(p.shortid).getSymbol() + "," + p.positionPrice + "," + level + "," + "STOP LOSS");
+                        p.setPosition(0);
+                        p.positionPrice = 0D;
+                        p.slHitTime = new Date();
+                    }
+                }
+                }
+            }
+
+            if (new Date().after(getEndDate())) {
+                for (PairDefinition p : targetOrders) {
+                    synchronized(p.lockPosition){
+                    if (p.getPosition() != 0) {
+                        int buySize = getExposure()==0?(int)(Parameters.symbol.get(p.buyid).getMinsize() * getNumberOfContracts()*p.buyratio):(int)(Parameters.symbol.get(p.buyid).getMinsize() * getExposure()/Parameters.symbol.get(p.buyid).getLastPrice()*p.buyratio);
+                        int shortSize = getExposure()==0?(int)(Parameters.symbol.get(p.shortid).getMinsize() * getNumberOfContracts()*p.shortratio):(int)(Parameters.symbol.get(p.shortid).getMinsize() * getExposure()/Parameters.symbol.get(p.shortid).getLastPrice()*p.shortratio);
+                        double level = Parameters.symbol.get(p.buyid).getAskPrice() * buySize - Parameters.symbol.get(p.shortid).getBidPrice() * shortSize;
+                        exit(p.buyid, EnumOrderSide.SELL, EnumOrderType.MKT, 0, 0, "", true, "", false, EnumNotification.REGULAREXIT, "");
+                        exit(p.shortid, EnumOrderSide.COVER, EnumOrderType.MKT, 0, 0, "", true, "", false, EnumNotification.REGULAREXIT, "");
+                        p.setPosition(0);
+                        if (level < p.positionPrice) {
+                            TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(p.buyid).getSymbol() + "," + Parameters.symbol.get(p.shortid).getSymbol() + "," + p.positionPrice + "," + level + "," + "EOD Close Profit");
+                        } else {
+                            TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(p.buyid).getSymbol() + "," + Parameters.symbol.get(p.shortid).getSymbol() + "," + p.positionPrice + "," + level + "," + "EOD Close Loss");
+                        }
+                    }
+                    }
+                }
+            }
+
+        } catch (Exception ex) {
+            logger.log(Level.SEVERE, null, ex);
+        }
+      }  
+    };
+    
     private void readTrades(String filename) {
         logger.log(Level.INFO, "Reading Trades");
         File dir = new File(path);
@@ -106,7 +182,7 @@ public class Pairs extends Strategy implements BidAskListener {
                             }
                         }
                         if (!updated) {
-                            PairDefinition tempPair = new PairDefinition(tempLine[2], tempLine[0], tempLine[8], tempLine[11], expiry, tempLine[12], tempLine[13]);
+                            PairDefinition tempPair = new PairDefinition(tempLine[2], tempLine[0], tempLine[8], tempLine[11], expiry, tempLine[12], tempLine[13],tempLine[3],tempLine[1]);
                             targetOrders.add(tempPair);
                         }
                     }
@@ -165,6 +241,7 @@ public class Pairs extends Strategy implements BidAskListener {
         logger.log(Level.INFO, "Minutes for which new trades prevented after SL hit: {0}", restPeriodAfterSLHit);
     }
 
+/*    
     @Override
     public void bidaskChanged(BidAskEvent event) {
         //buy logic. There is no short logic
@@ -245,4 +322,5 @@ public class Pairs extends Strategy implements BidAskListener {
         }
 
     }
+    */
 }
