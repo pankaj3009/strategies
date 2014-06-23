@@ -222,7 +222,7 @@ public class Pairs extends Strategy {
         if (lastOrderDate.compareTo(getStartDate()) < 0 && new Date().compareTo(lastOrderDate) > 0) {
             lastOrderDate = DateUtil.addDays(lastOrderDate, 1); //system date is > start date time. Therefore we have not crossed the 12:00 am barrier
         }
-        expiry = System.getProperty("Expiry")==null?"":System.getProperty("Expiry");
+        expiry = System.getProperty("Expiry").equals("NA")?"":System.getProperty("Expiry");
         pairProfitTarget = Double.parseDouble(System.getProperty("PairProfitTarget"));
         path = System.getProperty("Path");
         pairsFileName = System.getProperty("PairsFileName");
