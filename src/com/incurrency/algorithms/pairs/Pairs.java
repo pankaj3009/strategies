@@ -132,6 +132,7 @@ public class Pairs extends Strategy {
             }
 
             if (new Date().after(getEndDate())) {
+                logger.log(Level.INFO,"{0},{1},Strategy,Entered EOD Square Off",new Object[]{allAccounts,getStrategy()});
                 for (PairDefinition p : targetOrders) {
                     synchronized(p.lockPosition){
                     if (p.getPosition() != 0) {
@@ -228,17 +229,17 @@ public class Pairs extends Strategy {
         for (String account : getAccounts()) {
             concatAccountNames = ":" + account;
         }
-        logger.log(Level.INFO, "-----{0} Parameters----Accounts used {1} ----- Parameter File {2}", new Object[]{strategy.toUpperCase(), concatAccountNames, parameterFile});
-        logger.log(Level.INFO, "Last Order Time: {0}", lastOrderDate);
-        logger.log(Level.INFO, "futures expiry being traded: {0}", expiry);
-        logger.log(Level.INFO, "Pair Profit Target: {0}", pairProfitTarget);
-        logger.log(Level.INFO, "File Path: {0}", path);
-        logger.log(Level.INFO, "Pairs File: {0}", pairsFileName);
-        logger.log(Level.INFO, "Take Profit: {0}", takeProfit);
-        logger.log(Level.INFO, "Stop Loss: {0}", stopLoss);
-        logger.log(Level.INFO, "Minutes before an order is deemed stale: {0}", minutesToStale);
-        logger.log(Level.INFO, "Frequency for reading order files: {0}", orderReadingFrequency);
-        logger.log(Level.INFO, "Minutes for which new trades prevented after SL hit: {0}", restPeriodAfterSLHit);
+        logger.log(Level.INFO, ",,Startup,Header,-----{0} Parameters----Accounts used {1} ----- Parameter File {2}", new Object[]{strategy.toUpperCase(), concatAccountNames, parameterFile});
+        logger.log(Level.INFO, ",,Startup,Last Order Time, {0}", lastOrderDate);
+        logger.log(Level.INFO, ",,Startup,futures expiry being traded, {0}", expiry);
+        logger.log(Level.INFO, ",,Startup,Pair Profit Target, {0}", pairProfitTarget);
+        logger.log(Level.INFO, ",,Startup,File Path, {0}", path);
+        logger.log(Level.INFO, ",,Startup,Pairs File, {0}", pairsFileName);
+        logger.log(Level.INFO, ",,Startup,Take Profit, {0}", takeProfit);
+        logger.log(Level.INFO, ",,Startup,Stop Loss, {0}", stopLoss);
+        logger.log(Level.INFO, ",,Startup,Minutes before an order is deemed stale, {0}", minutesToStale);
+        logger.log(Level.INFO, ",,Startup,Frequency for reading order files, {0}", orderReadingFrequency);
+        logger.log(Level.INFO, ",,Startup,Minutes for which new trades prevented after SL hit, {0}", restPeriodAfterSLHit);
     }
 
 /*    
