@@ -175,11 +175,15 @@ public class Pairs extends Strategy {
                         String[] tempLine = initialLoad.get(i).split(",");
 
                         for (PairDefinition p : targetOrders) {
+                            synchronized(p.lockPosition){
                             if (p.buySymbol.equals(tempLine[2]) && p.shortSymbol.equals(tempLine[0])) {
                                 p.entryPrice = tempLine[11];
                                 p.timeStamp = tempLine[8];
                                 p.active = true;
                                 updated = true;
+                                p.pairStopLoss=Double.parseDouble(tempLine[12]);
+                                p.pairTakeProfit=Double.parseDouble(tempLine[13]);
+                            }
                             }
                         }
                         if (!updated) {
