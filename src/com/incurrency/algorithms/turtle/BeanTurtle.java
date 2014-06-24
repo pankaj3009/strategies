@@ -474,7 +474,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
             double worstCaseLoss = zScoreOnEntry.get(id) != 0 ? zScoreOnEntry.get(id) / relativeVol : 0D;
             synchronized(getPosition().get(futureid).lock){
                 if (getLongOnly() && this.getCumVolume().get(id).size() >= this.getChannelDuration() && getPosition().get(futureid).getPosition() == 0 && zscore > 2 && Parameters.symbol.get(id).getLastPrice() >= highBoundary && relativeVol > 2 && getLastOrderDate().compareTo(new Date()) > 0) {
-                    double midPoint=((int)((Parameters.symbol.get(futureid).getBidPrice()+Parameters.symbol.get(futureid).getAskPrice())/2/getTickSize()))*getTickSize();
+                    double midPoint=(Math.round((Parameters.symbol.get(futureid).getBidPrice()+Parameters.symbol.get(futureid).getAskPrice())/2/getTickSize()))*getTickSize();
                     double entryPrice=Math.min(Parameters.symbol.get(futureid).getLastPrice(),midPoint );
                     if (futureid == id) {
                         entry(futureid, EnumOrderSide.BUY,EnumOrderType.LMT, entryPrice, 0, false,EnumNotification.REGULARENTRY,"");
@@ -486,7 +486,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                     entryBar.set(id, this.getCumVolume().get(id).size());
                     TradingUtil.writeToFile(getStrategy() + "datalogs.csv", Parameters.symbol.get(id).getSymbol() + "," + cumVolume.get(id).size() + "," + 0 + "," + indexZScoreYesterday + "," + symbolZScoreYesterday + "," + zscore + "," + highBoundary + "," + lowBoundary + "," + Parameters.symbol.get(futureid).getLastPrice() + "," + close.get(id) + "," + relativeVol + "," + entryBar.get(id) + "," + zScoreOnEntry.get(id) + "," + (zScoreOnEntry.get(id) - worstCaseLoss) * (this.getCumVolume().get(id).size() - entryBar.get(id)) / (365 - entryBar.get(id)) + "," + (getClose().get(id)-yesterdayClose.get(id))/yesterdayClose.get(id)+","+"BUY");
                 } else if (getShortOnly() && this.getCumVolume().get(id).size() >= this.getChannelDuration() && getPosition().get(futureid).getPosition() == 0 && zscore < -1 && Parameters.symbol.get(id).getLastPrice() <= lowBoundary && relativeVol > 2 && getLastOrderDate().compareTo(new Date()) > 0) {
-                    double midPoint=((int)((Parameters.symbol.get(futureid).getBidPrice()+Parameters.symbol.get(futureid).getAskPrice())/2/getTickSize()))*getTickSize();
+                    double midPoint=(Math.round((Parameters.symbol.get(futureid).getBidPrice()+Parameters.symbol.get(futureid).getAskPrice())/2/getTickSize()))*getTickSize();
                     double entryPrice=Math.max(Parameters.symbol.get(futureid).getLastPrice(),midPoint );
                     if (futureid == id) {
                         entry(futureid, EnumOrderSide.SHORT,EnumOrderType.LMT, entryPrice, 0, false,EnumNotification.REGULARENTRY,"");
@@ -498,14 +498,14 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                     entryBar.set(id, this.getCumVolume().get(id).size());
                     TradingUtil.writeToFile(getStrategy() + "datalogs.csv", Parameters.symbol.get(id).getSymbol() + "," + cumVolume.get(id).size() + "," + 0 + "," + indexZScoreYesterday + "," + symbolZScoreYesterday + "," + zscore + "," + highBoundary + "," + lowBoundary + "," + Parameters.symbol.get(futureid).getLastPrice() + "," + close.get(id) + "," + relativeVol + "," + entryBar.get(id) + "," + zScoreOnEntry.get(id) + "," + (zScoreOnEntry.get(id) - worstCaseLoss) * (this.getCumVolume().get(id).size() - entryBar.get(id)) / (365 - entryBar.get(id)) + ","+ (getClose().get(id)-yesterdayClose.get(id))/yesterdayClose.get(id)+"," + "SHORT");
                 } else if (getPosition().get(futureid).getPosition() > 0 && (zscore < worstCaseLoss + (zScoreOnEntry.get(id) - worstCaseLoss) * (this.getCumVolume().get(id).size() - entryBar.get(id)) / (365 - entryBar.get(id)) || System.currentTimeMillis() > getEndDate().getTime())) {
-                    double midPoint=((int)((Parameters.symbol.get(futureid).getBidPrice()+Parameters.symbol.get(futureid).getAskPrice())/2/getTickSize()))*getTickSize();
+                    double midPoint=(Math.round((Parameters.symbol.get(futureid).getBidPrice()+Parameters.symbol.get(futureid).getAskPrice())/2/getTickSize()))*getTickSize();
                     double entryPrice=Math.max(Parameters.symbol.get(futureid).getLastPrice(),midPoint );
                     this.exit(futureid, EnumOrderSide.SELL,EnumOrderType.LMT, entryPrice, 0, "", true, "DAY", false,EnumNotification.REGULAREXIT,"");
                     TradingUtil.writeToFile(getStrategy() + "datalogs.csv", Parameters.symbol.get(id).getSymbol() + "," + cumVolume.get(id).size() + "," + 0 + "," + indexZScoreYesterday + "," + symbolZScoreYesterday + "," + zscore + "," + highBoundary + "," + lowBoundary + "," + Parameters.symbol.get(futureid).getLastPrice() + "," + close.get(id) + "," + relativeVol + "," + getCumVolume().get(id).size()+ "," + zScoreOnEntry.get(id) + "," + (zScoreOnEntry.get(id) - worstCaseLoss) * (this.getCumVolume().get(id).size() - entryBar.get(id)) / (365 - entryBar.get(id)) + (getClose().get(id)-yesterdayClose.get(id))/yesterdayClose.get(id)+","+ "," + "SELL");
                     zScoreOnEntry.set(id, 0D);
                     entryBar.set(id, 0);
                 } else if (getPosition().get(futureid).getPosition() < 0 && (zscore > worstCaseLoss + (zScoreOnEntry.get(id) - worstCaseLoss) * (this.getCumVolume().get(id).size() - entryBar.get(id)) / (365 - entryBar.get(id)) || System.currentTimeMillis() > getEndDate().getTime())) {
-                    double midPoint=((int)((Parameters.symbol.get(futureid).getBidPrice()+Parameters.symbol.get(futureid).getAskPrice())/2/getTickSize()))*getTickSize();
+                    double midPoint=(Math.round((Parameters.symbol.get(futureid).getBidPrice()+Parameters.symbol.get(futureid).getAskPrice())/2/getTickSize()))*getTickSize();
                     double entryPrice=Math.min(Parameters.symbol.get(futureid).getLastPrice(),midPoint );
                     this.exit(futureid, EnumOrderSide.COVER,EnumOrderType.LMT, entryPrice, 0, "", true, "DAY", false,EnumNotification.REGULAREXIT,"");
                     TradingUtil.writeToFile(getStrategy() + "datalogs.csv", Parameters.symbol.get(id).getSymbol() + "," + cumVolume.get(id).size() + "," + 0 + "," + indexZScoreYesterday + "," + symbolZScoreYesterday + "," + zscore + "," + highBoundary + "," + lowBoundary + "," + Parameters.symbol.get(futureid).getLastPrice() + "," + close.get(id) + "," + relativeVol + "," + getCumVolume().get(id).size() + "," + zScoreOnEntry.get(id) + "," + (zScoreOnEntry.get(id) - worstCaseLoss) * (this.getCumVolume().get(id).size() - entryBar.get(id)) / (365 - entryBar.get(id)) + (getClose().get(id)-yesterdayClose.get(id))/yesterdayClose.get(id)+","+ "," + "COVER");
@@ -534,7 +534,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                     if (!expiry.equals("")) {
                         cushion = ((int) (exitCushion / Parameters.symbol.get(j.getKey()).getMinsize() / getTickSize())) * getTickSize();
                     }
-                    double midPoint=((int)((Parameters.symbol.get(j.getKey()).getBidPrice()+Parameters.symbol.get(j.getKey()).getAskPrice())/2/getTickSize()))*getTickSize();
+                    double midPoint=(Math.round((Parameters.symbol.get(j.getKey()).getBidPrice()+Parameters.symbol.get(j.getKey()).getAskPrice())/2/getTickSize()))*getTickSize();
                     double entryPrice=Math.max(Parameters.symbol.get(j.getKey()).getLastPrice(),midPoint );
                    
                     getOms().tes.fireOrderEvent(this.internalOrderID - 1, entryInternalOrderID, Parameters.symbol.get(j.getKey()), EnumOrderSide.SELL ,EnumNotification.REGULAREXIT,EnumOrderType.LMT,size, entryPrice + cushion, 0, getStrategy(), getMaxOrderDuration(), EnumOrderStage.Cancel, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit(), true,"");
@@ -554,7 +554,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                     if (!expiry.equals("")) {
                         cushion = ((int) (exitCushion / Parameters.symbol.get(j.getKey()).getMinsize() / getTickSize())) * getTickSize();
                     }
-                    double midPoint=((int)((Parameters.symbol.get(futureid).getBidPrice()+Parameters.symbol.get(futureid).getAskPrice())/2/getTickSize()))*getTickSize();
+                    double midPoint=(Math.round((Parameters.symbol.get(futureid).getBidPrice()+Parameters.symbol.get(futureid).getAskPrice())/2/getTickSize()))*getTickSize();
                     double entryPrice=Math.min(Parameters.symbol.get(futureid).getLastPrice(),midPoint );
                     
                     getOms().tes.fireOrderEvent(this.internalOrderID - 1, entryInternalOrderID, Parameters.symbol.get(j.getKey()), EnumOrderSide.COVER,EnumNotification.REGULAREXIT,EnumOrderType.LMT, size, entryPrice - cushion, 0, getStrategy(), getMaxOrderDuration(), EnumOrderStage.Cancel, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit(), true,"");
