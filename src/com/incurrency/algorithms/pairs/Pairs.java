@@ -136,8 +136,8 @@ public class Pairs extends Strategy {
                 for (PairDefinition p : targetOrders) {
                     synchronized(p.lockPosition){
                     if (p.getPosition() != 0) {
-                        int buySize = getExposure()==0?(int)(Parameters.symbol.get(p.buyid).getMinsize() * getNumberOfContracts()*p.buyratio):(int)(Parameters.symbol.get(p.buyid).getMinsize() * getExposure()/Parameters.symbol.get(p.buyid).getLastPrice()*p.buyratio);
-                        int shortSize = getExposure()==0?(int)(Parameters.symbol.get(p.shortid).getMinsize() * getNumberOfContracts()*p.shortratio):(int)(Parameters.symbol.get(p.shortid).getMinsize() * getExposure()/Parameters.symbol.get(p.shortid).getLastPrice()*p.shortratio);
+                        int buySize = getExposure()==0?(int)(Parameters.symbol.get(p.buyid).getMinsize() * getNumberOfContracts()*p.buyratio):(int)(Parameters.symbol.get(p.buyid).getMinsize() * getExposure()*p.buyratio/Parameters.symbol.get(p.buyid).getLastPrice());
+                        int shortSize = getExposure()==0?(int)(Parameters.symbol.get(p.shortid).getMinsize() * getNumberOfContracts()*p.shortratio):(int)(Parameters.symbol.get(p.shortid).getMinsize() * getExposure()*p.shortratio/Parameters.symbol.get(p.shortid).getLastPrice());
                         double level = Parameters.symbol.get(p.buyid).getAskPrice() * buySize - Parameters.symbol.get(p.shortid).getBidPrice() * shortSize;
                         exit(p.buyid, EnumOrderSide.SELL, EnumOrderType.MKT, 0, 0, "", true, "", false, EnumNotification.REGULAREXIT, "",buySize);
                         exit(p.shortid, EnumOrderSide.COVER, EnumOrderType.MKT, 0, 0, "", true, "", false, EnumNotification.REGULAREXIT, "",shortSize);
