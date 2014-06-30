@@ -9,13 +9,13 @@ import com.incurrency.framework.MainAlgorithm;
 import com.incurrency.framework.Parameters;
 import com.incurrency.framework.Strategy;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 /**
  *
  * @author pankaj
@@ -25,7 +25,7 @@ public class CSV extends Strategy {
     String orderFile;
     OrderReader orderReader;
     
-        public CSV(MainAlgorithm m, String parameterFile, ArrayList<String> accounts) {
+        public CSV(MainAlgorithm m, String parameterFile, ArrayList<String> accounts) throws IOException {
             super(m,"CSV","FUT",parameterFile,accounts);
             loadParameters("CSV", parameterFile);
             String[] tempStrategyArray = parameterFile.split("\\.")[0].split("-");
@@ -33,7 +33,8 @@ public class CSV extends Strategy {
             c.initializeConnection(tempStrategyArray[tempStrategyArray.length - 1]);
         }
         Path dir = Paths.get(orderFile);
-        orderReader=new OrderReader(dir, false).processEvents();             
+        orderReader=new OrderReader(dir, false);
+        orderReader.processEvents();
         }
         
         private void loadParameters(String strategy,String parameterFile){

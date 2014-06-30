@@ -58,7 +58,7 @@ public class EventProcessor implements ActionListener {
 
         EPStatement statement = null;
         String stmt = null;
-
+        
         //stmt = "select a.terminal.id as terminal from pattern [ every a=Checkin -> " +
         //        "      ( OutOfOrder(terminal.id=a.terminal.id) and not (Cancelled(terminal.id=a.terminal.id) or Completed(terminal.id=a.terminal.id)) )]";
        

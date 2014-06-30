@@ -1,3 +1,4 @@
+package com.incurrency.algorithms.csv;
 
 import java.nio.file.*;
 import static java.nio.file.StandardWatchEventKinds.*;
@@ -60,7 +61,7 @@ public class OrderReader {
     /**
      * Creates a WatchService and registers the given directory
      */
-    OrderReader(Path dir, boolean recursive) throws IOException {
+    public OrderReader(Path dir, boolean recursive) throws IOException {
         this.watcher = FileSystems.getDefault().newWatchService();
         this.keys = new HashMap<WatchKey,Path>();
         this.recursive = recursive;
@@ -104,6 +105,7 @@ public class OrderReader {
                 if (kind == OVERFLOW) {
                     continue;
                 }
+                
 
                 // Context for directory entry event is the file name of entry
                 WatchEvent<Path> ev = cast(event);
