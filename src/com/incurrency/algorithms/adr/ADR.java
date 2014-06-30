@@ -82,6 +82,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
     ArrayList<TradeRestriction> noTradeZone = new ArrayList<>();
     private double highRange;
     private double lowRange;
+    private boolean trackLosingZone;
     private final Object lockHighRange = new Object();
     private final Object lockLowRange = new Object();
 
@@ -141,6 +142,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
         reentryMinimumMove = System.getProperty("ReentryMinimumMove") == null ? 0D : Double.parseDouble(System.getProperty("ReentryMinimumMove"));
         reentryMinimumMove = System.getProperty("ReentryMinimumMove") == null ? 0D : Double.parseDouble(System.getProperty("ReentryMinimumMove"));
         adrRuleName = System.getProperty("ADRSymbolTag") == null ? "" : System.getProperty("ADRSymbolTag");
+        trackLosingZone=System.getProperty("TrackLosingZones")==null?Boolean.FALSE:Boolean.parseBoolean(System.getProperty("TrackLosingZones"));
 
 
         logger.log(Level.INFO, "-----{0} Parameters----Accounts used {1} ----- Parameter File {2}", new Object[]{strategy.toUpperCase(), allAccounts, parameterFile});
@@ -157,6 +159,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
         logger.log(Level.INFO, "Scalping Mode: {0}", scalpingMode);
         logger.log(Level.INFO, "Minimum move before re-entry: {0}", reentryMinimumMove);
         logger.log(Level.INFO, "Symbol tag picked for ADR Calculation: {0}", adrRuleName);
+        logger.log(Level.INFO, "Track Losing Trades: {0}", trackLosingZone);
     }
 
     @Override
@@ -270,10 +273,12 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                     if (getPosition().get(id).getPosition() == 0 && new Date().compareTo(getEndDate()) < 0) {
                         if (tradingSide == 0 && buyZone && (tick < 45 || tickTRIN > 120) && getLongOnly() && price > indexHigh - 0.75 * getStopLoss()) {
                             boolean tradeZone = true;
+                            if(trackLosingZone){
                             for (TradeRestriction tr : noTradeZone) {
                                 if (tr.side.equals(EnumOrderSide.BUY) && price > tr.lowRange && price < tr.highRange) {
                                     tradeZone = tradeZone && false;
                                 }
+                            }
                             }
                             if (tradeZone) {
                                 setEntryPrice(price);
@@ -286,10 +291,12 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                             }
                         } else if (tradingSide == 0 && shortZone && (tick > 55 || tickTRIN < 80) && getShortOnly() && price < indexLow + 0.75 * getStopLoss()) {
                             boolean tradeZone = true;
+                            if(trackLosingZone){
                             for (TradeRestriction tr : noTradeZone) {
                                 if (tr.side.equals(EnumOrderSide.SHORT) && price > tr.lowRange && price < tr.highRange) {
                                     tradeZone = tradeZone && false;
                                 }
+                            }
                             }
                             if (tradeZone) {
                                 setEntryPrice(price);
