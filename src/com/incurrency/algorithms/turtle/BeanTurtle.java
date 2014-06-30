@@ -298,10 +298,10 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                     if (event.ohlc().getHigh() >= highestHigh.get(id)) {
                         //update lastprice and fire tradeevent
                         Parameters.symbol.get(id).setLastPrice(event.ohlc().getHigh());
-                        this.tradeReceived(new TradeEvent(new Object(), id, 4));
+                        this.tradeReceived(new TradeEvent(new Object(), id, com.ib.client.TickType.LAST));
                     } else if (event.ohlc().getLow() < lowestLow.get(id)) {
                         Parameters.symbol.get(id).setLastPrice(event.ohlc().getLow());
-                        this.tradeReceived(new TradeEvent(new Object(), id, 4));
+                        this.tradeReceived(new TradeEvent(new Object(), id, com.ib.client.TickType.LAST));
                     }
                 } //For one minute bars
                 else if (event.ohlc().getPeriodicity() == EnumBarSize.OneMin && getStartDate().compareTo(new Date()) < 0) {
@@ -511,8 +511,8 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                     TradingUtil.writeToFile(getStrategy() + "datalogs.csv", Parameters.symbol.get(id).getSymbol() + "," + cumVolume.get(id).size() + "," + 0 + "," + indexZScoreYesterday + "," + symbolZScoreYesterday + "," + zscore + "," + highBoundary + "," + lowBoundary + "," + Parameters.symbol.get(futureid).getLastPrice() + "," + close.get(id) + "," + relativeVol + "," + getCumVolume().get(id).size() + "," + zScoreOnEntry.get(id) + "," + (zScoreOnEntry.get(id) - worstCaseLoss) * (this.getCumVolume().get(id).size() - entryBar.get(id)) / (365 - entryBar.get(id)) + (getClose().get(id)-yesterdayClose.get(id))/yesterdayClose.get(id)+","+ "," + "COVER");
                     entryBar.set(id, 0);
                     zScoreOnEntry.set(id, 0D);
-                } else if (this.getCumVolume().get(id).size() >= this.getChannelDuration()) {
-                    //TradingUtil.writeToFile(getStrategy() + "datalogs.csv", Parameters.symbol.get(id).getSymbol() + "," + cumVolume.get(id).size() + "," + 0 + "," + indexZScoreYesterday + "," + symbolZScoreYesterday + "," + zscore + "," + highBoundary + "," + lowBoundary + "," + Parameters.symbol.get(futureid).getLastPrice() + "," + close.get(id) + "," + relativeVol + "," + entryBar.get(id) + "," + zScoreOnEntry.get(id) + "," + (zScoreOnEntry.get(id) - worstCaseLoss) * (this.getCumVolume().get(id).size() - entryBar.get(id)) / (365 - entryBar.get(id)) + "," + "SCAN");
+                } else if (zscore>2||zscore<-1) {
+                    TradingUtil.writeToFile(getStrategy() + "datalogs.csv", Parameters.symbol.get(id).getSymbol() + "," + cumVolume.get(id).size() + "," + 0 + "," + indexZScoreYesterday + "," + symbolZScoreYesterday + "," + zscore + "," + highBoundary + "," + lowBoundary + "," + Parameters.symbol.get(futureid).getLastPrice() + "," + close.get(id) + "," + relativeVol + "," + entryBar.get(id) + "," + zScoreOnEntry.get(id) + "," + (zScoreOnEntry.get(id) - worstCaseLoss) * (this.getCumVolume().get(id).size() - entryBar.get(id)) / (365 - entryBar.get(id)) + "," + "SCAN");
                 }
             }
             }
