@@ -17,6 +17,7 @@ public class OrderReader {
     private final Map<WatchKey,Path> keys;
     private final boolean recursive;
     private boolean trace = false;
+    private CSV csvStrategy;
 
     @SuppressWarnings("unchecked")
     static <T> WatchEvent<T> cast(WatchEvent<?> event) {
@@ -61,10 +62,11 @@ public class OrderReader {
     /**
      * Creates a WatchService and registers the given directory
      */
-    public OrderReader(Path dir, boolean recursive) throws IOException {
+    public OrderReader(CSV csvStrategy,Path dir, boolean recursive) throws IOException {
         this.watcher = FileSystems.getDefault().newWatchService();
         this.keys = new HashMap<WatchKey,Path>();
         this.recursive = recursive;
+        this.csvStrategy=csvStrategy;
 
         if (recursive) {
             System.out.format("Scanning %s ...\n", dir);
@@ -104,6 +106,14 @@ public class OrderReader {
                 // TBD - provide example of how OVERFLOW event is handled
                 if (kind == OVERFLOW) {
                     continue;
+                }else if(kind==ENTRY_CREATE){
+                    csvStrategy.processOrders(dir);
+                    
+                }else if(kind==ENTRY_MODIFY){
+                    //read orders and process
+                    
+                }else if(kind==ENTRY_DELETE){
+                    //cancel all orders. Close all Positions
                 }
                 
 
@@ -139,28 +149,5 @@ public class OrderReader {
                 }
             }
         }
-    }
-
-    static void usage() {
-        System.err.println("usage: java WatchDir [-r] dir");
-        System.exit(-1);
-    }
-
-    public static void main(String[] args) throws IOException {
-        // parse arguments
-        if (args.length == 0 || args.length > 2)
-            usage();
-        boolean recursive = false;
-        int dirArg = 0;
-        if (args[0].equals("-r")) {
-            if (args.length < 2)
-                usage();
-            recursive = true;
-            dirArg++;
-        }
-
-        // register directory and process its events
-        Path dir = Paths.get(args[dirArg]);
-        new OrderReader(dir, recursive).processEvents();
     }
 }
