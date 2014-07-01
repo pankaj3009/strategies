@@ -175,7 +175,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
             openProcessing.schedule(realTimeBars, getStartDate());
             if (!Launch.headless) {
             Launch.setMessage("Waiting for market open");
-            logger.log(Level.INFO,"Strategy,{0},{1}, Real time bars request waiting for market open", new Object[]{allAccounts,getStrategy()});
+            logger.log(Level.INFO,"{0},{1},Strategy, Real time bars request waiting for market open", new Object[]{allAccounts,getStrategy()});
         }
         } else {
             Launch.setMessage("Requesting Realtime Bars");
