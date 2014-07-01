@@ -554,8 +554,11 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                     if (!expiry.equals("")) {
                         cushion = ((int) (exitCushion / Parameters.symbol.get(j.getKey()).getMinsize() / getTickSize())) * getTickSize();
                     }
-                    double midPoint=(Math.round((Parameters.symbol.get(futureid).getBidPrice()+Parameters.symbol.get(futureid).getAskPrice())/2/getTickSize()))*getTickSize();
-                    double entryPrice=Math.min(Parameters.symbol.get(futureid).getLastPrice(),midPoint );
+                    //double midPoint=(Math.round((Parameters.symbol.get(futureid).getBidPrice()+Parameters.symbol.get(futureid).getAskPrice())/2/getTickSize()))*getTickSize();
+                    //double entryPrice=Math.min(Parameters.symbol.get(futureid).getLastPrice(),midPoint );
+
+                    double midPoint=(Math.round((Parameters.symbol.get(j.getKey()).getBidPrice()+Parameters.symbol.get(j.getKey()).getAskPrice())/2/getTickSize()))*getTickSize();
+                    double entryPrice=Math.min(Parameters.symbol.get(j.getKey()).getLastPrice(),midPoint );
                     
                     getOms().tes.fireOrderEvent(this.internalOrderID - 1, entryInternalOrderID, Parameters.symbol.get(j.getKey()), EnumOrderSide.COVER,EnumNotification.REGULAREXIT,EnumOrderType.LMT, size, entryPrice - cushion, 0, getStrategy(), getMaxOrderDuration(), EnumOrderStage.CANCEL, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit(), true,"");
                     getOms().tes.fireOrderEvent(this.internalOrderID - 1, entryInternalOrderID, Parameters.symbol.get(j.getKey()), EnumOrderSide.COVER,EnumNotification.REGULAREXIT,EnumOrderType.LMT, size, entryPrice - cushion, 0, getStrategy(), getMaxOrderDuration(), EnumOrderStage.INIT, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit(), true,"");
