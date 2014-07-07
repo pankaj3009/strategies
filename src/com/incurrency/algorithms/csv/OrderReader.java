@@ -111,7 +111,7 @@ public class OrderReader {
                     csvStrategy.processOrders(dir);
                     
                 }else if(kind==ENTRY_MODIFY){
-                    //read orders and process
+                    csvStrategy.processOrders(dir);
                     
                 }else if(kind==ENTRY_DELETE){
                     //cancel all orders. Close all Positions

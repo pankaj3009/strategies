@@ -78,6 +78,7 @@ public class CSV extends Strategy {
         System.setProperties(p);
         orderFile = System.getProperty("OrderFileName") == null ? "orderfile.csv" : System.getProperty("OrderFileName");
         directory = System.getProperty("Directory") == null ? "orders" : System.getProperty("Directory");
+        directory=directory.replace("\\", "/");
     }
 
     public void processOrders(Path dir) {
@@ -90,6 +91,8 @@ public class CSV extends Strategy {
                 if (newOrderList.size() > oldOrderList.size()) {//send addition to OMS
                     for (int i = oldOrderList.size(); i < newOrderList.size(); i++) {
                         placeOrder(newOrderList.get(i));
+                        oldOrderList=newOrderList;
+                        newOrderList.clear();
                     }
                 }
                 //place any OCO orders
@@ -181,7 +184,7 @@ public class CSV extends Strategy {
                 Strategy.getCombosAdded().put(orderItem.getHappyName(), orderItem.getSymbol());
             }
         }
-        int id = TradingUtil.getIDFromSymbol(orderItem.getSymbol(), orderItem.getType(), orderItem.getExchange(), orderItem.getRight(), orderItem.getOptionStrike());
+        int id = TradingUtil.getIDFromSymbol(orderItem.getSymbol(), orderItem.getType(), orderItem.getExpiry(), orderItem.getRight(), orderItem.getOptionStrike());
         //generate next internal order id
         if (id > -1 && orderItem.getOrderType()!=EnumOrderType.UNDEFINED && orderItem.getSide()!=EnumOrderSide.UNDEFINED && orderItem.getStage()!=EnumOrderStage.UNDEFINED && orderItem.getReason()!=EnumNotification.UNDEFINED) {
             BeanPosition pd = getPosition().get(id);

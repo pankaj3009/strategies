@@ -27,6 +27,7 @@ public class CSVOrder implements ReaderWriterInterface {
     private String symbol;
     private String happyName;
     private String type;
+    private String expiry;
     private String exchange;
     private String optionStrike;
     private String right;
@@ -55,23 +56,24 @@ public class CSVOrder implements ReaderWriterInterface {
         this.symbol = input[0]==null?"":input[0];
         this.happyName=input[1]==null?input[0]:input[1];
         this.type = input[2]==null?"":input[2];
-        this.exchange = input[3]==null?"":input[3];
-        this.optionStrike = input[4]==null?"":input[4];
-        this.right = input[5]==null?"":input[5];
-        this.side = input[6]==null?EnumOrderSide.UNDEFINED: EnumOrderSide.valueOf(input[6].toUpperCase());
-        this.orderType = input[7]==null?EnumOrderType.UNDEFINED: EnumOrderType.valueOf(input[7].toUpperCase());
-        this.limitPrice = input[8]==null?0:Double.parseDouble(input[8]);
-        this.triggerPrice = input[9]==null?0:Double.parseDouble(input[9]);
-        this.effectiveFrom = input[10]==null?"":input[10];
-        this.effectiveDuration = input[11]==null?0:Integer.parseInt(input[11]);
-        this.dynamicDuration = input[12]==null?0:Integer.parseInt(input[12]);
-        this.stage = input[13]==null?EnumOrderStage.UNDEFINED: EnumOrderStage.valueOf(input[13].toUpperCase());
-        this.scaleIn = input[14]==null?Boolean.FALSE:Boolean.parseBoolean(input[14]);
-        this.size=input[15]==null?0:Integer.parseInt(input[15]);
-        this.tif=input[16]==null?"DAY":input[16];
-        this.slippage=input[17]==null?0D:Double.parseDouble(input[17]);
-        this.reason=input[18]==null?EnumNotification.UNDEFINED:EnumNotification.valueOf(input[18]);
-        id=TradingUtil.getIDFromSymbol(symbol, type, type, right, optionStrike);
+        this.expiry = input[3]==null?"":input[3];
+        this.exchange = input[4]==null?"":input[4];
+        this.optionStrike = input[5]==null?"":input[5];
+        this.right = input[6]==null?"":input[6];
+        this.side = input[7]==null?EnumOrderSide.UNDEFINED: EnumOrderSide.valueOf(input[7].toUpperCase());
+        this.orderType = input[8]==null?EnumOrderType.UNDEFINED: EnumOrderType.valueOf(input[8].toUpperCase());
+        this.limitPrice = input[9]==null?0:Double.parseDouble(input[9]);
+        this.triggerPrice = input[10]==null?0:Double.parseDouble(input[10]);
+        this.effectiveFrom = input[11].matches("\\d{4}\\d{2}\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}")?input[11]:null;
+        this.effectiveDuration = input[12]==null?0:Integer.parseInt(input[12]);
+        this.dynamicDuration = input[13]==null?0:Integer.parseInt(input[13]);
+        this.stage = input[14]==null?EnumOrderStage.UNDEFINED: EnumOrderStage.valueOf(input[14].toUpperCase());
+        this.scaleIn = input[15]==null?Boolean.FALSE:Boolean.parseBoolean(input[15]);
+        this.size=input[16]==null?0:Integer.parseInt(input[16]);
+        this.tif=input[17]==null?"DAY":input[17];
+        this.slippage=input[18]==null?0D:Double.parseDouble(input[18]);
+        this.reason=input[19]==null?EnumNotification.UNDEFINED:EnumNotification.valueOf(input[19]);
+        id=TradingUtil.getIDFromSymbol(symbol, type, expiry, right, optionStrike);
         
     }
 
@@ -378,6 +380,20 @@ public class CSVOrder implements ReaderWriterInterface {
      */
     public void setHappyName(String happyName) {
         this.happyName = happyName;
+    }
+
+    /**
+     * @return the expiry
+     */
+    public String getExpiry() {
+        return expiry;
+    }
+
+    /**
+     * @param expiry the expiry to set
+     */
+    public void setExpiry(String expiry) {
+        this.expiry = expiry;
     }
     
     
