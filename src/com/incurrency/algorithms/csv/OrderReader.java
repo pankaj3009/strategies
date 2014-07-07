@@ -18,6 +18,7 @@ public class OrderReader {
     private final boolean recursive;
     private boolean trace = false;
     private CSV csvStrategy;
+    public int test;
 
     @SuppressWarnings("unchecked")
     static <T> WatchEvent<T> cast(WatchEvent<?> event) {

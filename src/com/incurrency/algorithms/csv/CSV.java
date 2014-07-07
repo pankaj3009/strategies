@@ -44,6 +44,7 @@ public class CSV extends Strategy {
     private ArrayList<CSVOrder> newOrderList = new ArrayList<>();
     private ArrayList<CSVOrder> ocoOrderList = new ArrayList<>();
     OrderReader orderReader;
+    public int test;
 
     public CSV(MainAlgorithm m, String parameterFile, ArrayList<String> accounts) {
         super(m, "CSV", "FUT", parameterFile, accounts);

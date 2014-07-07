@@ -45,7 +45,8 @@ public class CSVOrder implements ReaderWriterInterface {
     private double slippage;
     private int id;
     private static final Logger logger = Logger.getLogger(CSVOrder.class.getName());
-
+    public int test;
+            
     public CSVOrder(){
         
     }
