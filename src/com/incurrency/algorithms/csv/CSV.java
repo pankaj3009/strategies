@@ -55,8 +55,8 @@ public class CSV extends Strategy {
                 c.initializeConnection(tempStrategyArray[tempStrategyArray.length - 1]);
             }
             Path dir = Paths.get(directory);
-            orderReader = new OrderReader(this, dir, false);
-            orderReader.processEvents();
+            Thread t=new Thread(orderReader = new OrderReader(this, dir, false));
+            t.start();
         } catch (IOException ex) {
             Logger.getLogger(CSV.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -86,13 +86,14 @@ public class CSV extends Strategy {
         File f = new File(folder, orderFile);
         if (f.exists() && !f.isDirectory()) {
             try {
+                newOrderList.clear();
                 new CSVOrder().reader(f.getCanonicalPath(), newOrderList);
                 //read file
                 if (newOrderList.size() > oldOrderList.size()) {//send addition to OMS
                     for (int i = oldOrderList.size(); i < newOrderList.size(); i++) {
                         placeOrder(newOrderList.get(i));
-                        oldOrderList=newOrderList;
-                        newOrderList.clear();
+                        oldOrderList=(ArrayList<CSVOrder>) newOrderList.clone();
+                        
                     }
                 }
                 //place any OCO orders

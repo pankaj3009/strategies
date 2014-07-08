@@ -11,7 +11,7 @@ import java.util.*;
  * Example to watch a directory (or tree) for changes to files.
  */
 
-public class OrderReader {
+public class OrderReader implements Runnable{
 
     private final WatchService watcher;
     private final Map<WatchKey,Path> keys;
@@ -84,7 +84,8 @@ public class OrderReader {
     /**
      * Process all events for keys queued to the watcher
      */
-    void processEvents() {
+    @Override
+    public void run(){
         for (;;) {
 
             // wait for key to be signalled
