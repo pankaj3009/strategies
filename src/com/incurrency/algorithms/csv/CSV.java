@@ -12,10 +12,13 @@ import com.incurrency.framework.EnumNotification;
 import com.incurrency.framework.EnumOrderSide;
 import com.incurrency.framework.EnumOrderStage;
 import com.incurrency.framework.EnumOrderType;
+import com.incurrency.framework.Index;
+import com.incurrency.framework.Launch;
 import com.incurrency.framework.MainAlgorithm;
 import com.incurrency.framework.OrderLink;
 import com.incurrency.framework.Parameters;
 import com.incurrency.framework.Strategy;
+import com.incurrency.framework.SymbolOrderMap;
 import com.incurrency.framework.Trade;
 import com.incurrency.framework.TradingUtil;
 import java.io.File;
@@ -55,7 +58,7 @@ public class CSV extends Strategy {
                 c.initializeConnection(tempStrategyArray[tempStrategyArray.length - 1]);
             }
             Path dir = Paths.get(directory);
-            Thread t=new Thread(orderReader = new OrderReader(this, dir, false));
+            Thread t = new Thread(orderReader = new OrderReader(this, dir, false));
             t.start();
         } catch (IOException ex) {
             Logger.getLogger(CSV.class.getName()).log(Level.SEVERE, null, ex);
@@ -78,7 +81,7 @@ public class CSV extends Strategy {
         System.setProperties(p);
         orderFile = System.getProperty("OrderFileName") == null ? "orderfile.csv" : System.getProperty("OrderFileName");
         directory = System.getProperty("Directory") == null ? "orders" : System.getProperty("Directory");
-        directory=directory.replace("\\", "/");
+        directory = directory.replace("\\", "/");
     }
 
     public void processOrders(Path dir) {
@@ -92,8 +95,8 @@ public class CSV extends Strategy {
                 if (newOrderList.size() > oldOrderList.size()) {//send addition to OMS
                     for (int i = oldOrderList.size(); i < newOrderList.size(); i++) {
                         placeOrder(newOrderList.get(i));
-                        oldOrderList=(ArrayList<CSVOrder>) newOrderList.clone();
-                        
+                        oldOrderList = (ArrayList<CSVOrder>) newOrderList.clone();
+
                     }
                 }
                 //place any OCO orders
@@ -179,15 +182,31 @@ public class CSV extends Strategy {
 
     private void placeOrder(CSVOrder orderItem) {
 
-        if(orderItem.getType().equals("COMBO")){//update Parameters.Symbols if first time
-            if(!Strategy.getCombosAdded().containsKey(orderItem.getHappyName())){
-                Parameters.symbol.add(new BeanSymbol(orderItem.getSymbol(),orderItem.getHappyName()));
+        int id = -1;
+        if (orderItem.getType().equals("COMBO")) {
+            if (!Strategy.getCombosAdded().containsKey(orderItem.getHappyName())) {
+                Parameters.symbol.add(new BeanSymbol(orderItem.getSymbol(), orderItem.getHappyName()));
                 Strategy.getCombosAdded().put(orderItem.getHappyName(), orderItem.getSymbol());
+                id = TradingUtil.getIDFromSymbol(orderItem.getHappyName(), orderItem.getType(), "", "", "");
             }
+            if (!getStrategySymbols().contains(id)) {
+                getStrategySymbols().add(id);
+                getPosition().put(id, new BeanPosition(id, getStrategy()));
+                Index ind = new Index(getStrategy(), id);
+                for (BeanConnection c : Parameters.connection) {
+                    c.getOrdersSymbols().put(ind, new ArrayList<SymbolOrderMap>());
+                    c.getPnlBySymbol().put(ind, 0D);
+                }
+            }
+
+
+        } else {
+            id = TradingUtil.getIDFromSymbol(orderItem.getSymbol(), orderItem.getType(), orderItem.getExpiry(), orderItem.getRight(), orderItem.getOptionStrike());
         }
-        int id = TradingUtil.getIDFromSymbol(orderItem.getSymbol(), orderItem.getType(), orderItem.getExpiry(), orderItem.getRight(), orderItem.getOptionStrike());
+
+
         //generate next internal order id
-        if (id > -1 && orderItem.getOrderType()!=EnumOrderType.UNDEFINED && orderItem.getSide()!=EnumOrderSide.UNDEFINED && orderItem.getStage()!=EnumOrderStage.UNDEFINED && orderItem.getReason()!=EnumNotification.UNDEFINED) {
+        if (id > -1 && orderItem.getOrderType() != EnumOrderType.UNDEFINED && orderItem.getSide() != EnumOrderSide.UNDEFINED && orderItem.getStage() != EnumOrderStage.UNDEFINED && orderItem.getReason() != EnumNotification.UNDEFINED) {
             BeanPosition pd = getPosition().get(id);
             double expectedFillPrice = orderItem.getLimitPrice() != 0 ? orderItem.getLimitPrice() : Parameters.symbol.get(id).getLastPrice();
             int symbolPosition = 0;
@@ -217,7 +236,7 @@ public class CSV extends Strategy {
                     break;
                 case SELL:
                 case COVER:
-                    int tempinternalOrderID = getFirstInternalOpenOrder(id,orderItem.getSide(),"Order");
+                    int tempinternalOrderID = getFirstInternalOpenOrder(id, orderItem.getSide(), "Order");
                     entryID = tempinternalOrderID;
                     exitID = internalOrderID + 1;
                     Trade tempTrade = getTrades().get(new OrderLink(tempinternalOrderID, "Order"));
@@ -232,7 +251,7 @@ public class CSV extends Strategy {
                 ocoOrderList.add(orderItem);
             } else {
                 logger.log(Level.INFO, "Strategy,{0}, {1},Order, New Position: {2}, Position Price:{3}, OrderSide: {4}, Order Stage: {5}, Order Reason:{6},", new Object[]{allAccounts, getStrategy(), getPosition().get(id).getPosition(), getPosition().get(id).getPrice(), orderItem.getSide(), orderItem.getStage(), orderItem.getReason()});
-                getOms().tes.fireOrderEvent(entryID, exitID, Parameters.symbol.get(id), orderItem.getSide(), orderItem.getReason(), orderItem.getOrderType(), orderItem.getSize(), orderItem.getLimitPrice(), orderItem.getTriggerPrice(), getStrategy(), orderItem.getEffectiveDuration(), orderItem.getStage(), orderItem.getEffectiveDuration(), orderItem.getDynamicDuration(), orderItem.getSlippage(), "", true, orderItem.getTif(), true, "", orderItem.getEffectiveFrom());
+                getOms().tes.fireOrderEvent(entryID, exitID, Parameters.symbol.get(id), orderItem.getSide(), orderItem.getReason(), orderItem.getOrderType(), orderItem.getSize(), orderItem.getLimitPrice(), orderItem.getTriggerPrice(), getStrategy(), orderItem.getEffectiveDuration(), orderItem.getStage(), orderItem.getEffectiveDuration(), orderItem.getDynamicDuration(), orderItem.getSlippage(), "", true, orderItem.getTif(), orderItem.isScaleIn(), "", orderItem.getEffectiveFrom());
                 //String link,boolean transmit                    
             }
         }

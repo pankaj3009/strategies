@@ -4,11 +4,15 @@
  */
 package com.incurrency.algorithms.csv;
 
+import com.incurrency.framework.BeanPosition;
+import com.incurrency.framework.BeanSymbol;
 import com.incurrency.framework.EnumNotification;
 import com.incurrency.framework.EnumOrderSide;
 import com.incurrency.framework.EnumOrderStage;
 import com.incurrency.framework.EnumOrderType;
+import com.incurrency.framework.Parameters;
 import com.incurrency.framework.ReaderWriterInterface;
+import com.incurrency.framework.Strategy;
 import com.incurrency.framework.TradingUtil;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
@@ -47,11 +51,21 @@ public class CSVOrder implements ReaderWriterInterface {
     private int id;
     private static final Logger logger = Logger.getLogger(CSVOrder.class.getName());
     public int test;
+    CSV csv;
             
+    public CSVOrder(CSV csv){
+        this.csv=csv;
+    }
+    
     public CSVOrder(){
         
     }
 
+    public CSVOrder(CSV csv, String[]input){
+        this(input);
+        this.csv=csv;
+        
+    }
     public CSVOrder(String[] input) {
         this.symbol = input[0]==null?"":input[0];
         this.happyName=input[1]==null?input[0]:input[1];
@@ -73,8 +87,11 @@ public class CSVOrder implements ReaderWriterInterface {
         this.tif=input[17]==null?"DAY":input[17];
         this.slippage=input[18]==null?0D:Double.parseDouble(input[18]);
         this.reason=input[19]==null?EnumNotification.UNDEFINED:EnumNotification.valueOf(input[19]);
+        if(this.type.equals("COMBO")){//update Parameters.Symbols if first time
+
+        }else{
         id=TradingUtil.getIDFromSymbol(symbol, type, expiry, right, optionStrike);
-        
+        }
     }
 
     
