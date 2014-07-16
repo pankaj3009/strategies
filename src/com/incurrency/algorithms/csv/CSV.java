@@ -57,7 +57,7 @@ public class CSV extends Strategy {
             for (BeanConnection c : Parameters.connection) {
                 c.initializeConnection(tempStrategyArray[tempStrategyArray.length - 1]);
             }
-            Path dir = Paths.get(directory);
+            Path dir = Paths.get(directory.trim());
             Thread t = new Thread(orderReader = new OrderReader(this, dir, false));
             t.start();
         } catch (IOException ex) {
@@ -187,6 +187,8 @@ public class CSV extends Strategy {
             if (!Strategy.getCombosAdded().containsKey(orderItem.getHappyName())) {
                 Parameters.symbol.add(new BeanSymbol(orderItem.getSymbol(), orderItem.getHappyName()));
                 Strategy.getCombosAdded().put(orderItem.getHappyName(), orderItem.getSymbol());
+                id = TradingUtil.getIDFromSymbol(orderItem.getHappyName(), orderItem.getType(), "", "", "");
+            }else{
                 id = TradingUtil.getIDFromSymbol(orderItem.getHappyName(), orderItem.getType(), "", "", "");
             }
             if (!getStrategySymbols().contains(id)) {
