@@ -142,7 +142,7 @@ public class CSV extends Strategy {
                                 break;
                         }
                         logger.log(Level.INFO, "Strategy,{0}, {1},OCO Order, New Position: {2}, Position Price:{3}, OrderSide: {4}, Order Stage: {5}, Order Reason:{6},", new Object[]{allAccounts, getStrategy(), getPosition().get(id).getPosition(), getPosition().get(id).getPrice(), ord.getSide(), ord.getStage(), ord.getReason()});
-                        getOms().tes.fireOrderEvent(entryID, exitID, Parameters.symbol.get(id), ord.getSide(), ord.getReason(), ord.getOrderType(), ord.getSize(), ord.getLimitPrice(), ord.getTriggerPrice(), getStrategy(), ord.getEffectiveDuration(), ord.getStage(), ord.getEffectiveDuration(), ord.getDynamicDuration(), ord.getSlippage(), link, false, ord.getTif(), true, "", ord.getEffectiveFrom());
+                        getOms().tes.fireOrderEvent(entryID, exitID, Parameters.symbol.get(id), ord.getSide(), ord.getReason(), ord.getOrderType(), ord.getSize(), ord.getLimitPrice(), ord.getTriggerPrice(), getStrategy(), ord.getEffectiveDuration(), ord.getStage(), ord.getEffectiveDuration(), ord.getDynamicDuration(), ord.getSlippage(), link, false, ord.getTif(), true, "", ord.getEffectiveFrom(),null);
 
                     }
                     //place the last leg of the OCO and set transmit = true;
@@ -171,7 +171,7 @@ public class CSV extends Strategy {
                             break;
                     }
                     logger.log(Level.INFO, "Strategy,{0}, {1},OCO Order, New Position: {2}, Position Price:{3}, OrderSide: {4}, Order Stage: {5}, Order Reason:{6},", new Object[]{allAccounts, getStrategy(), getPosition().get(id).getPosition(), getPosition().get(id).getPrice(), ord.getSide(), ord.getStage(), ord.getReason()});
-                    getOms().tes.fireOrderEvent(entryID, exitID, Parameters.symbol.get(id), ord.getSide(), ord.getReason(), ord.getOrderType(), ord.getSize(), ord.getLimitPrice(), ord.getTriggerPrice(), getStrategy(), ord.getEffectiveDuration(), ord.getStage(), ord.getEffectiveDuration(), ord.getDynamicDuration(), ord.getSlippage(), link, true, ord.getTif(), true, "", ord.getEffectiveFrom());
+                    getOms().tes.fireOrderEvent(entryID, exitID, Parameters.symbol.get(id), ord.getSide(), ord.getReason(), ord.getOrderType(), ord.getSize(), ord.getLimitPrice(), ord.getTriggerPrice(), getStrategy(), ord.getEffectiveDuration(), ord.getStage(), ord.getEffectiveDuration(), ord.getDynamicDuration(), ord.getSlippage(), link, true, ord.getTif(), true, "", ord.getEffectiveFrom(),null);
                 }
             } catch (IOException ex) {
                 Logger.getLogger(CSV.class.getName()).log(Level.SEVERE, null, ex);
@@ -239,8 +239,8 @@ public class CSV extends Strategy {
                 case SELL:
                 case COVER:
                     int tempinternalOrderID = getFirstInternalOpenOrder(id, orderItem.getSide(), "Order");
-                    entryID = tempinternalOrderID;
-                    exitID = internalOrderID + 1;
+                    exitID = tempinternalOrderID;
+                    entryID = internalOrderID;
                     Trade tempTrade = getTrades().get(new OrderLink(tempinternalOrderID, "Order"));
                     tempTrade.updateExit(id, orderItem.getSide(), Parameters.symbol.get(id).getLastPrice(), orderItem.getSize(), internalOrderID++, getTimeZone(), "Order");
                     getTrades().put(new OrderLink(tempinternalOrderID, "Order"), tempTrade);
@@ -252,8 +252,8 @@ public class CSV extends Strategy {
                 //keep aside for OCO processing
                 ocoOrderList.add(orderItem);
             } else {
-                logger.log(Level.INFO, "Strategy,{0}, {1},Order, New Position: {2}, Position Price:{3}, OrderSide: {4}, Order Stage: {5}, Order Reason:{6},", new Object[]{allAccounts, getStrategy(), getPosition().get(id).getPosition(), getPosition().get(id).getPrice(), orderItem.getSide(), orderItem.getStage(), orderItem.getReason()});
-                getOms().tes.fireOrderEvent(entryID, exitID, Parameters.symbol.get(id), orderItem.getSide(), orderItem.getReason(), orderItem.getOrderType(), orderItem.getSize(), orderItem.getLimitPrice(), orderItem.getTriggerPrice(), getStrategy(), orderItem.getEffectiveDuration(), orderItem.getStage(), orderItem.getEffectiveDuration(), orderItem.getDynamicDuration(), orderItem.getSlippage(), "", true, orderItem.getTif(), orderItem.isScaleIn(), "", orderItem.getEffectiveFrom());
+                logger.log(Level.INFO, "Strategy,{0}, {1}, Order, Internal Order ID: {2},New Position: {3}, Position Price:{4}, OrderSide: {5}, Order Stage: {6}, Order Reason:{7},", new Object[]{allAccounts, getStrategy(),internalOrderID-1, getPosition().get(id).getPosition(), getPosition().get(id).getPrice(), orderItem.getSide(), orderItem.getStage(), orderItem.getReason()});
+                getOms().tes.fireOrderEvent(entryID, exitID, Parameters.symbol.get(id), orderItem.getSide(), orderItem.getReason(), orderItem.getOrderType(), orderItem.getSize(), orderItem.getLimitPrice(), orderItem.getTriggerPrice(), getStrategy(), orderItem.getEffectiveDuration(), orderItem.getStage(), orderItem.getEffectiveDuration(), orderItem.getDynamicDuration(), orderItem.getSlippage(), "", true, orderItem.getTif(), orderItem.isScaleIn(), "", orderItem.getEffectiveFrom(),null);
                 //String link,boolean transmit                    
             }
         }
