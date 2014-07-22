@@ -124,19 +124,21 @@ public class CSV extends Strategy {
                         switch (ord.getSide()) {
                             case BUY:
                             case SHORT:
-                                entryID = internalOrderID;
+                                int internalorderid=getInternalOrderID();
+                                entryID = internalorderid;
                                 exitID = entryID;
-                                this.internalOpenOrders.put(id, internalOrderID);
-                                getTrades().put(new OrderLink(this.internalOrderID, "Order"), new Trade(id, ord.getSide(), Parameters.symbol.get(id).getLastPrice(), ord.getSize(), internalOrderID++, getTimeZone(), "Order"));
+                                this.internalOpenOrders.put(id, internalorderid);
+                                getTrades().put(new OrderLink(internalorderid,0, "Order"), new Trade(id, ord.getSide(), Parameters.symbol.get(id).getLastPrice(), ord.getSize(), internalorderid,0, getTimeZone(), "Order"));
                                 break;
                             case SELL:
                             case COVER:
+                                internalorderid=getInternalOrderID();
                                 int tempinternalOrderID = this.getFirstInternalOpenOrder(id, ord.getSide(), "Order");
                                 entryID = tempinternalOrderID;
-                                exitID = internalOrderID + 1;
-                                Trade tempTrade = getTrades().get(new OrderLink(tempinternalOrderID, "Order"));
-                                tempTrade.updateExit(id, ord.getSide(), Parameters.symbol.get(id).getLastPrice(), ord.getSize(), internalOrderID++, getTimeZone(), "Order");
-                                getTrades().put(new OrderLink(tempinternalOrderID, "Order"), tempTrade);
+                                exitID = internalorderid;
+                                Trade tempTrade = getTrades().get(new OrderLink(tempinternalOrderID,0, "Order"));
+                                tempTrade.updateExit(id, ord.getSide(), Parameters.symbol.get(id).getLastPrice(), ord.getSize(), internalorderid,0, getTimeZone(), "Order");
+                                getTrades().put(new OrderLink(tempinternalOrderID,0, "Order"), tempTrade);
                                 break;
                             default:
                                 break;
@@ -153,19 +155,21 @@ public class CSV extends Strategy {
                     switch (ord.getSide()) {
                         case BUY:
                         case SHORT:
-                            entryID = internalOrderID;
+                            int internalorderid=getInternalOrderID();
+                            entryID = internalorderid;
                             exitID = entryID;
-                            this.internalOpenOrders.put(id, internalOrderID);
-                            getTrades().put(new OrderLink(this.internalOrderID, "Order"), new Trade(id, ord.getSide(), Parameters.symbol.get(id).getLastPrice(), ord.getSize(), internalOrderID++, getTimeZone(), "Order"));
+                            this.internalOpenOrders.put(id, internalorderid);
+                            getTrades().put(new OrderLink(internalorderid,0, "Order"), new Trade(id, ord.getSide(), Parameters.symbol.get(id).getLastPrice(), ord.getSize(), internalorderid, 0,getTimeZone(), "Order"));
                             break;
                         case SELL:
                         case COVER:
+                            internalorderid=getInternalOrderID();
                             int tempinternalOrderID = this.getFirstInternalOpenOrder(id, ord.getSide(), "Order");
                             entryID = tempinternalOrderID;
-                            exitID = internalOrderID + 1;
-                            Trade tempTrade = getTrades().get(new OrderLink(tempinternalOrderID, "Order"));
-                            tempTrade.updateExit(id, ord.getSide(), Parameters.symbol.get(id).getLastPrice(), ord.getSize(), internalOrderID++, getTimeZone(), "Order");
-                            getTrades().put(new OrderLink(tempinternalOrderID, "Order"), tempTrade);
+                            exitID = internalorderid;
+                            Trade tempTrade = getTrades().get(new OrderLink(tempinternalOrderID,0, "Order"));
+                            tempTrade.updateExit(id, ord.getSide(), Parameters.symbol.get(id).getLastPrice(), ord.getSize(), internalorderid,0, getTimeZone(), "Order");
+                            getTrades().put(new OrderLink(tempinternalOrderID,0, "Order"), tempTrade);
                             break;
                         default:
                             break;
@@ -231,19 +235,21 @@ public class CSV extends Strategy {
             switch (orderItem.getSide()) {
                 case BUY:
                 case SHORT:
-                    entryID = internalOrderID;
+                    int internalorderid=getInternalOrderID();
+                    entryID = internalorderid;
                     exitID = entryID;
-                    this.internalOpenOrders.put(id, internalOrderID);
-                    getTrades().put(new OrderLink(this.internalOrderID, "Order"), new Trade(id, orderItem.getSide(), Parameters.symbol.get(id).getLastPrice(), orderItem.getSize(), internalOrderID++, getTimeZone(), "Order"));
+                    this.internalOpenOrders.put(id, internalorderid);
+                    getTrades().put(new OrderLink(internalorderid,0, "Order"), new Trade(id, orderItem.getSide(), Parameters.symbol.get(id).getLastPrice(), orderItem.getSize(), internalorderid,0, getTimeZone(), "Order"));
                     break;
                 case SELL:
                 case COVER:
+                     internalorderid=getInternalOrderID();
                     int tempinternalOrderID = getFirstInternalOpenOrder(id, orderItem.getSide(), "Order");
                     exitID = tempinternalOrderID;
-                    entryID = internalOrderID;
-                    Trade tempTrade = getTrades().get(new OrderLink(tempinternalOrderID, "Order"));
-                    tempTrade.updateExit(id, orderItem.getSide(), Parameters.symbol.get(id).getLastPrice(), orderItem.getSize(), internalOrderID++, getTimeZone(), "Order");
-                    getTrades().put(new OrderLink(tempinternalOrderID, "Order"), tempTrade);
+                    entryID = internalorderid;
+                    Trade tempTrade = getTrades().get(new OrderLink(tempinternalOrderID,0, "Order"));
+                    tempTrade.updateExit(id, orderItem.getSide(), Parameters.symbol.get(id).getLastPrice(), orderItem.getSize(), internalorderid,0, getTimeZone(), "Order");
+                    getTrades().put(new OrderLink(tempinternalOrderID,0, "Order"), tempTrade);
                     break;
                 default:
                     break;
@@ -252,7 +258,7 @@ public class CSV extends Strategy {
                 //keep aside for OCO processing
                 ocoOrderList.add(orderItem);
             } else {
-                logger.log(Level.INFO, "Strategy,{0}, {1}, Order, Internal Order ID: {2},New Position: {3}, Position Price:{4}, OrderSide: {5}, Order Stage: {6}, Order Reason:{7},", new Object[]{allAccounts, getStrategy(),internalOrderID-1, getPosition().get(id).getPosition(), getPosition().get(id).getPrice(), orderItem.getSide(), orderItem.getStage(), orderItem.getReason()});
+                logger.log(Level.INFO, "Strategy,{0}, {1}, Order, Internal Order ID: {2},New Position: {3}, Position Price:{4}, OrderSide: {5}, Order Stage: {6}, Order Reason:{7},", new Object[]{allAccounts, getStrategy(),entryID, getPosition().get(id).getPosition(), getPosition().get(id).getPrice(), orderItem.getSide(), orderItem.getStage(), orderItem.getReason()});
                 getOms().tes.fireOrderEvent(entryID, exitID, Parameters.symbol.get(id), orderItem.getSide(), orderItem.getReason(), orderItem.getOrderType(), orderItem.getSize(), orderItem.getLimitPrice(), orderItem.getTriggerPrice(), getStrategy(), orderItem.getEffectiveDuration(), orderItem.getStage(), orderItem.getEffectiveDuration(), orderItem.getDynamicDuration(), orderItem.getSlippage(), "", true, orderItem.getTif(), orderItem.isScaleIn(), "", orderItem.getEffectiveFrom(),null);
                 //String link,boolean transmit                    
             }
