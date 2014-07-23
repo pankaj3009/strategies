@@ -258,7 +258,7 @@ public class CSV extends Strategy {
                 //keep aside for OCO processing
                 ocoOrderList.add(orderItem);
             } else {
-                logger.log(Level.INFO, "Strategy,{0}, {1}, Order, Internal Order ID: {2},New Position: {3}, Position Price:{4}, OrderSide: {5}, Order Stage: {6}, Order Reason:{7},", new Object[]{allAccounts, getStrategy(),entryID, getPosition().get(id).getPosition(), getPosition().get(id).getPrice(), orderItem.getSide(), orderItem.getStage(), orderItem.getReason()});
+                logger.log(Level.INFO, "{0}, {1},Strategy,Order Placed with Execution Manager, Internal Order ID: {2},New Position: {3}, Position Price:{4}, OrderSide: {5}, Order Stage: {6}, Order Reason:{7},", new Object[]{allAccounts, getStrategy(),entryID, getPosition().get(id).getPosition(), getPosition().get(id).getPrice(), orderItem.getSide(), orderItem.getStage(), orderItem.getReason()});
                 getOms().tes.fireOrderEvent(entryID, exitID, Parameters.symbol.get(id), orderItem.getSide(), orderItem.getReason(), orderItem.getOrderType(), orderItem.getSize(), orderItem.getLimitPrice(), orderItem.getTriggerPrice(), getStrategy(), orderItem.getEffectiveDuration(), orderItem.getStage(), orderItem.getEffectiveDuration(), orderItem.getDynamicDuration(), orderItem.getSlippage(), "", true, orderItem.getTif(), orderItem.isScaleIn(), "", orderItem.getEffectiveFrom(),null);
                 //String link,boolean transmit                    
             }
