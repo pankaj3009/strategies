@@ -8,7 +8,7 @@ import com.incurrency.framework.BeanConnection;
 import com.incurrency.framework.BeanPosition;
 import com.incurrency.framework.BeanSymbol;
 import com.incurrency.framework.DateUtil;
-import com.incurrency.framework.EnumNotification;
+import com.incurrency.framework.EnumOrderReason;
 import com.incurrency.framework.EnumOrderSide;
 import com.incurrency.framework.EnumOrderStage;
 import com.incurrency.framework.EnumOrderType;
@@ -28,6 +28,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Properties;
 import java.util.TimeZone;
@@ -48,6 +49,7 @@ public class CSV extends Strategy {
     private ArrayList<CSVOrder> ocoOrderList = new ArrayList<>();
     OrderReader orderReader;
     public int test;
+    HashMap<String,OrderMap> rowOrderMap=new HashMap<>();
 
     public CSV(MainAlgorithm m, String parameterFile, ArrayList<String> accounts) {
         super(m, "CSV", "FUT", parameterFile, accounts);
@@ -65,6 +67,15 @@ public class CSV extends Strategy {
         }
     }
 
+     private class OrderMap{
+         int entryid;
+         int exitid;
+         
+         public OrderMap(int entryid,int exitid){
+             this.entryid=entryid;
+             this.exitid=exitid;
+         }
+     }
     private void loadParameters(String strategy, String parameterFile) {
         Properties p = new Properties(System.getProperties());
         FileInputStream propFile;
@@ -175,6 +186,7 @@ public class CSV extends Strategy {
                             break;
                     }
                     logger.log(Level.INFO, "Strategy,{0}, {1},OCO Order, New Position: {2}, Position Price:{3}, OrderSide: {4}, Order Stage: {5}, Order Reason:{6},", new Object[]{allAccounts, getStrategy(), getPosition().get(id).getPosition(), getPosition().get(id).getPrice(), ord.getSide(), ord.getStage(), ord.getReason()});
+                    
                     getOms().tes.fireOrderEvent(entryID, exitID, Parameters.symbol.get(id), ord.getSide(), ord.getReason(), ord.getOrderType(), ord.getSize(), ord.getLimitPrice(), ord.getTriggerPrice(), getStrategy(), ord.getEffectiveDuration(), ord.getStage(), ord.getEffectiveDuration(), ord.getDynamicDuration(), ord.getSlippage(), link, true, ord.getTif(), true, "", ord.getEffectiveFrom(),null);
                 }
             } catch (IOException ex) {
@@ -185,11 +197,10 @@ public class CSV extends Strategy {
     }
 
     private void placeOrder(CSVOrder orderItem) {
-
         int id = -1;
         if (orderItem.getType().equals("COMBO")) {
             if (!Strategy.getCombosAdded().containsKey(orderItem.getHappyName())) {
-                Parameters.symbol.add(new BeanSymbol(orderItem.getSymbol(), orderItem.getHappyName()));
+                Parameters.symbol.add(new BeanSymbol(orderItem.getSymbol(), orderItem.getHappyName(),getStrategy()));
                 Strategy.getCombosAdded().put(orderItem.getHappyName(), orderItem.getSymbol());
                 id = TradingUtil.getIDFromSymbol(orderItem.getHappyName(), orderItem.getType(), "", "", "");
             }else{
@@ -212,7 +223,7 @@ public class CSV extends Strategy {
 
 
         //generate next internal order id
-        if (id > -1 && orderItem.getOrderType() != EnumOrderType.UNDEFINED && orderItem.getSide() != EnumOrderSide.UNDEFINED && orderItem.getStage() != EnumOrderStage.UNDEFINED && orderItem.getReason() != EnumNotification.UNDEFINED) {
+        if (id > -1 && orderItem.getStage().equals(EnumOrderStage.INIT) && orderItem.getOrderType() != EnumOrderType.UNDEFINED && orderItem.getSide() != EnumOrderSide.UNDEFINED && orderItem.getReason()!=EnumOrderReason.UNDEFINED) {
             BeanPosition pd = getPosition().get(id);
             double expectedFillPrice = orderItem.getLimitPrice() != 0 ? orderItem.getLimitPrice() : Parameters.symbol.get(id).getLastPrice();
             int symbolPosition = 0;
@@ -254,14 +265,20 @@ public class CSV extends Strategy {
                 default:
                     break;
             }
-            if (orderItem.getReason() == EnumNotification.OCOSL || orderItem.getReason() == EnumNotification.OCOTP) {
+            if (orderItem.getReason() == EnumOrderReason.OCOSL || orderItem.getReason() == EnumOrderReason.OCOTP) {
                 //keep aside for OCO processing
                 ocoOrderList.add(orderItem);
             } else {
                 logger.log(Level.INFO, "{0}, {1},Strategy,Order Placed with Execution Manager, Internal Order ID: {2},New Position: {3}, Position Price:{4}, OrderSide: {5}, Order Stage: {6}, Order Reason:{7},", new Object[]{allAccounts, getStrategy(),entryID, getPosition().get(id).getPosition(), getPosition().get(id).getPrice(), orderItem.getSide(), orderItem.getStage(), orderItem.getReason()});
+                rowOrderMap.put(orderItem.getRowreference(), new OrderMap(entryID,exitID));
                 getOms().tes.fireOrderEvent(entryID, exitID, Parameters.symbol.get(id), orderItem.getSide(), orderItem.getReason(), orderItem.getOrderType(), orderItem.getSize(), orderItem.getLimitPrice(), orderItem.getTriggerPrice(), getStrategy(), orderItem.getEffectiveDuration(), orderItem.getStage(), orderItem.getEffectiveDuration(), orderItem.getDynamicDuration(), orderItem.getSlippage(), "", true, orderItem.getTif(), orderItem.isScaleIn(), "", orderItem.getEffectiveFrom(),null);
                 //String link,boolean transmit                    
             }
+        }else if(id > -1 && (orderItem.getStage().equals(EnumOrderStage.AMEND)||orderItem.getStage().equals(EnumOrderStage.CANCEL)) && orderItem.getOrderType() != EnumOrderType.UNDEFINED && orderItem.getSide() != EnumOrderSide.UNDEFINED && orderItem.getReason()!=EnumOrderReason.UNDEFINED){
+            int entryID=rowOrderMap.get(orderItem.getRowreference()).entryid;
+            int exitID=rowOrderMap.get(orderItem.getRowreference()).exitid;
+            getOms().tes.fireOrderEvent(entryID, exitID, Parameters.symbol.get(id), orderItem.getSide(), orderItem.getReason(), orderItem.getOrderType(), orderItem.getSize(), orderItem.getLimitPrice(), orderItem.getTriggerPrice(), getStrategy(), orderItem.getEffectiveDuration(), orderItem.getStage(), orderItem.getEffectiveDuration(), orderItem.getDynamicDuration(), orderItem.getSlippage(), "", true, orderItem.getTif(), orderItem.isScaleIn(), "", orderItem.getEffectiveFrom(),null);
+                
         }
     }
 }

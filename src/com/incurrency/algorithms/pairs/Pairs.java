@@ -9,7 +9,7 @@ import com.incurrency.framework.BeanConnection;
 import com.incurrency.framework.BidAskEvent;
 import com.incurrency.framework.BidAskListener;
 import com.incurrency.framework.DateUtil;
-import com.incurrency.framework.EnumNotification;
+import com.incurrency.framework.EnumOrderReason;
 import com.incurrency.framework.EnumOrderSide;
 import com.incurrency.framework.EnumOrderType;
 import com.incurrency.framework.MainAlgorithm;
@@ -103,8 +103,8 @@ public class Pairs extends Strategy {
                 if (p.getPosition() == 0 && DateUtil.addSeconds(DateUtil.parseDate("yyyyMMddHHmmss", p.timeStamp,getTimeZone()), minutesToStale * 60).after(new Date()) && (p.slHitTime.getTime() + 60000 * restPeriodAfterSLHit) < (new Date().getTime()) && lastOrderDate.after(new Date())) {
 //                    if (level < Double.parseDouble(p.entryPrice) && Parameters.symbol.get(p.buyid).getAskPrice()>0 && Parameters.symbol.get(p.shortid).getBidPrice()>0) {
                     if (Parameters.symbol.get(p.buyid).getAskPrice() > 0 && Parameters.symbol.get(p.shortid).getBidPrice() > 0) {
-                        entry(p.buyid, EnumOrderSide.BUY, EnumOrderType.MKT, 0, 0, true, EnumNotification.REGULARENTRY, "",buySize);
-                        entry(p.shortid, EnumOrderSide.SHORT, EnumOrderType.MKT, 0, 0, true, EnumNotification.REGULARENTRY, "",shortSize);
+                        entry(p.buyid, EnumOrderSide.BUY, EnumOrderType.MKT, 0, 0, true, EnumOrderReason.REGULARENTRY, "",buySize);
+                        entry(p.shortid, EnumOrderSide.SHORT, EnumOrderType.MKT, 0, 0, true, EnumOrderReason.REGULARENTRY, "",shortSize);
                         p.setPosition(1);
                         p.positionPrice = level;
                         TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(p.buyid).getSymbol() + "," + Parameters.symbol.get(p.shortid).getSymbol() + "," + p.entryPrice + "," + level + "," + "ENTRY");
@@ -113,15 +113,15 @@ public class Pairs extends Strategy {
                     double tp = p.pairTakeProfit > 0 ? p.pairTakeProfit : takeProfit;
                     double sl = p.pairStopLoss > 0 ? p.pairStopLoss : stopLoss;
                     if (level != 0 && tp > 0 && level < p.positionPrice - tp) { //profit by a threshold
-                        exit(p.buyid, EnumOrderSide.SELL, EnumOrderType.MKT, 0, 0, "", true, "", true, EnumNotification.REGULAREXIT, "",buySize);
-                        exit(p.shortid, EnumOrderSide.COVER, EnumOrderType.MKT, 0, 0, "", true, "", true, EnumNotification.REGULAREXIT, "",shortSize);
+                        exit(p.buyid, EnumOrderSide.SELL, EnumOrderType.MKT, 0, 0, "", true, "", true, EnumOrderReason.REGULAREXIT, "",buySize);
+                        exit(p.shortid, EnumOrderSide.COVER, EnumOrderType.MKT, 0, 0, "", true, "", true, EnumOrderReason.REGULAREXIT, "",shortSize);
                         TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(p.buyid).getSymbol() + "," + Parameters.symbol.get(p.shortid).getSymbol() + "," + p.positionPrice + "," + level + "," + "PROFIT");
                         p.setPosition(0);
                         p.positionPrice = 0D;
 
                     } else if (level != 0 && sl > 0 && level > p.positionPrice + sl) {
-                        exit(p.buyid, EnumOrderSide.SELL, EnumOrderType.MKT, 0, 0, "", true, "", true, EnumNotification.REGULAREXIT, "",buySize);
-                        exit(p.shortid, EnumOrderSide.COVER, EnumOrderType.MKT, 0, 0, "", true, "", true, EnumNotification.REGULAREXIT, "",shortSize);
+                        exit(p.buyid, EnumOrderSide.SELL, EnumOrderType.MKT, 0, 0, "", true, "", true, EnumOrderReason.REGULAREXIT, "",buySize);
+                        exit(p.shortid, EnumOrderSide.COVER, EnumOrderType.MKT, 0, 0, "", true, "", true, EnumOrderReason.REGULAREXIT, "",shortSize);
                         TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(p.buyid).getSymbol() + "," + Parameters.symbol.get(p.shortid).getSymbol() + "," + p.positionPrice + "," + level + "," + "STOP LOSS");
                         p.setPosition(0);
                         p.positionPrice = 0D;
@@ -139,8 +139,8 @@ public class Pairs extends Strategy {
                         int buySize = getExposure()==0?(int)(Parameters.symbol.get(p.buyid).getMinsize() * getNumberOfContracts()*p.buyratio):(int)(Parameters.symbol.get(p.buyid).getMinsize() * getExposure()*p.buyratio/Parameters.symbol.get(p.buyid).getLastPrice());
                         int shortSize = getExposure()==0?(int)(Parameters.symbol.get(p.shortid).getMinsize() * getNumberOfContracts()*p.shortratio):(int)(Parameters.symbol.get(p.shortid).getMinsize() * getExposure()*p.shortratio/Parameters.symbol.get(p.shortid).getLastPrice());
                         double level = Parameters.symbol.get(p.buyid).getAskPrice() * buySize - Parameters.symbol.get(p.shortid).getBidPrice() * shortSize;
-                        exit(p.buyid, EnumOrderSide.SELL, EnumOrderType.MKT, 0, 0, "", true, "", false, EnumNotification.REGULAREXIT, "",buySize);
-                        exit(p.shortid, EnumOrderSide.COVER, EnumOrderType.MKT, 0, 0, "", true, "", false, EnumNotification.REGULAREXIT, "",shortSize);
+                        exit(p.buyid, EnumOrderSide.SELL, EnumOrderType.MKT, 0, 0, "", true, "", false, EnumOrderReason.REGULAREXIT, "",buySize);
+                        exit(p.shortid, EnumOrderSide.COVER, EnumOrderType.MKT, 0, 0, "", true, "", false, EnumOrderReason.REGULAREXIT, "",shortSize);
                         p.setPosition(0);
                         if (level < p.positionPrice) {
                             TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(p.buyid).getSymbol() + "," + Parameters.symbol.get(p.shortid).getSymbol() + "," + p.positionPrice + "," + level + "," + "EOD Close Profit");
@@ -280,8 +280,8 @@ public class Pairs extends Strategy {
                 if (p.getPosition() == 0 && DateUtil.addSeconds(DateUtil.parseDate("yyyyMMddHHmmss", p.timeStamp), minutesToStale * 60).after(new Date()) && (p.slHitTime.getTime() + 60000 * restPeriodAfterSLHit) < (new Date().getTime()) && lastOrderDate.after(new Date())) {
 //                    if (level < Double.parseDouble(p.entryPrice) && Parameters.symbol.get(p.buyid).getAskPrice()>0 && Parameters.symbol.get(p.shortid).getBidPrice()>0) {
                     if (Parameters.symbol.get(p.buyid).getAskPrice() > 0 && Parameters.symbol.get(p.shortid).getBidPrice() > 0) {
-                        this.entry(p.buyid, EnumOrderSide.BUY, EnumOrderType.MKT, 0, 0, true, EnumNotification.REGULARENTRY, "");
-                        this.entry(p.shortid, EnumOrderSide.SHORT, EnumOrderType.MKT, 0, 0, true, EnumNotification.REGULARENTRY, "");
+                        this.entry(p.buyid, EnumOrderSide.BUY, EnumOrderType.MKT, 0, 0, true, EnumOrderReason.REGULARENTRY, "");
+                        this.entry(p.shortid, EnumOrderSide.SHORT, EnumOrderType.MKT, 0, 0, true, EnumOrderReason.REGULARENTRY, "");
                         p.setPosition(1);
                         p.positionPrice = level;
                         TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(p.buyid).getSymbol() + "," + Parameters.symbol.get(p.shortid).getSymbol() + "," + p.entryPrice + "," + level + "," + "ENTRY");
@@ -290,15 +290,15 @@ public class Pairs extends Strategy {
                     double tp = p.pairTakeProfit > 0 ? p.pairTakeProfit : takeProfit;
                     double sl = p.pairStopLoss > 0 ? p.pairStopLoss : stopLoss;
                     if (level != 0 && tp > 0 && level < p.positionPrice - tp) { //profit by a threshold
-                        this.exit(p.buyid, EnumOrderSide.SELL, EnumOrderType.MKT, 0, 0, "", true, "", true, EnumNotification.REGULAREXIT, "");
-                        this.exit(p.shortid, EnumOrderSide.COVER, EnumOrderType.MKT, 0, 0, "", true, "", true, EnumNotification.REGULAREXIT, "");
+                        this.exit(p.buyid, EnumOrderSide.SELL, EnumOrderType.MKT, 0, 0, "", true, "", true, EnumOrderReason.REGULAREXIT, "");
+                        this.exit(p.shortid, EnumOrderSide.COVER, EnumOrderType.MKT, 0, 0, "", true, "", true, EnumOrderReason.REGULAREXIT, "");
                         TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(p.buyid).getSymbol() + "," + Parameters.symbol.get(p.shortid).getSymbol() + "," + p.positionPrice + "," + level + "," + "PROFIT");
                         p.setPosition(0);
                         p.positionPrice = 0D;
 
                     } else if (level != 0 && sl > 0 && level > p.positionPrice + sl) {
-                        this.exit(p.buyid, EnumOrderSide.SELL, EnumOrderType.MKT, 0, 0, "", true, "", true, EnumNotification.REGULAREXIT, "");
-                        this.exit(p.shortid, EnumOrderSide.COVER, EnumOrderType.MKT, 0, 0, "", true, "", true, EnumNotification.REGULAREXIT, "");
+                        this.exit(p.buyid, EnumOrderSide.SELL, EnumOrderType.MKT, 0, 0, "", true, "", true, EnumOrderReason.REGULAREXIT, "");
+                        this.exit(p.shortid, EnumOrderSide.COVER, EnumOrderType.MKT, 0, 0, "", true, "", true, EnumOrderReason.REGULAREXIT, "");
                         TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(p.buyid).getSymbol() + "," + Parameters.symbol.get(p.shortid).getSymbol() + "," + p.positionPrice + "," + level + "," + "STOP LOSS");
                         p.setPosition(0);
                         p.positionPrice = 0D;
@@ -315,8 +315,8 @@ public class Pairs extends Strategy {
                         int buySize = Parameters.symbol.get(p.buyid).getMinsize() * this.getNumberOfContracts();
                         int shortSize = Parameters.symbol.get(p.shortid).getMinsize() * this.getNumberOfContracts();
                         double level = Parameters.symbol.get(p.buyid).getAskPrice() * buySize - Parameters.symbol.get(p.shortid).getBidPrice() * shortSize;
-                        this.exit(p.buyid, EnumOrderSide.SELL, EnumOrderType.MKT, 0, 0, "", true, "", false, EnumNotification.REGULAREXIT, "");
-                        this.exit(p.shortid, EnumOrderSide.COVER, EnumOrderType.MKT, 0, 0, "", true, "", false, EnumNotification.REGULAREXIT, "");
+                        this.exit(p.buyid, EnumOrderSide.SELL, EnumOrderType.MKT, 0, 0, "", true, "", false, EnumOrderReason.REGULAREXIT, "");
+                        this.exit(p.shortid, EnumOrderSide.COVER, EnumOrderType.MKT, 0, 0, "", true, "", false, EnumOrderReason.REGULAREXIT, "");
                         p.setPosition(0);
                         if (level < p.positionPrice) {
                             TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(p.buyid).getSymbol() + "," + Parameters.symbol.get(p.shortid).getSymbol() + "," + p.positionPrice + "," + level + "," + "EOD Close Profit");

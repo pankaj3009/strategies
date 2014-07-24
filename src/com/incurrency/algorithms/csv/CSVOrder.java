@@ -6,7 +6,7 @@ package com.incurrency.algorithms.csv;
 
 import com.incurrency.framework.BeanPosition;
 import com.incurrency.framework.BeanSymbol;
-import com.incurrency.framework.EnumNotification;
+import com.incurrency.framework.EnumOrderReason;
 import com.incurrency.framework.EnumOrderSide;
 import com.incurrency.framework.EnumOrderStage;
 import com.incurrency.framework.EnumOrderType;
@@ -46,10 +46,11 @@ public class CSVOrder implements ReaderWriterInterface {
     private boolean scaleIn;
     private int size;
     private String tif;
-    private EnumNotification reason;
+    private EnumOrderReason reason;
     private double slippage;
     private int id;
     private static final Logger logger = Logger.getLogger(CSVOrder.class.getName());
+    private String rowreference="";
     public int test;
     CSV csv;
             
@@ -86,7 +87,8 @@ public class CSVOrder implements ReaderWriterInterface {
         this.size=input[16]==null?0:Integer.parseInt(input[16]);
         this.tif=input[17]==null?"DAY":input[17];
         this.slippage=input[18]==null?0D:Double.parseDouble(input[18]);
-        this.reason=input[19]==null?EnumNotification.UNDEFINED:EnumNotification.valueOf(input[19]);
+        this.rowreference=input[19]==null?"":input[19];
+        this.reason=input[20]==null?EnumOrderReason.UNDEFINED:EnumOrderReason.valueOf(input[20]);
         if(this.type.equals("COMBO")){//update Parameters.Symbols if first time
 
         }else{
@@ -332,14 +334,14 @@ public class CSVOrder implements ReaderWriterInterface {
     /**
      * @return the reason
      */
-    public EnumNotification getReason() {
+    public EnumOrderReason getReason() {
         return reason;
     }
 
     /**
      * @param reason the reason to set
      */
-    public void setReason(EnumNotification reason) {
+    public void setReason(EnumOrderReason reason) {
         this.reason = reason;
     }
 
@@ -411,6 +413,20 @@ public class CSVOrder implements ReaderWriterInterface {
      */
     public void setExpiry(String expiry) {
         this.expiry = expiry;
+    }
+
+    /**
+     * @return the rowreference
+     */
+    public String getRowreference() {
+        return rowreference;
+    }
+
+    /**
+     * @param rowreference the rowreference to set
+     */
+    public void setRowreference(String rowreference) {
+        this.rowreference = rowreference;
     }
     
     

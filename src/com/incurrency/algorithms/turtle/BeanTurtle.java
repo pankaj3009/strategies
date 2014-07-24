@@ -477,10 +477,10 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                     double midPoint=(Math.round((Parameters.symbol.get(futureid).getBidPrice()+Parameters.symbol.get(futureid).getAskPrice())/2/getTickSize()))*getTickSize();
                     double entryPrice=Math.min(Parameters.symbol.get(futureid).getLastPrice(),midPoint );
                     if (futureid == id) {
-                        entry(futureid, EnumOrderSide.BUY,EnumOrderType.LMT, entryPrice, 0, false,EnumNotification.REGULARENTRY,"");
+                        entry(futureid, EnumOrderSide.BUY,EnumOrderType.LMT, entryPrice, 0, false,EnumOrderReason.REGULARENTRY,"");
                     } else {
                         double cushion = ((int) (entryCushion / Parameters.symbol.get(futureid).getMinsize() / getTickSize())) * getTickSize();
-                        entry(futureid, EnumOrderSide.BUY,EnumOrderType.LMT, entryPrice- cushion, 0, false,EnumNotification.REGULARENTRY,"");
+                        entry(futureid, EnumOrderSide.BUY,EnumOrderType.LMT, entryPrice- cushion, 0, false,EnumOrderReason.REGULARENTRY,"");
                     }
                     zScoreOnEntry.set(id, zscore);
                     entryBar.set(id, this.getCumVolume().get(id).size());
@@ -489,10 +489,10 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                     double midPoint=(Math.round((Parameters.symbol.get(futureid).getBidPrice()+Parameters.symbol.get(futureid).getAskPrice())/2/getTickSize()))*getTickSize();
                     double entryPrice=Math.max(Parameters.symbol.get(futureid).getLastPrice(),midPoint );
                     if (futureid == id) {
-                        entry(futureid, EnumOrderSide.SHORT,EnumOrderType.LMT, entryPrice, 0, false,EnumNotification.REGULARENTRY,"");
+                        entry(futureid, EnumOrderSide.SHORT,EnumOrderType.LMT, entryPrice, 0, false,EnumOrderReason.REGULARENTRY,"");
                     } else {
                         double cushion = ((int) (entryCushion / Parameters.symbol.get(futureid).getMinsize() / getTickSize())) * getTickSize();
-                        entry(futureid, EnumOrderSide.SHORT,EnumOrderType.LMT, entryPrice + cushion, 0, false,EnumNotification.REGULARENTRY,"");
+                        entry(futureid, EnumOrderSide.SHORT,EnumOrderType.LMT, entryPrice + cushion, 0, false,EnumOrderReason.REGULARENTRY,"");
                     }
                     zScoreOnEntry.set(id, zscore);
                     entryBar.set(id, this.getCumVolume().get(id).size());
@@ -500,14 +500,14 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                 } else if (symbolClose>0 && getPosition().get(futureid).getPosition() > 0 && (zscore < worstCaseLoss + (zScoreOnEntry.get(id) - worstCaseLoss) * (this.getCumVolume().get(id).size() - entryBar.get(id)) / (365 - entryBar.get(id)) || System.currentTimeMillis() > getEndDate().getTime())) {
                     double midPoint=(Math.round((Parameters.symbol.get(futureid).getBidPrice()+Parameters.symbol.get(futureid).getAskPrice())/2/getTickSize()))*getTickSize();
                     double entryPrice=Math.max(Parameters.symbol.get(futureid).getLastPrice(),midPoint );
-                    this.exit(futureid, EnumOrderSide.SELL,EnumOrderType.LMT, entryPrice, 0, "", true, "DAY", false,EnumNotification.REGULAREXIT,"");
+                    this.exit(futureid, EnumOrderSide.SELL,EnumOrderType.LMT, entryPrice, 0, "", true, "DAY", false,EnumOrderReason.REGULAREXIT,"");
                     TradingUtil.writeToFile(getStrategy() + "datalogs.csv", Parameters.symbol.get(id).getSymbol() + "," + cumVolume.get(id).size() + "," + yesterdayClose.get(id)  + "," + indexZScoreYesterday + "," + symbolZScoreYesterday + "," + zscore + "," + highBoundary + "," + lowBoundary + "," + Parameters.symbol.get(futureid).getLastPrice() + "," + close.get(id) + "," + relativeVol + "," + getCumVolume().get(id).size()+ "," + zScoreOnEntry.get(id) + "," + (zScoreOnEntry.get(id) - worstCaseLoss) * (this.getCumVolume().get(id).size() - entryBar.get(id)) / (365 - entryBar.get(id)) + (getClose().get(id)-yesterdayClose.get(id))/yesterdayClose.get(id)+","+ "," + "SELL");
                     zScoreOnEntry.set(id, 0D);
                     entryBar.set(id, 0);
                 } else if (symbolClose>0 && getPosition().get(futureid).getPosition() < 0 && (zscore > worstCaseLoss + (zScoreOnEntry.get(id) - worstCaseLoss) * (this.getCumVolume().get(id).size() - entryBar.get(id)) / (365 - entryBar.get(id)) || System.currentTimeMillis() > getEndDate().getTime())) {
                     double midPoint=(Math.round((Parameters.symbol.get(futureid).getBidPrice()+Parameters.symbol.get(futureid).getAskPrice())/2/getTickSize()))*getTickSize();
                     double entryPrice=Math.min(Parameters.symbol.get(futureid).getLastPrice(),midPoint );
-                    this.exit(futureid, EnumOrderSide.COVER,EnumOrderType.LMT, entryPrice, 0, "", true, "DAY", false,EnumNotification.REGULAREXIT,"");
+                    this.exit(futureid, EnumOrderSide.COVER,EnumOrderType.LMT, entryPrice, 0, "", true, "DAY", false,EnumOrderReason.REGULAREXIT,"");
                     TradingUtil.writeToFile(getStrategy() + "datalogs.csv", Parameters.symbol.get(id).getSymbol() + "," + cumVolume.get(id).size() + "," + yesterdayClose.get(id)  + "," + indexZScoreYesterday + "," + symbolZScoreYesterday + "," + zscore + "," + highBoundary + "," + lowBoundary + "," + Parameters.symbol.get(futureid).getLastPrice() + "," + close.get(id) + "," + relativeVol + "," + getCumVolume().get(id).size() + "," + zScoreOnEntry.get(id) + "," + (zScoreOnEntry.get(id) - worstCaseLoss) * (this.getCumVolume().get(id).size() - entryBar.get(id)) / (365 - entryBar.get(id)) + (getClose().get(id)-yesterdayClose.get(id))/yesterdayClose.get(id)+","+ "," + "COVER");
                     entryBar.set(id, 0);
                     zScoreOnEntry.set(id, 0D);
@@ -538,8 +538,8 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                     double midPoint=(Math.round((Parameters.symbol.get(j.getKey()).getBidPrice()+Parameters.symbol.get(j.getKey()).getAskPrice())/2/getTickSize()))*getTickSize();
                     double entryPrice=Math.max(Parameters.symbol.get(j.getKey()).getLastPrice(),midPoint );
                    
-                    getOms().tes.fireOrderEvent(internalorderid, entryInternalOrderID, Parameters.symbol.get(j.getKey()), EnumOrderSide.SELL ,EnumNotification.REGULAREXIT,EnumOrderType.LMT,size, entryPrice + cushion, 0, getStrategy(), getMaxOrderDuration(), EnumOrderStage.CANCEL, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit(), true,"");
-                    getOms().tes.fireOrderEvent(internalorderid, entryInternalOrderID, Parameters.symbol.get(j.getKey()), EnumOrderSide.SELL,EnumNotification.REGULAREXIT,EnumOrderType.LMT, size, entryPrice + cushion, 0, getStrategy(), getMaxOrderDuration(), EnumOrderStage.INIT, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit(), true,"");
+                    getOms().tes.fireOrderEvent(internalorderid, entryInternalOrderID, Parameters.symbol.get(j.getKey()), EnumOrderSide.SELL ,EnumOrderReason.REGULAREXIT,EnumOrderType.LMT,size, entryPrice + cushion, 0, getStrategy(), getMaxOrderDuration(), EnumOrderStage.CANCEL, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit(), true,"");
+                    getOms().tes.fireOrderEvent(internalorderid, entryInternalOrderID, Parameters.symbol.get(j.getKey()), EnumOrderSide.SELL,EnumOrderReason.REGULAREXIT,EnumOrderType.LMT, size, entryPrice + cushion, 0, getStrategy(), getMaxOrderDuration(), EnumOrderStage.INIT, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit(), true,"");
                     TradingUtil.writeToFile(getStrategy() + "datalogs.csv", Parameters.symbol.get(j.getKey()).getSymbol() + "," + cumVolume.get(j.getKey()).size() + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + Parameters.symbol.get(j.getKey()).getLastPrice() + "," + close.get(id) + "," + "SELL CLOSE");
                     this.advanceExitOrder.set(j.getKey(), 0L);
                 } else if (j.getValue().getPosition() < 0) {
@@ -562,8 +562,8 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                     double midPoint=(Math.round((Parameters.symbol.get(j.getKey()).getBidPrice()+Parameters.symbol.get(j.getKey()).getAskPrice())/2/getTickSize()))*getTickSize();
                     double entryPrice=Math.min(Parameters.symbol.get(j.getKey()).getLastPrice(),midPoint );
                     
-                    getOms().tes.fireOrderEvent(internalorderid, entryInternalOrderID, Parameters.symbol.get(j.getKey()), EnumOrderSide.COVER,EnumNotification.REGULAREXIT,EnumOrderType.LMT, size, entryPrice - cushion, 0, getStrategy(), getMaxOrderDuration(), EnumOrderStage.CANCEL, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit(), true,"");
-                    getOms().tes.fireOrderEvent(internalorderid, entryInternalOrderID, Parameters.symbol.get(j.getKey()), EnumOrderSide.COVER,EnumNotification.REGULAREXIT,EnumOrderType.LMT, size, entryPrice - cushion, 0, getStrategy(), getMaxOrderDuration(), EnumOrderStage.INIT, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit(), true,"");
+                    getOms().tes.fireOrderEvent(internalorderid, entryInternalOrderID, Parameters.symbol.get(j.getKey()), EnumOrderSide.COVER,EnumOrderReason.REGULAREXIT,EnumOrderType.LMT, size, entryPrice - cushion, 0, getStrategy(), getMaxOrderDuration(), EnumOrderStage.CANCEL, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit(), true,"");
+                    getOms().tes.fireOrderEvent(internalorderid, entryInternalOrderID, Parameters.symbol.get(j.getKey()), EnumOrderSide.COVER,EnumOrderReason.REGULAREXIT,EnumOrderType.LMT, size, entryPrice - cushion, 0, getStrategy(), getMaxOrderDuration(), EnumOrderStage.INIT, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit(), true,"");
                     TradingUtil.writeToFile(getStrategy() + "datalogs.csv", Parameters.symbol.get(j.getKey()).getSymbol() + "," + cumVolume.get(j.getKey()).size() + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + Parameters.symbol.get(j.getKey()).getLastPrice() + "," + close.get(id) + "," + "COVER CLOSE");
                     this.advanceExitOrder.set(j.getKey(), 0L);
                 }
