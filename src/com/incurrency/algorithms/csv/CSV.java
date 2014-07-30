@@ -197,9 +197,9 @@ public class CSV extends Strategy {
     }
 
     private void placeOrder(CSVOrder orderItem) {
-        int id = -1;
+        int id = TradingUtil.getIDFromSymbol(orderItem.getHappyName(), orderItem.getType(), "", "", "");
         if (orderItem.getType().equals("COMBO")) {
-            if (!Strategy.getCombosAdded().containsKey(orderItem.getHappyName())) {
+            if (id==-1 && !Strategy.getCombosAdded().containsKey(orderItem.getHappyName())) {
                 Parameters.symbol.add(new BeanSymbol(orderItem.getSymbol(), orderItem.getHappyName(),getStrategy()));
                 Strategy.getCombosAdded().put(orderItem.getHappyName(), orderItem.getSymbol());
                 id = TradingUtil.getIDFromSymbol(orderItem.getHappyName(), orderItem.getType(), "", "", "");
@@ -259,8 +259,10 @@ public class CSV extends Strategy {
                     exitID = tempinternalOrderID;
                     entryID = internalorderid;
                     Trade tempTrade = getTrades().get(new OrderLink(tempinternalOrderID,0, "Order"));
+                    if(tempTrade!=null){
                     tempTrade.updateExit(id, orderItem.getSide(), Parameters.symbol.get(id).getLastPrice(), orderItem.getSize(), internalorderid,0, getTimeZone(), "Order");
                     getTrades().put(new OrderLink(tempinternalOrderID,0, "Order"), tempTrade);
+                    }
                     break;
                 default:
                     break;

@@ -291,9 +291,9 @@ public class BeanDNO implements TradeListener, BidAskListener, HistoricalBarList
             //Entry
             int temp1MVolArraySize=this.oneMonthHistoricalVol.size();
             int temp7DVolArraySize=this.sevenDayHistoricalVol.size();
-            int callid=Parameters.symbol.get(id).getRight().compareTo("CALL")==0?id:TradingUtil.getIDFromSymbol(Parameters.symbol.get(id).getSymbol(), "OPT", Parameters.symbol.get(id).getExpiry(), "CALL", Parameters.symbol.get(id).getOption());
-            int putid=Parameters.symbol.get(id).getRight().compareTo("PUT")==0?id:TradingUtil.getIDFromSymbol(Parameters.symbol.get(id).getSymbol(), "OPT", Parameters.symbol.get(id).getExpiry(), "PUT", Parameters.symbol.get(id).getOption());
-            int underlyingid=TradingUtil.getIDFromSymbol(Parameters.symbol.get(id).getSymbol(), "STK", "", "","")>=0?TradingUtil.getIDFromSymbol(Parameters.symbol.get(id).getSymbol(), "STK", "", "",""):TradingUtil.getIDFromSymbol(Parameters.symbol.get(id).getSymbol(), "IND", "", "","");
+            int callid=Parameters.symbol.get(id).getRight().compareTo("CALL")==0?id:TradingUtil.getEntryIDFromSymbol(Parameters.symbol.get(id).getSymbol(), "OPT", Parameters.symbol.get(id).getExpiry(), "CALL", Parameters.symbol.get(id).getOption());
+            int putid=Parameters.symbol.get(id).getRight().compareTo("PUT")==0?id:TradingUtil.getEntryIDFromSymbol(Parameters.symbol.get(id).getSymbol(), "OPT", Parameters.symbol.get(id).getExpiry(), "PUT", Parameters.symbol.get(id).getOption());
+            int underlyingid=TradingUtil.getEntryIDFromSymbol(Parameters.symbol.get(id).getSymbol(), "STK", "", "","")>=0?TradingUtil.getEntryIDFromSymbol(Parameters.symbol.get(id).getSymbol(), "STK", "", "",""):TradingUtil.getEntryIDFromSymbol(Parameters.symbol.get(id).getSymbol(), "IND", "", "","");
             
             //Call condition met
             Boolean callCondition= (Parameters.symbol.get(callid).getBidVol()/this.oneMonthHistoricalVol.get(underlyingid).get(temp1MVolArraySize-1)>2)
