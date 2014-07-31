@@ -154,7 +154,7 @@ public class CSV extends Strategy {
                                 break;
                         }
                         logger.log(Level.INFO, "Strategy,{0}, {1},OCO Order, New Position: {2}, Position Price:{3}, OrderSide: {4}, Order Stage: {5}, Order Reason:{6},", new Object[]{allAccounts, getStrategy(), getPosition().get(id).getPosition(), getPosition().get(id).getPrice(), ord.getSide(), ord.getStage(), ord.getReason()});
-                        getOms().tes.fireOrderEvent(entryID, exitID, Parameters.symbol.get(id), ord.getSide(), ord.getReason(), ord.getOrderType(), ord.getSize(), ord.getLimitPrice(), ord.getTriggerPrice(), getStrategy(), ord.getEffectiveDuration(), ord.getStage(), ord.getEffectiveDuration(), ord.getDynamicDuration(), ord.getSlippage(), link, false, ord.getTif(), true, "", ord.getEffectiveFrom(),null);
+                        getOms().tes.fireOrderEvent(entryID, exitID, Parameters.symbol.get(id), ord.getSide(), ord.getReason(), ord.getOrderType(), ord.getSize(), ord.getLimitPrice(), ord.getTriggerPrice(), getStrategy(), ord.getEffectiveDuration(), ord.getStage(), ord.getDynamicDuration(), ord.getSlippage(), link, false, ord.getTif(), true, "", ord.getEffectiveFrom(),null);
 
                     }
                     //place the last leg of the OCO and set transmit = true;
@@ -186,7 +186,7 @@ public class CSV extends Strategy {
                     }
                     logger.log(Level.INFO, "Strategy,{0}, {1},OCO Order, New Position: {2}, Position Price:{3}, OrderSide: {4}, Order Stage: {5}, Order Reason:{6},", new Object[]{allAccounts, getStrategy(), getPosition().get(id).getPosition(), getPosition().get(id).getPrice(), ord.getSide(), ord.getStage(), ord.getReason()});
                     
-                    getOms().tes.fireOrderEvent(entryID, exitID, Parameters.symbol.get(id), ord.getSide(), ord.getReason(), ord.getOrderType(), ord.getSize(), ord.getLimitPrice(), ord.getTriggerPrice(), getStrategy(), ord.getEffectiveDuration(), ord.getStage(), ord.getEffectiveDuration(), ord.getDynamicDuration(), ord.getSlippage(), link, true, ord.getTif(), true, "", ord.getEffectiveFrom(),null);
+                    getOms().tes.fireOrderEvent(entryID, exitID, Parameters.symbol.get(id), ord.getSide(), ord.getReason(), ord.getOrderType(), ord.getSize(), ord.getLimitPrice(), ord.getTriggerPrice(), getStrategy(), ord.getEffectiveDuration(), ord.getStage(), ord.getDynamicDuration(), ord.getSlippage(), link, true, ord.getTif(), true, "", ord.getEffectiveFrom(),null);
                 }
             } catch (IOException ex) {
                 Logger.getLogger(CSV.class.getName()).log(Level.SEVERE, null, ex);
@@ -273,13 +273,13 @@ public class CSV extends Strategy {
             } else {
                 logger.log(Level.INFO, "{0}, {1},Strategy,Order Placed with Execution Manager, Internal Order ID: {2},New Position: {3}, Position Price:{4}, OrderSide: {5}, Order Stage: {6}, Order Reason:{7},", new Object[]{allAccounts, getStrategy(),entryID, getPosition().get(id).getPosition(), getPosition().get(id).getPrice(), orderItem.getSide(), orderItem.getStage(), orderItem.getReason()});
                 rowOrderMap.put(orderItem.getRowreference(), new OrderMap(entryID,exitID));
-                getOms().tes.fireOrderEvent(entryID, exitID, Parameters.symbol.get(id), orderItem.getSide(), orderItem.getReason(), orderItem.getOrderType(), orderItem.getSize(), orderItem.getLimitPrice(), orderItem.getTriggerPrice(), getStrategy(), orderItem.getEffectiveDuration(), orderItem.getStage(), orderItem.getEffectiveDuration(), orderItem.getDynamicDuration(), orderItem.getSlippage(), "", true, orderItem.getTif(), orderItem.isScaleIn(), "", orderItem.getEffectiveFrom(),null);
+                getOms().tes.fireOrderEvent(entryID, exitID, Parameters.symbol.get(id), orderItem.getSide(), orderItem.getReason(), orderItem.getOrderType(), orderItem.getSize(), orderItem.getLimitPrice(), orderItem.getTriggerPrice(), getStrategy(), orderItem.getEffectiveDuration(), orderItem.getStage(), orderItem.getDynamicDuration(), orderItem.getSlippage(), "", true, orderItem.getTif(), orderItem.isScaleIn(), "", orderItem.getEffectiveFrom(),null);
                 //String link,boolean transmit                    
             }
         }else if(id > -1 && (orderItem.getStage().equals(EnumOrderStage.AMEND)||orderItem.getStage().equals(EnumOrderStage.CANCEL)) && orderItem.getOrderType() != EnumOrderType.UNDEFINED && orderItem.getSide() != EnumOrderSide.UNDEFINED && orderItem.getReason()!=EnumOrderReason.UNDEFINED){
             int entryID=rowOrderMap.get(orderItem.getRowreference()).entryid;
             int exitID=rowOrderMap.get(orderItem.getRowreference()).exitid;
-            getOms().tes.fireOrderEvent(entryID, exitID, Parameters.symbol.get(id), orderItem.getSide(), orderItem.getReason(), orderItem.getOrderType(), orderItem.getSize(), orderItem.getLimitPrice(), orderItem.getTriggerPrice(), getStrategy(), orderItem.getEffectiveDuration(), orderItem.getStage(), orderItem.getEffectiveDuration(), orderItem.getDynamicDuration(), orderItem.getSlippage(), "", true, orderItem.getTif(), orderItem.isScaleIn(), "", orderItem.getEffectiveFrom(),null);
+            getOms().tes.fireOrderEvent(entryID, exitID, Parameters.symbol.get(id), orderItem.getSide(), orderItem.getReason(), orderItem.getOrderType(), orderItem.getSize(), orderItem.getLimitPrice(), orderItem.getTriggerPrice(), getStrategy(), orderItem.getEffectiveDuration(), orderItem.getStage(), orderItem.getDynamicDuration(), orderItem.getSlippage(), "", true, orderItem.getTif(), orderItem.isScaleIn(), "", orderItem.getEffectiveFrom(),null);
                 
         }
         }
