@@ -68,27 +68,27 @@ public class CSVOrder implements ReaderWriterInterface {
         
     }
     public CSVOrder(String[] input) {
-        this.symbol = input[0]==null?"":input[0];
-        this.happyName=input[1]==null?input[0]:input[1];
-        this.type = input[2]==null?"":input[2];
-        this.expiry = input[3]==null?"":input[3];
-        this.exchange = input[4]==null?"":input[4];
-        this.optionStrike = input[5]==null?"":input[5];
-        this.right = input[6]==null?"":input[6];
-        this.side = input[7]==null?EnumOrderSide.UNDEFINED: EnumOrderSide.valueOf(input[7].toUpperCase());
-        this.orderType = input[8]==null?EnumOrderType.UNDEFINED: EnumOrderType.valueOf(input[8].toUpperCase());
-        this.limitPrice = input[9]==null?0:Double.parseDouble(input[9]);
-        this.triggerPrice = input[10]==null?0:Double.parseDouble(input[10]);
-        this.effectiveFrom = input[11].matches("\\d{4}\\d{2}\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}")?input[11]:null;
-        this.effectiveDuration = input[12]==null?0:Integer.parseInt(input[12]);
-        this.dynamicDuration = input[13]==null?0:Integer.parseInt(input[13]);
-        this.stage = input[14]==null?EnumOrderStage.UNDEFINED: EnumOrderStage.valueOf(input[14].toUpperCase());
-        this.scaleIn = input[15]==null?Boolean.FALSE:Boolean.parseBoolean(input[15]);
-        this.size=input[16]==null?0:Integer.parseInt(input[16]);
-        this.tif=input[17]==null?"DAY":input[17];
-        this.slippage=input[18]==null?0D:Double.parseDouble(input[18]);
-        this.rowreference=input[19]==null?"":input[19];
-        this.reason=input[20]==null?EnumOrderReason.UNDEFINED:EnumOrderReason.valueOf(input[20]);
+        this.symbol = input[0]==null?"":input[0].trim();
+        this.happyName=input[1]==null?input[0]:input[1].trim();
+        this.type = input[2]==null?"":input[2].trim();
+        this.expiry = input[3]==null?"":input[3].trim();
+        this.exchange = input[4]==null?"":input[4].trim();
+        this.optionStrike = input[5]==null?"":input[5].trim();
+        this.right = input[6]==null?"":input[6].trim();
+        this.side = input[7]==null?EnumOrderSide.UNDEFINED: EnumOrderSide.valueOf(input[7].toUpperCase().trim());
+        this.orderType = input[8]==null?EnumOrderType.UNDEFINED: EnumOrderType.valueOf(input[8].toUpperCase().trim());
+        this.limitPrice = input[9]==null?0:Double.parseDouble(input[9].trim());
+        this.triggerPrice = input[10]==null?0:Double.parseDouble(input[10].trim());
+        this.effectiveFrom = input[11].trim().matches("\\d{4}\\d{2}\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}")?input[11].trim():null;
+        this.effectiveDuration = input[12]==null?0:Integer.parseInt(input[12].trim());
+        this.dynamicDuration = input[13]==null?0:Integer.parseInt(input[13].trim());
+        this.stage = input[14]==null?EnumOrderStage.UNDEFINED: EnumOrderStage.valueOf(input[14].toUpperCase().trim());
+        this.scaleIn = input[15]==null?Boolean.FALSE:Boolean.parseBoolean(input[15].trim());
+        this.size=input[16]==null?0:Integer.parseInt(input[16].trim());
+        this.tif=input[17]==null?"DAY":input[17].trim();
+        this.slippage=input[18]==null?0D:Double.parseDouble(input[18].trim());
+        this.rowreference=input[19]==null?"":input[19].trim();
+        this.reason=input[20]==null?EnumOrderReason.UNDEFINED:EnumOrderReason.valueOf(input[20].toUpperCase().trim());
         if(this.type.equals("COMBO")){//update Parameters.Symbols if first time
 
         }else{

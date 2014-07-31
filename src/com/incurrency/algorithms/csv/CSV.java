@@ -13,7 +13,6 @@ import com.incurrency.framework.EnumOrderSide;
 import com.incurrency.framework.EnumOrderStage;
 import com.incurrency.framework.EnumOrderType;
 import com.incurrency.framework.Index;
-import com.incurrency.framework.Launch;
 import com.incurrency.framework.MainAlgorithm;
 import com.incurrency.framework.OrderLink;
 import com.incurrency.framework.Parameters;
@@ -197,6 +196,7 @@ public class CSV extends Strategy {
     }
 
     private void placeOrder(CSVOrder orderItem) {
+        if(new Date().after(getStartDate()) && new Date().before(getEndDate())){ 
         int id = TradingUtil.getIDFromSymbol(orderItem.getHappyName(), orderItem.getType(), "", "", "");
         if (orderItem.getType().equals("COMBO")) {
             if (id==-1 && !Strategy.getCombosAdded().containsKey(orderItem.getHappyName())) {
@@ -282,5 +282,6 @@ public class CSV extends Strategy {
             getOms().tes.fireOrderEvent(entryID, exitID, Parameters.symbol.get(id), orderItem.getSide(), orderItem.getReason(), orderItem.getOrderType(), orderItem.getSize(), orderItem.getLimitPrice(), orderItem.getTriggerPrice(), getStrategy(), orderItem.getEffectiveDuration(), orderItem.getStage(), orderItem.getEffectiveDuration(), orderItem.getDynamicDuration(), orderItem.getSlippage(), "", true, orderItem.getTif(), orderItem.isScaleIn(), "", orderItem.getEffectiveFrom(),null);
                 
         }
-    }
+        }
+        }
 }
