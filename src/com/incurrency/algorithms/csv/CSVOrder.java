@@ -79,7 +79,7 @@ public class CSVOrder implements ReaderWriterInterface {
         this.orderType = input[8]==null?EnumOrderType.UNDEFINED: EnumOrderType.valueOf(input[8].toUpperCase().trim());
         this.limitPrice = input[9]==null?0:Double.parseDouble(input[9].trim());
         this.triggerPrice = input[10]==null?0:Double.parseDouble(input[10].trim());
-        this.effectiveFrom = input[11].trim().matches("\\d{4}\\d{2}\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}")?input[11].trim():null;
+        this.effectiveFrom = input[11].trim().matches("\\d{4}\\d{2}\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}")?input[11].trim():"";
         this.effectiveDuration = input[12]==null?0:Integer.parseInt(input[12].trim());
         this.dynamicDuration = input[13]==null?0:Integer.parseInt(input[13].trim());
         this.stage = input[14]==null?EnumOrderStage.UNDEFINED: EnumOrderStage.valueOf(input[14].toUpperCase().trim());
@@ -246,7 +246,7 @@ public class CSVOrder implements ReaderWriterInterface {
                 List<String> ordersLoad = Files.readAllLines(Paths.get(inputfile), StandardCharsets.UTF_8);
                 ordersLoad.remove(0);
                 for (String order : ordersLoad) {
-                    if(!order.equals("")){
+                    if(!order.trim().equals("")){
                     String[] input = order.split(",");
                     target.add(new CSVOrder(input));
                     }

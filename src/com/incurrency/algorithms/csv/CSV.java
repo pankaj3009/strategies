@@ -59,9 +59,14 @@ public class CSV extends Strategy {
                 c.initializeConnection(tempStrategyArray[tempStrategyArray.length - 1]);
             }
             Path dir = Paths.get(directory.trim());
+            File folder = new File(dir.toString());
+        File f = new File(folder, orderFile);
+        if (f.exists() && !f.isDirectory()) {
+                new CSVOrder().reader(f.getCanonicalPath(), oldOrderList);
+        }
             Thread t = new Thread(orderReader = new OrderReader(this, dir, false));
             t.start();
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             Logger.getLogger(CSV.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -197,14 +202,14 @@ public class CSV extends Strategy {
 
     private void placeOrder(CSVOrder orderItem) {
         if(new Date().after(getStartDate()) && new Date().before(getEndDate())){ 
-        int id = TradingUtil.getIDFromSymbol(orderItem.getHappyName(), orderItem.getType(), "", "", "");
+        int id = TradingUtil.getIDFromSymbol(orderItem.getSymbol(), orderItem.getType(), "", "", "");
         if (orderItem.getType().equals("COMBO")) {
             if (id==-1 && !Strategy.getCombosAdded().containsKey(orderItem.getHappyName())) {
                 Parameters.symbol.add(new BeanSymbol(orderItem.getSymbol(), orderItem.getHappyName(),getStrategy()));
                 Strategy.getCombosAdded().put(orderItem.getHappyName(), orderItem.getSymbol());
                 id = TradingUtil.getIDFromSymbol(orderItem.getHappyName(), orderItem.getType(), "", "", "");
             }else{
-                id = TradingUtil.getIDFromSymbol(orderItem.getHappyName(), orderItem.getType(), "", "", "");
+                id = TradingUtil.getIDFromSymbol(orderItem.getSymbol(), orderItem.getType(), "", "", "");
             }
             if (!getStrategySymbols().contains(id)) {
                 getStrategySymbols().add(id);
