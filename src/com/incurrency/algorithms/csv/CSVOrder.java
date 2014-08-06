@@ -253,7 +253,8 @@ public class CSVOrder implements ReaderWriterInterface {
             } catch (Exception ex) {
                 logger.log(Level.SEVERE, null, ex);
             }
-        }    }
+        }    
+    }
 
     @Override
     public void writer(String fileName) {

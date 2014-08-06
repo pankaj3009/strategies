@@ -143,7 +143,7 @@ public class CSV extends Strategy {
                                 entryID = internalorderid;
                                 exitID = entryID;
                                 this.internalOpenOrders.put(id, internalorderid);
-                                getTrades().put(new OrderLink(internalorderid,0, "Order"), new Trade(id, ord.getSide(), Parameters.symbol.get(id).getLastPrice(), ord.getSize(), internalorderid,0, getTimeZone(), "Order"));
+                                getTrades().put(new OrderLink(internalorderid,0, "Order"), new Trade(id,id,ord.getReason(), ord.getSide(), Parameters.symbol.get(id).getLastPrice(), ord.getSize(), internalorderid,0, getTimeZone(), "Order"));
                                 break;
                             case SELL:
                             case COVER:
@@ -152,7 +152,7 @@ public class CSV extends Strategy {
                                 entryID = tempinternalOrderID;
                                 exitID = internalorderid;
                                 Trade tempTrade = getTrades().get(new OrderLink(tempinternalOrderID,0, "Order"));
-                                tempTrade.updateExit(id, ord.getSide(), Parameters.symbol.get(id).getLastPrice(), ord.getSize(), internalorderid,0, getTimeZone(), "Order");
+                                tempTrade.updateExit(id, ord.getReason(),ord.getSide(), Parameters.symbol.get(id).getLastPrice(), ord.getSize(), internalorderid,0, getTimeZone(), "Order");
                                 getTrades().put(new OrderLink(tempinternalOrderID,0, "Order"), tempTrade);
                                 break;
                             default:
@@ -174,7 +174,7 @@ public class CSV extends Strategy {
                             entryID = internalorderid;
                             exitID = entryID;
                             this.internalOpenOrders.put(id, internalorderid);
-                            getTrades().put(new OrderLink(internalorderid,0, "Order"), new Trade(id, ord.getSide(), Parameters.symbol.get(id).getLastPrice(), ord.getSize(), internalorderid, 0,getTimeZone(), "Order"));
+                            getTrades().put(new OrderLink(internalorderid,0, "Order"), new Trade(id, id,ord.getReason(),ord.getSide(), Parameters.symbol.get(id).getLastPrice(), ord.getSize(), internalorderid, 0,getTimeZone(), "Order"));
                             break;
                         case SELL:
                         case COVER:
@@ -183,7 +183,7 @@ public class CSV extends Strategy {
                             entryID = tempinternalOrderID;
                             exitID = internalorderid;
                             Trade tempTrade = getTrades().get(new OrderLink(tempinternalOrderID,0, "Order"));
-                            tempTrade.updateExit(id, ord.getSide(), Parameters.symbol.get(id).getLastPrice(), ord.getSize(), internalorderid,0, getTimeZone(), "Order");
+                            tempTrade.updateExit(id, ord.getReason(),ord.getSide(), Parameters.symbol.get(id).getLastPrice(), ord.getSize(), internalorderid,0, getTimeZone(), "Order");
                             getTrades().put(new OrderLink(tempinternalOrderID,0, "Order"), tempTrade);
                             break;
                         default:
@@ -207,7 +207,7 @@ public class CSV extends Strategy {
             if (id==-1 && !Strategy.getCombosAdded().containsKey(orderItem.getHappyName())) {
                 Parameters.symbol.add(new BeanSymbol(orderItem.getSymbol(), orderItem.getHappyName(),getStrategy()));
                 Strategy.getCombosAdded().put(orderItem.getHappyName(), orderItem.getSymbol());
-                id = TradingUtil.getIDFromHappyName(orderItem.getHappyName());
+                id = TradingUtil.getIDFromDisplayName(orderItem.getHappyName());
             }else{
                 id = TradingUtil.getIDFromSymbol(orderItem.getSymbol(), orderItem.getType(), "", "", "");
             }
@@ -255,7 +255,7 @@ public class CSV extends Strategy {
                     entryID = internalorderid;
                     exitID = entryID;
                     this.internalOpenOrders.put(id, internalorderid);
-                    getTrades().put(new OrderLink(internalorderid,0, "Order"), new Trade(id, orderItem.getSide(), Parameters.symbol.get(id).getLastPrice(), orderItem.getSize(), internalorderid,0, getTimeZone(), "Order"));
+                    getTrades().put(new OrderLink(internalorderid,0, "Order"), new Trade(id, id,orderItem.getReason(),orderItem.getSide(), Parameters.symbol.get(id).getLastPrice(), orderItem.getSize(), internalorderid,0, getTimeZone(), "Order"));
                     break;
                 case SELL:
                 case COVER:
@@ -265,7 +265,7 @@ public class CSV extends Strategy {
                     entryID = internalorderid;
                     Trade tempTrade = getTrades().get(new OrderLink(tempinternalOrderID,0, "Order"));
                     if(tempTrade!=null){
-                    tempTrade.updateExit(id, orderItem.getSide(), Parameters.symbol.get(id).getLastPrice(), orderItem.getSize(), internalorderid,0, getTimeZone(), "Order");
+                    tempTrade.updateExit(id, orderItem.getReason(),orderItem.getSide(), Parameters.symbol.get(id).getLastPrice(), orderItem.getSize(), internalorderid,0, getTimeZone(), "Order");
                     getTrades().put(new OrderLink(tempinternalOrderID,0, "Order"), tempTrade);
                     }
                     break;
