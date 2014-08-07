@@ -238,18 +238,21 @@ public class CSVOrder implements ReaderWriterInterface {
     }
 
     @Override
-    public void reader(String inputfile, ArrayList target) {
+    public synchronized void reader(String inputfile, ArrayList target) {
         File inputFile = new File(inputfile);
         if (inputFile.exists() && !inputFile.isDirectory()) {
             try {
                 List<String> ordersLoad = Files.readAllLines(Paths.get(inputfile), StandardCharsets.UTF_8);
+                if(ordersLoad.size()>0){
+                logger.log(Level.INFO,"{0},{1},CSV Order Reader,Finished Reading CSV,inputFile:{2},Lines Read:{3}",new Object[]{"All","ALL",inputfile,ordersLoad.size()});
                 ordersLoad.remove(0);
                 for (String order : ordersLoad) {
                     if(!order.trim().equals("")){
                     String[] input = order.split(",");
                     target.add(new CSVOrder(input));
                     }
-                    }                    
+                    }    
+                }
             } catch (Exception ex) {
                 logger.log(Level.SEVERE, null, ex);
             }

@@ -194,13 +194,13 @@ public class CSV extends Strategy {
                     getOms().tes.fireOrderEvent(entryID, exitID, Parameters.symbol.get(id), ord.getSide(), ord.getReason(), ord.getOrderType(), ord.getSize(), ord.getLimitPrice(), ord.getTriggerPrice(), getStrategy(), ord.getEffectiveDuration(), ord.getStage(), ord.getDynamicDuration(), ord.getSlippage(), link, true, ord.getTif(), true, "", ord.getEffectiveFrom(),null);
                 }
             } catch (IOException ex) {
-                Logger.getLogger(CSV.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(CSV.class.getName()).log(Level.SEVERE, null, ex+","+getStrategy());
             }
 
         }
     }
 
-    private void placeOrder(CSVOrder orderItem) {
+    private synchronized void placeOrder(CSVOrder orderItem) {
         if(new Date().after(getStartDate()) && new Date().before(getEndDate())){ 
         int id = TradingUtil.getIDFromSymbol(orderItem.getSymbol(), orderItem.getType(), "", "", "");
         if (orderItem.getType().equals("COMBO")) {
