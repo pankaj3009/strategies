@@ -4,15 +4,11 @@
  */
 package com.incurrency.algorithms.csv;
 
-import com.incurrency.framework.BeanPosition;
-import com.incurrency.framework.BeanSymbol;
 import com.incurrency.framework.EnumOrderReason;
 import com.incurrency.framework.EnumOrderSide;
 import com.incurrency.framework.EnumOrderStage;
 import com.incurrency.framework.EnumOrderType;
-import com.incurrency.framework.Parameters;
 import com.incurrency.framework.ReaderWriterInterface;
-import com.incurrency.framework.Strategy;
 import com.incurrency.framework.TradingUtil;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
@@ -238,7 +234,7 @@ public class CSVOrder implements ReaderWriterInterface {
     }
 
     @Override
-    public synchronized void reader(String inputfile, ArrayList target) {
+    public void reader(String inputfile, ArrayList target) {
         File inputFile = new File(inputfile);
         if (inputFile.exists() && !inputFile.isDirectory()) {
             try {

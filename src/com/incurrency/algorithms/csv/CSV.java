@@ -107,6 +107,7 @@ public class CSV extends Strategy {
                 newOrderList.clear();
                 new CSVOrder().reader(f.getCanonicalPath(), newOrderList);
                 //read file
+                logger.log(Level.INFO,"DEBUG: File: {0},New Order List Size: {1}, Old Order List Size: {2}", new Object[]{orderFile,newOrderList.size(), oldOrderList.size()});
                 if (newOrderList.size() > oldOrderList.size()) {//send addition to OMS
                     for (int i = oldOrderList.size(); i < newOrderList.size(); i++) {
                         placeOrder(newOrderList.get(i));
@@ -200,7 +201,8 @@ public class CSV extends Strategy {
         }
     }
 
-    private synchronized void placeOrder(CSVOrder orderItem) {
+    private void placeOrder(CSVOrder orderItem) {
+        logger.log(Level.INFO,"DEBUG: Order String: {0}"+orderItem.toString());
         if(new Date().after(getStartDate()) && new Date().before(getEndDate())){ 
         int id = TradingUtil.getIDFromSymbol(orderItem.getSymbol(), orderItem.getType(), "", "", "");
         if (orderItem.getType().equals("COMBO")) {
@@ -276,15 +278,39 @@ public class CSV extends Strategy {
                 //keep aside for OCO processing
                 ocoOrderList.add(orderItem);
             } else {
+                            int expireTime = 0;
+            int duration = 0;
+            double limitPrice = 0;
+            double triggerPrice = 0;
+            if (!orderItem.getOrderType().equals(EnumOrderType.MKT)) {
+                expireTime = orderItem.getEffectiveDuration();
+                duration = orderItem.getDynamicDuration();
+                limitPrice = orderItem.getLimitPrice();
+                if (!orderItem.getOrderType().equals("COMBO")) {
+                    triggerPrice = orderItem.getTriggerPrice();
+                }
+            }
                 logger.log(Level.INFO, "{0}, {1},Strategy,Order Placed with Execution Manager, Internal Order ID: {2},New Position: {3}, Position Price:{4}, OrderSide: {5}, Order Stage: {6}, Order Reason:{7},", new Object[]{allAccounts, getStrategy(),entryID, getPosition().get(id).getPosition(), getPosition().get(id).getPrice(), orderItem.getSide(), orderItem.getStage(), orderItem.getReason()});
                 rowOrderMap.put(orderItem.getRowreference(), new OrderMap(entryID,exitID));
-                getOms().tes.fireOrderEvent(entryID, exitID, Parameters.symbol.get(id), orderItem.getSide(), orderItem.getReason(), orderItem.getOrderType(), orderItem.getSize(), orderItem.getLimitPrice(), orderItem.getTriggerPrice(), getStrategy(), orderItem.getEffectiveDuration(), orderItem.getStage(), orderItem.getDynamicDuration(), orderItem.getSlippage(), "", true, orderItem.getTif(), orderItem.isScaleIn(), "", orderItem.getEffectiveFrom(),null);
+                getOms().tes.fireOrderEvent(entryID, exitID, Parameters.symbol.get(id), orderItem.getSide(), orderItem.getReason(), orderItem.getOrderType(), orderItem.getSize(), limitPrice, triggerPrice, getStrategy(), expireTime, orderItem.getStage(), duration, orderItem.getSlippage(), "", true, orderItem.getTif(), orderItem.isScaleIn(), "", orderItem.getEffectiveFrom(),null);
                 //String link,boolean transmit                    
             }
         }else if(id > -1 && (orderItem.getStage().equals(EnumOrderStage.AMEND)||orderItem.getStage().equals(EnumOrderStage.CANCEL)) && orderItem.getOrderType() != EnumOrderType.UNDEFINED && orderItem.getSide() != EnumOrderSide.UNDEFINED && orderItem.getReason()!=EnumOrderReason.UNDEFINED){
             int entryID=rowOrderMap.get(orderItem.getRowreference()).entryid;
             int exitID=rowOrderMap.get(orderItem.getRowreference()).exitid;
-            getOms().tes.fireOrderEvent(entryID, exitID, Parameters.symbol.get(id), orderItem.getSide(), orderItem.getReason(), orderItem.getOrderType(), orderItem.getSize(), orderItem.getLimitPrice(), orderItem.getTriggerPrice(), getStrategy(), orderItem.getEffectiveDuration(), orderItem.getStage(), orderItem.getDynamicDuration(), orderItem.getSlippage(), "", true, orderItem.getTif(), orderItem.isScaleIn(), "", orderItem.getEffectiveFrom(),null);
+            int expireTime = 0;
+            int duration = 0;
+            double limitPrice = 0;
+            double triggerPrice = 0;
+            if (!orderItem.getOrderType().equals(EnumOrderType.MKT)) {
+                expireTime = orderItem.getEffectiveDuration();
+                duration = orderItem.getDynamicDuration();
+                limitPrice = orderItem.getLimitPrice();
+                if (!orderItem.getOrderType().equals("COMBO")) {
+                    triggerPrice = orderItem.getTriggerPrice();
+                }
+            }            
+            getOms().tes.fireOrderEvent(entryID, exitID, Parameters.symbol.get(id), orderItem.getSide(), orderItem.getReason(), orderItem.getOrderType(), orderItem.getSize(), limitPrice, triggerPrice, getStrategy(), expireTime, orderItem.getStage(), duration, orderItem.getSlippage(), "", true, orderItem.getTif(), orderItem.isScaleIn(), "", orderItem.getEffectiveFrom(),null);
                 
         }
         }
