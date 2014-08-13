@@ -92,7 +92,6 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
     private String expiry;
     double entryCushion;
     double exitCushion;
-    private String barSource;
     // <editor-fold defaultstate="collapsed" desc="Helper Functions">
     TimerTask realTimeBars = new TimerTask() {
         @Override
@@ -130,7 +129,6 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
         for (int i = 0; i < Parameters.symbol.size(); i++) {
             Parameters.symbol.get(i).getOneMinuteBarFromRealTimeBars().addHistoricalBarListener(this);
             Parameters.symbol.get(i).getDailyBar().addHistoricalBarListener(this);
-            Parameters.symbol.get(i).getFiveSecondBars().addHistoricalBarListener(this);
         }
         String[] tempStrategyArray = parameterFile.split("\\.")[0].split("-");
         for (BeanConnection c : Parameters.connection) {
@@ -171,6 +169,9 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
          }
          }
          */
+        
+        /*
+         * disabled as we prefer constructing bars using tick.
         openProcessing = new Timer("Timer: IDT Waiting for Market Open");
         if (new Date().compareTo(getStartDate()) < 0) { // if time is before startdate, schedule realtime bars
             openProcessing.schedule(realTimeBars, getStartDate());
@@ -183,6 +184,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
             logger.log(Level.INFO, " Strategy,{0},{1},Starting request of realtime bars", new Object[]{allAccounts, getStrategy()});
             requestRealTimeBars();
         }
+        */
     }
 
     private void loadParameters(String strategy, String parameterFile) {
@@ -214,7 +216,6 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
         expiry = System.getProperty("FutureExpiry") == null ? "" : System.getProperty("FutureExpiry");
         entryCushion = System.getProperty("EntryCushion") == null ? 0D : Double.parseDouble(System.getProperty("EntryCushion"));
         exitCushion = System.getProperty("ExitCushion") == null ? 0D : Double.parseDouble(System.getProperty("ExitCushion"));
-        barSource=System.getProperty("BarsSource")==null?"TICK":System.getProperty("BarsSource").toUpperCase();
         String concatAccountNames = "";
         for (String account : getAccounts()) {
             concatAccountNames = ":" + account;
