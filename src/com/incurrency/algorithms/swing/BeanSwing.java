@@ -12,7 +12,6 @@ import com.incurrency.framework.BeanPosition;
 import com.incurrency.framework.BeanSymbol;
 import com.incurrency.framework.BrokerageRate;
 import com.incurrency.framework.DateUtil;
-import com.incurrency.framework.EnumBarValue;
 import com.incurrency.framework.EnumOrderReason;
 import com.incurrency.framework.EnumOrderStage;
 import com.incurrency.framework.EnumOrderSide;
@@ -273,9 +272,9 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
                     }
                     ArrayList<Double> tempSwing = TradingUtil.generateSwings(ohlcv.get(id));
                     ArrayList<Integer> tempTrend = TradingUtil.generateTrend(tempSwing);
-                    ArrayList<Double> volumeMA = TechnicalUtil.getSimpleMovingAverage(ohlcv.get(id), EnumBarValue.Volume, 19, 2);
-                    ArrayList<Double> macd = TechnicalUtil.getMACD(ohlcv.get(id), EnumBarValue.Close, 5, 20);
-                    ArrayList<Double> rsi = TechnicalUtil.getCutlerRSI(ohlcv.get(id), EnumBarValue.Close, 5);
+                    ArrayList<Double> volumeMA = TechnicalUtil.getSimpleMovingAverage(ohlcv.get(id), com.ib.client.TickType.VOLUME, 19, 2);
+                    ArrayList<Double> macd = TechnicalUtil.getMACD(ohlcv.get(id), com.ib.client.TickType.CLOSE, 5, 20);
+                    ArrayList<Double> rsi = TechnicalUtil.getCutlerRSI(ohlcv.get(id), com.ib.client.TickType.CLOSE, 5);
                     Double macdPercentageOfPrice = macd.get(macd.size() - 2) * 100 / Parameters.symbol.get(id).getLastPrice();
                     Boolean B1 = tempTrend.get(tempTrend.size() - 1) == 1 && tempTrend.get(tempTrend.size() - 1) > tempTrend.get(tempTrend.size() - 2);                    
                     Boolean B2 = lastBar.getVolume() > volumeMA.get(volumeMA.size() - 2);

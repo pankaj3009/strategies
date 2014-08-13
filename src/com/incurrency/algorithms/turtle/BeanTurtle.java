@@ -92,6 +92,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
     private String expiry;
     double entryCushion;
     double exitCushion;
+    private String barSource;
     // <editor-fold defaultstate="collapsed" desc="Helper Functions">
     TimerTask realTimeBars = new TimerTask() {
         @Override
@@ -213,7 +214,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
         expiry = System.getProperty("FutureExpiry") == null ? "" : System.getProperty("FutureExpiry");
         entryCushion = System.getProperty("EntryCushion") == null ? 0D : Double.parseDouble(System.getProperty("EntryCushion"));
         exitCushion = System.getProperty("ExitCushion") == null ? 0D : Double.parseDouble(System.getProperty("ExitCushion"));
-
+        barSource=System.getProperty("BarsSource")==null?"TICK":System.getProperty("BarsSource").toUpperCase();
         String concatAccountNames = "";
         for (String account : getAccounts()) {
             concatAccountNames = ":" + account;
