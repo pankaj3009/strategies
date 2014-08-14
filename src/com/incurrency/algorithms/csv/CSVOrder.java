@@ -62,7 +62,7 @@ public class CSVOrder implements ReaderWriterInterface {
     public CSVOrder(String[] input) {
         this.symbol = input[0]==null?"":input[0].trim();
         if(symbol.split(":").length==1){
-            logger.log(Level.INFO,"{0},{1},CSV Parser,Single Leg Combo not accepted,Combo String Supplied: {2}",new Object[]{"ALL","csv",symbol});
+            logger.log(Level.INFO,"310,ErrorInParsingCSV,{0}",new Object[]{symbol});
         }
         this.happyName=input[1]==null?input[0]:input[1].trim();
         this.type = input[2]==null?"":input[2].trim();
@@ -240,7 +240,7 @@ public class CSVOrder implements ReaderWriterInterface {
             try {
                 List<String> ordersLoad = Files.readAllLines(Paths.get(inputfile), StandardCharsets.UTF_8);
                 if(ordersLoad.size()>0){
-                logger.log(Level.INFO,"{0},{1},CSV Order Reader,Finished Reading CSV,inputFile:{2},Lines Read:{3}",new Object[]{"All","ALL",inputfile,ordersLoad.size()});
+                //logger.log(Level.INFO,"{0},{1},CSV Order Reader,Finished Reading CSV,inputFile:{2},Lines Read:{3}",new Object[]{"All","ALL",inputfile,ordersLoad.size()});
                 ordersLoad.remove(0);
                 for (String order : ordersLoad) {
                     if(!order.trim().equals("")){
@@ -250,7 +250,7 @@ public class CSVOrder implements ReaderWriterInterface {
                     }    
                 }
             } catch (Exception ex) {
-                logger.log(Level.SEVERE, null, ex);
+                logger.log(Level.INFO, "101", ex);
             }
         }    
     }
