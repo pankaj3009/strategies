@@ -127,7 +127,11 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
             entryBar.add(0);
         }
         for (int i = 0; i < Parameters.symbol.size(); i++) {
-            Parameters.symbol.get(i).getOneMinuteBarFromRealTimeBars().addHistoricalBarListener(this);
+             if (Parameters.symbol.get(i).getBarsstarttime() != null && !"realtimebars".equals(MainAlgorithm.input.get("bars"))) {
+                Parameters.symbol.get(i).getOneMinuteBarsFromTick().addHistoricalBarListener(this);
+            } else if (Parameters.symbol.get(i).getBarsstarttime() != null) {
+                Parameters.symbol.get(i).getOneMinuteBarFromRealTimeBars().addHistoricalBarListener(this);
+            }
             Parameters.symbol.get(i).getDailyBar().addHistoricalBarListener(this);
         }
         String[] tempStrategyArray = parameterFile.split("\\.")[0].split("-");
