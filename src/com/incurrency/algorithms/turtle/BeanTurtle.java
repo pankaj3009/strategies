@@ -22,9 +22,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.SortedMap;
+import java.util.TimeZone;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -317,9 +317,10 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                     int barno = event.barNumber();
                     logger.log(Level.FINE, "Bar No:{0}, Date={1}, Symbol:{2},FirstBarTime:{3}, LastBarTime:{4}, LastKey-FirstKey:{5}",
                             new Object[]{barno, DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", ohlc.getOpenTime()), Parameters.symbol.get(id).getSymbol(), DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", event.list().firstKey()), DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", event.list().lastKey()), (event.list().lastKey() - event.list().firstKey()) / (1000 * 60)});
-                    SimpleDateFormat sdfDate = new SimpleDateFormat("HH:mm:ss");//dd/MM/yyyy
+                    SimpleDateFormat sdfDate = new SimpleDateFormat("HH:mm:ss");
+                    sdfDate.setTimeZone(TimeZone.getTimeZone(getTimeZone()));
                     String firstBarTime = sdfDate.format(event.list().firstEntry().getKey());
-                    if (firstBarTime.contains(Parameters.symbol.get(id).getBarsstarttime()) && event.barNumber() == (event.list().lastEntry().getKey() - event.list().firstEntry().getKey()) / 60000 + 1) {//all bars till the latest bar are available
+                    if (Parameters.symbol.get(id).getBarsstarttime().contains(firstBarTime) && event.barNumber() == (event.list().lastEntry().getKey() - event.list().firstEntry().getKey()) / 60000 + 1) {//the second condition checks for number of bars given via barsize and the difference in bar timestamps
                         if (this.cumVolume.get(id).size() < event.list().size()) {
                             if (this.cumVolume.get(id).size() == 1) {
                                 //first bar received
