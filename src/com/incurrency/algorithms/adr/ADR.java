@@ -164,9 +164,6 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
 
     @Override
     public void tradeReceived(TradeEvent event) {
-        if (event.getSymbolID() == 0) {
-            logger.log(Level.FINER, "Time:{0},LastPrice:{1} ", new Object[]{new Date().getTime(), Parameters.symbol.get(event.getSymbolID()).getLastPrice()});
-        }
         if (getStrategySymbols().contains(event.getSymbolID())) {
             //new Thread(new ADRTradeReceived(this,event)).start();            
             processTradeReceived(event);
@@ -357,7 +354,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                 }
             }
             if (event.getSymbolID() == 0) {
-                logger.log(Level.FINER, "Completed Processing.Time:{0},LastPrice:{1} ", new Object[]{new Date().getTime(), Parameters.symbol.get(event.getSymbolID()).getLastPrice()});
+                //logger.log(Level.FINER, "Completed Processing.Time:{0},LastPrice:{1} ", new Object[]{new Date().getTime(), Parameters.symbol.get(event.getSymbolID()).getLastPrice()});
 
             }
         } catch (Exception e) {

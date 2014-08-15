@@ -32,9 +32,6 @@ public class ADRTradeReceived implements Runnable {
     @Override
     public void run() {
         s.processTradeReceived(event);
-         if(event.getSymbolID()==0){
-           logger.log(Level.INFO,"Processing in new Thread.Time:{0},LastPrice:{1} ",new Object[]{new Date().getTime(),Parameters.symbol.get(event.getSymbolID()).getLastPrice()});
-        }
 
 /*        
                 int id = event.getSymbolID(); //zero based id
