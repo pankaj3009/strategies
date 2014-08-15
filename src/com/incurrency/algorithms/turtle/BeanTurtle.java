@@ -443,9 +443,10 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                                 int size = sdArray.size();
                                 double symbolSD = sdArray.get(size - 1);
                                 sd.set(id, symbolSD);
-                                long today = Long.parseLong(DateUtil.getFormatedDate("yyyyMMdd", getStartDate().getTime()));
-                                long today_1 = s.getDailyBar().getHistoricalBars().floorKey(today - 1);
-                                long today_2 = s.getDailyBar().getHistoricalBars().floorKey(today_1 - 1);
+                                long today=getStartDate().getTime();
+                                //long today = Long.parseLong(DateUtil.getFormatedDate("yyyyMMdd", getStartDate().getTime()));
+                                long today_1 = s.getDailyBar().getHistoricalBars().floorKey(today-1);
+                                long today_2 = s.getDailyBar().getHistoricalBars().floorKey(today_1-1);
                                 double close_1 = s.getDailyBar().getHistoricalBars().get(today_1).getClose();
                                 double close_2 = s.getDailyBar().getHistoricalBars().get(today_2).getClose();
                                 yesterdayZScore.set(id, ((close_1 / close_2) - 1) / symbolSD);
