@@ -422,6 +422,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                     int id = event.getSymbol().getSerialno() - 1;
                     if (getStrategySymbols().contains(id) && event.getSymbol().getDailyBar().isFinished()) {
                         BeanSymbol s = event.getSymbol();
+                        if(event.list().size()>=3){
                         if (Long.toString((long) event.list().lastKey()).equals(DateUtil.getFormatedDate("yyyyMMdd", System.currentTimeMillis()))) {
                             int key = event.list().size() - 3; //last value is today's date. I need day before yesterday. Therefore -3
                             s.setPriorDayVolume(String.valueOf(event.list().getValue(key).getVolume()));
@@ -455,7 +456,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                                 TradingUtil.writeToFile(getStrategy() + "datalogs.csv", s.getSymbol() + "," + 0 + "," + close_1 + "," + 0 + "," + (close_1 / close_2 - 1) / symbolSD + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + "initialization");
                             }
                         }
-
+                        }
                     }
 
                 }
