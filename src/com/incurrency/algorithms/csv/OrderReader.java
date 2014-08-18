@@ -109,7 +109,7 @@ public class OrderReader implements Runnable{
                 if (kind == OVERFLOW) {
                     continue;
                 }else if(kind==ENTRY_CREATE){
-                    //csvStrategy.processOrders(dir);
+                    csvStrategy.processOrders(dir);
                     
                 }else if(kind==ENTRY_MODIFY){
                     csvStrategy.processOrders(dir);

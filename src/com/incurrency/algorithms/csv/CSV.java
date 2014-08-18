@@ -110,7 +110,9 @@ public class CSV extends Strategy {
                 newOrderList.clear();
                 new CSVOrder().reader(f.getCanonicalPath(), newOrderList);
                 //read file
+                if(oldOrderList.size()!=newOrderList.size()){
                 logger.log(Level.INFO, "310,ReadCSV,{0}", new Object[]{orderFile + delimiter + oldOrderList.size() + delimiter + newOrderList.size()});
+                }
                 if (newOrderList.size() > oldOrderList.size()) {//send addition to OMS
                     for (int i = oldOrderList.size(); i < newOrderList.size(); i++) {
                         placeOrder(newOrderList.get(i));
