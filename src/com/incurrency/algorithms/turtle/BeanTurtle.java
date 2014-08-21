@@ -39,6 +39,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
 
     private static Date lastOrderDate;
     private static final Logger logger = Logger.getLogger(BeanTurtle.class.getName());
+    private final String delimiter="_";
 
     //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="getter-setter">
@@ -199,10 +200,10 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
             try {
                 p.load(propFile);
             } catch (IOException ex) {
-                logger.log(Level.SEVERE, null, ex);
+                logger.log(Level.INFO, "101", ex);
             }
         } catch (FileNotFoundException ex) {
-            logger.log(Level.SEVERE, null, ex);
+            logger.log(Level.INFO, "101", ex);
         }
         System.setProperties(p);
         String currDateStr = DateUtil.getFormatedDate("yyyyMMdd", Parameters.connection.get(0).getConnectionTime());
@@ -224,13 +225,12 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
         for (String account : getAccounts()) {
             concatAccountNames = ":" + account;
         }
-        logger.log(Level.INFO, "-----{0} Parameters----Accounts used {1} ----- Parameter File {2}", new Object[]{strategy.toUpperCase(), concatAccountNames, parameterFile});
-        logger.log(Level.INFO, "Last Order Time: {0}", lastOrderDate);
-        logger.log(Level.INFO, "Channel Duration: {0}", channelDuration);
-        logger.log(Level.INFO, "Index: {0}", index);
-        logger.log(Level.INFO, "Expiry: {0}", expiry);
-        logger.log(Level.INFO, "Entry Cushion: {0}", entryCushion);
-        logger.log(Level.INFO, "Exit Cushion: {0}", exitCushion);
+        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy()+delimiter+"LastOrderTime"+delimiter+lastOrderDate});
+        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy()+delimiter+"ChannelDuration"+delimiter+channelDuration});
+        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy()+delimiter+"Index"+delimiter+index});
+        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy()+delimiter+"Expirt"+delimiter+expiry});
+        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy()+delimiter+"EntryCushion"+delimiter+entryCushion});
+        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy()+delimiter+"ExitCushion"+delimiter+exitCushion});
     }
 
     private void getHistoricalData(String mainStrategy) {
@@ -250,7 +250,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
 //            i.join();
             Thread.sleep(10000);
         } catch (Exception ex) {
-            logger.log(Level.SEVERE, null, ex);
+            logger.log(Level.INFO, "101", ex);
         }
     }
 
@@ -315,8 +315,8 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                     int id = event.getSymbol().getSerialno() - 1;
                     this.close.set(id, ohlc.getClose());
                     int barno = event.barNumber();
-                    logger.log(Level.FINE, "Bar No:{0}, Date={1}, Symbol:{2},FirstBarTime:{3}, LastBarTime:{4}, LastKey-FirstKey:{5}",
-                            new Object[]{barno, DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", ohlc.getOpenTime()), Parameters.symbol.get(id).getSymbol(), DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", event.list().firstKey()), DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", event.list().lastKey()), (event.list().lastKey() - event.list().firstKey()) / (1000 * 60)});
+                    logger.log(Level.INFO, "502,BarsReceived,{0}",
+                            new Object[]{getStrategy()+delimiter+Parameters.symbol.get(id).getDisplayname()+barno+delimiter+delimiter+ DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", ohlc.getOpenTime())+delimiter+ DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", event.list().firstKey())+delimiter+DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", event.list().lastKey())});
                     SimpleDateFormat sdfDate = new SimpleDateFormat("HH:mm:ss");
                     sdfDate.setTimeZone(TimeZone.getTimeZone(getTimeZone()));
                     String firstBarTime = sdfDate.format(event.list().firstEntry().getKey());
@@ -415,7 +415,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                             this.getVolumeMA().set(id, stats.getMean());
 
                         }
-                        logger.log(Level.FINE, "Strategy,{0},{1} Bars Updated, Symbol:{2}, BarCount:{3}", new Object[]{allAccounts, getStrategy(), Parameters.symbol.get(id).getSymbol(), this.cumVolume.get(id).size()});
+                        logger.log(Level.INFO, "502,BarParametersCalculated,{0}", new Object[]{getStrategy()+delimiter+ Parameters.symbol.get(id).getDisplayname()+delimiter+ this.cumVolume.get(id).size()});
                     }
                 } else if (ohlc.getPeriodicity() == EnumBarSize.DAILY) {
                     //update symbol volumes
@@ -439,7 +439,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                             Collections.reverse(prices);
                             ArrayList<Double> sdArray = TechnicalUtil.getStandardDeviationOfReturns(prices, 30, 9);
                             if (sdArray == null) {
-                                logger.log(Level.INFO, "Strategy,{0},{1},SD Array was null. Symbol:{2}", new Object[]{allAccounts, getStrategy(), s.getSymbol()});
+                                logger.log(Level.INFO, "502,SDArrayNull", new Object[]{getStrategy()+delimiter+s.getDisplayname()});
                                 sd.set(id, 0D);
                             } else {
                                 int size = sdArray.size();
@@ -453,7 +453,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                                 double close_2 = s.getDailyBar().getHistoricalBars().get(today_2).getClose();
                                 yesterdayZScore.set(id, ((close_1 / close_2) - 1) / symbolSD);
                                 yesterdayClose.set(id, close_1);
-                                TradingUtil.writeToFile(getStrategy() + "datalogs.csv", s.getSymbol() + "," + 0 + "," + close_1 + "," + 0 + "," + (close_1 / close_2 - 1) / symbolSD + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + "initialization");
+                                TradingUtil.writeToFile(getStrategy() + ".csv", s.getSymbol() + "," + 0 + "," + close_1 + "," + 0 + "," + (close_1 / close_2 - 1) / symbolSD + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + "initialization");
                             }
                         }
                         }
@@ -461,7 +461,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
 
                 }
             } catch (Exception e) {
-                logger.log(Level.SEVERE, null, e);
+                logger.log(Level.INFO, "101", e);
             }
         }
     }
@@ -493,7 +493,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                             }
                             zScoreOnEntry.set(id, zscore);
                             entryBar.set(id, this.getCumVolume().get(id).size());
-                            TradingUtil.writeToFile(getStrategy() + "datalogs.csv", Parameters.symbol.get(id).getSymbol() + "," + cumVolume.get(id).size() + "," + yesterdayClose.get(id) + "," + indexZScoreYesterday + "," + symbolZScoreYesterday + "," + zscore + "," + highBoundary + "," + lowBoundary + "," + Parameters.symbol.get(futureid).getLastPrice() + "," + close.get(id) + "," + relativeVol + "," + entryBar.get(id) + "," + zScoreOnEntry.get(id) + "," + (zScoreOnEntry.get(id) - worstCaseLoss) * (this.getCumVolume().get(id).size() - entryBar.get(id)) / (365 - entryBar.get(id)) + "," + (getClose().get(id) - yesterdayClose.get(id)) / yesterdayClose.get(id) + "," + "BUY");
+                            TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(id).getSymbol() + "," + cumVolume.get(id).size() + "," + yesterdayClose.get(id) + "," + indexZScoreYesterday + "," + symbolZScoreYesterday + "," + zscore + "," + highBoundary + "," + lowBoundary + "," + Parameters.symbol.get(futureid).getLastPrice() + "," + close.get(id) + "," + relativeVol + "," + entryBar.get(id) + "," + zScoreOnEntry.get(id) + "," + (zScoreOnEntry.get(id) - worstCaseLoss) * (this.getCumVolume().get(id).size() - entryBar.get(id)) / (365 - entryBar.get(id)) + "," + (getClose().get(id) - yesterdayClose.get(id)) / yesterdayClose.get(id) + "," + "BUY");
                         } else if (symbolClose > 0 && getShortOnly() && this.getCumVolume().get(id).size() >= this.getChannelDuration() && getPosition().get(futureid).getPosition() == 0 && zscore < -1 && Parameters.symbol.get(id).getLastPrice() <= lowBoundary && relativeVol > 2 && getLastOrderDate().compareTo(new Date()) > 0) {
                             double midPoint = (Math.round((Parameters.symbol.get(futureid).getBidPrice() + Parameters.symbol.get(futureid).getAskPrice()) / 2 / getTickSize())) * getTickSize();
                             double entryPrice = Math.max(Parameters.symbol.get(futureid).getLastPrice(), midPoint);
@@ -505,23 +505,23 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                             }
                             zScoreOnEntry.set(id, zscore);
                             entryBar.set(id, this.getCumVolume().get(id).size());
-                            TradingUtil.writeToFile(getStrategy() + "datalogs.csv", Parameters.symbol.get(id).getSymbol() + "," + cumVolume.get(id).size() + "," + yesterdayClose.get(id) + "," + indexZScoreYesterday + "," + symbolZScoreYesterday + "," + zscore + "," + highBoundary + "," + lowBoundary + "," + Parameters.symbol.get(futureid).getLastPrice() + "," + close.get(id) + "," + relativeVol + "," + entryBar.get(id) + "," + zScoreOnEntry.get(id) + "," + (zScoreOnEntry.get(id) - worstCaseLoss) * (this.getCumVolume().get(id).size() - entryBar.get(id)) / (365 - entryBar.get(id)) + "," + (getClose().get(id) - yesterdayClose.get(id)) / yesterdayClose.get(id) + "," + "SHORT");
+                            TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(id).getSymbol() + "," + cumVolume.get(id).size() + "," + yesterdayClose.get(id) + "," + indexZScoreYesterday + "," + symbolZScoreYesterday + "," + zscore + "," + highBoundary + "," + lowBoundary + "," + Parameters.symbol.get(futureid).getLastPrice() + "," + close.get(id) + "," + relativeVol + "," + entryBar.get(id) + "," + zScoreOnEntry.get(id) + "," + (zScoreOnEntry.get(id) - worstCaseLoss) * (this.getCumVolume().get(id).size() - entryBar.get(id)) / (365 - entryBar.get(id)) + "," + (getClose().get(id) - yesterdayClose.get(id)) / yesterdayClose.get(id) + "," + "SHORT");
                         } else if (symbolClose > 0 && getPosition().get(futureid).getPosition() > 0 && (zscore < worstCaseLoss + (zScoreOnEntry.get(id) - worstCaseLoss) * (this.getCumVolume().get(id).size() - entryBar.get(id)) / (365 - entryBar.get(id)) || System.currentTimeMillis() > getEndDate().getTime())) {
                             double midPoint = (Math.round((Parameters.symbol.get(futureid).getBidPrice() + Parameters.symbol.get(futureid).getAskPrice()) / 2 / getTickSize())) * getTickSize();
                             double entryPrice = Math.max(Parameters.symbol.get(futureid).getLastPrice(), midPoint);
                             this.exit(futureid, EnumOrderSide.SELL, EnumOrderType.LMT, entryPrice, 0, "", true, "DAY", false, EnumOrderReason.REGULAREXIT, "");
-                            TradingUtil.writeToFile(getStrategy() + "datalogs.csv", Parameters.symbol.get(id).getSymbol() + "," + cumVolume.get(id).size() + "," + yesterdayClose.get(id) + "," + indexZScoreYesterday + "," + symbolZScoreYesterday + "," + zscore + "," + highBoundary + "," + lowBoundary + "," + Parameters.symbol.get(futureid).getLastPrice() + "," + close.get(id) + "," + relativeVol + "," + getCumVolume().get(id).size() + "," + zScoreOnEntry.get(id) + "," + (zScoreOnEntry.get(id) - worstCaseLoss) * (this.getCumVolume().get(id).size() - entryBar.get(id)) / (365 - entryBar.get(id)) + (getClose().get(id) - yesterdayClose.get(id)) / yesterdayClose.get(id) + "," + "," + "SELL");
+                            TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(id).getSymbol() + "," + cumVolume.get(id).size() + "," + yesterdayClose.get(id) + "," + indexZScoreYesterday + "," + symbolZScoreYesterday + "," + zscore + "," + highBoundary + "," + lowBoundary + "," + Parameters.symbol.get(futureid).getLastPrice() + "," + close.get(id) + "," + relativeVol + "," + getCumVolume().get(id).size() + "," + zScoreOnEntry.get(id) + "," + (zScoreOnEntry.get(id) - worstCaseLoss) * (this.getCumVolume().get(id).size() - entryBar.get(id)) / (365 - entryBar.get(id)) + (getClose().get(id) - yesterdayClose.get(id)) / yesterdayClose.get(id) + "," + "," + "SELL");
                             zScoreOnEntry.set(id, 0D);
                             entryBar.set(id, 0);
                         } else if (symbolClose > 0 && getPosition().get(futureid).getPosition() < 0 && (zscore > worstCaseLoss + (zScoreOnEntry.get(id) - worstCaseLoss) * (this.getCumVolume().get(id).size() - entryBar.get(id)) / (365 - entryBar.get(id)) || System.currentTimeMillis() > getEndDate().getTime())) {
                             double midPoint = (Math.round((Parameters.symbol.get(futureid).getBidPrice() + Parameters.symbol.get(futureid).getAskPrice()) / 2 / getTickSize())) * getTickSize();
                             double entryPrice = Math.min(Parameters.symbol.get(futureid).getLastPrice(), midPoint);
                             this.exit(futureid, EnumOrderSide.COVER, EnumOrderType.LMT, entryPrice, 0, "", true, "DAY", false, EnumOrderReason.REGULAREXIT, "");
-                            TradingUtil.writeToFile(getStrategy() + "datalogs.csv", Parameters.symbol.get(id).getSymbol() + "," + cumVolume.get(id).size() + "," + yesterdayClose.get(id) + "," + indexZScoreYesterday + "," + symbolZScoreYesterday + "," + zscore + "," + highBoundary + "," + lowBoundary + "," + Parameters.symbol.get(futureid).getLastPrice() + "," + close.get(id) + "," + relativeVol + "," + getCumVolume().get(id).size() + "," + zScoreOnEntry.get(id) + "," + (zScoreOnEntry.get(id) - worstCaseLoss) * (this.getCumVolume().get(id).size() - entryBar.get(id)) / (365 - entryBar.get(id)) + (getClose().get(id) - yesterdayClose.get(id)) / yesterdayClose.get(id) + "," + "," + "COVER");
+                            TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(id).getSymbol() + "," + cumVolume.get(id).size() + "," + yesterdayClose.get(id) + "," + indexZScoreYesterday + "," + symbolZScoreYesterday + "," + zscore + "," + highBoundary + "," + lowBoundary + "," + Parameters.symbol.get(futureid).getLastPrice() + "," + close.get(id) + "," + relativeVol + "," + getCumVolume().get(id).size() + "," + zScoreOnEntry.get(id) + "," + (zScoreOnEntry.get(id) - worstCaseLoss) * (this.getCumVolume().get(id).size() - entryBar.get(id)) / (365 - entryBar.get(id)) + (getClose().get(id) - yesterdayClose.get(id)) / yesterdayClose.get(id) + "," + "," + "COVER");
                             entryBar.set(id, 0);
                             zScoreOnEntry.set(id, 0D);
                         } else if (symbolClose > 0 && zscore > 2 || zscore < -1) {
-                            TradingUtil.writeToFile(getStrategy() + "datalogs.csv", Parameters.symbol.get(id).getSymbol() + "," + cumVolume.get(id).size() + "," + yesterdayClose.get(id) + "," + indexZScoreYesterday + "," + symbolZScoreYesterday + "," + zscore + "," + highBoundary + "," + lowBoundary + "," + Parameters.symbol.get(futureid).getLastPrice() + "," + close.get(id) + "," + relativeVol + "," + entryBar.get(id) + "," + zScoreOnEntry.get(id) + "," + (zScoreOnEntry.get(id) - worstCaseLoss) * (this.getCumVolume().get(id).size() - entryBar.get(id)) / (365 - entryBar.get(id)) + "," + (getClose().get(id) - yesterdayClose.get(id)) / yesterdayClose.get(id) + "," + "SCAN");
+                            TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(id).getSymbol() + "," + cumVolume.get(id).size() + "," + yesterdayClose.get(id) + "," + indexZScoreYesterday + "," + symbolZScoreYesterday + "," + zscore + "," + highBoundary + "," + lowBoundary + "," + Parameters.symbol.get(futureid).getLastPrice() + "," + close.get(id) + "," + relativeVol + "," + entryBar.get(id) + "," + zScoreOnEntry.get(id) + "," + (zScoreOnEntry.get(id) - worstCaseLoss) * (this.getCumVolume().get(id).size() - entryBar.get(id)) / (365 - entryBar.get(id)) + "," + (getClose().get(id) - yesterdayClose.get(id)) / yesterdayClose.get(id) + "," + "SCAN");
                         }
                     }
                 }
@@ -539,7 +539,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                         int internalorderid = getInternalOrderID();
                         originalTrade.updateExit(j.getKey(), EnumOrderReason.REGULAREXIT, EnumOrderSide.SELL, Parameters.symbol.get(j.getKey()).getLastPrice(), size, internalorderid, 0, getTimeZone(), "Order");
                         getTrades().put(new OrderLink(entryInternalOrderID, 0, "Order"), originalTrade);
-                        logger.log(Level.INFO, "Strategy,{0},{1},Sell. Force Close All Positions,Symbol:{2}", new Object[]{allAccounts, getStrategy(), Parameters.symbol.get(j.getKey()).getSymbol()});
+                        logger.log(Level.INFO, "501,StrategyExit,{0}", new Object[]{getStrategy()+delimiter+ "SELL"+delimiter+Parameters.symbol.get(j.getKey()).getDisplayname()});
                         double cushion = 0;
                         if (!expiry.equals("")) {
                             cushion = ((int) (exitCushion / Parameters.symbol.get(j.getKey()).getMinsize() / getTickSize())) * getTickSize();
@@ -549,7 +549,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
 
                         getOms().tes.fireOrderEvent(internalorderid, entryInternalOrderID, Parameters.symbol.get(j.getKey()), EnumOrderSide.SELL, EnumOrderReason.REGULAREXIT, EnumOrderType.LMT, size, entryPrice + cushion, 0, getStrategy(), getMaxOrderDuration(), EnumOrderStage.CANCEL, getDynamicOrderDuration(), getMaxSlippageExit(), true, "");
                         getOms().tes.fireOrderEvent(internalorderid, entryInternalOrderID, Parameters.symbol.get(j.getKey()), EnumOrderSide.SELL, EnumOrderReason.REGULAREXIT, EnumOrderType.LMT, size, entryPrice + cushion, 0, getStrategy(), getMaxOrderDuration(), EnumOrderStage.INIT, getDynamicOrderDuration(), getMaxSlippageExit(), true, "");
-                        TradingUtil.writeToFile(getStrategy() + "datalogs.csv", Parameters.symbol.get(j.getKey()).getSymbol() + "," + cumVolume.get(j.getKey()).size() + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + Parameters.symbol.get(j.getKey()).getLastPrice() + "," + close.get(id) + "," + "SELL CLOSE");
+                        TradingUtil.writeToFile(getStrategy() + "data.csv", Parameters.symbol.get(j.getKey()).getSymbol() + "," + cumVolume.get(j.getKey()).size() + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + Parameters.symbol.get(j.getKey()).getLastPrice() + "," + close.get(id) + "," + "SELL CLOSE");
                         this.advanceExitOrder.set(j.getKey(), 0L);
                     } else if (j.getValue().getPosition() < 0) {
                         //close short
@@ -560,7 +560,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                         int internalorderid = getInternalOrderID();
                         originalTrade.updateExit(j.getKey(), EnumOrderReason.REGULAREXIT, EnumOrderSide.COVER, Parameters.symbol.get(j.getKey()).getLastPrice(), size, internalorderid, 0, getTimeZone(), "Order");
                         getTrades().put(new OrderLink(entryInternalOrderID, 0, "Order"), originalTrade);
-                        logger.log(Level.INFO, "Strategy,{0},{1},Cover. Force Close All Positions,Symbol:{2}", new Object[]{allAccounts, getStrategy(), Parameters.symbol.get(j.getKey()).getSymbol()});
+                        logger.log(Level.INFO, "501,StrategyExit,{0}", new Object[]{getStrategy()+delimiter+ "COVER"+delimiter+Parameters.symbol.get(j.getKey()).getDisplayname()});
                         double cushion = 0;
                         if (!expiry.equals("")) {
                             cushion = ((int) (exitCushion / Parameters.symbol.get(j.getKey()).getMinsize() / getTickSize())) * getTickSize();
@@ -573,13 +573,13 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
 
                         getOms().tes.fireOrderEvent(internalorderid, entryInternalOrderID, Parameters.symbol.get(j.getKey()), EnumOrderSide.COVER, EnumOrderReason.REGULAREXIT, EnumOrderType.LMT, size, entryPrice - cushion, 0, getStrategy(), getMaxOrderDuration(), EnumOrderStage.CANCEL, getDynamicOrderDuration(), getMaxSlippageExit(), true, "");
                         getOms().tes.fireOrderEvent(internalorderid, entryInternalOrderID, Parameters.symbol.get(j.getKey()), EnumOrderSide.COVER, EnumOrderReason.REGULAREXIT, EnumOrderType.LMT, size, entryPrice - cushion, 0, getStrategy(), getMaxOrderDuration(), EnumOrderStage.INIT, getDynamicOrderDuration(), getMaxSlippageExit(), true, "");
-                        TradingUtil.writeToFile(getStrategy() + "datalogs.csv", Parameters.symbol.get(j.getKey()).getSymbol() + "," + cumVolume.get(j.getKey()).size() + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + Parameters.symbol.get(j.getKey()).getLastPrice() + "," + close.get(id) + "," + "COVER CLOSE");
+                        TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(j.getKey()).getSymbol() + "," + cumVolume.get(j.getKey()).size() + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + Parameters.symbol.get(j.getKey()).getLastPrice() + "," + close.get(id) + "," + "COVER CLOSE");
                         this.advanceExitOrder.set(j.getKey(), 0L);
                     }
                 }
             }
         } catch (Exception e) {
-            logger.log(Level.SEVERE, null, e);
+            logger.log(Level.INFO, "101", e);
         }
     }
 
