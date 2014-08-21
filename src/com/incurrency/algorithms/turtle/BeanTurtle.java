@@ -430,6 +430,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                             int key = event.list().size() - 2;
                             s.setPriorDayVolume(String.valueOf(event.list().getValue(key).getVolume()));
                         }
+                        System.out.println("Symbol:"+Parameters.symbol.get(id).getDisplayname()+",PriorDayVolume:"+s.getPriorDayVolume());
                         //update stats
                         ArrayList<BeanOHLC> prices = new ArrayList<>();
                         if (s.getType().equals("STK") || s.getType().equals("IND")) {
@@ -453,6 +454,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                                 double close_2 = s.getDailyBar().getHistoricalBars().get(today_2).getClose();
                                 yesterdayZScore.set(id, ((close_1 / close_2) - 1) / symbolSD);
                                 yesterdayClose.set(id, close_1);
+                                System.out.println("Stats calculated:"+s.getDisplayname()+",yesteday ZScore:"+yesterdayZScore.get(id)+",Relative vol:"+(close_1 / close_2 - 1) / symbolSD);
                                 TradingUtil.writeToFile(getStrategy() + ".csv", s.getSymbol() + "," + 0 + "," + close_1 + "," + 0 + "," + (close_1 / close_2 - 1) / symbolSD + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + "initialization");
                             }
                         }
