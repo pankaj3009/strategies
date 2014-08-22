@@ -448,7 +448,8 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                                 sd.set(id, symbolSD);
                                 long today=getStartDate().getTime();
                                 //long today = Long.parseLong(DateUtil.getFormatedDate("yyyyMMdd", getStartDate().getTime()));
-                                long today_1 = s.getDailyBar().getHistoricalBars().floorKey(today-1);
+                                //Daily bars start with a timestamp of 00:00:00 on the morning. So a Friday bar will start at 00:00:00 Friday AM
+                                 long today_1 = s.getDailyBar().getHistoricalBars().floorKey(today-24*60*60*1000);
                                 long today_2 = s.getDailyBar().getHistoricalBars().floorKey(today_1-1);
                                 double close_1 = s.getDailyBar().getHistoricalBars().get(today_1).getClose();
                                 double close_2 = s.getDailyBar().getHistoricalBars().get(today_2).getClose();
@@ -478,7 +479,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                     double symbolClose = getClose().get(id);
                     double indexZScoreYesterday = this.yesterdayZScore.get(index);
                     double symbolZScoreYesterday = this.yesterdayZScore.get(id);
-                    double zscore = (symbolClose - this.yesterdayClose.get(id)) / symbolClose / this.sd.get(id);
+                    double zscore = ((symbolClose/this.yesterdayClose.get(id))-1) / this.sd.get(id);
                     double highBoundary = getHighestHigh().get(id);
                     double lowBoundary = getLowestLow().get(id);
                     double relativeVol = sd.get(id) / sd.get(index);
