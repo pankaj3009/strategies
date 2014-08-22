@@ -415,7 +415,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                             this.getVolumeMA().set(id, stats.getMean());
 
                         }
-                        logger.log(Level.INFO, "502,BarParametersCalculated,{0}", new Object[]{getStrategy()+delimiter+ Parameters.symbol.get(id).getDisplayname()+delimiter+ this.cumVolume.get(id).size()});
+                        logger.log(Level.INFO, "502,BarParametersCalculated,{0}", new Object[]{getStrategy()+delimiter+ Parameters.symbol.get(id).getDisplayname()+delimiter+ this.cumVolume.get(id).size()+delimiter+getClose().get(id)});
                     }
                 } else if (ohlc.getPeriodicity() == EnumBarSize.DAILY) {
                     //update symbol volumes
