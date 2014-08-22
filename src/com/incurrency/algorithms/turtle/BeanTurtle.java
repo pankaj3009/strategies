@@ -454,7 +454,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                                 double close_2 = s.getDailyBar().getHistoricalBars().get(today_2).getClose();
                                 yesterdayZScore.set(id, ((close_1 / close_2) - 1) / symbolSD);
                                 yesterdayClose.set(id, close_1);
-                                System.out.println("Stats calculated:"+s.getDisplayname()+",yesteday ZScore:"+yesterdayZScore.get(id)+",Relative vol:"+(close_1 / close_2 - 1) / symbolSD);
+                                logger.log(Level.INFO,"502,OpeningStat,{0}",new Object[]{getStrategy()+delimiter+s.getDisplayname()+delimiter+close_2+delimiter+close_1+delimiter+symbolSD+delimiter+yesterdayZScore.get(id)});
                                 TradingUtil.writeToFile(getStrategy() + ".csv", s.getSymbol() + "," + 0 + "," + close_1 + "," + 0 + "," + (close_1 / close_2 - 1) / symbolSD + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + "initialization");
                             }
                         }
