@@ -316,7 +316,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
                     this.close.set(id, ohlc.getClose());
                     int barno = event.barNumber();
                     logger.log(Level.INFO, "502,BarsReceived,{0}",
-                            new Object[]{getStrategy()+delimiter+Parameters.symbol.get(id).getDisplayname()+barno+delimiter+delimiter+ DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", ohlc.getOpenTime())+delimiter+ DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", event.list().firstKey())+delimiter+DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", event.list().lastKey())});
+                            new Object[]{getStrategy()+delimiter+Parameters.symbol.get(id).getDisplayname()+delimiter+barno+delimiter+delimiter+ DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", ohlc.getOpenTime())+delimiter+ DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", event.list().firstKey())+delimiter+DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", event.list().lastKey())});
                     SimpleDateFormat sdfDate = new SimpleDateFormat("HH:mm:ss");
                     sdfDate.setTimeZone(TimeZone.getTimeZone(getTimeZone()));
                     String firstBarTime = sdfDate.format(event.list().firstEntry().getKey());
