@@ -144,7 +144,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
             Subscribe.tes.addTradeListener(this);
         }
 //        populateLastTradePrice();
-        TradingUtil.writeToFile(getStrategy() + "datalogs.csv", "symbol" + "," + "Completed Bars" + "," + "yesterday close" + "," + "yesterdayIndexZScore" + "," + "yesterdayZScore" + "," + "zscore" + "," + "highLevel" + "," + "lowLevel" + "," + "lastPrice" + "," + "lastbarClose" + ",Relative Vol,EntryBar,ZScore On Entry,Stop Loss,Change from yesterday,comment");
+        TradingUtil.writeToFile(getStrategy() + ".csv", "symbol" + "," + "Completed Bars" + "," + "yesterday close" + "," + "yesterdayIndexZScore" + "," + "yesterdayZScore" + "," + "zscore" + "," + "highLevel" + "," + "lowLevel" + "," + "lastPrice" + "," + "lastbarClose" + ",Relative Vol,EntryBar,ZScore On Entry,Stop Loss,Change from yesterday,comment");
         getHistoricalData("idt");
         /*
          for (int i : getStrategySymbols()) {
@@ -473,7 +473,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
         try {
             int id = event.getSymbolID(); //here symbolID is with zero base.
             int futureid = expiry.equals("") ? id : TradingUtil.getFutureIDFromSymbol(id, expiry);
-            if (getPosition().get(futureid) != null && yesterdayClose.get(id) > 0) { //do initialization checks 
+            if (getPosition().get(futureid) != null && yesterdayClose.get(id) > 0 && getClose().get(id)!=0) { //do initialization checks 
                 if (getStrategySymbols().contains(id) && event.getTickType() == com.ib.client.TickType.LAST && Parameters.symbol.get(id).getType().equals("STK")) {
                     double symbolClose = getClose().get(id);
                     double indexZScoreYesterday = this.yesterdayZScore.get(index);
