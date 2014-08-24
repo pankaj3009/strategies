@@ -61,9 +61,6 @@ public class CSVOrder implements ReaderWriterInterface {
 
     public CSVOrder(String[] input) {
         this.symbol = input[0]==null?"":input[0].trim();
-        if(symbol.split(":").length==1){
-            logger.log(Level.INFO,"310,ErrorInParsingCSV,{0}",new Object[]{symbol});
-        }
         this.happyName=input[1]==null?input[0]:input[1].trim();
         this.type = input[2]==null?"":input[2].trim();
         this.expiry = input[3]==null?"":input[3].trim();

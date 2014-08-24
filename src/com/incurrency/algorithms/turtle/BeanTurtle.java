@@ -366,7 +366,6 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
 
                         this.getVolume().set(id, ohlc.getVolume());
                         //Set Highest High and Lowest Low
-
                         if (event.barNumber() >= this.getChannelDuration()) {
                             Map<Long, BeanOHLC> temp;
                             temp = (SortedMap<Long, BeanOHLC>) event.list().subMap(ohlc.getOpenTime() - this.getChannelDuration() * 60 * 1000 + 1, ohlc.getOpenTime() + 1);
