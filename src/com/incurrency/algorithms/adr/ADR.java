@@ -145,7 +145,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
         adrRuleName = System.getProperty("ADRSymbolTag") == null ? "" : System.getProperty("ADRSymbolTag");
         trackLosingZone=System.getProperty("TrackLosingZones")==null?Boolean.FALSE:Boolean.parseBoolean(System.getProperty("TrackLosingZones"));
 
-
+        
         logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy()+delimiter+"TradingAllowed"+delimiter+getTrading()});
         logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy()+delimiter+"Index"+delimiter+getIndex()});
         logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy()+delimiter+"IndexType"+delimiter+getType()});
