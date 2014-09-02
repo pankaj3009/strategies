@@ -12,7 +12,6 @@ import com.espertech.esper.client.EPServiceProvider;
 import com.espertech.esper.client.EPServiceProviderManager;
 import com.espertech.esper.client.EPStatement;
 import com.espertech.esper.client.EventBean;
-import com.incurrency.framework.Launch;
 import com.incurrency.framework.TradingUtil;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
@@ -143,7 +142,8 @@ public class EventProcessor implements ActionListener {
         
         
         //create debug window
-        if(Launch.input.containsKey("debugscreen")){
+        //if(Launch.input.containsKey("debugscreen")){
+        if(false){
         JFrame myFrame = new JFrame("Debug Window");
         myFrame.setLayout( new FlowLayout() );
         myFrame.setSize(300,400);

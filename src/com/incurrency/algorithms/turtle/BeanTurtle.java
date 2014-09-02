@@ -4,6 +4,7 @@
  */
 package com.incurrency.algorithms.turtle;
 
+import com.incurrency.algorithms.launch.Launch;
 import com.RatesClient.Subscribe;
 import com.incurrency.framework.*;
 import java.io.FileInputStream;

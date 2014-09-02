@@ -12,7 +12,7 @@ import com.incurrency.framework.BeanSymbol;
 import com.incurrency.framework.DateUtil;
 import com.incurrency.framework.EnumOrderStage;
 import com.incurrency.framework.EnumOrderSide;
-import com.incurrency.framework.Launch;
+import com.incurrency.algorithms.launch.Launch;
 import com.incurrency.framework.Parameters;
 import com.incurrency.framework.TradeEvent;
 import com.incurrency.framework.TradeListener;

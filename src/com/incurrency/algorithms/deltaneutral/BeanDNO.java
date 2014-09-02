@@ -16,7 +16,7 @@ import com.incurrency.framework.HistoricalBarEvent;
 import com.incurrency.framework.HistoricalBarListener;
 import com.incurrency.framework.HistoricalBars;
 import com.incurrency.framework.MainAlgorithm;
-import com.incurrency.framework.Launch;
+import com.incurrency.algorithms.launch.Launch;
 import com.incurrency.framework.Parameters;
 import com.incurrency.framework.Splits;
 import com.incurrency.framework.Trade;

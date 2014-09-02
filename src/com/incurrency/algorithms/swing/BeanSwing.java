@@ -17,7 +17,7 @@ import com.incurrency.framework.EnumOrderStage;
 import com.incurrency.framework.EnumOrderSide;
 import com.incurrency.framework.EnumOrderType;
 import com.incurrency.framework.HistoricalBars;
-import com.incurrency.framework.Launch;
+import com.incurrency.algorithms.launch.Launch;
 import com.incurrency.framework.MainAlgorithm;
 import com.incurrency.framework.NotificationEvent;
 import com.incurrency.framework.Parameters;
