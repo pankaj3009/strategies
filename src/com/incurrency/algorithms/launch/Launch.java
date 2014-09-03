@@ -184,11 +184,11 @@ public class Launch extends javax.swing.JFrame {
             input.put(args[i].split("=")[0].toLowerCase(), args[i].split("=")[1].toLowerCase());
         }
          headless=(input.get("headless")==null||input.get("headless").compareTo("false")==0)?false:true;
-        FileInputStream configFile;
-        if(new File("logging.properties").exists()){
-        configFile = new FileInputStream("logging.properties");
-        LogManager.getLogManager().readConfiguration(configFile);
-        }
+            FileInputStream configFile;
+            if(new File("logging.properties").exists()){
+            configFile = new FileInputStream("logging.properties");
+            LogManager.getLogManager().readConfiguration(configFile);
+            }
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             @Override
@@ -210,7 +210,7 @@ public class Launch extends javax.swing.JFrame {
             }
         });
             Thread.sleep(3000);
-            algo=MainAlgorithm.getInstance(input);
+            algo=MainAlgorithm.getInstance(input,true);
             //register strategy
             while(MainAlgorithm.getInstance()==null){
              Thread.yield();
