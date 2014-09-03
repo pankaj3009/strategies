@@ -224,7 +224,7 @@ public class Launch extends javax.swing.JFrame {
                 algo.registerStrategy("com.incurrency.algorithms.csv.CSV");//
             }
             if(input.get("idt")!=null){
-                algo.registerStrategy("idt");
+                algo.registerStrategy("com.incurrency.algorithms.turtle.IDT");
             }
             algo.postInit();
             

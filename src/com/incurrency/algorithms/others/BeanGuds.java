@@ -4,7 +4,7 @@
  */
 package com.incurrency.algorithms.others;
 
-import com.incurrency.algorithms.turtle.BeanTurtle;
+import com.incurrency.algorithms.turtle.IDT;
 import com.incurrency.framework.MainAlgorithm;
 import com.incurrency.framework.ExecutionManager;
 import com.incurrency.framework.Algorithm;
@@ -74,10 +74,10 @@ public class BeanGuds implements Serializable, TradeListener {
             try {
                 p.load(propFile);
             } catch (IOException ex) {
-                Logger.getLogger(BeanTurtle.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(IDT.class.getName()).log(Level.SEVERE, null, ex);
             }
         } catch (FileNotFoundException ex) {
-            Logger.getLogger(BeanTurtle.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(IDT.class.getName()).log(Level.SEVERE, null, ex);
         }
         System.setProperties(p);
         String currDateStr = DateUtil.getFormatedDate("yyyyMMdd", Parameters.connection.get(0).getConnectionTime());

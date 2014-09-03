@@ -36,10 +36,10 @@ import org.apache.commons.math3.stat.regression.SimpleRegression;
  *
  * @author pankaj
  */
-public class BeanTurtle extends Strategy implements Serializable, HistoricalBarListener, TradeListener {
+public class IDT extends Strategy implements Serializable, HistoricalBarListener, TradeListener {
 
     private static Date lastOrderDate;
-    private static final Logger logger = Logger.getLogger(BeanTurtle.class.getName());
+    private static final Logger logger = Logger.getLogger(IDT.class.getName());
     private final String delimiter="_";
 
     //</editor-fold>
@@ -102,7 +102,7 @@ public class BeanTurtle extends Strategy implements Serializable, HistoricalBarL
         }
     };
 
-    public BeanTurtle(MainAlgorithm m, String parameterFile, ArrayList<String> accounts) {
+    public IDT(MainAlgorithm m, String parameterFile, ArrayList<String> accounts) {
         super(m, "idt", "FUT", parameterFile, accounts);
         loadParameters("idt", parameterFile);
 
