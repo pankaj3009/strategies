@@ -211,6 +211,24 @@ public class Launch extends javax.swing.JFrame {
         });
             Thread.sleep(3000);
             algo=MainAlgorithm.getInstance(input);
+            //register strategy
+            while(MainAlgorithm.getInstance()==null){
+             Thread.yield();
+            }
+            algo=MainAlgorithm.getInstance();
+            
+            if(input.get("adr")!=null){
+                algo.registerStrategy("com.incurrency.algorithms.adr.ADR");
+            }
+            if(input.get("csv")!=null){
+                algo.registerStrategy("com.incurrency.algorithms.csv.CSV");//
+            }
+            if(input.get("idt")!=null){
+                algo.registerStrategy("idt");
+            }
+            algo.postInit();
+            
+            
 
                 //JFrame d=new com.incurrency.framework.display.DashBoardNew();
 
