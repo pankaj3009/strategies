@@ -42,8 +42,7 @@ public class IDT extends Strategy implements Serializable, HistoricalBarListener
     private static final Logger logger = Logger.getLogger(IDT.class.getName());
     private final String delimiter="_";
 
-    //</editor-fold>
-    //<editor-fold defaultstate="collapsed" desc="getter-setter">
+
     /**
      * @return the logger
      */
@@ -94,7 +93,7 @@ public class IDT extends Strategy implements Serializable, HistoricalBarListener
     private String expiry;
     double entryCushion;
     double exitCushion;
-    // <editor-fold defaultstate="collapsed" desc="Helper Functions">
+
     TimerTask realTimeBars = new TimerTask() {
         @Override
         public void run() {
@@ -293,7 +292,6 @@ public class IDT extends Strategy implements Serializable, HistoricalBarListener
         new RealTimeBars();
     }
 
-    // </editor-fold>
     @Override
     public void barsReceived(HistoricalBarEvent event) {
         int outsideid = event.getSymbol().getSerialno() - 1;
@@ -533,6 +531,8 @@ public class IDT extends Strategy implements Serializable, HistoricalBarListener
             //force close of all open positions, after closeTime
             if (System.currentTimeMillis() + 3000 > getEndDate().getTime()) { //i wait for 3 seconds as there could be a gap in clock synchronization
                 for (Map.Entry<Integer, BeanPosition> j : getPosition().entrySet()) {
+                logger.log(Level.INFO,"501,Debugging_Position,{0}",new Object[]{Parameters.symbol.get(j.getKey()).getDisplayname()+delimiter+j.getValue().getPosition()});
+
                     if (j.getValue().getPosition() > 0) {
                         //close long
                         int size = getNumberOfContracts() == 0 ? (int) (getExposure() / Parameters.symbol.get(j.getKey()).getLastPrice()) : Parameters.symbol.get(j.getKey()).getMinsize() * getNumberOfContracts();
@@ -549,7 +549,6 @@ public class IDT extends Strategy implements Serializable, HistoricalBarListener
                         }
                         double midPoint = (Math.round((Parameters.symbol.get(j.getKey()).getBidPrice() + Parameters.symbol.get(j.getKey()).getAskPrice()) / 2 / getTickSize())) * getTickSize();
                         double entryPrice = Math.max(Parameters.symbol.get(j.getKey()).getLastPrice(), midPoint);
-
                         getOms().tes.fireOrderEvent(internalorderid, entryInternalOrderID, Parameters.symbol.get(j.getKey()), EnumOrderSide.SELL, EnumOrderReason.REGULAREXIT, EnumOrderType.LMT, size, entryPrice + cushion, 0, getStrategy(), getMaxOrderDuration(), EnumOrderStage.CANCEL, getDynamicOrderDuration(), getMaxSlippageExit(), true, "");
                         getOms().tes.fireOrderEvent(internalorderid, entryInternalOrderID, Parameters.symbol.get(j.getKey()), EnumOrderSide.SELL, EnumOrderReason.REGULAREXIT, EnumOrderType.LMT, size, entryPrice + cushion, 0, getStrategy(), getMaxOrderDuration(), EnumOrderStage.INIT, getDynamicOrderDuration(), getMaxSlippageExit(), true, "");
                         TradingUtil.writeToFile(getStrategy() + "data.csv", Parameters.symbol.get(j.getKey()).getSymbol() + "," + cumVolume.get(j.getKey()).size() + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + Parameters.symbol.get(j.getKey()).getLastPrice() + "," + close.get(id) + "," + "SELL CLOSE");
