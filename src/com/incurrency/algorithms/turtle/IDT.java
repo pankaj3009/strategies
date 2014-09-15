@@ -543,7 +543,7 @@ public class IDT extends Strategy implements Serializable, HistoricalBarListener
             //force close of all open positions, after closeTime
             if (System.currentTimeMillis() + 3000 > getEndDate().getTime()) { //i wait for 3 seconds as there could be a gap in clock synchronization
                 for (Map.Entry<Integer, BeanPosition> j : getPosition().entrySet()) {
-                logger.log(Level.INFO,"501,Debugging_Position,{0}",new Object[]{Parameters.symbol.get(j.getKey()).getDisplayname()+delimiter+j.getValue().getPosition()});
+                //logger.log(Level.INFO,"501,Debugging_Position,{0}",new Object[]{Parameters.symbol.get(j.getKey()).getDisplayname()+delimiter+j.getValue().getPosition()});
 
                     if (j.getValue().getPosition() > 0) {
                         //close long
