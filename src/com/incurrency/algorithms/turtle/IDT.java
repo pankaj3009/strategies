@@ -113,6 +113,8 @@ public class IDT extends Strategy implements Serializable, HistoricalBarListener
             highestHigh.add(999999999D);
             lowestLow.add(0D);
             close.add(0D);
+            high.add(0D);
+            low.add(0D);
             barNumber.add(0L);
             slope.add(0D);
             Volume.add(Long.MIN_VALUE);
