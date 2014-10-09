@@ -547,8 +547,9 @@ public class IDT extends Strategy implements Serializable, HistoricalBarListener
 
                     if (j.getValue().getPosition() > 0) {
                         //close long
-                        int size = getNumberOfContracts() == 0 ? (int) (getExposure() / Parameters.symbol.get(j.getKey()).getLastPrice()) : Parameters.symbol.get(j.getKey()).getMinsize() * getNumberOfContracts();
-                        getPosition().put(j.getKey(), new BeanPosition(j.getKey(), getStrategy()));
+                        //int size = getNumberOfContracts() == 0 ? (int) (getExposure() / Parameters.symbol.get(j.getKey()).getLastPrice()) : Parameters.symbol.get(j.getKey()).getMinsize() * getNumberOfContracts();
+                        int size=Math.abs(j.getValue().getPosition());
+                        //getPosition().put(j.getKey(), new BeanPosition(j.getKey(), getStrategy()));
                         int entryInternalOrderID = this.internalOpenOrders.get(j.getKey());
                         Trade originalTrade = getTrades().get(new OrderLink(entryInternalOrderID, 0, "Order"));
                         int internalorderid = getInternalOrderID();
@@ -567,8 +568,9 @@ public class IDT extends Strategy implements Serializable, HistoricalBarListener
                         this.advanceExitOrder.set(j.getKey(), 0L);
                     } else if (j.getValue().getPosition() < 0) {
                         //close short
-                        int size = getNumberOfContracts() == 0 ? (int) (getExposure() / Parameters.symbol.get(j.getKey()).getLastPrice()) : Parameters.symbol.get(j.getKey()).getMinsize() * getNumberOfContracts();
-                        getPosition().put(j.getKey(), new BeanPosition(j.getKey(), getStrategy()));
+                        //int size = getNumberOfContracts() == 0 ? (int) (getExposure() / Parameters.symbol.get(j.getKey()).getLastPrice()) : Parameters.symbol.get(j.getKey()).getMinsize() * getNumberOfContracts();
+                        int size=Math.abs(j.getValue().getPosition());
+                        //getPosition().put(j.getKey(), new BeanPosition(j.getKey(), getStrategy()));
                         int entryInternalOrderID = this.internalOpenOrders.get(j.getKey());
                         Trade originalTrade = getTrades().get(new OrderLink(entryInternalOrderID, 0, "Order"));
                         int internalorderid = getInternalOrderID();
