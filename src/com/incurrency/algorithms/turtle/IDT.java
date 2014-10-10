@@ -83,6 +83,7 @@ public class IDT extends Strategy implements Serializable, HistoricalBarListener
     private ArrayList<Integer> breachDown = new ArrayList();
     private int startBars;
     Timer openProcessing;
+    Timer closePositions;
     private double maVolumeLong;
     private double maVolumeShort;
     //Strategy Filters
@@ -100,6 +101,13 @@ public class IDT extends Strategy implements Serializable, HistoricalBarListener
         @Override
         public void run() {
             requestRealTimeBars();
+        }
+    };
+    
+        TimerTask closePositionsOnMarketClose = new TimerTask() {
+        @Override
+        public void run() {
+            closePositions();
         }
     };
 
@@ -148,6 +156,8 @@ public class IDT extends Strategy implements Serializable, HistoricalBarListener
             Subscribe.tes.addTradeListener(this);
         }
 //        populateLastTradePrice();
+            closePositions = new Timer("Timer: Close Positions");
+            closePositions.schedule(closePositionsOnMarketClose, getEndDate());
         TradingUtil.writeToFile(getStrategy() + ".csv", "symbol" + "," + "Completed Bars" + "," + "yesterday close" + "," + "yesterdayIndexZScore" + "," + "yesterdayZScore" + "," + "zscore" + "," +"zscoreFromTodayLow"+","+"zscoreFromTodayHigh"+ "," + "highLevel" + "," + "lowLevel" + "," + "lastPrice" + "," + "lastbarClose" + ",Relative Vol,EntryBar,ZScore On Entry,Stop Loss,Change from yesterday,comment");
         getHistoricalData("idt");
         /*
@@ -539,63 +549,64 @@ public class IDT extends Strategy implements Serializable, HistoricalBarListener
                     }
                 }
             }
-
-            //force close of all open positions, after closeTime
-            if (System.currentTimeMillis() + 3000 > getEndDate().getTime()) { //i wait for 3 seconds as there could be a gap in clock synchronization
-                for (Map.Entry<Integer, BeanPosition> j : getPosition().entrySet()) {
-                //logger.log(Level.INFO,"501,Debugging_Position,{0}",new Object[]{Parameters.symbol.get(j.getKey()).getDisplayname()+delimiter+j.getValue().getPosition()});
-
-                    if (j.getValue().getPosition() > 0) {
-                        //close long
-                        //int size = getNumberOfContracts() == 0 ? (int) (getExposure() / Parameters.symbol.get(j.getKey()).getLastPrice()) : Parameters.symbol.get(j.getKey()).getMinsize() * getNumberOfContracts();
-                        int size=Math.abs(j.getValue().getPosition());
-                        //getPosition().put(j.getKey(), new BeanPosition(j.getKey(), getStrategy()));
-                        int entryInternalOrderID = this.internalOpenOrders.get(j.getKey());
-                        Trade originalTrade = getTrades().get(new OrderLink(entryInternalOrderID, 0, "Order"));
-                        int internalorderid = getInternalOrderID();
-                        originalTrade.updateExit(j.getKey(), EnumOrderReason.REGULAREXIT, EnumOrderSide.SELL, Parameters.symbol.get(j.getKey()).getLastPrice(), size, internalorderid, 0, getTimeZone(), "Order");
-                        getTrades().put(new OrderLink(entryInternalOrderID, 0, "Order"), originalTrade);
-                        logger.log(Level.INFO, "501,StrategyExit,{0}", new Object[]{getStrategy()+delimiter+ "SELL"+delimiter+Parameters.symbol.get(j.getKey()).getDisplayname()});
-                        double cushion = 0;
-                        if (!expiry.equals("")) {
-                            cushion = ((int) (exitCushion / Parameters.symbol.get(j.getKey()).getMinsize() / getTickSize())) * getTickSize();
-                        }
-                        double midPoint = (Math.round((Parameters.symbol.get(j.getKey()).getBidPrice() + Parameters.symbol.get(j.getKey()).getAskPrice()) / 2 / getTickSize())) * getTickSize();
-                        double entryPrice = Math.max(Parameters.symbol.get(j.getKey()).getLastPrice(), midPoint);
-                        getOms().tes.fireOrderEvent(internalorderid, entryInternalOrderID, Parameters.symbol.get(j.getKey()), EnumOrderSide.SELL, EnumOrderReason.REGULAREXIT, EnumOrderType.LMT, size, entryPrice + cushion, 0, getStrategy(), getMaxOrderDuration(), EnumOrderStage.CANCEL, getDynamicOrderDuration(), getMaxSlippageExit(), true, "");
-                        getOms().tes.fireOrderEvent(internalorderid, entryInternalOrderID, Parameters.symbol.get(j.getKey()), EnumOrderSide.SELL, EnumOrderReason.REGULAREXIT, EnumOrderType.LMT, size, entryPrice + cushion, 0, getStrategy(), getMaxOrderDuration(), EnumOrderStage.INIT, getDynamicOrderDuration(), getMaxSlippageExit(), true, "");
-                        TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(j.getKey()).getSymbol() + "," + cumVolume.get(j.getKey()).size() + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," +0+","+0+ "," + 0 + "," + 0 + "," + Parameters.symbol.get(j.getKey()).getLastPrice() + "," + close.get(id) + "," + "SELL CLOSE");
-                        this.advanceExitOrder.set(j.getKey(), 0L);
-                    } else if (j.getValue().getPosition() < 0) {
-                        //close short
-                        //int size = getNumberOfContracts() == 0 ? (int) (getExposure() / Parameters.symbol.get(j.getKey()).getLastPrice()) : Parameters.symbol.get(j.getKey()).getMinsize() * getNumberOfContracts();
-                        int size=Math.abs(j.getValue().getPosition());
-                        //getPosition().put(j.getKey(), new BeanPosition(j.getKey(), getStrategy()));
-                        int entryInternalOrderID = this.internalOpenOrders.get(j.getKey());
-                        Trade originalTrade = getTrades().get(new OrderLink(entryInternalOrderID, 0, "Order"));
-                        int internalorderid = getInternalOrderID();
-                        originalTrade.updateExit(j.getKey(), EnumOrderReason.REGULAREXIT, EnumOrderSide.COVER, Parameters.symbol.get(j.getKey()).getLastPrice(), size, internalorderid, 0, getTimeZone(), "Order");
-                        getTrades().put(new OrderLink(entryInternalOrderID, 0, "Order"), originalTrade);
-                        logger.log(Level.INFO, "501,StrategyExit,{0}", new Object[]{getStrategy()+delimiter+ "COVER"+delimiter+Parameters.symbol.get(j.getKey()).getDisplayname()});
-                        double cushion = 0;
-                        if (!expiry.equals("")) {
-                            cushion = ((int) (exitCushion / Parameters.symbol.get(j.getKey()).getMinsize() / getTickSize())) * getTickSize();
-                        }
-                        //double midPoint=(Math.round((Parameters.symbol.get(futureid).getBidPrice()+Parameters.symbol.get(futureid).getAskPrice())/2/getTickSize()))*getTickSize();
-                        //double entryPrice=Math.min(Parameters.symbol.get(futureid).getLastPrice(),midPoint );
-
-                        double midPoint = (Math.round((Parameters.symbol.get(j.getKey()).getBidPrice() + Parameters.symbol.get(j.getKey()).getAskPrice()) / 2 / getTickSize())) * getTickSize();
-                        double entryPrice = Math.min(Parameters.symbol.get(j.getKey()).getLastPrice(), midPoint);
-
-                        getOms().tes.fireOrderEvent(internalorderid, entryInternalOrderID, Parameters.symbol.get(j.getKey()), EnumOrderSide.COVER, EnumOrderReason.REGULAREXIT, EnumOrderType.LMT, size, entryPrice - cushion, 0, getStrategy(), getMaxOrderDuration(), EnumOrderStage.CANCEL, getDynamicOrderDuration(), getMaxSlippageExit(), true, "");
-                        getOms().tes.fireOrderEvent(internalorderid, entryInternalOrderID, Parameters.symbol.get(j.getKey()), EnumOrderSide.COVER, EnumOrderReason.REGULAREXIT, EnumOrderType.LMT, size, entryPrice - cushion, 0, getStrategy(), getMaxOrderDuration(), EnumOrderStage.INIT, getDynamicOrderDuration(), getMaxSlippageExit(), true, "");
-                        TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(j.getKey()).getSymbol() + "," + cumVolume.get(j.getKey()).size() + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," +0+","+0+ "," + 0 + "," + 0 + "," + Parameters.symbol.get(j.getKey()).getLastPrice() + "," + close.get(id) + "," + "COVER CLOSE");
-                        this.advanceExitOrder.set(j.getKey(), 0L);
-                    }
-                }
-            }
         } catch (Exception e) {
             logger.log(Level.INFO, "101", e);
+        }
+    }
+
+    private void closePositions() {
+        //force close of all open positions, after closeTime
+        for (Map.Entry<Integer, BeanPosition> j : getPosition().entrySet()) {
+            int id=j.getKey();
+            int position=j.getValue().getPosition();
+            logger.log(Level.INFO, "501,Debugging_Position,{0}", new Object[]{Parameters.symbol.get(id).getDisplayname() + delimiter +position});
+            if (position > 0) {
+                //close long
+                //int size = getNumberOfContracts() == 0 ? (int) (getExposure() / Parameters.symbol.get(j.getKey()).getLastPrice()) : Parameters.symbol.get(j.getKey()).getMinsize() * getNumberOfContracts();
+                int size = Math.abs(position);
+                //getPosition().put(j.getKey(), new BeanPosition(j.getKey(), getStrategy()));
+                int entryInternalOrderID = this.internalOpenOrders.get(id);
+                Trade originalTrade = getTrades().get(new OrderLink(entryInternalOrderID, 0, "Order"));
+                int internalorderid = getInternalOrderID();
+                originalTrade.updateExit(id, EnumOrderReason.REGULAREXIT, EnumOrderSide.SELL, Parameters.symbol.get(id).getLastPrice(), size, internalorderid, 0, getTimeZone(), "Order");
+                getTrades().put(new OrderLink(entryInternalOrderID, 0, "Order"), originalTrade);
+                logger.log(Level.INFO, "501,StrategyExit,{0}", new Object[]{getStrategy() + delimiter + "SELL" + delimiter + Parameters.symbol.get(id).getDisplayname()});
+                double cushion = 0;
+                if (!expiry.equals("")) {
+                    cushion = ((int) (exitCushion / Parameters.symbol.get(id).getMinsize() / getTickSize())) * getTickSize();
+                }
+                double midPoint = (Math.round((Parameters.symbol.get(id).getBidPrice() + Parameters.symbol.get(id).getAskPrice()) / 2 / getTickSize())) * getTickSize();
+                double entryPrice = Math.max(Parameters.symbol.get(id).getLastPrice(), midPoint);
+                getOms().tes.fireOrderEvent(internalorderid, entryInternalOrderID, Parameters.symbol.get(id), EnumOrderSide.SELL, EnumOrderReason.REGULAREXIT, EnumOrderType.LMT, size, entryPrice + cushion, 0, getStrategy(), getMaxOrderDuration(), EnumOrderStage.CANCEL, getDynamicOrderDuration(), getMaxSlippageExit(), true, "");
+                getOms().tes.fireOrderEvent(internalorderid, entryInternalOrderID, Parameters.symbol.get(id), EnumOrderSide.SELL, EnumOrderReason.REGULAREXIT, EnumOrderType.LMT, size, entryPrice + cushion, 0, getStrategy(), getMaxOrderDuration(), EnumOrderStage.INIT, getDynamicOrderDuration(), getMaxSlippageExit(), true, "");
+                TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(id).getSymbol() + "," + cumVolume.get(id).size() + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + Parameters.symbol.get(id).getLastPrice() + "," + close.get(id) + "," + "SELL CLOSE");
+                this.advanceExitOrder.set(id, 0L);
+            } else if (position < 0) {
+                //close short
+                //int size = getNumberOfContracts() == 0 ? (int) (getExposure() / Parameters.symbol.get(j.getKey()).getLastPrice()) : Parameters.symbol.get(j.getKey()).getMinsize() * getNumberOfContracts();
+                int size = Math.abs(position);
+                //getPosition().put(j.getKey(), new BeanPosition(j.getKey(), getStrategy()));
+                int entryInternalOrderID = this.internalOpenOrders.get(id);
+                Trade originalTrade = getTrades().get(new OrderLink(entryInternalOrderID, 0, "Order"));
+                int internalorderid = getInternalOrderID();
+                originalTrade.updateExit(id, EnumOrderReason.REGULAREXIT, EnumOrderSide.COVER, Parameters.symbol.get(id).getLastPrice(), size, internalorderid, 0, getTimeZone(), "Order");
+                getTrades().put(new OrderLink(entryInternalOrderID, 0, "Order"), originalTrade);
+                logger.log(Level.INFO, "501,StrategyExit,{0}", new Object[]{getStrategy() + delimiter + "COVER" + delimiter + Parameters.symbol.get(id).getDisplayname()});
+                double cushion = 0;
+                if (!expiry.equals("")) {
+                    cushion = ((int) (exitCushion / Parameters.symbol.get(id).getMinsize() / getTickSize())) * getTickSize();
+                }
+                //double midPoint=(Math.round((Parameters.symbol.get(futureid).getBidPrice()+Parameters.symbol.get(futureid).getAskPrice())/2/getTickSize()))*getTickSize();
+                //double entryPrice=Math.min(Parameters.symbol.get(futureid).getLastPrice(),midPoint );
+
+                double midPoint = (Math.round((Parameters.symbol.get(id).getBidPrice() + Parameters.symbol.get(id).getAskPrice()) / 2 / getTickSize())) * getTickSize();
+                double entryPrice = Math.min(Parameters.symbol.get(id).getLastPrice(), midPoint);
+
+                getOms().tes.fireOrderEvent(internalorderid, entryInternalOrderID, Parameters.symbol.get(id), EnumOrderSide.COVER, EnumOrderReason.REGULAREXIT, EnumOrderType.LMT, size, entryPrice - cushion, 0, getStrategy(), getMaxOrderDuration(), EnumOrderStage.CANCEL, getDynamicOrderDuration(), getMaxSlippageExit(), true, "");
+                getOms().tes.fireOrderEvent(internalorderid, entryInternalOrderID, Parameters.symbol.get(id), EnumOrderSide.COVER, EnumOrderReason.REGULAREXIT, EnumOrderType.LMT, size, entryPrice - cushion, 0, getStrategy(), getMaxOrderDuration(), EnumOrderStage.INIT, getDynamicOrderDuration(), getMaxSlippageExit(), true, "");
+                TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(id).getSymbol() + "," + cumVolume.get(id).size() + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + Parameters.symbol.get(id).getLastPrice() + "," + close.get(id) + "," + "COVER CLOSE");
+                this.advanceExitOrder.set(id, 0L);
+            }
         }
     }
 
