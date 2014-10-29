@@ -224,8 +224,8 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                         || (adrDayHigh - adrDayLow > 10 && adr > adrDayLow + 0.75 * (adrDayHigh - adrDayLow) && adr > adrAvg));// && adrTRIN < 90;
                 boolean buyZone2 = ((indexHigh - indexLow > getWindowHurdle() && price > indexLow + 0.75 * (indexHigh - indexLow) && price > indexAvg)
                         || (indexDayHigh - indexDayLow > getDayHurdle() && price > indexDayLow + 0.75 * (indexDayHigh - indexDayLow) && price > indexAvg));// && adrTRIN < 90;
-                boolean buyZone3 = this.adrTRINAvg < 90 && this.adrTRINAvg > 0;
-                //boolean buyZone3 = (this.adrTRIN < this.adrTRINAvg - 5 && this.adrTRIN > 90 && this.adrTRIN < 110) || (this.adrTRIN < 90 && this.adrTRINAvg < 90);
+                //boolean buyZone3 = this.adrTRINAvg < 90 && this.adrTRINAvg > 0;
+                boolean buyZone3 = (this.adrTRIN < this.adrTRINAvg - 5 && this.adrTRIN > 90 && this.adrTRIN < 110) || (this.adrTRIN < 90 && this.adrTRINAvg < 90);
                 //boolean buyZone3=(this.adrTRIN < 90 && this.adrTRINAvg < 90);
 //            boolean shortZone1 = ((adrHigh - adrLow > 5 && adr < adrHigh - 0.75 * (adrHigh - adrLow) && adr < adrAvg)
 //                    || (adrDayHigh - adrDayLow > 10 && adr < adrDayHigh - 0.75 * (adrDayHigh - adrDayLow) && adr < adrAvg));// && adrTRIN > 95;
@@ -233,14 +233,18 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                         || (adrDayHigh - adrDayLow > 10 && adr < adrDayHigh - 0.75 * (adrDayHigh - adrDayLow) && adr < adrAvg));// && adrTRIN > 95;
                 boolean shortZone2 = ((indexHigh - indexLow > getWindowHurdle() && price < indexHigh - 0.75 * (indexHigh - indexLow) && price < indexAvg)
                         || (indexDayHigh - indexDayLow > getDayHurdle() && price < indexDayHigh - 0.75 * (indexDayHigh - indexDayLow) && price < indexAvg));// && adrTRIN > 95;
-                boolean shortZone3 = this.adrTRINAvg > 110;
-                //boolean shortZone3 = (this.adrTRIN > this.adrTRINAvg + 5 && this.adrTRIN > 90 && this.adrTRIN < 110) || (this.adrTRIN > 110 && this.adrTRINAvg > 110);
+                //boolean shortZone3 = this.adrTRINAvg > 110;
+                boolean shortZone3 = (this.adrTRIN > this.adrTRINAvg + 5 && this.adrTRIN > 90 && this.adrTRIN < 110) || (this.adrTRIN > 110 && this.adrTRINAvg > 110);
                 
                 Boolean buyZone = false;
                 Boolean shortZone = false;
 
-                buyZone = atLeastTwo(buyZone1, buyZone2, buyZone3);
-                shortZone = atLeastTwo(shortZone1, shortZone2, shortZone3);
+                //buyZone = atLeastTwo(buyZone1, buyZone2, buyZone3);
+                //shortZone = atLeastTwo(shortZone1, shortZone2, shortZone3);
+                
+                buyZone=buyZone1 && buyZone2 && buyZone3;
+                shortZone=shortZone1 && shortZone2 && shortZone3;
+                
                 /*
                  if (!scalpingMode) {
                  buyZone = (atLeastTwo(buyZone1, buyZone2, buyZone3) && adrTRIN < 90) || ((adr > 80 || adr < 20) && atLeastTwo(buyZone1, buyZone2, buyZone3) && adrTRIN < adrTRINAvg);
