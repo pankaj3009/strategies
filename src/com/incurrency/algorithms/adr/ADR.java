@@ -106,7 +106,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
         mEsperEvtProcessor = new EventProcessor(this);
         mEsperEvtProcessor.ADRStatement.addListener(this);
         String[] tempStrategyArray = parameterFile.split("\\.")[0].split("-");
-
+if(MainAlgorithm.useForTrading){
         for (BeanConnection c : Parameters.connection) {
             c.getWrapper().addTradeListener(this);
             c.initializeConnection(tempStrategyArray[tempStrategyArray.length - 1]);
@@ -114,6 +114,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
         if (Subscribe.tes != null) {
             Subscribe.tes.addTradeListener(this);
         }
+    }
     }
 
     private void loadParameters(String strategy, String parameterFile) {
