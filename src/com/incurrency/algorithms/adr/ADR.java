@@ -111,10 +111,11 @@ if(MainAlgorithm.useForTrading){
             c.getWrapper().addTradeListener(this);
             c.initializeConnection(tempStrategyArray[tempStrategyArray.length - 1]);
         }
+}
         if (Subscribe.tes != null) {
             Subscribe.tes.addTradeListener(this);
         }
-    }
+    
     }
 
     private void loadParameters(String strategy, String parameterFile) {
