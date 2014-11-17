@@ -170,6 +170,7 @@ if(MainAlgorithm.useForTrading){
         if (getStrategySymbols().contains(event.getSymbolID())) {
             //new Thread(new ADRTradeReceived(this,event)).start();            
             processTradeReceived(event);
+
         }
     }
 
@@ -193,6 +194,7 @@ if(MainAlgorithm.useForTrading){
                         if (Parameters.symbol.get(id).getClosePrice() > 0 && !this.closePriceReceived.get(id)) {
                             mEsperEvtProcessor.sendEvent(new TickPriceEvent(id, com.ib.client.TickType.CLOSE, Parameters.symbol.get(id).getClosePrice()));
                             this.closePriceReceived.put(id, Boolean.TRUE);
+                            logger.log(Level.INFO,"DEBUG,Symbol:{1},Time:{0}",new Object[]{new Date(),Parameters.symbol.get(id).getDisplayname()});
                         }
                         //mEsperEvtProcessor.debugFireTickQuery();
                         //mEsperEvtProcessor.debugFireADRQuery();
