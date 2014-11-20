@@ -230,7 +230,9 @@ if(MainAlgorithm.useForTrading){
                         || (indexDayHigh - indexDayLow > getDayHurdle() && price > indexDayLow + 0.75 * (indexDayHigh - indexDayLow) && price > indexAvg));// && adrTRIN < 90;
                 //boolean buyZone3 = this.adrTRINAvg < 90 && this.adrTRINAvg > 0;
                 //boolean buyZone3 = (this.adrTRIN < this.adrTRINAvg - 5 && this.adrTRIN > 90 && this.adrTRIN < 110) || (this.adrTRIN < 90 && this.adrTRINAvg < 90);
-                boolean buyZone3 = (this.adrTRIN < this.adrTRINAvg && this.adrTRINAvg < 95);
+                //boolean buyZone3 = (this.adrTRIN < this.adrTRINAvg && this.adrTRINAvg < 95);
+                boolean buyZone3 = (this.adrTRINAvg < 95);
+                
                 
                 //boolean buyZone3=(this.adrTRIN < 90 && this.adrTRINAvg < 90);
 //            boolean shortZone1 = ((adrHigh - adrLow > 5 && adr < adrHigh - 0.75 * (adrHigh - adrLow) && adr < adrAvg)
@@ -241,7 +243,8 @@ if(MainAlgorithm.useForTrading){
                         || (indexDayHigh - indexDayLow > getDayHurdle() && price < indexDayHigh - 0.75 * (indexDayHigh - indexDayLow) && price < indexAvg));// && adrTRIN > 95;
                 //boolean shortZone3 = this.adrTRINAvg > 110;
                 //boolean shortZone3 = (this.adrTRIN > this.adrTRINAvg + 5 && this.adrTRIN > 90 && this.adrTRIN < 110) || (this.adrTRIN > 110 && this.adrTRINAvg > 110);
-                boolean shortZone3 = (this.adrTRIN > this.adrTRINAvg && this.adrTRINAvg > 105);
+                //boolean shortZone3 = (this.adrTRIN > this.adrTRINAvg && this.adrTRINAvg > 105);
+                boolean shortZone3 = (this.adrTRINAvg > 105);
                 
                 Boolean buyZone = false;
                 Boolean shortZone = false;
