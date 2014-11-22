@@ -6,6 +6,7 @@
 package com.incurrency.algorithms.adr;
 import com.espertech.esper.client.UpdateListener;
 import com.espertech.esper.client.EventBean;
+import com.incurrency.framework.TradingUtil;
 import java.text.DecimalFormat;
 import java.util.Date;
 import java.util.logging.Logger;
@@ -40,7 +41,7 @@ public class ADRListener implements UpdateListener{
         
         Long uChg = tTicks - (pTicks + nTicks);
         String message = "ADR: TotalMoves: " + tTicks + " (+)Advances: " + pTicks + " (-)Declines: " + nTicks + " Unchanged: " + uChg +" Advancing Volume: "+pVolume +" Declining Volume: "+nVolume+ " Total Volume: "+tVolume;
-        long now =new Date().getTime();
+        long now =TradingUtil.getAlgoDate().getTime();
         /*
         ADR.adrServer.send("IND-CUS-ALL",0+","+now+","+pTicks+","+"ADR");
         ADR.adrServer.send("IND-CUS-ALL",1+","+now+","+nTicks+","+"ADR" );

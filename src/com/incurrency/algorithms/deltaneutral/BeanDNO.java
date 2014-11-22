@@ -125,7 +125,7 @@ public class BeanDNO implements TradeListener, BidAskListener, HistoricalBarList
         String currDateStr = DateUtil.getFormatedDate("yyyyMMdd", Parameters.connection.get(0).getConnectionTime());
         String endDateStr = currDateStr + " " + System.getProperty("EndTime");
         endDate = DateUtil.parseDate("yyyyMMdd HH:mm:ss", endDateStr);
-        if (new Date().compareTo(endDate) > 0) {
+        if (TradingUtil.getAlgoDate().compareTo(endDate) > 0) {
             //increase enddate by one calendar day
             endDate = DateUtil.addDays(endDate, 1);
         }

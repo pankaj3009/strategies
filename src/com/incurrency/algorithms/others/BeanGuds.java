@@ -16,6 +16,7 @@ import com.incurrency.algorithms.launch.Launch;
 import com.incurrency.framework.Parameters;
 import com.incurrency.framework.TradeEvent;
 import com.incurrency.framework.TradeListener;
+import com.incurrency.framework.TradingUtil;
 import java.beans.*;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -90,10 +91,10 @@ public class BeanGuds implements Serializable, TradeListener {
         startDate = DateUtil.parseDate("yyyyMMdd HH:mm:ss", startDateStr);
         endDate = DateUtil.parseDate("yyyyMMdd HH:mm:ss", endDateStr);
         exit = System.getProperty("Exit");
-        if (endDate.compareTo(startDate) < 0 && new Date().compareTo(startDate) > 0) {
+        if (endDate.compareTo(startDate) < 0 && TradingUtil.getAlgoDate().compareTo(startDate) > 0) {
             //increase enddate by one calendar day
             endDate = DateUtil.addDays(endDate, 1); //system date is > start date time. Therefore we have not crossed the 12:00 am barrier
-        } else if (endDate.compareTo(startDate) < 0 && new Date().compareTo(startDate) < 0) {
+        } else if (endDate.compareTo(startDate) < 0 && TradingUtil.getAlgoDate().compareTo(startDate) < 0) {
             startDate = DateUtil.addDays(startDate, -1); // we have moved beyond 12:00 am . adjust startdate to previous date
         }
         for (int i = 0; i < Parameters.symbol.size(); i++) {
@@ -157,7 +158,7 @@ public class BeanGuds implements Serializable, TradeListener {
                     //String name = rs.getString("name");
                     Date date = rs.getDate("date");
                     Date datetime = rs.getTimestamp("date");
-                    if (date.compareTo(priorDate) > 0 && date.compareTo(DateUtil.addDays(new Date(), -150)) > 0) {
+                    if (date.compareTo(priorDate) > 0 && date.compareTo(DateUtil.addDays(TradingUtil.getAlgoDate(), -150)) > 0) {
                         //new bar has started
                         priorDate = date;
                         String formattedDate = DateUtil.getFormatedDate("yyyyMMdd hh:mm:ss", datetime.getTime());

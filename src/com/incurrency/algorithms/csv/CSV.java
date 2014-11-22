@@ -135,7 +135,7 @@ public class CSV extends Strategy {
                     //place OCO orders
                     String link = "";
                     if (activeOCOOrderList.size() > 0) {
-                        link = activeOCOOrderList.get(0).getSymbol() + DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getTimeZone(getTimeZone()));
+                        link = activeOCOOrderList.get(0).getSymbol() + DateUtil.getFormatedDate("yyyyMMdd", TradingUtil.getAlgoDate().getTime(), TimeZone.getTimeZone(getTimeZone()));
                     }
                     for (int i = 0; i < activeOCOOrderList.size() - 1; i++) {//loop through the first n-1 orders
                         //update internal orders
@@ -207,7 +207,7 @@ public class CSV extends Strategy {
     }
 
     private void placeOrder(CSVOrder orderItem) {
-        if (new Date().after(getStartDate()) && new Date().before(getEndDate())) {
+        if (TradingUtil.getAlgoDate().after(getStartDate()) && TradingUtil.getAlgoDate().before(getEndDate())) {
             int id = TradingUtil.getIDFromDisplayName(orderItem.getHappyName());
             if (orderItem.getType().equals("COMBO")) {
                 if (id == -1 && !Strategy.getCombosAdded().containsKey(orderItem.getHappyName())) {
@@ -247,7 +247,7 @@ public class CSV extends Strategy {
                     positionPrice = symbolPosition == 0 ? 0D : Math.abs((-expectedFillPrice * orderItem.getSize() + pd.getPrice() * pd.getPosition()) / (symbolPosition));
                 }
                 pd.setPosition(symbolPosition);
-                pd.setPositionInitDate(new Date());
+                pd.setPositionInitDate(TradingUtil.getAlgoDate());
                 pd.setPrice(positionPrice);
                 getPosition().put(id, pd);
 

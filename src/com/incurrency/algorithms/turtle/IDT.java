@@ -225,7 +225,7 @@ public class IDT extends Strategy implements Serializable, HistoricalBarListener
         String currDateStr = DateUtil.getFormatedDate("yyyyMMdd", Parameters.connection.get(0).getConnectionTime());
         String lastOrderDateStr = currDateStr + " " + System.getProperty("LastOrderTime");
         lastOrderDate = DateUtil.parseDate("yyyyMMdd HH:mm:ss", lastOrderDateStr,timeZone);
-        if (lastOrderDate.compareTo(getStartDate()) < 0 && new Date().compareTo(lastOrderDate) > 0) {
+        if (lastOrderDate.compareTo(getStartDate()) < 0 && TradingUtil.getAlgoDate().compareTo(lastOrderDate) > 0) {
             lastOrderDate = DateUtil.addDays(lastOrderDate, 1); //system date is > start date time. Therefore we have not crossed the 12:00 am barrier
         }
         maVolumeLong = Double.parseDouble(System.getProperty("MAVolumeLong"));
@@ -326,7 +326,7 @@ public class IDT extends Strategy implements Serializable, HistoricalBarListener
                         this.tradeReceived(new TradeEvent(new Object(), id, com.ib.client.TickType.LAST));
                     }
                 } //For one minute bars
-                else if (ohlc.getPeriodicity() == EnumBarSize.ONEMINUTE && getStartDate().compareTo(new Date()) < 0) {
+                else if (ohlc.getPeriodicity() == EnumBarSize.ONEMINUTE && getStartDate().compareTo(TradingUtil.getAlgoDate()) < 0) {
                     int id = event.getSymbol().getSerialno() - 1;
                     this.close.set(id, ohlc.getClose());
                     if(ohlc.getHigh()>this.high.get(id)){
@@ -507,7 +507,7 @@ public class IDT extends Strategy implements Serializable, HistoricalBarListener
                     double relativeVol = sd.get(id) / sd.get(index);
                     double worstCaseLoss = zScoreOnEntry.get(id) != 0 ? zScoreOnEntry.get(id) / relativeVol : 0D;
                     synchronized (getPosition().get(futureid).lock) {
-                        if (symbolClose > 0 && getLongOnly() && this.getCumVolume().get(id).size() >= this.getChannelDuration() && getPosition().get(futureid).getPosition() == 0 && (zscore > 2||zscoreFromTodayLow>2) && Parameters.symbol.get(id).getLastPrice() >= highBoundary && relativeVol > 2 && getLastOrderDate().compareTo(new Date()) > 0) {
+                        if (symbolClose > 0 && getLongOnly() && this.getCumVolume().get(id).size() >= this.getChannelDuration() && getPosition().get(futureid).getPosition() == 0 && (zscore > 2||zscoreFromTodayLow>2) && Parameters.symbol.get(id).getLastPrice() >= highBoundary && relativeVol > 2 && getLastOrderDate().compareTo(TradingUtil.getAlgoDate()) > 0) {
                             double midPoint = (Math.round((Parameters.symbol.get(futureid).getBidPrice() + Parameters.symbol.get(futureid).getAskPrice()) / 2 / getTickSize())) * getTickSize();
                             double entryPrice = Math.min(Parameters.symbol.get(futureid).getLastPrice(), midPoint);
                             if (futureid == id) {
@@ -520,7 +520,7 @@ public class IDT extends Strategy implements Serializable, HistoricalBarListener
                             entryBar.set(id, this.getCumVolume().get(id).size());
                             bestPnl.set(id, 0D);
                             TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(id).getSymbol() + "," + cumVolume.get(id).size() + "," + yesterdayClose.get(id) + "," + indexZScoreYesterday + "," + symbolZScoreYesterday + "," + zscore + "," +zscoreFromTodayLow+","+zscoreFromTodayHigh+ "," + highBoundary + "," + lowBoundary + "," + Parameters.symbol.get(id).getLastPrice() + "," + close.get(id) + "," + relativeVol + "," + entryBar.get(id) + "," + zScoreOnEntry.get(id) + "," + (zScoreOnEntry.get(id) - worstCaseLoss) * (this.getCumVolume().get(id).size() - entryBar.get(id)) / (365 - entryBar.get(id)) + "," + (getClose().get(id) - yesterdayClose.get(id)) / yesterdayClose.get(id) + "," + "BUY");
-                        } else if (symbolClose > 0 && getShortOnly() && this.getCumVolume().get(id).size() >= this.getChannelDuration() && getPosition().get(futureid).getPosition() == 0 && (zscore < -1||zscoreFromTodayLow<-1) && Parameters.symbol.get(id).getLastPrice() <= lowBoundary && relativeVol > 2 && getLastOrderDate().compareTo(new Date()) > 0) {
+                        } else if (symbolClose > 0 && getShortOnly() && this.getCumVolume().get(id).size() >= this.getChannelDuration() && getPosition().get(futureid).getPosition() == 0 && (zscore < -1||zscoreFromTodayLow<-1) && Parameters.symbol.get(id).getLastPrice() <= lowBoundary && relativeVol > 2 && getLastOrderDate().compareTo(TradingUtil.getAlgoDate()) > 0) {
                             double midPoint = (Math.round((Parameters.symbol.get(futureid).getBidPrice() + Parameters.symbol.get(futureid).getAskPrice()) / 2 / getTickSize())) * getTickSize();
                             double entryPrice = Math.max(Parameters.symbol.get(futureid).getLastPrice(), midPoint);
                             if (futureid == id) {
