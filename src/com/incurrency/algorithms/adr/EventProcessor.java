@@ -143,7 +143,7 @@ public class EventProcessor implements ActionListener {
         
         //create debug window
         //if(Launch.input.containsKey("debugscreen")){
-        if(false){
+        if(com.incurrency.algorithms.launch.Launch.input.containsKey("debugscreen")){
         JFrame myFrame = new JFrame("Debug Window");
         myFrame.setLayout( new FlowLayout() );
         myFrame.setSize(300,400);
