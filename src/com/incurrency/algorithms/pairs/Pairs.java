@@ -51,8 +51,8 @@ public class Pairs extends Strategy {
     private int orderReadingFrequency = 10; //frequency at which timer is run and orders read
     private int restPeriodAfterSLHit = 20; //rest after a SL is hit
     
-    public Pairs(MainAlgorithm m, String parameterFile, ArrayList<String> accounts) {
-        super(m, "pair", "FUT", parameterFile, accounts);
+    public Pairs(MainAlgorithm m, Properties prop,String parameterFile, ArrayList<String> accounts) {
+        super(m, "pair", "FUT",prop, parameterFile, accounts);
         loadParameters("pair", parameterFile);
         TradingUtil.writeToFile(getStrategy() + ".csv", "Bought Symbol, Sold Symbol,Target Spread, Spread Available,Trade Type");
 

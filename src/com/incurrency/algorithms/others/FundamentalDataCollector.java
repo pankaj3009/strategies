@@ -26,7 +26,7 @@ public class FundamentalDataCollector extends Algorithm implements FundamentalDa
     String[] args={"","symbols.csv","connection.csv",""};
     
     public FundamentalDataCollector(HashMap<String,String> input) throws Exception{
-         super(input);
+         super(input,true);
          for (BeanConnection c : Parameters.connection) {
             c.setWrapper(new TWSConnection(c));
         }

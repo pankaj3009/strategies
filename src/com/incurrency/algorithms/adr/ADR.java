@@ -88,8 +88,8 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
     private final Object lockHighRange = new Object();
     private final Object lockLowRange = new Object();
 
-    public ADR(MainAlgorithm m, String parameterFile, ArrayList<String> accounts) {
-        super(m, "adr", "FUT", parameterFile, accounts);
+    public ADR(MainAlgorithm m, Properties prop,String parameterFile, ArrayList<String> accounts) {
+        super(m, "adr", "FUT",prop, parameterFile, accounts);
         loadParameters("adr", parameterFile);
         getStrategySymbols().clear();
         for (BeanSymbol s : Parameters.symbol) {

@@ -112,8 +112,8 @@ public class IDT extends Strategy implements Serializable, HistoricalBarListener
         }
     };
 
-    public IDT(MainAlgorithm m, String parameterFile, ArrayList<String> accounts) {
-        super(m, "idt", "FUT", parameterFile, accounts);
+    public IDT(MainAlgorithm m, Properties prop,String parameterFile, ArrayList<String> accounts) {
+        super(m, "idt", "FUT", prop,parameterFile, accounts);
         loadParameters("idt", parameterFile);
 
         for (int i = 0; i < Parameters.symbol.size(); i++) {
