@@ -29,8 +29,8 @@ public class Template extends Strategy implements TradeListener {
 
     private static final Logger logger = Logger.getLogger(Pairs.class.getName());
 
-    public Template(MainAlgorithm m, String parameterFile, ArrayList<String> accounts) {
-        super(m, "pair", "FUT", parameterFile, accounts);
+    public Template(MainAlgorithm m,Properties p, String parameterFile, ArrayList<String> accounts) {
+        super(m, "pair", "FUT", p,parameterFile, accounts);
         loadParameters("pair", parameterFile);
         for (BeanSymbol s : Parameters.symbol) {
             getPosition().put(s.getSerialno() - 1, new BeanPosition(s.getSerialno()-1,getStrategy()));
