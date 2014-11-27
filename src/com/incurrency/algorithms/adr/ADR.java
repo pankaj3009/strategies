@@ -204,6 +204,9 @@ if(MainAlgorithm.useForTrading){
                         mEsperEvtProcessor.sendEvent(new TickPriceEvent(id, com.ib.client.TickType.CLOSE, Parameters.symbol.get(id).getClosePrice()));
                         //mEsperEvtProcessor.debugFireADRQuery();
                         break;
+                    case 99:
+                        //historical data. Data finished
+                        this.printOrders("",this );
                     default:
                         break;
                 }

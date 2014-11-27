@@ -131,7 +131,7 @@ public class Launch extends javax.swing.JFrame {
         if (dialogResult == JOptionPane.YES_OPTION) {
             if(algo!=null && !algo.getStrategies().contains("nostrategy")){
                 for(Strategy s:algo.getStrategyInstances()){
-                    Strategy.printOrders("",s);
+                    s.printOrders("",s);
                     //logger.log(Level.INFO,"101",s.getClass().getName());
                 }
             }
@@ -145,7 +145,7 @@ public class Launch extends javax.swing.JFrame {
               
                     if(algo!=null){
                 for(Strategy s:algo.getStrategyInstances()){
-                    Strategy.printOrders("tmp",s);
+                    s.printOrders("tmp",s);
                 }
             }
                /* commented out after reflection change     
