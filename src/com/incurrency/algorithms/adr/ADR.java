@@ -26,6 +26,7 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import org.joda.time.DateTimeComparator;
 
 /**
  * Generates ADR, Tick , TRIN
@@ -87,6 +88,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
     private boolean takeProfitHit = false;
     private final Object lockHighRange = new Object();
     private final Object lockLowRange = new Object();
+    DateTimeComparator comparator;
 
     public ADR(MainAlgorithm m, Properties prop,String parameterFile, ArrayList<String> accounts) {
         super(m, "adr", "FUT",prop, parameterFile, accounts);
@@ -115,6 +117,7 @@ if(MainAlgorithm.useForTrading){
         if (Subscribe.tes != null) {
             Subscribe.tes.addTradeListener(this);
         }
+        comparator = DateTimeComparator.getTimeOnlyInstance();
     
     }
 
@@ -339,7 +342,7 @@ if(MainAlgorithm.useForTrading){
                             TradingUtil.writeToFile(getStrategy() + ".csv", buyZone + "," + shortZone + "," + tradingSide + "," + adr + "," + adrHigh + "," + adrLow + "," + adrDayHigh + "," + adrDayLow + "," + adrAvg + "," + buyZone1 + "," + shortZone1 + "," + price + "," + indexHigh + "," + indexLow + "," + indexDayHigh + "," + indexDayLow + "," + indexAvg + "," + buyZone2 + "," + shortZone2 + "," + adrTRIN + "," + adrTRINAvg + "," + buyZone3 + "," + shortZone3 + "," + tick + "," + tickTRIN + "," + adrTRINHigh + "," + adrTRINLow + "," + getHighRange() + "," + getLowRange() + "," + "SCALPING SHORT",Parameters.symbol.get(id).getLastPriceTime());
                         }
                     } else if (getPosition().get(id).getPosition() < 0) {
-                        if (buyZone || ((price > indexLow + getStopLoss() && !shortZone) || (price > getEntryPrice() + getStopLoss())) || TradingUtil.getAlgoDate().compareTo(getEndDate()) > 0) { //stop loss
+                        if (buyZone || ((price > indexLow + getStopLoss() && !shortZone) || (price > getEntryPrice() + getStopLoss())) || comparator.compare(TradingUtil.getAlgoDate(),getEndDate()) > 0) { //stop loss
                             logger.log(Level.INFO, "501,StrategySL,{0}", new Object[]{getStrategy() + delimiter + "COVER" + delimiter + adrHigh + delimiter + adrLow + delimiter + adrAvg + delimiter + adrTRINHigh + delimiter + adrTRINLow + delimiter + adrTRINAvg + delimiter + indexHigh + delimiter + indexLow + delimiter + indexAvg + delimiter + buyZone1 + delimiter + buyZone2 + delimiter + buyZone3 + delimiter + shortZone1 + delimiter + shortZone2 + delimiter + shortZone3 + delimiter + adr + delimiter + adrTRIN + delimiter + tick + delimiter + tickTRIN + delimiter + adrDayHigh + delimiter + adrDayLow + delimiter + indexDayHigh + delimiter + indexDayLow + delimiter + price});
                             exit(id, EnumOrderSide.COVER, EnumOrderType.LMT, price, 0, "", true, "DAY", false, EnumOrderReason.REGULAREXIT, "");
                             if (price > getEntryPrice()) {
@@ -359,7 +362,7 @@ if(MainAlgorithm.useForTrading){
                             }
                         }
                     } else if (getPosition().get(id).getPosition() > 0) {
-                        if (shortZone || ((price < indexHigh - getStopLoss() && !buyZone) || (price < getEntryPrice() - getStopLoss())) || TradingUtil.getAlgoDate().compareTo(getEndDate()) > 0) {
+                        if (shortZone || ((price < indexHigh - getStopLoss() && !buyZone) || (price < getEntryPrice() - getStopLoss())) || comparator.compare(TradingUtil.getAlgoDate(),getEndDate()) > 0) {
                             logger.log(Level.INFO, "501,StrategySL,{0}", new Object[]{getStrategy() + delimiter + "SELL" + delimiter + adrHigh + delimiter + adrLow + delimiter + adrAvg + delimiter + adrTRINHigh + delimiter + adrTRINLow + delimiter + adrTRINAvg + delimiter + indexHigh + delimiter + indexLow + delimiter + indexAvg + delimiter + buyZone1 + delimiter + buyZone2 + delimiter + buyZone3 + delimiter + shortZone1 + delimiter + shortZone2 + delimiter + shortZone3 + delimiter + adr + delimiter + adrTRIN + delimiter + tick + delimiter + tickTRIN + delimiter + adrDayHigh + delimiter + adrDayLow + delimiter + indexDayHigh + delimiter + indexDayLow + delimiter + price});
                             exit(id, EnumOrderSide.SELL, EnumOrderType.LMT, price, 0, "", true, "DAY", false, EnumOrderReason.REGULAREXIT, "");
                             if (price < getEntryPrice()) {
