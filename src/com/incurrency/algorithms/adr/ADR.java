@@ -10,6 +10,7 @@ import com.espertech.esper.client.UpdateListener;
 import com.incurrency.framework.MainAlgorithm;
 import com.incurrency.framework.BeanConnection;
 import com.incurrency.framework.BeanSymbol;
+import com.incurrency.framework.DateUtil;
 import com.incurrency.framework.EnumOrderReason;
 import com.incurrency.framework.EnumOrderSide;
 import com.incurrency.framework.EnumOrderType;
@@ -38,6 +39,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
     public EventProcessor mEsperEvtProcessor = null;
     private static final Logger logger = Logger.getLogger(ADR.class.getName());
     private final String delimiter = "_";
+    private boolean eodCompleted=false;
     //----- updated by ADRListener and TickListener
     public double adr;
     public double adrTRIN;
@@ -209,8 +211,12 @@ if(MainAlgorithm.useForTrading){
                         break;
                     case 99:
                         //historical data. Data finished
+                        if(!eodCompleted){
                         this.printOrders("",this );
-                    default:
+                        eodCompleted=true;
+                        //m.setCloseDate(DateUtil.addSeconds(getEndDate(), (this.getMaxOrderDuration() + 2) * 60)); 
+                        }
+                     default:
                         break;
                 }
             }
