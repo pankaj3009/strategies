@@ -45,7 +45,9 @@ public class EventProcessor implements ActionListener {
         config.getEngineDefaults().getThreading().setInsertIntoDispatchPreserveOrder(false); 
 //        config.addEventType("TickPrice", "com.adrStrategy.TickPriceEvent");
        config.addEventType("TickPrice", com.incurrency.algorithms.adr.TickPriceEvent.class);
+       config.addEventType("Flush", com.incurrency.algorithms.adr.FlushEvent.class);
        config.addEventType("ADRPrice", com.incurrency.algorithms.adr.ADREvent.class);
+       
 
         // Get an engine instance
         esperEngine=EPServiceProviderManager.getProvider(adrStrategy.getStrategy(),config);
@@ -138,9 +140,17 @@ public class EventProcessor implements ActionListener {
         ADRStatement = esperEngine.getEPAdministrator().createEPL(stmt);
         //statement.addListener(TurtleMainUI.algo.getParamADR());
 
+       stmt= "on Flush"+
+             "delete from "+
+              "LastPriceWin" ;
         
-        
-        
+        esperEngine.getEPAdministrator().createEPL(stmt);
+       stmt= "on Flush"+
+             "delete from "+
+              "ADRPrice.win:time("
+               +adrStrategy.window
+               +" minutes) " ;
+                esperEngine.getEPAdministrator().createEPL(stmt);
         //create debug window
         //if(Launch.input.containsKey("debugscreen")){
         if(com.incurrency.algorithms.launch.Launch.input.containsKey("debugscreen")){
