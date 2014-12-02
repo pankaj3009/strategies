@@ -10,4 +10,19 @@ package com.incurrency.algorithms.adr;
  */
 public class FlushEvent {
     
+    private int field=0;
+
+    public FlushEvent(int field) {
+    this.field=field;
+    }
+
+    /**
+     * @return the field
+     */
+    public int getField() {
+        return field;
+    }
+    
+    
+    
 }

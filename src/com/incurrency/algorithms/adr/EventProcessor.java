@@ -140,17 +140,20 @@ public class EventProcessor implements ActionListener {
         ADRStatement = esperEngine.getEPAdministrator().createEPL(stmt);
         //statement.addListener(TurtleMainUI.algo.getParamADR());
 
-       stmt= "on Flush"+
+       stmt= "on Flush "+
              "delete from "+
               "LastPriceWin" ;
         
         esperEngine.getEPAdministrator().createEPL(stmt);
-       stmt= "on Flush"+
+       stmt= "on Flush "+
              "delete from "+
               "ADRPrice.win:time("
                +adrStrategy.window
                +" minutes) " ;
-                esperEngine.getEPAdministrator().createEPL(stmt);
+       stmt= "on Flush "+
+             "delete from "+
+              "PriceWin";
+               esperEngine.getEPAdministrator().createEPL(stmt);
         //create debug window
         //if(Launch.input.containsKey("debugscreen")){
         if(com.incurrency.algorithms.launch.Launch.input.containsKey("debugscreen")){

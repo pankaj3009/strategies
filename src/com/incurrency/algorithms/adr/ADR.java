@@ -40,7 +40,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
     private static final Logger logger = Logger.getLogger(ADR.class.getName());
     private final String delimiter = "_";
     private boolean eodCompleted = false;
-    private boolean bodStarted=false;
+    private boolean bodStarted=true;
     //----- updated by ADRListener and TickListener
     public double adr;
     public double adrTRIN;
@@ -376,6 +376,8 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                             }
                         }
                     } else if (getPosition().get(id).getPosition() > 0) {
+                         logger.log(Level.INFO,"AlgoDate: {0}",new Object[]{TradingUtil.getAlgoDate()+"__"+comparator.compare(TradingUtil.getAlgoDate(), getEndDate())});
+
                         if (shortZone || ((price < indexHigh - getStopLoss() && !buyZone) || (price < getEntryPrice() - getStopLoss())) || comparator.compare(TradingUtil.getAlgoDate(), getEndDate()) > 0) {
                             logger.log(Level.INFO, "501,StrategySL,{0}", new Object[]{getStrategy() + delimiter + "SELL" + delimiter + adrHigh + delimiter + adrLow + delimiter + adrAvg + delimiter + adrTRINHigh + delimiter + adrTRINLow + delimiter + adrTRINAvg + delimiter + indexHigh + delimiter + indexLow + delimiter + indexAvg + delimiter + buyZone1 + delimiter + buyZone2 + delimiter + buyZone3 + delimiter + shortZone1 + delimiter + shortZone2 + delimiter + shortZone3 + delimiter + adr + delimiter + adrTRIN + delimiter + tick + delimiter + tickTRIN + delimiter + adrDayHigh + delimiter + adrDayLow + delimiter + indexDayHigh + delimiter + indexDayLow + delimiter + price});
                             exit(id, EnumOrderSide.SELL, EnumOrderType.LMT, price, 0, "", true, "DAY", false, EnumOrderReason.REGULAREXIT, "");
@@ -404,7 +406,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
     }
 
     private void clearVariables() {
-        mEsperEvtProcessor.sendEvent(new FlushEvent());
+        mEsperEvtProcessor.sendEvent(new FlushEvent(0));
         adr = 0;
         adrTRIN = 0;
         tick = 0;
