@@ -190,6 +190,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                 }
             }
             if (getStrategySymbols().contains(id) && Parameters.symbol.get(id).getType().compareTo("STK") == 0) {
+                logger.log(Level.FINER,"ADR Data Received, {0}",new Object[]{"Symbol"+delimiter+Parameters.symbol.get(id).getDisplayname()+delimiter+"Type"+delimiter+event.getTickType()+delimiter+Parameters.symbol.get(id).getLastPriceTime()});
                 switch (event.getTickType()) {
                     case com.ib.client.TickType.LAST_SIZE:
                         //System.out.println("LASTSIZE, Symbol:"+Parameters.symbol.get(id).getSymbol()+" Value: "+Parameters.symbol.get(id).getLastSize()+" tickerID: "+id);
