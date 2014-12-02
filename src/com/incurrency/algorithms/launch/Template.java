@@ -5,7 +5,7 @@
 package com.incurrency.algorithms.launch;
 
 import com.incurrency.algorithms.pairs.Pairs;
-import com.RatesClient.Subscribe;
+import com.incurrency.RatesClient.Subscribe;
 import com.incurrency.framework.BeanConnection;
 import com.incurrency.framework.BeanPosition;
 import com.incurrency.framework.BeanSymbol;

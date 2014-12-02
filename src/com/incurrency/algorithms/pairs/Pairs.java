@@ -4,7 +4,7 @@
  */
 package com.incurrency.algorithms.pairs;
 
-import com.RatesClient.Subscribe;
+import com.incurrency.RatesClient.Subscribe;
 import com.incurrency.framework.BeanConnection;
 import com.incurrency.framework.BidAskEvent;
 import com.incurrency.framework.BidAskListener;

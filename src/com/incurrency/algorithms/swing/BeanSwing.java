@@ -5,7 +5,7 @@
 package com.incurrency.algorithms.swing;
 
 import com.incurrency.framework.Strategy;
-import com.RatesClient.Subscribe;
+import com.incurrency.RatesClient.Subscribe;
 import com.incurrency.framework.BeanConnection;
 import com.incurrency.framework.BeanOHLC;
 import com.incurrency.framework.BeanPosition;

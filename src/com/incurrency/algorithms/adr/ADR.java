@@ -4,7 +4,7 @@
  */
 package com.incurrency.algorithms.adr;
 
-import com.RatesClient.Subscribe;
+import com.incurrency.RatesClient.Subscribe;
 import com.espertech.esper.client.EventBean;
 import com.espertech.esper.client.UpdateListener;
 import com.incurrency.framework.MainAlgorithm;

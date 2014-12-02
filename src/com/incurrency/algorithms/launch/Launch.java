@@ -47,7 +47,6 @@ public class Launch extends javax.swing.JFrame {
         java.awt.GridBagConstraints gridBagConstraints;
 
         buttonGroup1 = new javax.swing.ButtonGroup();
-        buttonGroup2 = new javax.swing.ButtonGroup();
         lblCaptionIBMessage = new javax.swing.JLabel();
         Font font = new Font("Courier", Font.BOLD,12);
         lblCaptionIBMessage.setFont(font);
@@ -139,6 +138,7 @@ public class Launch extends javax.swing.JFrame {
         jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Logging Level"));
         jPanel1.setLayout(new java.awt.GridBagLayout());
 
+        buttonGroup1.add(radioFiner);
         radioFiner.setText("Finer");
         radioFiner.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -152,6 +152,7 @@ public class Launch extends javax.swing.JFrame {
         gridBagConstraints.insets = new java.awt.Insets(23, 6, 0, 99);
         jPanel1.add(radioFiner, gridBagConstraints);
 
+        buttonGroup1.add(radioFine);
         radioFine.setText("Fine");
         radioFine.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -165,6 +166,7 @@ public class Launch extends javax.swing.JFrame {
         gridBagConstraints.insets = new java.awt.Insets(3, 6, 0, 99);
         jPanel1.add(radioFine, gridBagConstraints);
 
+        buttonGroup1.add(radioInfo);
         radioInfo.setText("Info");
         radioInfo.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -178,6 +180,7 @@ public class Launch extends javax.swing.JFrame {
         gridBagConstraints.insets = new java.awt.Insets(0, 6, 0, 99);
         jPanel1.add(radioInfo, gridBagConstraints);
 
+        buttonGroup1.add(radioError);
         radioError.setText("Error");
         radioError.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -369,7 +372,6 @@ public class Launch extends javax.swing.JFrame {
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup buttonGroup1;
-    private javax.swing.ButtonGroup buttonGroup2;
     private javax.swing.JButton cmdOrderLogs;
     private javax.swing.JButton cmdTerminate;
     private javax.swing.JPanel jPanel1;
