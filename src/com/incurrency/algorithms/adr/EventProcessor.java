@@ -47,6 +47,8 @@ public class EventProcessor implements ActionListener {
        config.addEventType("TickPrice", com.incurrency.algorithms.adr.TickPriceEvent.class);
        config.addEventType("Flush", com.incurrency.algorithms.adr.FlushEvent.class);
        config.addEventType("ADRPrice", com.incurrency.algorithms.adr.ADREvent.class);
+       config.getEngineDefaults().getThreading().setInternalTimerEnabled(false);
+       
        
 
         // Get an engine instance
@@ -183,6 +185,7 @@ public class EventProcessor implements ActionListener {
         EPOnDemandQueryResult result = epRuntime.executeQuery(query);
         TradingUtil.writeToFile("DebugTick.csv", "tickerID,Price,lPrice,lastSize,lLastSize");
         for (EventBean row : result.getArray()) {
+            //String timeStamp=row.get("current_timestamp")!=null?row.get("current_timestamp").toString():"";            
             String tickerID=row.get("tickerID")!=null?row.get("tickerID").toString():"";
             String price=row.get("price")!=null?row.get("price").toString():"";
             String lPrice=row.get("lPrice")!=null?row.get("lPrice").toString():"";

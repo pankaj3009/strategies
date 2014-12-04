@@ -7,6 +7,7 @@ package com.incurrency.algorithms.adr;
 import com.incurrency.RatesClient.Subscribe;
 import com.espertech.esper.client.EventBean;
 import com.espertech.esper.client.UpdateListener;
+import com.espertech.esper.client.time.CurrentTimeEvent;
 import com.incurrency.framework.MainAlgorithm;
 import com.incurrency.framework.BeanConnection;
 import com.incurrency.framework.BeanSymbol;
@@ -191,20 +192,25 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
             }
             if (getStrategySymbols().contains(id) && Parameters.symbol.get(id).getType().compareTo("STK") == 0) {
                 logger.log(Level.FINER,"ADR Data Received, {0}",new Object[]{"Symbol"+delimiter+Parameters.symbol.get(id).getDisplayname()+delimiter+"Type"+delimiter+event.getTickType()+delimiter+Parameters.symbol.get(id).getLastPriceTime()});
+                CurrentTimeEvent timeEvent = new CurrentTimeEvent(TradingUtil.getAlgoDate().getTime());
                 switch (event.getTickType()) {
                     case com.ib.client.TickType.LAST_SIZE:
                         //System.out.println("LASTSIZE, Symbol:"+Parameters.symbol.get(id).getSymbol()+" Value: "+Parameters.symbol.get(id).getLastSize()+" tickerID: "+id);
+                        mEsperEvtProcessor.sendEvent(timeEvent);
                         mEsperEvtProcessor.sendEvent(new TickPriceEvent(id, com.ib.client.TickType.LAST_SIZE, Parameters.symbol.get(id).getLastSize()));
                         //mEsperEvtProcessor.debugFireTickQuery();
                         break;
                     case com.ib.client.TickType.VOLUME:
                         //System.out.println("VOLUME, Symbol:"+Parameters.symbol.get(id).getSymbol()+" Value: "+Parameters.symbol.get(id).getVolume()+" tickerID: "+id);
+                        mEsperEvtProcessor.sendEvent(timeEvent);
                         mEsperEvtProcessor.sendEvent(new TickPriceEvent(id, com.ib.client.TickType.VOLUME, Parameters.symbol.get(id).getVolume()));
                         //mEsperEvtProcessor.debugFireADRQuery();
                         break;
                     case com.ib.client.TickType.LAST:
+                        mEsperEvtProcessor.sendEvent(timeEvent);
                         mEsperEvtProcessor.sendEvent(new TickPriceEvent(id, com.ib.client.TickType.LAST, Parameters.symbol.get(id).getLastPrice()));
                         if (Parameters.symbol.get(id).getClosePrice() == 0 && !this.closePriceReceived.get(id)) {
+                            mEsperEvtProcessor.sendEvent(timeEvent);
                             mEsperEvtProcessor.sendEvent(new TickPriceEvent(id, com.ib.client.TickType.CLOSE, Parameters.symbol.get(id).getClosePrice()));
                             this.closePriceReceived.put(id, Boolean.TRUE);
 
@@ -214,6 +220,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                         //mEsperEvtProcessor.debugFireADRQuery();
                         break;
                     case com.ib.client.TickType.CLOSE:
+                        mEsperEvtProcessor.sendEvent(timeEvent);
                         mEsperEvtProcessor.sendEvent(new TickPriceEvent(id, com.ib.client.TickType.CLOSE, Parameters.symbol.get(id).getClosePrice()));
                         //mEsperEvtProcessor.debugFireADRQuery();
                         break;
