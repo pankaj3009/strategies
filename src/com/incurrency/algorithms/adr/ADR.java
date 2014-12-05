@@ -111,6 +111,8 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
 
         mEsperEvtProcessor = new EventProcessor(this);
         mEsperEvtProcessor.ADRStatement.addListener(this);
+        CurrentTimeEvent timeEvent = new CurrentTimeEvent(DateUtil.addSeconds(getStartDate(),-1).getTime());
+        mEsperEvtProcessor.sendEvent(timeEvent);
         String[] tempStrategyArray = parameterFile.split("\\.")[0].split("-");
         if (MainAlgorithm.useForTrading) {
             for (BeanConnection c : Parameters.connection) {
