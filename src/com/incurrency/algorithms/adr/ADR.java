@@ -21,6 +21,7 @@ import com.incurrency.framework.TradeEvent;
 import com.incurrency.framework.TradeListener;
 import com.incurrency.framework.TradingUtil;
 import java.io.FileInputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -189,8 +190,9 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
         try {
             int id = event.getSymbolID(); //zero based id
             if(!bodStarted.get() && !MainAlgorithm.useForTrading){
-                if(comparator.compare(Parameters.symbol.get(id).getLastPriceTime(),getStartDate())==0){
+                if(event.getTickType()!=99 && eodCompleted.get() && !bodStarted.get()){
                     bodStarted.set(Boolean.TRUE);
+                    eodCompleted.set(Boolean.FALSE);
                     this.clearVariables();
                 }
             }
@@ -231,7 +233,8 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                     case 99:
                         //historical data. Data finished
                         synchronized(lockFlush){
-                        if (!eodCompleted.get()) {
+                        if (!eodCompleted.get() && bodStarted.get()) {
+                            logger.log(Level.INFO,"100,Flush Called,{0}",new Object[]{TradingUtil.getAlgoDate()});
                             this.printOrders("", this);
                             eodCompleted.set(Boolean.TRUE); 
                             bodStarted.set(Boolean.FALSE);
@@ -298,8 +301,15 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                 if ((!buyZone && tradingSide == 1 && getPosition().get(id).getPosition() == 0) || (!shortZone && tradingSide == -1 && getPosition().get(id).getPosition() == 0)) {
                     logger.log(Level.INFO, "502,TradingSideReset,{0}", new Object[]{getStrategy() + delimiter + 0 + delimiter + tradingSide});
                     tradingSide = 0;
-                    TradingUtil.writeToFile(getStrategy() + ".csv", buyZone + "," + shortZone + "," + tradingSide + "," + adr + "," + adrHigh + "," + adrLow + "," + adrDayHigh + "," + adrDayLow + "," + adrAvg + "," + buyZone1 + "," + shortZone1 + "," + price + "," + indexHigh + "," + indexLow + "," + indexDayHigh + "," + indexDayLow + "," + indexAvg + "," + buyZone2 + "," + shortZone2 + "," + adrTRIN + "," + adrTRINAvg + "," + buyZone3 + "," + shortZone3 + "," + tick + "," + tickTRIN + "," + adrTRINHigh + "," + adrTRINLow + "," + getHighRange() + "," + getLowRange() + "," + "TRADING SIDE RESET", Parameters.symbol.get(id).getLastPriceTime());
-                }
+                    SimpleDateFormat sdf =new SimpleDateFormat("yyyyMMdd");
+                    if(MainAlgorithm.useForTrading){
+                    TradingUtil.writeToFile(getStrategy()+".csv", buyZone + "," + shortZone + "," + tradingSide + "," + adr + "," + adrHigh + "," + adrLow + "," + adrDayHigh + "," + adrDayLow + "," + adrAvg + "," + buyZone1 + "," + shortZone1 + "," + price + "," + indexHigh + "," + indexLow + "," + indexDayHigh + "," + indexDayLow + "," + indexAvg + "," + buyZone2 + "," + shortZone2 + "," + adrTRIN + "," + adrTRINAvg + "," + buyZone3 + "," + shortZone3 + "," + tick + "," + tickTRIN + "," + adrTRINHigh + "," + adrTRINLow + "," + getHighRange() + "," + getLowRange() + "," + "TRADING SIDE RESET", Parameters.symbol.get(id).getLastPriceTime());
+                  
+                    }else{
+                    TradingUtil.writeToFile(getStrategy() + sdf.format(TradingUtil.getAlgoDate())+".csv", buyZone + "," + shortZone + "," + tradingSide + "," + adr + "," + adrHigh + "," + adrLow + "," + adrDayHigh + "," + adrDayLow + "," + adrAvg + "," + buyZone1 + "," + shortZone1 + "," + price + "," + indexHigh + "," + indexLow + "," + indexDayHigh + "," + indexDayLow + "," + indexAvg + "," + buyZone2 + "," + shortZone2 + "," + adrTRIN + "," + adrTRINAvg + "," + buyZone3 + "," + shortZone3 + "," + tick + "," + tickTRIN + "," + adrTRINHigh + "," + adrTRINLow + "," + getHighRange() + "," + getLowRange() + "," + "TRADING SIDE RESET", Parameters.symbol.get(id).getLastPriceTime());
+                  
+                    }
+                      }
 
                 synchronized (getPosition().get(id).lock) {
                     if (getPosition().get(id).getPosition() == 0 && TradingUtil.getAlgoDate().compareTo(getEndDate()) < 0) {
@@ -403,6 +413,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
     }
 
     private void clearVariables() {
+        logger.log(Level.INFO,"100,FlushEvent,{0}",new Object[]{TradingUtil.getAlgoDate()});
         mEsperEvtProcessor.sendEvent(new FlushEvent(0));
         adr = 0;
         adrTRIN = 0;
