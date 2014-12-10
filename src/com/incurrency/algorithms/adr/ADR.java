@@ -312,7 +312,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                       }
 
                 synchronized (getPosition().get(id).lock) {
-                    if (getPosition().get(id).getPosition() == 0 && TradingUtil.getAlgoDate().compareTo(getEndDate()) < 0) {
+                    if (getPosition().get(id).getPosition() == 0 && comparator.compare(TradingUtil.getAlgoDate(), getEndDate()) < 0) {
                         if (tradingSide == 0 && buyZone && (tick < 45 || tickTRIN > 120) && getLongOnly() && price > indexHigh - 0.75 * getStopLoss()) {
                             boolean tradeZone = true;
                             if (trackLosingZone) {
