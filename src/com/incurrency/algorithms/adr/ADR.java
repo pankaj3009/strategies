@@ -44,6 +44,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
     private final String delimiter = "_";
     private AtomicBoolean eodCompleted = new AtomicBoolean(Boolean.FALSE);
     private AtomicBoolean bodStarted = new AtomicBoolean(Boolean.TRUE);
+    private AtomicBoolean initializing=new AtomicBoolean(Boolean.FALSE);
     private SimpleDateFormat sdf;
     //----- updated by ADRListener and TickListener
     public double adr;
@@ -189,7 +190,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
     }
 
     void processTradeReceived(TradeEvent event) {
-        try {
+       try {
             int id = event.getSymbolID(); //zero based id
             if (!bodStarted.get() && !MainAlgorithm.useForTrading) {
                 
@@ -197,6 +198,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                     synchronized(lockBOD){
                     bodStarted.set(Boolean.TRUE);
                     eodCompleted.set(Boolean.FALSE);
+                    initializing.set(Boolean.TRUE);
                     this.clearVariables();
                 }
                 }
@@ -204,6 +206,9 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
             if (getStrategySymbols().contains(id) && Parameters.symbol.get(id).getType().compareTo("STK") == 0) {
                 logger.log(Level.FINER, "ADR Data Received, {0}", new Object[]{"Symbol" + delimiter + Parameters.symbol.get(id).getDisplayname() + delimiter + "Type" + delimiter + event.getTickType() + delimiter + Parameters.symbol.get(id).getLastPriceTime()});
                 CurrentTimeEvent timeEvent = new CurrentTimeEvent(TradingUtil.getAlgoDate().getTime());
+                while(initializing.get()){
+                    // do nothing
+                }
                 switch (event.getTickType()) {
                     case com.ib.client.TickType.LAST_SIZE:
                         //System.out.println("LASTSIZE, Symbol:"+Parameters.symbol.get(id).getSymbol()+" Value: "+Parameters.symbol.get(id).getLastSize()+" tickerID: "+id);
@@ -416,8 +421,14 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
         logger.log(Level.INFO, "100,FlushEvent,{0}", new Object[]{TradingUtil.getAlgoDate()});
         for(BeanSymbol s:Parameters.symbol){
             s.clear();
+            closePriceReceived.put(s.getSerialno() - 1, Boolean.FALSE);
         }
-        mEsperEvtProcessor.sendEvent(new FlushEvent(0));
+        mEsperEvtProcessor.destroy();
+        mEsperEvtProcessor = new EventProcessor(this);
+        mEsperEvtProcessor.ADRStatement.addListener(this);
+        CurrentTimeEvent timeEvent = new CurrentTimeEvent(DateUtil.addSeconds(getStartDate(), -1).getTime());
+        mEsperEvtProcessor.sendEvent(timeEvent);
+        //mEsperEvtProcessor.sendEvent(new FlushEvent(0));
         adr = 0;
         adrTRIN = 0;
         tick = 0;
@@ -445,11 +456,16 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
         entryPrice = 0;
         lastLongExit = 0;
         lastShortExit = 0;
-        closePriceReceived.clear();
         noTradeZone.clear();
         highRange = 0;
         lowRange = 0;
         takeProfitHit = false;
+        long memoryNow = Runtime.getRuntime().freeMemory();
+        System.gc();
+        long memoryLater = Runtime.getRuntime().freeMemory();
+        long memoryCleared=memoryNow-memoryLater;
+        System.out.println("Memory cleared:"+memoryCleared);
+        initializing.set(Boolean.FALSE);
 
     }
 

@@ -16,6 +16,7 @@ import com.incurrency.framework.TradingUtil;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
 import java.util.logging.Logger;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -32,7 +33,7 @@ public class EventProcessor implements ActionListener {
     public ADR adrStrategy;
     public ADRListener adrListener;
     public TickListener tickListener;
-    
+    JFrame debugFrame;
     public  EventProcessor(ADR adr)
     {
         this.adrStrategy=adr;
@@ -154,20 +155,20 @@ public class EventProcessor implements ActionListener {
                +" minutes) " ;
        stmt= "on Flush "+
              "delete from "+
-              "PriceWin";
+              "PriceWin" ;
                esperEngine.getEPAdministrator().createEPL(stmt);
         //create debug window
         //if(Launch.input.containsKey("debugscreen")){
         if(com.incurrency.algorithms.launch.Launch.input.containsKey("debugscreen")){
-        JFrame myFrame = new JFrame("Debug Window");
-        myFrame.setLayout( new FlowLayout() );
-        myFrame.setSize(300,400);
-        myFrame.setTitle(adrStrategy.getStrategy());
-        myFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        debugFrame = new JFrame("Debug Window");
+        debugFrame.setLayout( new FlowLayout() );
+        debugFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        debugFrame.setSize(300,400);
+        debugFrame.setTitle(adrStrategy.getStrategy());        
          JButton debugButton = new JButton("Debug");
-        myFrame.add(debugButton);
-        myFrame.setAlwaysOnTop (true);
-         myFrame.setVisible(true);
+        debugFrame.add(debugButton);
+        debugFrame.setAlwaysOnTop (true);
+         debugFrame.setVisible(true);
         debugButton.setVisible(true);
         debugButton.addActionListener(this);
         
@@ -258,6 +259,9 @@ public class EventProcessor implements ActionListener {
     }
 
     public void destroy() {
+        if(com.incurrency.algorithms.launch.Launch.input.containsKey("debugscreen") && debugFrame!=null){
+            debugFrame.dispatchEvent(new WindowEvent(debugFrame, WindowEvent.WINDOW_CLOSING));
+        }
         esperEngine.destroy();
     }
 
