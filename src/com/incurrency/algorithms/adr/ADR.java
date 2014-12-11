@@ -414,6 +414,9 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
 
     private void clearVariables() {
         logger.log(Level.INFO, "100,FlushEvent,{0}", new Object[]{TradingUtil.getAlgoDate()});
+        for(BeanSymbol s:Parameters.symbol){
+            s.clear();
+        }
         mEsperEvtProcessor.sendEvent(new FlushEvent(0));
         adr = 0;
         adrTRIN = 0;
