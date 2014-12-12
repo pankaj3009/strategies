@@ -21,6 +21,7 @@ import com.incurrency.framework.TradeEvent;
 import com.incurrency.framework.TradeListener;
 import com.incurrency.framework.TradingUtil;
 import java.io.FileInputStream;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -417,7 +418,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
         }
     }
 
-    private void clearVariables() {
+    private void clearVariables() throws ParseException {
         logger.log(Level.INFO, "100,FlushEvent,{0}", new Object[]{TradingUtil.getAlgoDate()});
         for(BeanSymbol s:Parameters.symbol){
             s.clear();
@@ -429,6 +430,26 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
         CurrentTimeEvent timeEvent = new CurrentTimeEvent(DateUtil.addSeconds(getStartDate(), -1).getTime());
         mEsperEvtProcessor.sendEvent(timeEvent);
         //mEsperEvtProcessor.sendEvent(new FlushEvent(0));
+        //adjust future expiry
+        String expiry=sdf.format(TradingUtil.getAlgoDate());
+        String expectedExpiry=null;
+        Date ad=TradingUtil.getAlgoDate();
+        if(ad.after(sdf.parse("20110530")) && ad.before(sdf.parse("20110627"))){
+            expectedExpiry="20110626";
+        }else  if(ad.after(sdf.parse("20110627")) && ad.before(sdf.parse("20110801"))){
+            expectedExpiry="20110731";
+        } if(ad.after(sdf.parse("20110801")) && ad.before(sdf.parse("20110829"))){
+            expectedExpiry="20110828";
+        } if(ad.after(sdf.parse("20110829")) && ad.before(sdf.parse("20110926"))){
+            expectedExpiry="20110925";
+        } if(ad.after(sdf.parse("20110926")) && ad.before(sdf.parse("20111101"))){
+            expectedExpiry="20111030";
+        } if(ad.after(sdf.parse("20111101")) && ad.before(sdf.parse("20111128"))){
+            expectedExpiry="20111127";
+        } if(ad.after(sdf.parse("20111127")) && ad.before(sdf.parse("20111225"))){
+            expectedExpiry="20111224";
+        }
+        Parameters.symbol.get(0).setExpiry(expectedExpiry);
         adr = 0;
         adrTRIN = 0;
         tick = 0;
