@@ -47,6 +47,9 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
     private AtomicBoolean bodStarted = new AtomicBoolean(Boolean.TRUE);
     private AtomicBoolean initializing=new AtomicBoolean(Boolean.FALSE);
     private SimpleDateFormat sdf;
+    private SimpleDateFormat openingTimeFormat=new SimpleDateFormat("HH:mm:ss");
+    private final Date openDate;
+    private final Date openDateBuffer;
     //----- updated by ADRListener and TickListener
     public double adr;
     public double adrTRIN;
@@ -101,8 +104,10 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
     private final Object lockBOD=new Object();
     DateTimeComparator comparator;
 
-    public ADR(MainAlgorithm m, Properties prop, String parameterFile, ArrayList<String> accounts) {
+    public ADR(MainAlgorithm m, Properties prop, String parameterFile, ArrayList<String> accounts) throws ParseException {
         super(m, "adr", "FUT", prop, parameterFile, accounts);
+        this.openDate = openingTimeFormat.parse("09:15:00");
+        this.openDateBuffer=openingTimeFormat.parse("09:16:00");
         loadParameters("adr", parameterFile);
         getStrategySymbols().clear();
         for (BeanSymbol s : Parameters.symbol) {
@@ -132,6 +137,8 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
         }
         comparator = DateTimeComparator.getTimeOnlyInstance();
         sdf = new SimpleDateFormat("yyyyMMdd");
+
+        
     }
 
     private void loadParameters(String strategy, String parameterFile) {
@@ -193,22 +200,25 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
     void processTradeReceived(TradeEvent event) {
        try {
             int id = event.getSymbolID(); //zero based id
-            if (!bodStarted.get() && !MainAlgorithm.useForTrading) {
-                
+            //System.out.println(TradingUtil.getAlgoDate());
+            if (!bodStarted.get() && !MainAlgorithm.useForTrading) {                
                 if (event.getTickType() != 99 && eodCompleted.get() && !bodStarted.get()) {
                     synchronized(lockBOD){
+                        if(event.getTickType() != 99 && eodCompleted.get() && !bodStarted.get()){
                     bodStarted.set(Boolean.TRUE);
                     eodCompleted.set(Boolean.FALSE);
                     initializing.set(Boolean.TRUE);
-                    this.clearVariables();
+                    this.clearVariablesBOD();
+                        }
+                            }
+                         }
                 }
-                }
-            }
             if (getStrategySymbols().contains(id) && Parameters.symbol.get(id).getType().compareTo("STK") == 0) {
                 logger.log(Level.FINER, "ADR Data Received, {0}", new Object[]{"Symbol" + delimiter + Parameters.symbol.get(id).getDisplayname() + delimiter + "Type" + delimiter + event.getTickType() + delimiter + Parameters.symbol.get(id).getLastPriceTime()});
                 CurrentTimeEvent timeEvent = new CurrentTimeEvent(TradingUtil.getAlgoDate().getTime());
                 while(initializing.get()){
-                    // do nothing
+                    Thread.sleep(10);
+                    Thread.yield();
                 }
                 switch (event.getTickType()) {
                     case com.ib.client.TickType.LAST_SIZE:
@@ -245,10 +255,13 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                         //historical data. Data finished
                         synchronized (lockFlush) {
                             if (!eodCompleted.get() && bodStarted.get()) {
+                                initializing.set(Boolean.TRUE);
                                 logger.log(Level.INFO, "100,Flush Called,{0}", new Object[]{TradingUtil.getAlgoDate()});
                                 this.printOrders("", this);
                                 eodCompleted.set(Boolean.TRUE);
                                 bodStarted.set(Boolean.FALSE);
+                                clearVariablesEOD();
+
                                 //m.setCloseDate(DateUtil.addSeconds(getEndDate(), (this.getMaxOrderDuration() + 2) * 60)); 
                             }
                         }
@@ -418,8 +431,8 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
         }
     }
 
-    private void clearVariables() throws ParseException {
-        logger.log(Level.INFO, "100,FlushEvent,{0}", new Object[]{TradingUtil.getAlgoDate()});
+    private void clearVariablesEOD() throws ParseException {
+        logger.log(Level.INFO, "100,EODClear,{0}", new Object[]{TradingUtil.getAlgoDate()});
         for(BeanSymbol s:Parameters.symbol){
             s.clear();
             closePriceReceived.put(s.getSerialno() - 1, Boolean.FALSE);
@@ -427,29 +440,30 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
         mEsperEvtProcessor.destroy();
         mEsperEvtProcessor = new EventProcessor(this);
         mEsperEvtProcessor.ADRStatement.addListener(this);
-        CurrentTimeEvent timeEvent = new CurrentTimeEvent(DateUtil.addSeconds(getStartDate(), -1).getTime());
+        CurrentTimeEvent timeEvent = new CurrentTimeEvent(TradingUtil.getAlgoDate().getTime());
         mEsperEvtProcessor.sendEvent(timeEvent);
         //mEsperEvtProcessor.sendEvent(new FlushEvent(0));
         //adjust future expiry
         String expiry=sdf.format(TradingUtil.getAlgoDate());
         String expectedExpiry=null;
         Date ad=TradingUtil.getAlgoDate();
-        if(ad.after(sdf.parse("20110530")) && ad.before(sdf.parse("20110627"))){
-            expectedExpiry="20110626";
-        }else  if(ad.after(sdf.parse("20110627")) && ad.before(sdf.parse("20110801"))){
-            expectedExpiry="20110731";
-        } if(ad.after(sdf.parse("20110801")) && ad.before(sdf.parse("20110829"))){
-            expectedExpiry="20110828";
-        } if(ad.after(sdf.parse("20110829")) && ad.before(sdf.parse("20110926"))){
-            expectedExpiry="20110925";
-        } if(ad.after(sdf.parse("20110926")) && ad.before(sdf.parse("20111101"))){
-            expectedExpiry="20111030";
-        } if(ad.after(sdf.parse("20111101")) && ad.before(sdf.parse("20111128"))){
-            expectedExpiry="20111127";
-        } if(ad.after(sdf.parse("20111127")) && ad.before(sdf.parse("20111225"))){
-            expectedExpiry="20111224";
+        if(ad.after(sdf.parse("20140530")) && ad.before(sdf.parse("20140626"))){
+            expectedExpiry="20140626";
+        }else  if(ad.after(sdf.parse("20140626")) && ad.before(sdf.parse("20140731"))){
+            expectedExpiry="20140731";
+        } if(ad.after(sdf.parse("20140731")) && ad.before(sdf.parse("20140828"))){
+            expectedExpiry="20140828";
+        } if(ad.after(sdf.parse("20140828")) && ad.before(sdf.parse("20140925"))){
+            expectedExpiry="20140925";
+        } if(ad.after(sdf.parse("20140925")) && ad.before(sdf.parse("20141030"))){
+            expectedExpiry="20141030";
+        } if(ad.after(sdf.parse("20141030")) && ad.before(sdf.parse("20141127"))){
+            expectedExpiry="20141127";
+        } if(ad.after(sdf.parse("20141127")) && ad.before(sdf.parse("20141224"))){
+            expectedExpiry="20141224";
         }
         Parameters.symbol.get(0).setExpiry(expectedExpiry);
+        this.setExpiry(expectedExpiry);
         adr = 0;
         adrTRIN = 0;
         tick = 0;
@@ -490,6 +504,11 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
 
     }
 
+    private void clearVariablesBOD(){
+        logger.log(Level.INFO, "100,BODClear,{0}", new Object[]{TradingUtil.getAlgoDate()});
+        initializing.set(Boolean.FALSE);
+        
+    }
     @Override
     public void update(EventBean[] newEvents, EventBean[] oldEvents) {
         double high = newEvents[0].get("high") == null ? Double.MIN_VALUE : (Double) newEvents[0].get("high");
