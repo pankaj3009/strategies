@@ -51,8 +51,8 @@ public class CSV extends Strategy {
     HashMap<String, OrderMap> rowOrderMap = new HashMap<>();
     private final String delimiter = "_";
 
-    public CSV(MainAlgorithm m, Properties prop,String parameterFile, ArrayList<String> accounts) {
-        super(m, "CSV", "FUT", prop,parameterFile, accounts);
+    public CSV(MainAlgorithm m, Properties prop,String parameterFile, ArrayList<String> accounts,Integer stratCount) {
+        super(m, "CSV", "FUT", prop,parameterFile, accounts,stratCount);
         try {
             loadParameters("CSV", parameterFile);
             String[] tempStrategyArray = parameterFile.split("\\.")[0].split("-");

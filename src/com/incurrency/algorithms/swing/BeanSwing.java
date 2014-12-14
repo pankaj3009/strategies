@@ -95,8 +95,8 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
         }
     };
     
-    public BeanSwing(MainAlgorithm m, Properties prop,String parameterFile, ArrayList<String> accounts) {
-        super(m, "swing", "FUT", prop,parameterFile, accounts);
+    public BeanSwing(MainAlgorithm m, Properties prop,String parameterFile, ArrayList<String> accounts,Integer stratCount) {
+        super(m, "swing", "FUT", prop,parameterFile, accounts,stratCount);
         if(!tradeFutures){
          for (BrokerageRate b: getBrokerageRate()){
             b.type="STK";
