@@ -193,6 +193,8 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                 if (event.getTickType() != 99 && eodCompleted.get() && !bodStarted.get()) {
                     synchronized(lockBOD){
                         if(event.getTickType() != 99 && eodCompleted.get() && !bodStarted.get()){
+                    Thread.sleep(10);
+                    Thread.yield();
                     bodStarted.set(Boolean.TRUE);
                     eodCompleted.set(Boolean.FALSE);
                     initializing.set(Boolean.TRUE);
