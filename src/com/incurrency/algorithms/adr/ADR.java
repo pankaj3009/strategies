@@ -104,8 +104,8 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
     private final Object lockBOD=new Object();
     DateTimeComparator comparator;
 
-    public ADR(MainAlgorithm m, Properties prop, String parameterFile, ArrayList<String> accounts) throws ParseException {
-        super(m, "adr", "FUT", prop, parameterFile, accounts);
+    public ADR(MainAlgorithm m, Properties prop, String parameterFile, ArrayList<String> accounts, Integer stratCount) throws ParseException {
+        super(m, "adr", "FUT", prop, parameterFile, accounts,stratCount);
         this.openDate = openingTimeFormat.parse("09:15:00");
         this.openDateBuffer=openingTimeFormat.parse("09:16:00");
         loadParameters("adr", parameterFile);
@@ -321,9 +321,8 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                 //TradingUtil.writeToFile(getStrategy() + ".csv", buyZone + "," + shortZone + "," + tradingSide + "," + adr + "," + adrHigh + "," + adrLow + "," + adrDayHigh + "," + adrDayLow + "," + adrAvg + "," + buyZone1 + "," + shortZone1 + "," + price + "," + indexHigh + "," + indexLow + "," + indexDayHigh + "," + indexDayLow + "," + indexAvg + "," + buyZone2 + "," + shortZone2 + "," + adrTRIN + "," + adrTRINAvg + "," + buyZone3 + "," + shortZone3 + "," + tick + "," + tickTRIN + "," + adrTRINHigh + "," + adrTRINLow + "," + getHighRange() + "," + getLowRange() + "," + "SCAN", Parameters.symbol.get(id).getLastPriceTime());
                 if (MainAlgorithm.useForTrading) {
                     TradingUtil.writeToFile(getStrategy() + ".csv", buyZone + "," + shortZone + "," + tradingSide + "," + adr + "," + adrHigh + "," + adrLow + "," + adrDayHigh + "," + adrDayLow + "," + adrAvg + "," + buyZone1 + "," + shortZone1 + "," + price + "," + indexHigh + "," + indexLow + "," + indexDayHigh + "," + indexDayLow + "," + indexAvg + "," + buyZone2 + "," + shortZone2 + "," + adrTRIN + "," + adrTRINAvg + "," + buyZone3 + "," + shortZone3 + "," + tick + "," + tickTRIN + "," + adrTRINHigh + "," + adrTRINLow + "," + getHighRange() + "," + getLowRange() + "," + "SCAN", Parameters.symbol.get(id).getLastPriceTime());
-                } else {
+                } else if (MainAlgorithm.input.containsKey("strategylog")){
                     TradingUtil.writeToFile(sdf.format(TradingUtil.getAlgoDate()) + "_" + getStrategy() + ".csv", buyZone + "," + shortZone + "," + tradingSide + "," + adr + "," + adrHigh + "," + adrLow + "," + adrDayHigh + "," + adrDayLow + "," + adrAvg + "," + buyZone1 + "," + shortZone1 + "," + price + "," + indexHigh + "," + indexLow + "," + indexDayHigh + "," + indexDayLow + "," + indexAvg + "," + buyZone2 + "," + shortZone2 + "," + adrTRIN + "," + adrTRINAvg + "," + buyZone3 + "," + shortZone3 + "," + tick + "," + tickTRIN + "," + adrTRINHigh + "," + adrTRINLow + "," + getHighRange() + "," + getLowRange() + "," + "SCAN", Parameters.symbol.get(id).getLastPriceTime());
-
                 }
                 if ((!buyZone && tradingSide == 1 && getPosition().get(id).getPosition() == 0) || (!shortZone && tradingSide == -1 && getPosition().get(id).getPosition() == 0)) {
                     logger.log(Level.INFO, "502,TradingSideReset,{0}", new Object[]{getStrategy() + delimiter + 0 + delimiter + tradingSide});
