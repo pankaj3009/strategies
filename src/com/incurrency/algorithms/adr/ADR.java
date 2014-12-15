@@ -109,7 +109,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
         super(m, "adr", "FUT", prop, parameterFile, accounts,stratCount);
         this.openDate = openingTimeFormat.parse("09:15:00");
         this.openDateBuffer=openingTimeFormat.parse("09:16:00");
-        loadParameters("adr", parameterFile);
+        loadParameters(prop, parameterFile);
         getStrategySymbols().clear();
         for (BeanSymbol s : Parameters.symbol) {
             if (Pattern.compile(Pattern.quote(adrRuleName), Pattern.CASE_INSENSITIVE).matcher(s.getStrategy()).find()) {
@@ -142,35 +142,22 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
         
     }
 
-    private void loadParameters(String strategy, String parameterFile) {
-        Properties p = new Properties(System.getProperties());
-        FileInputStream propFile;
-        try {
-            propFile = new FileInputStream(parameterFile);
-            try {
-                p.load(propFile);
-            } catch (Exception ex) {
-                logger.log(Level.INFO, "101", ex);
-            }
-        } catch (Exception ex) {
-            logger.log(Level.INFO, "101", ex);
-        }
-        System.setProperties(p);
-        setTrading(Boolean.valueOf(System.getProperty("Trading")));
-        setIndex(System.getProperty("Index"));
-        setType(System.getProperty("Type"));
-        setExpiry(System.getProperty("Expiry") == null ? "" : System.getProperty("Expiry"));
-        threshold = Integer.parseInt(System.getProperty("Threshold"));
-        setStopLoss(Double.parseDouble(System.getProperty("StopLoss")));
-        window = System.getProperty("Window");
-        setWindowHurdle(Double.parseDouble(System.getProperty("WindowHurdle")));
-        setDayHurdle(Double.parseDouble(System.getProperty("DayHurdle")));
-        takeProfit = Double.parseDouble(System.getProperty("TakeProfit"));
-        scalpingMode = System.getProperty("ScalpingMode") == null ? false : Boolean.parseBoolean(System.getProperty("ScalpingMode"));
-        reentryMinimumMove = System.getProperty("ReentryMinimumMove") == null ? 0D : Double.parseDouble(System.getProperty("ReentryMinimumMove"));
-        reentryMinimumMove = System.getProperty("ReentryMinimumMove") == null ? 0D : Double.parseDouble(System.getProperty("ReentryMinimumMove"));
-        adrRuleName = System.getProperty("ADRSymbolTag") == null ? "" : System.getProperty("ADRSymbolTag");
-        trackLosingZone = System.getProperty("TrackLosingZones") == null ? Boolean.FALSE : Boolean.parseBoolean(System.getProperty("TrackLosingZones"));
+    private void loadParameters(Properties p, String parameterFile) {
+        setTrading(Boolean.valueOf(p.getProperty("Trading")));
+        setIndex(p.getProperty("Index"));
+        setType(p.getProperty("Type"));
+        setExpiry(p.getProperty("Expiry") == null ? "" : p.getProperty("Expiry"));
+        threshold = Integer.parseInt(p.getProperty("Threshold"));
+        setStopLoss(Double.parseDouble(p.getProperty("StopLoss")));
+        window = p.getProperty("Window");
+        setWindowHurdle(Double.parseDouble(p.getProperty("WindowHurdle")));
+        setDayHurdle(Double.parseDouble(p.getProperty("DayHurdle")));
+        takeProfit = Double.parseDouble(p.getProperty("TakeProfit"));
+        scalpingMode = p.getProperty("ScalpingMode") == null ? false : Boolean.parseBoolean(p.getProperty("ScalpingMode"));
+        reentryMinimumMove = p.getProperty("ReentryMinimumMove") == null ? 0D : Double.parseDouble(p.getProperty("ReentryMinimumMove"));
+        reentryMinimumMove = p.getProperty("ReentryMinimumMove") == null ? 0D : Double.parseDouble(p.getProperty("ReentryMinimumMove"));
+        adrRuleName = p.getProperty("ADRSymbolTag") == null ? "" : p.getProperty("ADRSymbolTag");
+        trackLosingZone = p.getProperty("TrackLosingZones") == null ? Boolean.FALSE : Boolean.parseBoolean(p.getProperty("TrackLosingZones"));
 
 
         logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "TradingAllowed" + delimiter + getTrading()});
