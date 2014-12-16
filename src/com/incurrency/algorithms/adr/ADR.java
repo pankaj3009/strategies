@@ -191,7 +191,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
             //System.out.println(TradingUtil.getAlgoDate());
             if (!bodStarted.get() && !MainAlgorithm.isUseForTrading()) {                
                 if (event.getTickType() != 99 && eodCompleted.get() && !bodStarted.get()) {
-                    synchronized(lockFlush){
+                    synchronized(lockBOD){
                         if(event.getTickType() != 99 && eodCompleted.get() && !bodStarted.get()){
                     Thread.sleep(10);
                     Thread.yield();
@@ -248,9 +248,9 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                                 initializing.set(Boolean.TRUE);
                                 logger.log(Level.INFO, "100,Flush Called,{0}", new Object[]{TradingUtil.getAlgoDate()});
                                 this.printOrders("", this);
+                                clearVariablesEOD();
                                 eodCompleted.set(Boolean.TRUE);
                                 bodStarted.set(Boolean.FALSE);
-                                clearVariablesEOD();
 
                                 //m.setCloseDate(DateUtil.addSeconds(getEndDate(), (this.getMaxOrderDuration() + 2) * 60)); 
                             }
