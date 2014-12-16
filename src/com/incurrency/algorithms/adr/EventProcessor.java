@@ -257,7 +257,14 @@ public class EventProcessor implements ActionListener {
     public void sendEvent(Object event) {
         esperEngine.getEPRuntime().sendEvent(event);
     }
-
+    public void initialize(){
+        if(com.incurrency.algorithms.launch.Launch.input.containsKey("debugscreen") && debugFrame!=null){
+            debugFrame.dispatchEvent(new WindowEvent(debugFrame, WindowEvent.WINDOW_CLOSING));
+        }
+        esperEngine.initialize();
+        
+    }
+    
     public void destroy() {
         if(com.incurrency.algorithms.launch.Launch.input.containsKey("debugscreen") && debugFrame!=null){
             debugFrame.dispatchEvent(new WindowEvent(debugFrame, WindowEvent.WINDOW_CLOSING));
