@@ -45,9 +45,9 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
     private final String delimiter = "_";
     private AtomicBoolean eodCompleted = new AtomicBoolean(Boolean.FALSE);
     private AtomicBoolean bodStarted = new AtomicBoolean(Boolean.TRUE);
-    private AtomicBoolean initializing=new AtomicBoolean(Boolean.FALSE);
+    private AtomicBoolean initializing = new AtomicBoolean(Boolean.FALSE);
     private SimpleDateFormat sdf;
-    private SimpleDateFormat openingTimeFormat=new SimpleDateFormat("HH:mm:ss");
+    private SimpleDateFormat openingTimeFormat = new SimpleDateFormat("HH:mm:ss");
     private final Date openDate;
     private final Date openDateBuffer;
     //----- updated by ADRListener and TickListener
@@ -98,17 +98,17 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
     private double lowRange;
     private boolean trackLosingZone;
     private boolean takeProfitHit = false;
-    private boolean stopLossHit=false;
+    private boolean stopLossHit = false;
     private final Object lockHighRange = new Object();
     private final Object lockLowRange = new Object();
     private final Object lockFlush = new Object();
-    private final Object lockBOD=new Object();
+    private final Object lockBOD = new Object();
     DateTimeComparator comparator;
 
     public ADR(MainAlgorithm m, Properties prop, String parameterFile, ArrayList<String> accounts, Integer stratCount) throws ParseException {
-        super(m, "adr", "FUT", prop, parameterFile, accounts,stratCount);
+        super(m, "adr", "FUT", prop, parameterFile, accounts, stratCount);
         this.openDate = openingTimeFormat.parse("09:15:00");
-        this.openDateBuffer=openingTimeFormat.parse("09:16:00");
+        this.openDateBuffer = openingTimeFormat.parse("09:16:00");
         loadParameters(prop, parameterFile);
         getStrategySymbols().clear();
         for (BeanSymbol s : Parameters.symbol) {
@@ -139,7 +139,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
         comparator = DateTimeComparator.getTimeOnlyInstance();
         sdf = new SimpleDateFormat("yyyyMMdd");
 
-        
+
     }
 
     private void loadParameters(Properties p, String parameterFile) {
@@ -186,30 +186,23 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
     }
 
     void processTradeReceived(TradeEvent event) {
-       try {
+        try {
             int id = event.getSymbolID(); //zero based id
             //System.out.println(TradingUtil.getAlgoDate());
-            if (!bodStarted.get() && !MainAlgorithm.isUseForTrading()) {                
+            if (!bodStarted.get() && !MainAlgorithm.isUseForTrading()) {
                 if (event.getTickType() != 99 && eodCompleted.get() && !bodStarted.get()) {
-                    synchronized(lockBOD){
-                        if(event.getTickType() != 99 && eodCompleted.get() && !bodStarted.get()){
-                    Thread.sleep(10);
-                    Thread.yield();
-                    bodStarted.set(Boolean.TRUE);
-                    eodCompleted.set(Boolean.FALSE);
-                    initializing.set(Boolean.TRUE);
-                    this.clearVariablesBOD();
+                    synchronized (lockBOD) {
+                        if (event.getTickType() != 99 && eodCompleted.get() && !bodStarted.get()) {
+                            bodStarted.set(Boolean.TRUE);
+                            eodCompleted.set(Boolean.FALSE);
+                            this.clearVariablesBOD();
                         }
-                            }
-                         }
+                    }
                 }
+            }
             if (getStrategySymbols().contains(id) && Parameters.symbol.get(id).getType().compareTo("STK") == 0) {
                 logger.log(Level.FINER, "ADR Data Received, {0}", new Object[]{"Symbol" + delimiter + Parameters.symbol.get(id).getDisplayname() + delimiter + "Type" + delimiter + event.getTickType() + delimiter + Parameters.symbol.get(id).getLastPriceTime()});
                 CurrentTimeEvent timeEvent = new CurrentTimeEvent(TradingUtil.getAlgoDate().getTime());
-                while(initializing.get()){
-                    Thread.sleep(10);
-                    Thread.yield();
-                }
                 switch (event.getTickType()) {
                     case com.ib.client.TickType.LAST_SIZE:
                         //System.out.println("LASTSIZE, Symbol:"+Parameters.symbol.get(id).getSymbol()+" Value: "+Parameters.symbol.get(id).getLastSize()+" tickerID: "+id);
@@ -245,8 +238,6 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                         //historical data. Data finished
                         synchronized (lockFlush) {
                             if (!eodCompleted.get() && bodStarted.get()) {
-                                initializing.set(Boolean.TRUE);
-                                logger.log(Level.INFO, "100,Flush Called,{0}", new Object[]{TradingUtil.getAlgoDate()});
                                 this.printOrders("", this);
                                 clearVariablesEOD();
                                 eodCompleted.set(Boolean.TRUE);
@@ -311,7 +302,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                 //TradingUtil.writeToFile(getStrategy() + ".csv", buyZone + "," + shortZone + "," + tradingSide + "," + adr + "," + adrHigh + "," + adrLow + "," + adrDayHigh + "," + adrDayLow + "," + adrAvg + "," + buyZone1 + "," + shortZone1 + "," + price + "," + indexHigh + "," + indexLow + "," + indexDayHigh + "," + indexDayLow + "," + indexAvg + "," + buyZone2 + "," + shortZone2 + "," + adrTRIN + "," + adrTRINAvg + "," + buyZone3 + "," + shortZone3 + "," + tick + "," + tickTRIN + "," + adrTRINHigh + "," + adrTRINLow + "," + getHighRange() + "," + getLowRange() + "," + "SCAN", Parameters.symbol.get(id).getLastPriceTime());
                 if (MainAlgorithm.isUseForTrading()) {
                     TradingUtil.writeToFile(getStrategy() + ".csv", buyZone + "," + shortZone + "," + tradingSide + "," + adr + "," + adrHigh + "," + adrLow + "," + adrDayHigh + "," + adrDayLow + "," + adrAvg + "," + buyZone1 + "," + shortZone1 + "," + price + "," + indexHigh + "," + indexLow + "," + indexDayHigh + "," + indexDayLow + "," + indexAvg + "," + buyZone2 + "," + shortZone2 + "," + adrTRIN + "," + adrTRINAvg + "," + buyZone3 + "," + shortZone3 + "," + tick + "," + tickTRIN + "," + adrTRINHigh + "," + adrTRINLow + "," + getHighRange() + "," + getLowRange() + "," + "SCAN", Parameters.symbol.get(id).getLastPriceTime());
-                } else if (MainAlgorithm.getInput().containsKey("strategylog")){
+                } else if (MainAlgorithm.getInput().containsKey("strategylog")) {
                     TradingUtil.writeToFile(sdf.format(TradingUtil.getAlgoDate()) + "_" + getStrategy() + ".csv", buyZone + "," + shortZone + "," + tradingSide + "," + adr + "," + adrHigh + "," + adrLow + "," + adrDayHigh + "," + adrDayLow + "," + adrAvg + "," + buyZone1 + "," + shortZone1 + "," + price + "," + indexHigh + "," + indexLow + "," + indexDayHigh + "," + indexDayLow + "," + indexAvg + "," + buyZone2 + "," + shortZone2 + "," + adrTRIN + "," + adrTRINAvg + "," + buyZone3 + "," + shortZone3 + "," + tick + "," + tickTRIN + "," + adrTRINHigh + "," + adrTRINLow + "," + getHighRange() + "," + getLowRange() + "," + "SCAN", Parameters.symbol.get(id).getLastPriceTime());
                 }
                 if ((!buyZone && tradingSide == 1 && getPosition().get(id).getPosition() == 0) || (!shortZone && tradingSide == -1 && getPosition().get(id).getPosition() == 0)) {
@@ -322,7 +313,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                 synchronized (getPosition().get(id).lock) {
                     if (getPosition().get(id).getPosition() == 0 && comparator.compare(TradingUtil.getAlgoDate(), getEndDate()) < 0) {
                         //!stopLossHit && !takeProfitHit &&
-                        if ( tradingSide == 0 && buyZone && (tick < 45 || tickTRIN > 120) && getLongOnly() && price > indexHigh - 0.75 * getStopLoss()) {
+                        if (tradingSide == 0 && buyZone && (tick < 45 || tickTRIN > 120) && getLongOnly() && price > indexHigh - 0.75 * getStopLoss()) {
                             boolean tradeZone = true;
                             if (trackLosingZone) {
                                 for (TradeRestriction tr : noTradeZone) {
@@ -367,7 +358,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                             logger.log(Level.INFO, "501,StrategyEntry,{0}", new Object[]{getStrategy() + delimiter + "SCALPINGBUY" + delimiter + adrHigh + delimiter + adrLow + delimiter + adrAvg + delimiter + adrTRINHigh + delimiter + adrTRINLow + delimiter + adrTRINAvg + delimiter + indexHigh + delimiter + indexLow + delimiter + indexAvg + delimiter + buyZone1 + delimiter + buyZone2 + delimiter + buyZone3 + delimiter + shortZone1 + delimiter + shortZone2 + delimiter + shortZone3 + delimiter + adr + delimiter + adrTRIN + delimiter + tick + delimiter + tickTRIN + delimiter + adrDayHigh + delimiter + adrDayLow + delimiter + indexDayHigh + delimiter + indexDayLow + delimiter + price});
                             entry(id, EnumOrderSide.BUY, EnumOrderType.LMT, getEntryPrice(), 0, false, EnumOrderReason.REGULARENTRY, "");;
                             TradingUtil.writeToFile(getStrategy() + ".csv", buyZone + "," + shortZone + "," + tradingSide + "," + adr + "," + adrHigh + "," + adrLow + "," + adrDayHigh + "," + adrDayLow + "," + adrAvg + "," + buyZone1 + "," + shortZone1 + "," + price + "," + indexHigh + "," + indexLow + "," + indexDayHigh + "," + indexDayLow + "," + indexAvg + "," + buyZone2 + "," + shortZone2 + "," + adrTRIN + "," + adrTRINAvg + "," + buyZone3 + "," + shortZone3 + "," + tick + "," + tickTRIN + "," + adrTRINHigh + "," + adrTRINLow + "," + getHighRange() + "," + getLowRange() + "," + "SCALPING BUY", Parameters.symbol.get(id).getLastPriceTime());
-                        //!stopLossHit && !takeProfitHit && 
+                            //!stopLossHit && !takeProfitHit && 
                         } else if (tradingSide == -1 && price > this.getLastShortExit() + this.reentryMinimumMove && scalpingMode && this.getLastShortExit() > 0) {
                             setEntryPrice(price);
                             setHighRange(Double.MIN_VALUE);
@@ -378,8 +369,8 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                         }
                     } else if (getPosition().get(id).getPosition() < 0) {
                         if (buyZone || ((price > indexLow + getStopLoss() && !shortZone) || (price > getEntryPrice() + getStopLoss())) || comparator.compare(TradingUtil.getAlgoDate(), getEndDate()) > 0) { //stop loss
-                            if(price > getEntryPrice() + getStopLoss()){
-                                stopLossHit=true;
+                            if (price > getEntryPrice() + getStopLoss()) {
+                                stopLossHit = true;
                             }
                             logger.log(Level.INFO, "501,StrategySL,{0}", new Object[]{getStrategy() + delimiter + "COVER" + delimiter + adrHigh + delimiter + adrLow + delimiter + adrAvg + delimiter + adrTRINHigh + delimiter + adrTRINLow + delimiter + adrTRINAvg + delimiter + indexHigh + delimiter + indexLow + delimiter + indexAvg + delimiter + buyZone1 + delimiter + buyZone2 + delimiter + buyZone3 + delimiter + shortZone1 + delimiter + shortZone2 + delimiter + shortZone3 + delimiter + adr + delimiter + adrTRIN + delimiter + tick + delimiter + tickTRIN + delimiter + adrDayHigh + delimiter + adrDayLow + delimiter + indexDayHigh + delimiter + indexDayLow + delimiter + price});
                             exit(id, EnumOrderSide.COVER, EnumOrderType.LMT, price, 0, "", true, "DAY", false, EnumOrderReason.REGULAREXIT, "");
@@ -401,8 +392,8 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                         }
                     } else if (getPosition().get(id).getPosition() > 0) {
                         if (shortZone || ((price < indexHigh - getStopLoss() && !buyZone) || (price < getEntryPrice() - getStopLoss())) || comparator.compare(TradingUtil.getAlgoDate(), getEndDate()) > 0) {
-                            if(price < getEntryPrice() - getStopLoss()){
-                                stopLossHit=true;
+                            if (price < getEntryPrice() - getStopLoss()) {
+                                stopLossHit = true;
                             }
                             logger.log(Level.INFO, "501,StrategySL,{0}", new Object[]{getStrategy() + delimiter + "SELL" + delimiter + adrHigh + delimiter + adrLow + delimiter + adrAvg + delimiter + adrTRINHigh + delimiter + adrTRINLow + delimiter + adrTRINAvg + delimiter + indexHigh + delimiter + indexLow + delimiter + indexAvg + delimiter + buyZone1 + delimiter + buyZone2 + delimiter + buyZone3 + delimiter + shortZone1 + delimiter + shortZone2 + delimiter + shortZone3 + delimiter + adr + delimiter + adrTRIN + delimiter + tick + delimiter + tickTRIN + delimiter + adrDayHigh + delimiter + adrDayLow + delimiter + indexDayHigh + delimiter + indexDayLow + delimiter + price});
                             exit(id, EnumOrderSide.SELL, EnumOrderType.LMT, price, 0, "", true, "DAY", false, EnumOrderReason.REGULAREXIT, "");
@@ -432,7 +423,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
 
     private void clearVariablesEOD() throws ParseException {
         logger.log(Level.INFO, "100,EODClear,{0}", new Object[]{TradingUtil.getAlgoDate()});
-        for(BeanSymbol s:Parameters.symbol){
+        for (BeanSymbol s : Parameters.symbol) {
             s.clear();
             closePriceReceived.put(s.getSerialno() - 1, Boolean.FALSE);
         }
@@ -443,23 +434,28 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
         mEsperEvtProcessor.sendEvent(timeEvent);
         //mEsperEvtProcessor.sendEvent(new FlushEvent(0));
         //adjust future expiry
-        String expiry=sdf.format(TradingUtil.getAlgoDate());
-        String expectedExpiry=null;
-        Date ad=TradingUtil.getAlgoDate();
-        if(ad.after(sdf.parse("20140530")) && ad.before(sdf.parse("20140626"))){
-            expectedExpiry="20140626";
-        }else  if(ad.after(sdf.parse("20140626")) && ad.before(sdf.parse("20140731"))){
-            expectedExpiry="20140731";
-        } if(ad.after(sdf.parse("20140731")) && ad.before(sdf.parse("20140828"))){
-            expectedExpiry="20140828";
-        } if(ad.after(sdf.parse("20140828")) && ad.before(sdf.parse("20140925"))){
-            expectedExpiry="20140925";
-        } if(ad.after(sdf.parse("20140925")) && ad.before(sdf.parse("20141030"))){
-            expectedExpiry="20141030";
-        } if(ad.after(sdf.parse("20141030")) && ad.before(sdf.parse("20141127"))){
-            expectedExpiry="20141127";
-        } if(ad.after(sdf.parse("20141127")) && ad.before(sdf.parse("20141224"))){
-            expectedExpiry="20141224";
+        String expiry = sdf.format(TradingUtil.getAlgoDate());
+        String expectedExpiry = null;
+        Date ad = TradingUtil.getAlgoDate();
+        if (ad.after(sdf.parse("20140530")) && ad.before(sdf.parse("20140626"))) {
+            expectedExpiry = "20140626";
+        } else if (ad.after(sdf.parse("20140626")) && ad.before(sdf.parse("20140731"))) {
+            expectedExpiry = "20140731";
+        }
+        if (ad.after(sdf.parse("20140731")) && ad.before(sdf.parse("20140828"))) {
+            expectedExpiry = "20140828";
+        }
+        if (ad.after(sdf.parse("20140828")) && ad.before(sdf.parse("20140925"))) {
+            expectedExpiry = "20140925";
+        }
+        if (ad.after(sdf.parse("20140925")) && ad.before(sdf.parse("20141030"))) {
+            expectedExpiry = "20141030";
+        }
+        if (ad.after(sdf.parse("20141030")) && ad.before(sdf.parse("20141127"))) {
+            expectedExpiry = "20141127";
+        }
+        if (ad.after(sdf.parse("20141127")) && ad.before(sdf.parse("20141224"))) {
+            expectedExpiry = "20141224";
         }
         Parameters.symbol.get(0).setExpiry(expectedExpiry);
         this.setExpiry(expectedExpiry);
@@ -494,21 +490,21 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
         highRange = 0;
         lowRange = 0;
         takeProfitHit = false;
-        stopLossHit=false;
+        stopLossHit = false;
         long memoryNow = Runtime.getRuntime().freeMemory();
         System.gc();
         long memoryLater = Runtime.getRuntime().freeMemory();
-        long memoryCleared=memoryNow-memoryLater;
-        System.out.println("Memory cleared:"+memoryCleared);
-        initializing.set(Boolean.FALSE);
+        long memoryCleared = memoryNow - memoryLater;
+        System.out.println("Memory cleared:" + memoryCleared);
 
     }
 
-    private void clearVariablesBOD(){
+    private void clearVariablesBOD() {
         logger.log(Level.INFO, "100,BODClear,{0}", new Object[]{TradingUtil.getAlgoDate()});
-        initializing.set(Boolean.FALSE);
-        
+
+
     }
+
     @Override
     public void update(EventBean[] newEvents, EventBean[] oldEvents) {
         double high = newEvents[0].get("high") == null ? Double.MIN_VALUE : (Double) newEvents[0].get("high");
