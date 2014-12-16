@@ -191,7 +191,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
             //System.out.println(TradingUtil.getAlgoDate());
             if (!bodStarted.get() && !MainAlgorithm.isUseForTrading()) {                
                 if (event.getTickType() != 99 && eodCompleted.get() && !bodStarted.get()) {
-                    synchronized(lockBOD){
+                    synchronized(lockFlush){
                         if(event.getTickType() != 99 && eodCompleted.get() && !bodStarted.get()){
                     bodStarted.set(Boolean.TRUE);
                     eodCompleted.set(Boolean.FALSE);
