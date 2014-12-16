@@ -436,7 +436,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
         }
         mEsperEvtProcessor.initialize();
         //mEsperEvtProcessor = new EventProcessor(this);
-        //mEsperEvtProcessor.ADRStatement.addListener(this);
+        mEsperEvtProcessor.ADRStatement.addListener(this);
         CurrentTimeEvent timeEvent = new CurrentTimeEvent(TradingUtil.getAlgoDate().getTime());
         mEsperEvtProcessor.sendEvent(timeEvent);
         //mEsperEvtProcessor.sendEvent(new FlushEvent(0));
