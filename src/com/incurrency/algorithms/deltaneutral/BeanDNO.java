@@ -112,7 +112,7 @@ public class BeanDNO implements TradeListener, BidAskListener, HistoricalBarList
         Properties p = new Properties(System.getProperties());
         FileInputStream propFile;
         try {
-            propFile = new FileInputStream(MainAlgorithm.input.get("dno"));
+            propFile = new FileInputStream(MainAlgorithm.getInput().get("dno"));
             try {
                 p.load(propFile);
             } catch (Exception ex) {
