@@ -145,6 +145,8 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
 
 
     }
+
+    }
     @Override
     public void displayStrategyValues(){
                JFrame f=new ADRValues(this);  
@@ -209,11 +211,10 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
             //System.out.println(TradingUtil.getAlgoDate());
             if (!bodStarted.get() && !MainAlgorithm.isUseForTrading()) {
                 if (event.getTickType() != 99 && eodCompleted.get() && !bodStarted.get()) {
-                    synchronized (lockFlush) {
+                    synchronized (lockBOD) {
                         if (event.getTickType() != 99 && eodCompleted.get() && !bodStarted.get()) {
                             bodStarted.set(Boolean.TRUE);
                             eodCompleted.set(Boolean.FALSE);
-                            initializing.set(Boolean.TRUE);
                             this.clearVariablesBOD();
                         }
                     }
@@ -222,10 +223,6 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
             if (getStrategySymbols().contains(id) && Parameters.symbol.get(id).getType().compareTo("STK") == 0) {
                 logger.log(Level.FINER, "ADR Data Received, {0}", new Object[]{"Symbol" + delimiter + Parameters.symbol.get(id).getDisplayname() + delimiter + "Type" + delimiter + event.getTickType() + delimiter + Parameters.symbol.get(id).getLastPriceTime()});
                 CurrentTimeEvent timeEvent = new CurrentTimeEvent(TradingUtil.getAlgoDate().getTime());
-                while (initializing.get()) {
-                    Thread.sleep(10);
-                    Thread.yield();
-                }
                 switch (event.getTickType()) {
                     case com.ib.client.TickType.LAST_SIZE:
                         //System.out.println("LASTSIZE, Symbol:"+Parameters.symbol.get(id).getSymbol()+" Value: "+Parameters.symbol.get(id).getLastSize()+" tickerID: "+id);
@@ -261,12 +258,10 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                         //historical data. Data finished
                         synchronized (lockFlush) {
                             if (!eodCompleted.get() && bodStarted.get()) {
-                                initializing.set(Boolean.TRUE);
-                                logger.log(Level.INFO, "100,Flush Called,{0}", new Object[]{TradingUtil.getAlgoDate()});
                                 this.printOrders("", this);
+                                clearVariablesEOD();
                                 eodCompleted.set(Boolean.TRUE);
                                 bodStarted.set(Boolean.FALSE);
-                                clearVariablesEOD();
 
                                 //m.setCloseDate(DateUtil.addSeconds(getEndDate(), (this.getMaxOrderDuration() + 2) * 60)); 
                             }
@@ -521,13 +516,12 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
         long memoryLater = Runtime.getRuntime().freeMemory();
         long memoryCleared = memoryNow - memoryLater;
         System.out.println("Memory cleared:" + memoryCleared);
-        initializing.set(Boolean.FALSE);
 
     }
 
     private void clearVariablesBOD() {
         logger.log(Level.INFO, "100,BODClear,{0}", new Object[]{TradingUtil.getAlgoDate()});
-        initializing.set(Boolean.FALSE);
+
 
     }
 
