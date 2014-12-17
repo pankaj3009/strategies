@@ -23,7 +23,6 @@ import com.incurrency.framework.TradingUtil;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
-import java.io.FileInputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -146,22 +145,22 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
 
     }
 
-    }
     @Override
-    public void displayStrategyValues(){
-               JFrame f=new ADRValues(this);  
-               f.pack();
-                GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-                GraphicsDevice defaultScreen = ge.getDefaultScreenDevice();
-                Rectangle rect = defaultScreen.getDefaultConfiguration().getBounds();
-                //int x = (int) rect.getMaxX() - f.getWidth();
-                int x=0;
-                int y = (int) rect.getMaxY() - f.getHeight()-50;
-                f.setLocation(x, y);                
-                f.setVisible(true);
-                f.setVisible(true);
-                
-}
+    public void displayStrategyValues() {
+        JFrame f = new ADRValues(this);
+        f.pack();
+        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        GraphicsDevice defaultScreen = ge.getDefaultScreenDevice();
+        Rectangle rect = defaultScreen.getDefaultConfiguration().getBounds();
+        //int x = (int) rect.getMaxX() - f.getWidth();
+        int x = 0;
+        int y = (int) rect.getMaxY() - f.getHeight() - 50;
+        f.setLocation(x, y);
+        f.setVisible(true);
+        f.setVisible(true);
+
+    }
+
     private void loadParameters(Properties p, String parameterFile) {
         setTrading(Boolean.valueOf(p.getProperty("Trading")));
         setIndex(p.getProperty("Index"));
