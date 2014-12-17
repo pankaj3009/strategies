@@ -29,6 +29,7 @@ public class Launch extends javax.swing.JFrame {
    static public boolean headless=false;
    private static final Logger logger=Logger.getLogger(Launch.class.getName());
    public static HashMap <String, String> input =new HashMap();
+   static private int level;
     /**
      * Creates new form Launch
      */
@@ -328,6 +329,12 @@ public class Launch extends javax.swing.JFrame {
             configFile = new FileInputStream("logging.properties");
             LogManager.getLogManager().readConfiguration(configFile);
             }
+            Logger incurrency=Logger.getLogger("com.incurrency");
+            Level loggingLevel=incurrency.getLevel();
+            level=loggingLevel.intValue();
+            
+            
+    
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             @Override
@@ -335,6 +342,23 @@ public class Launch extends javax.swing.JFrame {
                 if(!headless){
                 JFrame f=new Launch();
                 f.pack();
+                switch(level){
+                    case 1000:
+                        radioError.setSelected(true);
+                        break;
+                    case 800:
+                        radioInfo.setSelected(true);
+                        break;
+                    case 500:
+                        radioFine.setSelected(true);
+                        break;
+                    case 400:
+                        radioFiner.setSelected(true);
+                        break;
+                    default:
+                        break;
+                            
+                }
                 f.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
                 GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
                 GraphicsDevice defaultScreen = ge.getDefaultScreenDevice();
@@ -402,9 +426,9 @@ public class Launch extends javax.swing.JFrame {
     private javax.swing.JLabel lblCaptionProgramMessage;
     private static javax.swing.JLabel lblIBMessage;
     private static javax.swing.JLabel lblProgramMessage;
-    private javax.swing.JRadioButton radioError;
-    private javax.swing.JRadioButton radioFine;
-    private javax.swing.JRadioButton radioFiner;
-    private javax.swing.JRadioButton radioInfo;
+    private static javax.swing.JRadioButton radioError;
+    private static javax.swing.JRadioButton radioFine;
+    private static javax.swing.JRadioButton radioFiner;
+    private static javax.swing.JRadioButton radioInfo;
     // End of variables declaration//GEN-END:variables
 }

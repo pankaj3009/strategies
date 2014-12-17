@@ -31,27 +31,28 @@ public class ADRValues extends javax.swing.JFrame {
         contractSize=String.valueOf(a.getNumberOfContracts());
         scalpingMode=a.scalpingMode;
         trackLosingZone=a.isTrackLosingZone();
-        
-        this.txtMinRentryMove.setText(minReentryMove);
+        initComponents();
+                this.txtMinRentryMove.setText(minReentryMove);
         this.txtStopLoss.setText(this.stopLoss);
         this.txtTakeProfit.setText(this.takeProfit);
         this.txtContractCount.setText(this.contractSize);
         if(scalpingMode){
-            this.btnScalpingTrue.isEnabled();
+            this.btnScalpingTrue.setSelected(true);
         }else{
-            this.btnScalpingFalse.isEnabled();
+            this.btnScalpingFalse.setSelected(true);
         }
         if(trackLosingZone){
-            this.btnLosingZoneTrue.isEnabled();
+            this.btnLosingZoneTrue.setSelected(true);
         }else{
-            this.btnScalpingFalse.isEnabled();
+            this.btnLosingZoneFalse.setSelected(true);
         }
+        
         
         
     }
     
     public ADRValues(){
-        initComponents();
+        
     }
 
     /**
@@ -77,7 +78,7 @@ public class ADRValues extends javax.swing.JFrame {
         txtMinRentryMove = new javax.swing.JTextField();
         jLabel5 = new javax.swing.JLabel();
         btnLosingZoneTrue = new javax.swing.JRadioButton();
-        jRadioButton2 = new javax.swing.JRadioButton();
+        btnLosingZoneFalse = new javax.swing.JRadioButton();
         jLabel6 = new javax.swing.JLabel();
         txtContractCount = new javax.swing.JTextField();
         btnUpdate = new javax.swing.JButton();
@@ -161,6 +162,7 @@ public class ADRValues extends javax.swing.JFrame {
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 0, 0);
         getContentPane().add(jLabel5, gridBagConstraints);
 
+        buttonGroup2.add(btnLosingZoneTrue);
         btnLosingZoneTrue.setText("True");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
@@ -169,13 +171,14 @@ public class ADRValues extends javax.swing.JFrame {
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 0, 0);
         getContentPane().add(btnLosingZoneTrue, gridBagConstraints);
 
-        jRadioButton2.setText("False");
+        buttonGroup2.add(btnLosingZoneFalse);
+        btnLosingZoneFalse.setText("False");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 0, 0);
-        getContentPane().add(jRadioButton2, gridBagConstraints);
+        getContentPane().add(btnLosingZoneFalse, gridBagConstraints);
 
         jLabel6.setText("Number of Contracts");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -218,12 +221,12 @@ public class ADRValues extends javax.swing.JFrame {
         a.setStopLoss(Double.valueOf(this.txtStopLoss.getText()));
         a.takeProfit=Double.valueOf(this.txtTakeProfit.getText());
         a.setNumberOfContracts(Integer.valueOf(this.txtContractCount.getText()));
-        if(btnScalpingTrue.isEnabled()){
+        if(btnScalpingTrue.isSelected()){
             a.scalpingMode=true;
         }else{
             a.scalpingMode=false;
         }
-        if(this.btnLosingZoneTrue.isEnabled()){
+        if(this.btnLosingZoneTrue.isSelected()){
             a.setTrackLosingZone(true);
         }else{
             a.setTrackLosingZone(false);
@@ -260,11 +263,12 @@ public class ADRValues extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new ADRValues().setVisible(true);
+                
             }
         });
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JRadioButton btnLosingZoneFalse;
     private javax.swing.JRadioButton btnLosingZoneTrue;
     private javax.swing.JRadioButton btnScalpingFalse;
     private javax.swing.JRadioButton btnScalpingTrue;
@@ -277,7 +281,6 @@ public class ADRValues extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
-    private javax.swing.JRadioButton jRadioButton2;
     private javax.swing.JTextField txtContractCount;
     private javax.swing.JTextField txtMinRentryMove;
     private javax.swing.JTextField txtStopLoss;

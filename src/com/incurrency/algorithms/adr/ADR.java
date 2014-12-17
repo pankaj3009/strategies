@@ -148,16 +148,16 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
     @Override
     public void displayStrategyValues() {
         JFrame f = new ADRValues(this);
-        f.pack();
-        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-        GraphicsDevice defaultScreen = ge.getDefaultScreenDevice();
-        Rectangle rect = defaultScreen.getDefaultConfiguration().getBounds();
+        //f.pack();
+        //GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        //GraphicsDevice defaultScreen = ge.getDefaultScreenDevice();
+        //Rectangle rect = defaultScreen.getDefaultConfiguration().getBounds();
         //int x = (int) rect.getMaxX() - f.getWidth();
-        int x = 0;
-        int y = (int) rect.getMaxY() - f.getHeight() - 50;
-        f.setLocation(x, y);
+        //int x = 0;
+        //int y = (int) rect.getMaxY() - f.getHeight() - 50;
+        //f.setLocation(x, y);
         f.setVisible(true);
-        f.setVisible(true);
+
 
     }
 
@@ -220,7 +220,6 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                 }
             }
             if (getStrategySymbols().contains(id) && Parameters.symbol.get(id).getType().compareTo("STK") == 0) {
-                logger.log(Level.FINER, "ADR Data Received, {0}", new Object[]{"Symbol" + delimiter + Parameters.symbol.get(id).getDisplayname() + delimiter + "Type" + delimiter + event.getTickType() + delimiter + Parameters.symbol.get(id).getLastPriceTime()});
                 CurrentTimeEvent timeEvent = new CurrentTimeEvent(TradingUtil.getAlgoDate().getTime());
                 switch (event.getTickType()) {
                     case com.ib.client.TickType.LAST_SIZE:
