@@ -62,6 +62,7 @@ public class Launch extends javax.swing.JFrame {
         radioFine = new javax.swing.JRadioButton();
         radioInfo = new javax.swing.JRadioButton();
         radioError = new javax.swing.JRadioButton();
+        btnViewVariables = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         getContentPane().setLayout(new java.awt.GridBagLayout());
@@ -117,7 +118,7 @@ public class Launch extends javax.swing.JFrame {
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
-        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 0, 0);
         getContentPane().add(cmdTerminate, gridBagConstraints);
@@ -129,8 +130,9 @@ public class Launch extends javax.swing.JFrame {
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 0, 0);
         getContentPane().add(cmdOrderLogs, gridBagConstraints);
@@ -204,6 +206,20 @@ public class Launch extends javax.swing.JFrame {
         gridBagConstraints.weighty = 0.5;
         getContentPane().add(jPanel1, gridBagConstraints);
 
+        btnViewVariables.setText("View Variables");
+        btnViewVariables.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnViewVariablesActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(5, 5, 0, 0);
+        getContentPane().add(btnViewVariables, gridBagConstraints);
+
         setBounds(0, 0, 726, 254);
     }// </editor-fold>//GEN-END:initComponents
 
@@ -276,6 +292,12 @@ public class Launch extends javax.swing.JFrame {
         console.setLevel(Level.SEVERE);
         incurrency.setLevel(Level.SEVERE);
     }//GEN-LAST:event_radioErrorActionPerformed
+
+    private void btnViewVariablesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnViewVariablesActionPerformed
+        int index=MainAlgorithm.selectedStrategy;
+        Strategy s=MainAlgorithm.strategyInstances.get(index);
+          s.displayStrategyValues();
+    }//GEN-LAST:event_btnViewVariablesActionPerformed
 
     /**
      * @param args the command line arguments
@@ -371,6 +393,7 @@ public class Launch extends javax.swing.JFrame {
 
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnViewVariables;
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JButton cmdOrderLogs;
     private javax.swing.JButton cmdTerminate;
