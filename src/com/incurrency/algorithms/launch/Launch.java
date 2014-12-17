@@ -328,10 +328,11 @@ public class Launch extends javax.swing.JFrame {
             if(new File("logging.properties").exists()){
             configFile = new FileInputStream("logging.properties");
             LogManager.getLogManager().readConfiguration(configFile);
-            }
             Logger incurrency=Logger.getLogger("com.incurrency");
             Level loggingLevel=incurrency.getLevel();
             level=loggingLevel.intValue();
+            }
+
             
             
     
