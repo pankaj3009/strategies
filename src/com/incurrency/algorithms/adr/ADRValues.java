@@ -4,6 +4,9 @@
  */
 package com.incurrency.algorithms.adr;
 
+import com.incurrency.framework.TradingUtil;
+import java.util.Arrays;
+
 /**
  *
  * @author Pankaj
@@ -21,6 +24,8 @@ public class ADRValues extends javax.swing.JFrame {
     String contractSize;
     boolean scalpingMode;
     boolean trackLosingZone;
+    String scaleOutTargets;
+    String scaleOutSizes;
     ADR a;
     
     public ADRValues(ADR a) {
@@ -31,8 +36,10 @@ public class ADRValues extends javax.swing.JFrame {
         contractSize=String.valueOf(a.getNumberOfContracts());
         scalpingMode=a.scalpingMode;
         trackLosingZone=a.isTrackLosingZone();
+        scaleOutTargets=Arrays.toString(a.getScaleoutTargets()).replaceAll("\\[", "").replaceAll("\\]", "");
+        scaleOutSizes=Arrays.toString(a.getScaleOutSizes()).replaceAll("\\[", "").replaceAll("\\]", "");
         initComponents();
-                this.txtMinRentryMove.setText(minReentryMove);
+        this.txtMinRentryMove.setText(minReentryMove);
         this.txtStopLoss.setText(this.stopLoss);
         this.txtTakeProfit.setText(this.takeProfit);
         this.txtContractCount.setText(this.contractSize);
@@ -46,7 +53,8 @@ public class ADRValues extends javax.swing.JFrame {
         }else{
             this.btnLosingZoneFalse.setSelected(true);
         }
-        
+        this.txtScaleOutSizes.setText(scaleOutSizes);
+        this.txtScaleOutTargets.setText(scaleOutTargets);
         
         
     }
@@ -83,15 +91,17 @@ public class ADRValues extends javax.swing.JFrame {
         txtContractCount = new javax.swing.JTextField();
         btnUpdate = new javax.swing.JButton();
         jLabel7 = new javax.swing.JLabel();
-        tpTargets = new javax.swing.JTextField();
+        txtScaleOutTargets = new javax.swing.JTextField();
         jLabel8 = new javax.swing.JLabel();
-        tpContracts = new javax.swing.JTextField();
+        txtScaleOutSizes = new javax.swing.JTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
         jLabel1.setText("StopLoss");
         gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 0, 0);
         getContentPane().add(jLabel1, gridBagConstraints);
@@ -103,6 +113,8 @@ public class ADRValues extends javax.swing.JFrame {
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 0, 0);
         getContentPane().add(txtStopLoss, gridBagConstraints);
@@ -119,6 +131,7 @@ public class ADRValues extends javax.swing.JFrame {
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 0, 0);
         getContentPane().add(txtTakeProfit, gridBagConstraints);
 
@@ -221,12 +234,13 @@ public class ADRValues extends javax.swing.JFrame {
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 0, 0);
         getContentPane().add(jLabel7, gridBagConstraints);
 
-        tpTargets.setText("jTextField1");
+        txtScaleOutTargets.setText("jTextField1");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 4;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 0, 0);
-        getContentPane().add(tpTargets, gridBagConstraints);
+        getContentPane().add(txtScaleOutTargets, gridBagConstraints);
 
         jLabel8.setText("TPContracts");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -236,12 +250,13 @@ public class ADRValues extends javax.swing.JFrame {
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 0, 0);
         getContentPane().add(jLabel8, gridBagConstraints);
 
-        tpContracts.setText("jTextField2");
+        txtScaleOutSizes.setText("jTextField2");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 5;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 0, 0);
-        getContentPane().add(tpContracts, gridBagConstraints);
+        getContentPane().add(txtScaleOutSizes, gridBagConstraints);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -265,6 +280,8 @@ public class ADRValues extends javax.swing.JFrame {
         }else{
             a.setTrackLosingZone(false);
         }
+        a.setScaleoutTargets(TradingUtil.convertArrayToDouble(this.txtScaleOutTargets.getText().split(",")));
+        a.setScaleOutSizes(TradingUtil.convertArrayToInteger(this.txtScaleOutSizes.getText().split(",")));
     }//GEN-LAST:event_btnUpdateActionPerformed
 
     /**
@@ -317,10 +334,10 @@ public class ADRValues extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
-    private javax.swing.JTextField tpContracts;
-    private javax.swing.JTextField tpTargets;
     private javax.swing.JTextField txtContractCount;
     private javax.swing.JTextField txtMinRentryMove;
+    private javax.swing.JTextField txtScaleOutSizes;
+    private javax.swing.JTextField txtScaleOutTargets;
     private javax.swing.JTextField txtStopLoss;
     private javax.swing.JTextField txtTakeProfit;
     // End of variables declaration//GEN-END:variables

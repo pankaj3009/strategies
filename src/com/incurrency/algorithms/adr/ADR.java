@@ -173,8 +173,8 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
         reentryMinimumMove = p.getProperty("ReentryMinimumMove") == null ? 0D : Double.parseDouble(p.getProperty("ReentryMinimumMove"));
         adrRuleName = p.getProperty("ADRSymbolTag") == null ? "" : p.getProperty("ADRSymbolTag");
         setTrackLosingZone(p.getProperty("TrackLosingZones") == null ? Boolean.FALSE : Boolean.parseBoolean(p.getProperty("TrackLosingZones")));
-        scaleoutTargets = p.getProperty("ScaleOutTargets") != null ? TradingUtil.convertArrayToDouble(p.getProperty("ScaleOutTargets").split(",")) : null;
-        scaleOutSizes = p.getProperty("ScaleOutSizes") != null ? TradingUtil.convertArrayToInteger(p.getProperty("ScaleOutSizes").split(",")) : null;
+        setScaleoutTargets(p.getProperty("ScaleOutTargets") != null ? TradingUtil.convertArrayToDouble(p.getProperty("ScaleOutTargets").split(",")) : null);
+        setScaleOutSizes(p.getProperty("ScaleOutSizes") != null ? TradingUtil.convertArrayToInteger(p.getProperty("ScaleOutSizes").split(",")) : null);
 
         logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Use for Trading" + delimiter + MainAlgorithm.isUseForTrading()});
         logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "TradingAllowed" + delimiter + getTrading()});
@@ -191,8 +191,8 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
         logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "ReentryMinimumMove" + delimiter + reentryMinimumMove});
         logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "ADRRule" + delimiter + adrRuleName});
         logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "LosingZoneNoTrade" + delimiter + isTrackLosingZone()});
-        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "ScaleOutTargets" + delimiter + Arrays.toString(scaleoutTargets)});
-        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "ScaleOutRatios" + delimiter + Arrays.toString(scaleOutSizes)});
+        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "ScaleOutTargets" + delimiter + Arrays.toString(getScaleoutTargets())});
+        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "ScaleOutRatios" + delimiter + Arrays.toString(getScaleOutSizes())});
 
         
     }
@@ -314,11 +314,11 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                     boolean cCover = getPosition().get(id).getPosition() < 0;
                     boolean cSLCover = buyZone || ((price > indexLow + getStopLoss() && !shortZone) || (price > getEntryPrice() + getStopLoss())) || comparator.compare(TradingUtil.getAlgoDate(), getEndDate()) > 0;
                     boolean cTPCover = ((scalpingMode || !shortZone) && (price <= getEntryPrice() - trailingTP)) || trailingTPActive;
-                    boolean cScaleOutCover = scaleoutCount - 1 <= scaleOutSizes.length && price <= getEntryPrice() - scaleoutTargets[scaleoutCount - 1];
+                    boolean cScaleOutCover = scaleoutCount - 1 <= getScaleOutSizes().length && price <= getEntryPrice() - getScaleoutTargets()[scaleoutCount - 1];
                     boolean cSell = getPosition().get(id).getPosition() > 0;
                     boolean cSLSell = shortZone || ((price < indexHigh - getStopLoss() && !buyZone) || (price < getEntryPrice() - getStopLoss())) || comparator.compare(TradingUtil.getAlgoDate(), getEndDate()) > 0;
                     boolean cTPSell = ((scalpingMode || !buyZone) && (price >= getEntryPrice() + trailingTP)) || trailingTPActive;
-                    boolean cScaleOutSell = scaleoutCount - 1 <= scaleOutSizes.length && price >= getEntryPrice() + scaleoutTargets[scaleoutCount - 1];
+                    boolean cScaleOutSell = scaleoutCount - 1 <= getScaleOutSizes().length && price >= getEntryPrice() + getScaleoutTargets()[scaleoutCount - 1];
                     if (cEntry && (cBuy || cScalpingBuy)) {
                         adrTrigger = Trigger.BUY;
                     } else if (cEntry && (cShort || cScalpingShort)) {
@@ -380,7 +380,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                             TradingUtil.writeToFile(getStrategy() + ".csv", buyZone + "," + shortZone + "," + tradingSide + "," + adr + "," + adrHigh + "," + adrLow + "," + adrDayHigh + "," + adrDayLow + "," + adrAvg + "," + buyZone1 + "," + shortZone1 + "," + price + "," + indexHigh + "," + indexLow + "," + indexDayHigh + "," + indexDayLow + "," + indexAvg + "," + buyZone2 + "," + shortZone2 + "," + adrTRIN + "," + adrTRINAvg + "," + buyZone3 + "," + shortZone3 + "," + tick + "," + tickTRIN + "," + adrTRINHigh + "," + adrTRINLow + "," + getHighRange() + "," + getLowRange() + "," + "SLSELL", Parameters.symbol.get(id).getLastPriceTime());
                             break;
                         case SCALEOUTSELL:
-                            int size = scaleOutSizes[scaleoutCount - 1] * Parameters.symbol.get(id).getMinsize();
+                            int size = getScaleOutSizes()[scaleoutCount - 1] * Parameters.symbol.get(id).getMinsize();
                             exit(id, size, EnumOrderSide.SELL, EnumOrderType.LMT, price, 0, "", true, "DAY", false, EnumOrderReason.REGULAREXIT, "");
                             scaleoutCount = scaleoutCount + 1;
                             TradingUtil.writeToFile(getStrategy() + ".csv", buyZone + "," + shortZone + "," + tradingSide + "," + adr + "," + adrHigh + "," + adrLow + "," + adrDayHigh + "," + adrDayLow + "," + adrAvg + "," + buyZone1 + "," + shortZone1 + "," + price + "," + indexHigh + "," + indexLow + "," + indexDayHigh + "," + indexDayLow + "," + indexAvg + "," + buyZone2 + "," + shortZone2 + "," + adrTRIN + "," + adrTRINAvg + "," + buyZone3 + "," + shortZone3 + "," + tick + "," + tickTRIN + "," + adrTRINHigh + "," + adrTRINLow + "," + getHighRange() + "," + getLowRange() + "," + "SCALEOUTSELL", Parameters.symbol.get(id).getLastPriceTime());
@@ -427,7 +427,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                             TradingUtil.writeToFile(getStrategy() + ".csv", buyZone + "," + shortZone + "," + tradingSide + "," + adr + "," + adrHigh + "," + adrLow + "," + adrDayHigh + "," + adrDayLow + "," + adrAvg + "," + buyZone1 + "," + shortZone1 + "," + price + "," + indexHigh + "," + indexLow + "," + indexDayHigh + "," + indexDayLow + "," + indexAvg + "," + buyZone2 + "," + shortZone2 + "," + adrTRIN + "," + adrTRINAvg + "," + buyZone3 + "," + shortZone3 + "," + tick + "," + tickTRIN + "," + adrTRINHigh + "," + adrTRINLow + "," + getHighRange() + "," + getLowRange() + "," + "SLCOVER", Parameters.symbol.get(id).getLastPriceTime());
                             break;
                         case SCALEOUTCOVER:
-                            size = scaleOutSizes[scaleoutCount - 1] * Parameters.symbol.get(id).getMinsize();
+                            size = getScaleOutSizes()[scaleoutCount - 1] * Parameters.symbol.get(id).getMinsize();
                             exit(id, size, EnumOrderSide.BUY, EnumOrderType.LMT, price, 0, "", true, "DAY", true, EnumOrderReason.REGULAREXIT, "");
                             scaleoutCount = scaleoutCount + 1;
                             TradingUtil.writeToFile(getStrategy() + ".csv", buyZone + "," + shortZone + "," + tradingSide + "," + adr + "," + adrHigh + "," + adrLow + "," + adrDayHigh + "," + adrDayLow + "," + adrAvg + "," + buyZone1 + "," + shortZone1 + "," + price + "," + indexHigh + "," + indexLow + "," + indexDayHigh + "," + indexDayLow + "," + indexAvg + "," + buyZone2 + "," + shortZone2 + "," + adrTRIN + "," + adrTRINAvg + "," + buyZone3 + "," + shortZone3 + "," + tick + "," + tickTRIN + "," + adrTRINHigh + "," + adrTRINLow + "," + getHighRange() + "," + getLowRange() + "," + "SCALEOUTCOVER", Parameters.symbol.get(id).getLastPriceTime());
@@ -757,5 +757,33 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
      */
     public void setTrackLosingZone(boolean trackLosingZone) {
         this.trackLosingZone = trackLosingZone;
+    }
+
+    /**
+     * @return the scaleoutTargets
+     */
+    public Double[] getScaleoutTargets() {
+        return scaleoutTargets;
+    }
+
+    /**
+     * @param scaleoutTargets the scaleoutTargets to set
+     */
+    public void setScaleoutTargets(Double[] scaleoutTargets) {
+        this.scaleoutTargets = scaleoutTargets;
+    }
+
+    /**
+     * @return the scaleOutSizes
+     */
+    public Integer[] getScaleOutSizes() {
+        return scaleOutSizes;
+    }
+
+    /**
+     * @param scaleOutSizes the scaleOutSizes to set
+     */
+    public void setScaleOutSizes(Integer[] scaleOutSizes) {
+        this.scaleOutSizes = scaleOutSizes;
     }
 }
