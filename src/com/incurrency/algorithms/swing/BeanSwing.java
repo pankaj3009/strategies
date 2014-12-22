@@ -84,12 +84,12 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
                 if (p.getPosition() > 0) {
                     //get take profit
                     String passToOrderObject=p.getSymbolid()+DateUtil.getFormatedDate("yyyyMMdd", p.getPositionInitDate().getTime());
-                    exit(p.getSymbolid(), EnumOrderSide.SELL,EnumOrderType.LMT, p.getPrice() + takeProfit, 0, Parameters.symbol.get(p.getSymbolid()).getSymbol(), false, "DAY", false,EnumOrderReason.OCOTP,passToOrderObject); //take profit
-                    exit(p.getSymbolid(), EnumOrderSide.SELL,EnumOrderType.LMT, p.getPrice() - stopLoss, p.getPrice() - stopLoss, Parameters.symbol.get(p.getSymbolid()).getSymbol(), true, "DAY", false,EnumOrderReason.OCOSL,passToOrderObject); //stop loss
+                    exit(p.getSymbolid(), 0,EnumOrderSide.SELL,EnumOrderType.LMT, p.getPrice() + takeProfit, 0, Parameters.symbol.get(p.getSymbolid()).getSymbol(), false, "DAY", false,EnumOrderReason.OCOTP,passToOrderObject); //take profit
+                    exit(p.getSymbolid(),0, EnumOrderSide.SELL,EnumOrderType.LMT, p.getPrice() - stopLoss, p.getPrice() - stopLoss, Parameters.symbol.get(p.getSymbolid()).getSymbol(), true, "DAY", false,EnumOrderReason.OCOSL,passToOrderObject); //stop loss
                 } else if (p.getPosition() < 0) {
                     String passToOrderObject=p.getSymbolid()+DateUtil.getFormatedDate("yyyyMMdd", p.getPositionInitDate().getTime());
-                    exit(p.getSymbolid(), EnumOrderSide.COVER,EnumOrderType.LMT, p.getPrice() - takeProfit, 0, Parameters.symbol.get(p.getSymbolid()).getSymbol(), false, "DAY", false,EnumOrderReason.OCOTP,passToOrderObject); //take profit
-                    exit(p.getSymbolid(), EnumOrderSide.COVER,EnumOrderType.LMT, p.getPrice() + stopLoss, p.getPrice() + stopLoss, Parameters.symbol.get(p.getSymbolid()).getSymbol(), true, "DAY", false,EnumOrderReason.OCOSL,passToOrderObject); //stop loss
+                    exit(p.getSymbolid(),0, EnumOrderSide.COVER,EnumOrderType.LMT, p.getPrice() - takeProfit, 0, Parameters.symbol.get(p.getSymbolid()).getSymbol(), false, "DAY", false,EnumOrderReason.OCOTP,passToOrderObject); //take profit
+                    exit(p.getSymbolid(),0, EnumOrderSide.COVER,EnumOrderType.LMT, p.getPrice() + stopLoss, p.getPrice() + stopLoss, Parameters.symbol.get(p.getSymbolid()).getSymbol(), true, "DAY", false,EnumOrderReason.OCOSL,passToOrderObject); //stop loss
                 }
             }
         }
