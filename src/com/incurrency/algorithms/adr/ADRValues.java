@@ -27,7 +27,7 @@ public class ADRValues extends javax.swing.JFrame {
         this.a=a;
         minReentryMove=String.valueOf(a.reentryMinimumMove);
         stopLoss=String.valueOf(a.getStopLoss());
-        takeProfit=String.valueOf(a.takeProfit);
+        takeProfit=String.valueOf(a.trailingTP);
         contractSize=String.valueOf(a.getNumberOfContracts());
         scalpingMode=a.scalpingMode;
         trackLosingZone=a.isTrackLosingZone();
@@ -219,7 +219,7 @@ public class ADRValues extends javax.swing.JFrame {
     private void btnUpdateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUpdateActionPerformed
         a.reentryMinimumMove=Double.valueOf(this.txtMinRentryMove.getText());
         a.setStopLoss(Double.valueOf(this.txtStopLoss.getText()));
-        a.takeProfit=Double.valueOf(this.txtTakeProfit.getText());
+        a.trailingTP=Double.valueOf(this.txtTakeProfit.getText());
         a.setNumberOfContracts(Integer.valueOf(this.txtContractCount.getText()));
         if(btnScalpingTrue.isSelected()){
             a.scalpingMode=true;
