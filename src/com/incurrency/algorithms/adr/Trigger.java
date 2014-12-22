@@ -8,6 +8,6 @@ package com.incurrency.algorithms.adr;
  *
  * @author Pankaj
  */
-public enum Trigger {BUY,SELL,SHORT,COVER,TP,SL,SCALEIN,SCALEOUT,UNDEFINED
+public enum Trigger {BUY,SLSELL,TPSELL,SHORT,SLCOVER,TPCOVER,SCALEOUTSELL,SCALEOUTCOVER,UNDEFINED
     
 }

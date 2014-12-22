@@ -82,6 +82,10 @@ public class ADRValues extends javax.swing.JFrame {
         jLabel6 = new javax.swing.JLabel();
         txtContractCount = new javax.swing.JTextField();
         btnUpdate = new javax.swing.JButton();
+        jLabel7 = new javax.swing.JLabel();
+        tpTargets = new javax.swing.JTextField();
+        jLabel8 = new javax.swing.JLabel();
+        tpContracts = new javax.swing.JTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         getContentPane().setLayout(new java.awt.GridBagLayout());
@@ -209,6 +213,36 @@ public class ADRValues extends javax.swing.JFrame {
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 0, 0);
         getContentPane().add(btnUpdate, gridBagConstraints);
 
+        jLabel7.setText("TPTargets");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(5, 5, 0, 0);
+        getContentPane().add(jLabel7, gridBagConstraints);
+
+        tpTargets.setText("jTextField1");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.insets = new java.awt.Insets(5, 5, 0, 0);
+        getContentPane().add(tpTargets, gridBagConstraints);
+
+        jLabel8.setText("TPContracts");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(5, 5, 0, 0);
+        getContentPane().add(jLabel8, gridBagConstraints);
+
+        tpContracts.setText("jTextField2");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.insets = new java.awt.Insets(5, 5, 0, 0);
+        getContentPane().add(tpContracts, gridBagConstraints);
+
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
@@ -281,6 +315,10 @@ public class ADRValues extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel8;
+    private javax.swing.JTextField tpContracts;
+    private javax.swing.JTextField tpTargets;
     private javax.swing.JTextField txtContractCount;
     private javax.swing.JTextField txtMinRentryMove;
     private javax.swing.JTextField txtStopLoss;
