@@ -314,11 +314,11 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                     boolean cCover = getPosition().get(id).getPosition() < 0;
                     boolean cSLCover = buyZone || ((price > indexLow + getStopLoss() && !shortZone) || (price > getEntryPrice() + getStopLoss())) || comparator.compare(TradingUtil.getAlgoDate(), getEndDate()) > 0;
                     boolean cTPCover = ((scalpingMode || !shortZone) && (price <= getEntryPrice() - trailingTP)) || trailingTPActive;
-                    boolean cScaleOutCover = scaleoutCount - 1 <= getScaleOutSizes().length && price <= getEntryPrice() - getScaleoutTargets()[scaleoutCount - 1];
+                    boolean cScaleOutCover = scaleoutCount - 1 < getScaleOutSizes().length && price <= getEntryPrice() - getScaleoutTargets()[scaleoutCount - 1];
                     boolean cSell = getPosition().get(id).getPosition() > 0;
                     boolean cSLSell = shortZone || ((price < indexHigh - getStopLoss() && !buyZone) || (price < getEntryPrice() - getStopLoss())) || comparator.compare(TradingUtil.getAlgoDate(), getEndDate()) > 0;
                     boolean cTPSell = ((scalpingMode || !buyZone) && (price >= getEntryPrice() + trailingTP)) || trailingTPActive;
-                    boolean cScaleOutSell = scaleoutCount - 1 <= getScaleOutSizes().length && price >= getEntryPrice() + getScaleoutTargets()[scaleoutCount - 1];
+                    boolean cScaleOutSell = scaleoutCount - 1 < getScaleOutSizes().length && price >= getEntryPrice() + getScaleoutTargets()[scaleoutCount - 1];
                     if (cEntry && (cBuy || cScalpingBuy)) {
                         adrTrigger = Trigger.BUY;
                     } else if (cEntry && (cShort || cScalpingShort)) {
@@ -428,7 +428,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                             break;
                         case SCALEOUTCOVER:
                             size = getScaleOutSizes()[scaleoutCount - 1] * Parameters.symbol.get(id).getMinsize();
-                            exit(id, size, EnumOrderSide.BUY, EnumOrderType.LMT, price, 0, "", true, "DAY", true, EnumOrderReason.REGULAREXIT, "");
+                            exit(id, size, EnumOrderSide.COVER, EnumOrderType.LMT, price, 0, "", true, "DAY", true, EnumOrderReason.REGULAREXIT, "");
                             scaleoutCount = scaleoutCount + 1;
                             TradingUtil.writeToFile(getStrategy() + ".csv", buyZone + "," + shortZone + "," + tradingSide + "," + adr + "," + adrHigh + "," + adrLow + "," + adrDayHigh + "," + adrDayLow + "," + adrAvg + "," + buyZone1 + "," + shortZone1 + "," + price + "," + indexHigh + "," + indexLow + "," + indexDayHigh + "," + indexDayLow + "," + indexAvg + "," + buyZone2 + "," + shortZone2 + "," + adrTRIN + "," + adrTRINAvg + "," + buyZone3 + "," + shortZone3 + "," + tick + "," + tickTRIN + "," + adrTRINHigh + "," + adrTRINLow + "," + getHighRange() + "," + getLowRange() + "," + "SCALEOUTCOVER", Parameters.symbol.get(id).getLastPriceTime());
                             break;
