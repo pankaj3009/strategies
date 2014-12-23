@@ -314,11 +314,11 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                     boolean cCover = getPosition().get(id).getPosition() < 0;
                     boolean cSLCover = buyZone || ((price > indexLow + getStopLoss() && !shortZone) || (price > getEntryPrice() + getStopLoss())) || comparator.compare(TradingUtil.getAlgoDate(), getEndDate()) > 0;
                     boolean cTPCover = ((scalpingMode || !shortZone) && (price <= getEntryPrice() - trailingTP)) || trailingTPActive;
-                    boolean cScaleOutCover = scaleoutCount - 1 < getScaleOutSizes().length && price <= getEntryPrice() - getScaleoutTargets()[scaleoutCount - 1];
+                    boolean cScaleOutCover = getScaleOutSizes()!=null && scaleoutCount - 1 < getScaleOutSizes().length && price <= getEntryPrice() - getScaleoutTargets()[scaleoutCount - 1];
                     boolean cSell = getPosition().get(id).getPosition() > 0;
                     boolean cSLSell = shortZone || ((price < indexHigh - getStopLoss() && !buyZone) || (price < getEntryPrice() - getStopLoss())) || comparator.compare(TradingUtil.getAlgoDate(), getEndDate()) > 0;
                     boolean cTPSell = ((scalpingMode || !buyZone) && (price >= getEntryPrice() + trailingTP)) || trailingTPActive;
-                    boolean cScaleOutSell = scaleoutCount - 1 < getScaleOutSizes().length && price >= getEntryPrice() + getScaleoutTargets()[scaleoutCount - 1];
+                    boolean cScaleOutSell = getScaleOutSizes()!=null && scaleoutCount - 1 < getScaleOutSizes().length && price >= getEntryPrice() + getScaleoutTargets()[scaleoutCount - 1];
                     if (cEntry && (cBuy || cScalpingBuy)) {
                         adrTrigger = Trigger.BUY;
                     } else if (cEntry && (cShort || cScalpingShort)) {
