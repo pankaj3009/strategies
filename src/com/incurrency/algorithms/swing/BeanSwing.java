@@ -18,6 +18,7 @@ import com.incurrency.framework.EnumOrderSide;
 import com.incurrency.framework.EnumOrderType;
 import com.incurrency.framework.HistoricalBars;
 import com.incurrency.algorithms.launch.Launch;
+import com.incurrency.framework.EnumSource;
 import com.incurrency.framework.MainAlgorithm;
 import com.incurrency.framework.NotificationEvent;
 import com.incurrency.framework.Parameters;
@@ -225,7 +226,7 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
         try {
             //get historical data - this can be done before start time, assuming the program is started next day
 
-            Thread t = new Thread(new HistoricalBars(strategy, type));
+            Thread t = new Thread(new HistoricalBars(strategy, type,EnumSource.IB));
             t.setName("Historical Bars");
             if (!Launch.headless) {
                 Launch.setMessage("Starting request of Historical Data");

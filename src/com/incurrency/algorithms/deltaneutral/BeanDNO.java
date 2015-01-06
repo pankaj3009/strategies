@@ -17,6 +17,7 @@ import com.incurrency.framework.HistoricalBarListener;
 import com.incurrency.framework.HistoricalBars;
 import com.incurrency.framework.MainAlgorithm;
 import com.incurrency.algorithms.launch.Launch;
+import com.incurrency.framework.EnumSource;
 import com.incurrency.framework.Parameters;
 import com.incurrency.framework.Splits;
 import com.incurrency.framework.Trade;
@@ -178,7 +179,7 @@ public class BeanDNO implements TradeListener, BidAskListener, HistoricalBarList
         try {
             //get historical data - this can be done before start time, assuming the program is started next day
 
-            Thread t = new Thread(new HistoricalBars(strategy,type));
+            Thread t = new Thread(new HistoricalBars(strategy,type,EnumSource.IB));
             t.setName("Historical Bars");
             if (!Launch.headless) {
                 Launch.setMessage("Starting request of Historical Data for yesterday");
