@@ -12,9 +12,12 @@ import com.incurrency.framework.MainAlgorithm;
 import com.incurrency.framework.BeanConnection;
 import com.incurrency.framework.BeanSymbol;
 import com.incurrency.framework.DateUtil;
+import com.incurrency.framework.EnumBarSize;
 import com.incurrency.framework.EnumOrderReason;
 import com.incurrency.framework.EnumOrderSide;
 import com.incurrency.framework.EnumOrderType;
+import com.incurrency.framework.EnumSource;
+import com.incurrency.framework.HistoricalBarsIntraDay;
 import com.incurrency.framework.Parameters;
 import com.incurrency.framework.Strategy;
 import com.incurrency.framework.TradeEvent;
@@ -30,6 +33,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Properties;
+import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -145,6 +149,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
         }
         comparator = DateTimeComparator.getTimeOnlyInstance();
         sdf = new SimpleDateFormat("yyyyMMdd");
+        getHistoricalData("ADR");
 
 
     }
@@ -157,6 +162,14 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
 
     }
 
+        private void getHistoricalData(String mainStrategy) {
+            //EnumSource source, EnumBarSize barSize, Date startDate, Date endDate, BeanSymbol s, int tradingMinutes, String openTime, String endTime, TimeZone timeZone, List<String> holidays
+            for(BeanSymbol s:Parameters.symbol){
+                new Thread(new HistoricalBarsIntraDay(EnumSource.CASSANDRA,EnumBarSize.ONESECOND,new Date(),new Date(),s,0,"","",TimeZone.getDefault(),null)).run();
+        }
+        }
+    
+        
     private void loadParameters(Properties p, String parameterFile) {
         setTrading(Boolean.valueOf(p.getProperty("Trading")));
         setIndex(p.getProperty("Index"));
