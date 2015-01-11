@@ -85,12 +85,12 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
                 if (p.getPosition() > 0) {
                     //get take profit
                     String passToOrderObject=p.getSymbolid()+DateUtil.getFormatedDate("yyyyMMdd", p.getPositionInitDate().getTime());
-                    exit(p.getSymbolid(), 0,EnumOrderSide.SELL,EnumOrderType.LMT, p.getPrice() + takeProfit, 0, Parameters.symbol.get(p.getSymbolid()).getSymbol(), false, "DAY", false,EnumOrderReason.OCOTP,passToOrderObject); //take profit
-                    exit(p.getSymbolid(),0, EnumOrderSide.SELL,EnumOrderType.LMT, p.getPrice() - stopLoss, p.getPrice() - stopLoss, Parameters.symbol.get(p.getSymbolid()).getSymbol(), true, "DAY", false,EnumOrderReason.OCOSL,passToOrderObject); //stop loss
+//                    exit(p.getSymbolid(), 0,EnumOrderSide.SELL,EnumOrderType.LMT, p.getPrice() + takeProfit, 0, Parameters.symbol.get(p.getSymbolid()).getSymbol(), false, "DAY", false,EnumOrderReason.OCOTP,passToOrderObject); //take profit
+//                    exit(p.getSymbolid(),0, EnumOrderSide.SELL,EnumOrderType.LMT, p.getPrice() - stopLoss, p.getPrice() - stopLoss, Parameters.symbol.get(p.getSymbolid()).getSymbol(), true, "DAY", false,EnumOrderReason.OCOSL,passToOrderObject); //stop loss
                 } else if (p.getPosition() < 0) {
                     String passToOrderObject=p.getSymbolid()+DateUtil.getFormatedDate("yyyyMMdd", p.getPositionInitDate().getTime());
-                    exit(p.getSymbolid(),0, EnumOrderSide.COVER,EnumOrderType.LMT, p.getPrice() - takeProfit, 0, Parameters.symbol.get(p.getSymbolid()).getSymbol(), false, "DAY", false,EnumOrderReason.OCOTP,passToOrderObject); //take profit
-                    exit(p.getSymbolid(),0, EnumOrderSide.COVER,EnumOrderType.LMT, p.getPrice() + stopLoss, p.getPrice() + stopLoss, Parameters.symbol.get(p.getSymbolid()).getSymbol(), true, "DAY", false,EnumOrderReason.OCOSL,passToOrderObject); //stop loss
+//                    exit(p.getSymbolid(),0, EnumOrderSide.COVER,EnumOrderType.LMT, p.getPrice() - takeProfit, 0, Parameters.symbol.get(p.getSymbolid()).getSymbol(), false, "DAY", false,EnumOrderReason.OCOTP,passToOrderObject); //take profit
+//                    exit(p.getSymbolid(),0, EnumOrderSide.COVER,EnumOrderType.LMT, p.getPrice() + stopLoss, p.getPrice() + stopLoss, Parameters.symbol.get(p.getSymbolid()).getSymbol(), true, "DAY", false,EnumOrderReason.OCOSL,passToOrderObject); //stop loss
                 }
             }
         }
@@ -292,13 +292,13 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
                             macdPercentageOfPrice+","+rsi.get(rsi.size() - 1)+","+B1+","+B2+","+B3+","+B4+","+S1+","+S2+","+S3+","+S4+","+position+","+"SCAN");
 
                     if (B1 && B2 && B3 && B4 && position<=0) {
-                        entry(futureID, EnumOrderSide.BUY, EnumOrderType.LMT,Parameters.symbol.get(futureID).getLastPrice(), 0, false,EnumOrderReason.REGULARENTRY,"");
+//                        entry(futureID, EnumOrderSide.BUY, EnumOrderType.LMT,Parameters.symbol.get(futureID).getLastPrice(), 0, false,EnumOrderReason.REGULARENTRY,"");
                         p.setSymbolid(futureID);
                         p.setPosition(Parameters.symbol.get(futureID).getMinsize() * getNumberOfContracts());
                         p.setPrice(Parameters.symbol.get(futureID).getLastPrice());
                         
                     } else if (S1 && S2 && S3 && S4 && position>=0) {
-                        entry(futureID, EnumOrderSide.SHORT,EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, false,EnumOrderReason.REGULARENTRY,"");
+  //                      entry(futureID, EnumOrderSide.SHORT,EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, false,EnumOrderReason.REGULARENTRY,"");
                         p.setSymbolid(futureID);
                         p.setPosition(-Parameters.symbol.get(futureID).getMinsize() * getNumberOfContracts());
                         p.setPrice(Parameters.symbol.get(futureID).getLastPrice());

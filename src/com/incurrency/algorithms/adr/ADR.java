@@ -15,6 +15,7 @@ import com.incurrency.framework.DateUtil;
 import com.incurrency.framework.EnumBarSize;
 import com.incurrency.framework.EnumOrderReason;
 import com.incurrency.framework.EnumOrderSide;
+import com.incurrency.framework.EnumOrderStage;
 import com.incurrency.framework.EnumOrderType;
 import com.incurrency.framework.EnumSource;
 import com.incurrency.framework.HistoricalBarsIntraDay;
@@ -149,9 +150,6 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
         }
         comparator = DateTimeComparator.getTimeOnlyInstance();
         sdf = new SimpleDateFormat("yyyyMMdd");
-        getHistoricalData("ADR");
-
-
     }
 
     @Override
@@ -162,14 +160,6 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
 
     }
 
-        private void getHistoricalData(String mainStrategy) {
-            //EnumSource source, EnumBarSize barSize, Date startDate, Date endDate, BeanSymbol s, int tradingMinutes, String openTime, String endTime, TimeZone timeZone, List<String> holidays
-            for(BeanSymbol s:Parameters.symbol){
-                new Thread(new HistoricalBarsIntraDay(EnumSource.CASSANDRA,EnumBarSize.ONESECOND,new Date(),new Date(),s,0,"","",TimeZone.getDefault(),null)).run();
-        }
-        }
-    
-        
     private void loadParameters(Properties p, String parameterFile) {
         setTrading(Boolean.valueOf(p.getProperty("Trading")));
         setIndex(p.getProperty("Index"));
@@ -364,16 +354,17 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                                 setHighRange(Double.MIN_VALUE);
                                 setLowRange(Double.MAX_VALUE);
                                 logger.log(Level.INFO, "501,Strategy BUY,{0}", new Object[]{getStrategy() + delimiter + "BUY" + delimiter + adrHigh + delimiter + adrLow + delimiter + adrAvg + delimiter + adrTRINHigh + delimiter + adrTRINLow + delimiter + adrTRINAvg + delimiter + indexHigh + delimiter + indexLow + delimiter + indexAvg + delimiter + buyZone1 + delimiter + buyZone2 + delimiter + buyZone3 + delimiter + shortZone1 + delimiter + shortZone2 + delimiter + shortZone3 + delimiter + adr + delimiter + adrTRIN + delimiter + tick + delimiter + tickTRIN + delimiter + adrDayHigh + delimiter + adrDayLow + delimiter + indexDayHigh + delimiter + indexDayLow + delimiter + price});
-                                entry(id, EnumOrderSide.BUY, EnumOrderType.LMT, getEntryPrice(), 0, false, EnumOrderReason.REGULARENTRY, "");
+                                entry(id, EnumOrderSide.BUY,0, EnumOrderType.LMT, getEntryPrice(), 0, EnumOrderReason.REGULARENTRY,EnumOrderStage.INIT,getMaxOrderDuration(),getDynamicOrderDuration(),getMaxSlippageExit(),"","DAY","",false, true);
                                 tradingSide = 1;
                                 TradingUtil.writeToFile(getStrategy() + ".csv", buyZone + "," + shortZone + "," + tradingSide + "," + adr + "," + adrHigh + "," + adrLow + "," + adrDayHigh + "," + adrDayLow + "," + adrAvg + "," + buyZone1 + "," + shortZone1 + "," + price + "," + indexHigh + "," + indexLow + "," + indexDayHigh + "," + indexDayLow + "," + indexAvg + "," + buyZone2 + "," + shortZone2 + "," + adrTRIN + "," + adrTRINAvg + "," + buyZone3 + "," + shortZone3 + "," + tick + "," + tickTRIN + "," + adrTRINHigh + "," + adrTRINLow + "," + getHighRange() + "," + getLowRange() + "," + "BUY");
                             }
+                            scaleoutCount=1;
                             break;
                         case TPSELL:
                             trailingTPActive = true;
                             if (price <= indexHigh - 0.5 * trailingTP) {
                                 logger.log(Level.INFO, "501,Strategy TPSELL,{0}", new Object[]{getStrategy() + delimiter + "SELL" + delimiter + adrHigh + delimiter + adrLow + delimiter + adrAvg + delimiter + adrTRINHigh + delimiter + adrTRINLow + delimiter + adrTRINAvg + delimiter + indexHigh + delimiter + indexLow + delimiter + indexAvg + delimiter + buyZone1 + delimiter + buyZone2 + delimiter + buyZone3 + delimiter + shortZone1 + delimiter + shortZone2 + delimiter + shortZone3 + delimiter + adr + delimiter + adrTRIN + delimiter + tick + delimiter + tickTRIN + delimiter + adrDayHigh + delimiter + adrDayLow + delimiter + indexDayHigh + delimiter + indexDayLow + delimiter + price});
-                                exit(id, 0, EnumOrderSide.SELL, EnumOrderType.LMT, price, 0, "", true, "DAY", false, EnumOrderReason.REGULAREXIT, "");
+                                exit(id, EnumOrderSide.SELL,0, EnumOrderType.LMT, price, 0, EnumOrderReason.REGULAREXIT,EnumOrderStage.INIT,getMaxOrderDuration(),getDynamicOrderDuration(),getMaxSlippageExit(),"","DAY","",false, true);
                                 setLastLongExit(price);
                                 trailingTPActive = false;
                                 if (price < getEntryPrice()) {
@@ -384,7 +375,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                             break;
                         case SLSELL:
                             logger.log(Level.INFO, "501,Strategy SLSELL,{0}", new Object[]{getStrategy() + delimiter + "SELL" + delimiter + adrHigh + delimiter + adrLow + delimiter + adrAvg + delimiter + adrTRINHigh + delimiter + adrTRINLow + delimiter + adrTRINAvg + delimiter + indexHigh + delimiter + indexLow + delimiter + indexAvg + delimiter + buyZone1 + delimiter + buyZone2 + delimiter + buyZone3 + delimiter + shortZone1 + delimiter + shortZone2 + delimiter + shortZone3 + delimiter + adr + delimiter + adrTRIN + delimiter + tick + delimiter + tickTRIN + delimiter + adrDayHigh + delimiter + adrDayLow + delimiter + indexDayHigh + delimiter + indexDayLow + delimiter + price});
-                            exit(id, 0, EnumOrderSide.SELL, EnumOrderType.LMT, price, 0, "", true, "DAY", false, EnumOrderReason.REGULAREXIT, "");
+                           exit(id, EnumOrderSide.SELL,0, EnumOrderType.LMT, price, 0, EnumOrderReason.REGULAREXIT,EnumOrderStage.INIT,getMaxOrderDuration(),getDynamicOrderDuration(),getMaxSlippageExit(),"","DAY","",false, true);
                             setLastLongExit(price);
                             if (price < getEntryPrice()) {
                                 noTradeZone.add(new TradeRestriction(EnumOrderSide.BUY, getHighRange(), getLowRange()));
@@ -395,7 +386,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                         case SCALEOUTSELL:
                             logger.log(Level.INFO, "501,Strategy SCALEOUTSELL,{0}", new Object[]{getStrategy() + delimiter + "SELL" + delimiter + adrHigh + delimiter + adrLow + delimiter + adrAvg + delimiter + adrTRINHigh + delimiter + adrTRINLow + delimiter + adrTRINAvg + delimiter + indexHigh + delimiter + indexLow + delimiter + indexAvg + delimiter + buyZone1 + delimiter + buyZone2 + delimiter + buyZone3 + delimiter + shortZone1 + delimiter + shortZone2 + delimiter + shortZone3 + delimiter + adr + delimiter + adrTRIN + delimiter + tick + delimiter + tickTRIN + delimiter + adrDayHigh + delimiter + adrDayLow + delimiter + indexDayHigh + delimiter + indexDayLow + delimiter + price+delimiter+scaleoutCount});
                             int size = getScaleOutSizes()[scaleoutCount - 1] * Parameters.symbol.get(id).getMinsize();
-                            exit(id, size, EnumOrderSide.SELL, EnumOrderType.LMT, price, 0, "", true, "DAY", true, EnumOrderReason.REGULAREXIT, "");
+                            exit(id, EnumOrderSide.SELL,size, EnumOrderType.LMT, price, 0, EnumOrderReason.REGULAREXIT,EnumOrderStage.INIT,getMaxOrderDuration(),getDynamicOrderDuration(),getMaxSlippageExit(),"","DAY","",true, true);
                             scaleoutCount = scaleoutCount + 1;
                             TradingUtil.writeToFile(getStrategy() + ".csv", buyZone + "," + shortZone + "," + tradingSide + "," + adr + "," + adrHigh + "," + adrLow + "," + adrDayHigh + "," + adrDayLow + "," + adrAvg + "," + buyZone1 + "," + shortZone1 + "," + price + "," + indexHigh + "," + indexLow + "," + indexDayHigh + "," + indexDayLow + "," + indexAvg + "," + buyZone2 + "," + shortZone2 + "," + adrTRIN + "," + adrTRINAvg + "," + buyZone3 + "," + shortZone3 + "," + tick + "," + tickTRIN + "," + adrTRINHigh + "," + adrTRINLow + "," + getHighRange() + "," + getLowRange() + "," + "SCALEOUTSELL", Parameters.symbol.get(id).getLastPriceTime());
                             break;
@@ -412,16 +403,17 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                                 setHighRange(Double.MIN_VALUE);
                                 setLowRange(Double.MAX_VALUE);
                                 logger.log(Level.INFO, "501,Strategy SHORT,{0}", new Object[]{getStrategy() + delimiter + "SHORT" + delimiter + adrHigh + delimiter + adrLow + delimiter + adrAvg + delimiter + adrTRINHigh + delimiter + adrTRINLow + delimiter + adrTRINAvg + delimiter + indexHigh + delimiter + indexLow + delimiter + indexAvg + delimiter + buyZone1 + delimiter + buyZone2 + delimiter + buyZone3 + delimiter + shortZone1 + delimiter + shortZone2 + delimiter + shortZone3 + delimiter + adr + delimiter + adrTRIN + delimiter + tick + delimiter + tickTRIN + delimiter + adrDayHigh + delimiter + adrDayLow + delimiter + indexDayHigh + delimiter + indexDayLow + delimiter + price});
-                                entry(id, EnumOrderSide.SHORT, EnumOrderType.LMT, getEntryPrice(), 0, false, EnumOrderReason.REGULARENTRY, "");
+                                entry(id, EnumOrderSide.SHORT,0, EnumOrderType.LMT, getEntryPrice(), 0, EnumOrderReason.REGULARENTRY,EnumOrderStage.INIT,getMaxOrderDuration(),getDynamicOrderDuration(),getMaxSlippageExit(),"","DAY","",false, true);
                                 tradingSide = -1;
                                 TradingUtil.writeToFile(getStrategy() + ".csv", buyZone + "," + shortZone + "," + tradingSide + "," + adr + "," + adrHigh + "," + adrLow + "," + adrDayHigh + "," + adrDayLow + "," + adrAvg + "," + buyZone1 + "," + shortZone1 + "," + price + "," + indexHigh + "," + indexLow + "," + indexDayHigh + "," + indexDayLow + "," + indexAvg + "," + buyZone2 + "," + shortZone2 + "," + adrTRIN + "," + adrTRINAvg + "," + buyZone3 + "," + shortZone3 + "," + tick + "," + tickTRIN + "," + adrTRINHigh + "," + adrTRINLow + "," + getHighRange() + "," + getLowRange() + "," + "SHORT", Parameters.symbol.get(id).getLastPriceTime());
                             }
+                            scaleoutCount=1;
                             break;
                         case TPCOVER:
                             trailingTPActive = true;
                             if (price >= indexLow + 0.5 * trailingTP) {
                                 logger.log(Level.INFO, "501,Strategy TPCOVER,{0}", new Object[]{getStrategy() + delimiter + "SELL" + delimiter + adrHigh + delimiter + adrLow + delimiter + adrAvg + delimiter + adrTRINHigh + delimiter + adrTRINLow + delimiter + adrTRINAvg + delimiter + indexHigh + delimiter + indexLow + delimiter + indexAvg + delimiter + buyZone1 + delimiter + buyZone2 + delimiter + buyZone3 + delimiter + shortZone1 + delimiter + shortZone2 + delimiter + shortZone3 + delimiter + adr + delimiter + adrTRIN + delimiter + tick + delimiter + tickTRIN + delimiter + adrDayHigh + delimiter + adrDayLow + delimiter + indexDayHigh + delimiter + indexDayLow + delimiter + price});
-                                exit(id, 0, EnumOrderSide.COVER, EnumOrderType.LMT, price, 0, "", true, "DAY", false, EnumOrderReason.REGULAREXIT, "");
+                                exit(id, EnumOrderSide.COVER,0, EnumOrderType.LMT, price, 0, EnumOrderReason.REGULAREXIT,EnumOrderStage.INIT,getMaxOrderDuration(),getDynamicOrderDuration(),getMaxSlippageExit(),"","DAY","",false, true);
                                 setLastShortExit(price);
                                 trailingTPActive = false;
                                 if (price > getEntryPrice()) {
@@ -432,7 +424,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                             break;
                         case SLCOVER:
                             logger.log(Level.INFO, "501,Strategy SLCOVER,{0}", new Object[]{getStrategy() + delimiter + "SELL" + delimiter + adrHigh + delimiter + adrLow + delimiter + adrAvg + delimiter + adrTRINHigh + delimiter + adrTRINLow + delimiter + adrTRINAvg + delimiter + indexHigh + delimiter + indexLow + delimiter + indexAvg + delimiter + buyZone1 + delimiter + buyZone2 + delimiter + buyZone3 + delimiter + shortZone1 + delimiter + shortZone2 + delimiter + shortZone3 + delimiter + adr + delimiter + adrTRIN + delimiter + tick + delimiter + tickTRIN + delimiter + adrDayHigh + delimiter + adrDayLow + delimiter + indexDayHigh + delimiter + indexDayLow + delimiter + price});
-                            exit(id, 0, EnumOrderSide.COVER, EnumOrderType.LMT, price, 0, "", true, "DAY", false, EnumOrderReason.REGULAREXIT, "");
+                            exit(id, EnumOrderSide.COVER,0, EnumOrderType.LMT, price, 0, EnumOrderReason.REGULAREXIT,EnumOrderStage.INIT,getMaxOrderDuration(),getDynamicOrderDuration(),getMaxSlippageExit(),"","DAY","",false, true);
                             setLastShortExit(price);
                             if (price < getEntryPrice()) {
                                 noTradeZone.add(new TradeRestriction(EnumOrderSide.BUY, getHighRange(), getLowRange()));
@@ -443,7 +435,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                         case SCALEOUTCOVER:
                             logger.log(Level.INFO, "501,Strategy SCALEOUTCOVER,{0}", new Object[]{getStrategy() + delimiter + "SELL" + delimiter + adrHigh + delimiter + adrLow + delimiter + adrAvg + delimiter + adrTRINHigh + delimiter + adrTRINLow + delimiter + adrTRINAvg + delimiter + indexHigh + delimiter + indexLow + delimiter + indexAvg + delimiter + buyZone1 + delimiter + buyZone2 + delimiter + buyZone3 + delimiter + shortZone1 + delimiter + shortZone2 + delimiter + shortZone3 + delimiter + adr + delimiter + adrTRIN + delimiter + tick + delimiter + tickTRIN + delimiter + adrDayHigh + delimiter + adrDayLow + delimiter + indexDayHigh + delimiter + indexDayLow + delimiter + price+delimiter+scaleoutCount});
                             size = getScaleOutSizes()[scaleoutCount - 1] * Parameters.symbol.get(id).getMinsize();
-                            exit(id, size, EnumOrderSide.COVER, EnumOrderType.LMT, price, 0, "", true, "DAY", true, EnumOrderReason.REGULAREXIT, "");
+                            exit(id, EnumOrderSide.COVER,size, EnumOrderType.LMT, price, 0, EnumOrderReason.REGULAREXIT,EnumOrderStage.INIT,getMaxOrderDuration(),getDynamicOrderDuration(),getMaxSlippageExit(),"","DAY","",true, true);
                             scaleoutCount = scaleoutCount + 1;
                             TradingUtil.writeToFile(getStrategy() + ".csv", buyZone + "," + shortZone + "," + tradingSide + "," + adr + "," + adrHigh + "," + adrLow + "," + adrDayHigh + "," + adrDayLow + "," + adrAvg + "," + buyZone1 + "," + shortZone1 + "," + price + "," + indexHigh + "," + indexLow + "," + indexDayHigh + "," + indexDayLow + "," + indexAvg + "," + buyZone2 + "," + shortZone2 + "," + adrTRIN + "," + adrTRINAvg + "," + buyZone3 + "," + shortZone3 + "," + tick + "," + tickTRIN + "," + adrTRINHigh + "," + adrTRINLow + "," + getHighRange() + "," + getLowRange() + "," + "SCALEOUTCOVER", Parameters.symbol.get(id).getLastPriceTime());
                             break;
