@@ -12,21 +12,16 @@ import com.incurrency.framework.MainAlgorithm;
 import com.incurrency.framework.BeanConnection;
 import com.incurrency.framework.BeanSymbol;
 import com.incurrency.framework.DateUtil;
-import com.incurrency.framework.EnumBarSize;
 import com.incurrency.framework.EnumOrderReason;
 import com.incurrency.framework.EnumOrderSide;
 import com.incurrency.framework.EnumOrderStage;
 import com.incurrency.framework.EnumOrderType;
-import com.incurrency.framework.EnumSource;
-import com.incurrency.framework.HistoricalBarsIntraDay;
 import com.incurrency.framework.Parameters;
 import com.incurrency.framework.Strategy;
 import com.incurrency.framework.TradeEvent;
 import com.incurrency.framework.TradeListener;
 import com.incurrency.framework.TradingUtil;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
-import java.awt.Rectangle;
+import java.lang.reflect.Constructor;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -34,13 +29,13 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Properties;
-import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import javax.swing.JFrame;
 import org.joda.time.DateTimeComparator;
+import scanner.Scanner;
 
 /**
  * Generates ADR, Tick , TRIN
@@ -52,6 +47,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
     public EventProcessor mEsperEvtProcessor = null;
     private static final Logger logger = Logger.getLogger(ADR.class.getName());
     private final String delimiter = "_";
+    private String swingFile;
     private AtomicBoolean eodCompleted = new AtomicBoolean(Boolean.FALSE);
     private AtomicBoolean bodStarted = new AtomicBoolean(Boolean.TRUE);
     private AtomicBoolean initializing = new AtomicBoolean(Boolean.FALSE);
@@ -150,6 +146,21 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
         }
         comparator = DateTimeComparator.getTimeOnlyInstance();
         sdf = new SimpleDateFormat("yyyyMMdd");
+        try {
+            Scanner scan = new Scanner();
+            Constructor c = ExtractClient.class.getConstructor();
+            scan.start(new String[]{swingFile,"20100101000000"}, c);//this gets the daily swing data
+            
+            while (!Scanner.dateProcessing.value().equals("finished")) {
+                Thread.yield();
+                Thread.sleep(10000);
+            }
+            this.setLongOnly(ExtractClient.buy);
+            this.setShortOnly(!ExtractClient.buy);
+            
+        } catch (Exception e) {
+            logger.log(Level.SEVERE,null,e);
+        }
     }
 
     @Override
@@ -178,7 +189,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
         setTrackLosingZone(p.getProperty("TrackLosingZones") == null ? Boolean.FALSE : Boolean.parseBoolean(p.getProperty("TrackLosingZones")));
         setScaleoutTargets(p.getProperty("ScaleOutTargets") != null ? TradingUtil.convertArrayToDouble(p.getProperty("ScaleOutTargets").split(",")) : null);
         setScaleOutSizes(p.getProperty("ScaleOutSizes") != null ? TradingUtil.convertArrayToInteger(p.getProperty("ScaleOutSizes").split(",")) : null);
-
+        swingFile=p.getProperty("swingfile");
         logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Use for Trading" + delimiter + MainAlgorithm.isUseForTrading()});
         logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "TradingAllowed" + delimiter + getTrading()});
         logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Index" + delimiter + getIndex()});
