@@ -1,0 +1,3 @@
+DeemedCancellation=103,135,201,202,461
+onesecond=india.nse.equity.s1.1sec,open,high,low,close,volume
+path=sandbox.pkspartners.com:5555

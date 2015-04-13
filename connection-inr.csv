@@ -1,3 +1,6 @@
-ip,port,clientID,purpose,rtMessageLimit,histMessageLimit,tickersLimit,strategy
-72.55.156.141,2502,12,Trading,48,10,0,adr
-72.55.156.141,4830,11,Trading,48,10,70,idt
+ip,port,clientID,purpose,rtMessageLimit,histMessageLimit,tickersLimit,strategy,order limit,accountowner
+127.0.0.1,4830,21,Trading,45,11,0,adr,7,psharma@incurrency.com
+127.0.0.1,4170,22,Data,45,11,75,none,7,pankajsharmain1@gmail.com
+127.0.0.1,8600,23,Data,45,11,75,none,7,pankajsharmain1@gmail.com
+127.0.0.1,1240,24,Data,45,11,75,none,7,pankajsharmain1@gmail.com
+127.0.0.1,9990,25,Data,45,11,75,none,7,pankajsharmain1@gmail.com

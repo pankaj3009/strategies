@@ -1,0 +1,2 @@
+ip,port,clientID,purpose,rtMessageLimit,histMessageLimit,tickersLimit,strategy,order limit,accountowner
+127.0.0.1,7496,21,Trading,45,11,0,adr:csv,7,psharma@incurrency.com
