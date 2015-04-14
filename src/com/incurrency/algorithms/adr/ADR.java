@@ -150,11 +150,13 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
             Scanner scan = new Scanner();
             Constructor c = ExtractClient.class.getConstructor();
             scan.start(new String[]{swingFile,"20100101000000"}, c);//this gets the daily swing data
-            
-            while (!Scanner.dateProcessing.value().equals("finished")) {
+
+            while (!Scanner.dateProcessing.value().equals("finished")||(Scanner.dateProcessing.value().equals("finished")&& Scanner.dateProcessing.empty())) {
+                System.out.println(Scanner.dateProcessing.value());
                 Thread.yield();
                 Thread.sleep(10000);
             }
+            
             this.setLongOnly(ExtractClient.buy);
             this.setShortOnly(!ExtractClient.buy);
             

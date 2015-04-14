@@ -35,7 +35,7 @@ public class ExtractClient extends scanner.Extract {
             SimpleDateFormat sdfTime=new SimpleDateFormat("yyyyMMdd HH:mm:ss");
             switch (Scanner.type) {
                 
-                case "DAILYSCAN":
+                case "SWING":
                     new Thread(new SwingManager(EnumBarSize.DAILY)).run();
                     Scanner.dateProcessing.take(); //removes the dateProcessing value of "abcd" after the date is finished.
                         BeanSymbol s =scanner.Scanner.symbol.get(0);
@@ -47,9 +47,10 @@ public class ExtractClient extends scanner.Extract {
                             buy=true;
                         }
                         logger.log(Level.INFO,"FinalSwing:{0}, Swing:{1},StickSwing:{2}",new Object[]{finalswing,swing,stickyswing});
+                        Scanner.dateProcessing.take();
+            
                         
-                        
-                    Scanner.dateProcessing.take(); //removes "finished" from dateProcessing
+//                    Scanner.dateProcessing.take(); //removes "finished" from dateProcessing
                     break;      
                 default:
                     break;
