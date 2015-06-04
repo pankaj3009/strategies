@@ -146,6 +146,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
         }
         comparator = DateTimeComparator.getTimeOnlyInstance();
         sdf = new SimpleDateFormat("yyyyMMdd");
+        if(swingFile!=null){
         try {
             Scanner scan = new Scanner();
             Constructor c = ExtractClient.class.getConstructor();
@@ -162,6 +163,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
             
         } catch (Exception e) {
             logger.log(Level.SEVERE,null,e);
+        }
         }
     }
 

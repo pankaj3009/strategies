@@ -380,12 +380,12 @@ public class Launch extends javax.swing.JFrame {
             }else{
                 trading=true;
             }
-            algo=MainAlgorithm.getInstance(input,trading);
-            //register strategy
-            while(MainAlgorithm.getInstance()==null){
-             Thread.yield();
-            }
-            algo=MainAlgorithm.getInstance();
+                algo=MainAlgorithm.getInstance(input,trading);
+                //register strategy
+                while(MainAlgorithm.getInstance()==null){
+                 Thread.yield();
+                }
+                algo=MainAlgorithm.getInstance();
             
             if(input.get("adr")!=null){
                 algo.registerStrategy("com.incurrency.algorithms.adr.ADR",trading);
