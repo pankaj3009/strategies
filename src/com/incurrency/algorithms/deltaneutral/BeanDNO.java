@@ -79,7 +79,6 @@ public class BeanDNO implements TradeListener, BidAskListener, HistoricalBarList
 
     public BeanDNO(MainAlgorithm m) {
         this.m=m;
-        loadParameters();
 //        ord = new DeltaNeutralOrderManagement(aggression, tickSize, endDate,"dno",1,"");
         for (BeanConnection c : Parameters.connection) {
             c.getWrapper().addTradeListener(this);
@@ -109,72 +108,7 @@ public class BeanDNO implements TradeListener, BidAskListener, HistoricalBarList
         }
     
 
-    private void loadParameters() {
-        Properties p = new Properties(System.getProperties());
-        FileInputStream propFile;
-        try {
-            propFile = new FileInputStream(MainAlgorithm.getInput().get("dno"));
-            try {
-                p.load(propFile);
-            } catch (Exception ex) {
-                logger.log(Level.SEVERE, null, ex);
-            }
-        } catch (Exception ex) {
-            logger.log(Level.SEVERE, null, ex);
-        }
-        System.setProperties(p);
-        String currDateStr = DateUtil.getFormatedDate("yyyyMMdd", Parameters.connection.get(0).getConnectionTime());
-        String endDateStr = currDateStr + " " + System.getProperty("EndTime");
-        endDate = DateUtil.parseDate("yyyyMMdd HH:mm:ss", endDateStr);
-        if (TradingUtil.getAlgoDate().compareTo(endDate) > 0) {
-            //increase enddate by one calendar day
-            endDate = DateUtil.addDays(endDate, 1);
-        }
-        trading = Boolean.valueOf(System.getProperty("Trading"));
-        numberOfContracts = Integer.parseInt(System.getProperty("NumberOfContracts"));
-        stopLoss = Double.parseDouble(System.getProperty("StopLoss"));
-        tickSize = Double.parseDouble(System.getProperty("TickSize"));
-        aggression = Boolean.parseBoolean(System.getProperty("Aggression"));
-        totalOrderDuration = Integer.parseInt(System.getProperty("TotalOrderDuration"));
-        dynamicOrderDuration = Integer.parseInt(System.getProperty("DynamicOrderDuration"));
-        maxOpenPositions = Integer.parseInt(System.getProperty("MaxOpenPositions"));
-        transactionCostPerCombination = Integer.parseInt(System.getProperty("TransactionCostPerComibination"));
-        split = System.getProperty("Splits");
-        volatilityMarkup = Double.parseDouble(System.getProperty("VolatilityMarkup"));
-        zscore = Double.parseDouble(System.getProperty("zscore"));
-        List<String> items = Arrays.asList(split.split("\\s*;\\s*"));
-        for (String str : items) {
-            List<String> temp = Arrays.asList(str.split("\\s*,\\s*"));
-            try {
-                int id = TradingUtil.getIDFromSymbol(temp.get(0), "STK", "", "", "");
-                int oldShares = Integer.parseInt(temp.get(2).split("\\s*:\\s*")[0]);
-                int newShares = Integer.parseInt(temp.get(2).split("\\s*:\\s*")[1]);
-                long splitDate = Long.parseLong(temp.get(1));
-                splits.add(new Splits(id, temp.get(0), oldShares, newShares, splitDate));
-
-            } catch (Exception e) {
-                logger.log(Level.INFO, "Split could not be processed. {0}", new Object[]{str});
-                logger.log(Level.SEVERE, null, e);
-            }
-        }
-
-
-        logger.log(Level.INFO, "-----Delta Neutral Options Parameters----");
-        logger.log(Level.INFO, "end Time: {0}", endDate);
-        logger.log(Level.INFO, "Volatility Threshold: {0}", volatilityMarkup);
-        logger.log(Level.INFO, "zscore: {0}", zscore);
-        logger.log(Level.INFO, "Number of contracts to be traded: {0}", numberOfContracts);
-        logger.log(Level.INFO, "Stop Loss: {0}", stopLoss);
-        logger.log(Level.INFO, "Stop Loss: {0}", takeProfit);
-        logger.log(Level.INFO, "TickSize: {0}", tickSize);
-        logger.log(Level.INFO, "Aggression: {0}", aggression);
-        logger.log(Level.INFO, "Total Order Duration: {0}", totalOrderDuration);
-        logger.log(Level.INFO, "Dynamic Order Duration: {0}", dynamicOrderDuration);
-        logger.log(Level.INFO, "Max Open Positions: {0}", maxOpenPositions);
-        logger.log(Level.INFO, "Transaction Cost Per Combination: {0}", transactionCostPerCombination);
-
-    }
-
+    
     private void getDailyHistoricalData(String strategy, String type) {
         try {
             //get historical data - this can be done before start time, assuming the program is started next day

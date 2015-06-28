@@ -380,7 +380,7 @@ public class Launch extends javax.swing.JFrame {
             }else{
                 trading=true;
             }
-                algo=MainAlgorithm.getInstance(input,trading);
+                algo=MainAlgorithm.getInstance(input);
                 //register strategy
                 while(MainAlgorithm.getInstance()==null){
                  Thread.yield();
@@ -388,14 +388,18 @@ public class Launch extends javax.swing.JFrame {
                 algo=MainAlgorithm.getInstance();
             
             if(input.get("adr")!=null){
-                algo.registerStrategy("com.incurrency.algorithms.adr.ADR",trading);
+                algo.registerStrategy("com.incurrency.algorithms.adr.ADR");
             }
             if(input.get("csv")!=null){
-                algo.registerStrategy("com.incurrency.algorithms.csv.CSV",trading);//
+                algo.registerStrategy("com.incurrency.algorithms.csv.CSV");//
             }
             if(input.get("idt")!=null){
-                algo.registerStrategy("com.incurrency.algorithms.turtle.IDT",trading);
+                algo.registerStrategy("com.incurrency.algorithms.turtle.IDT");
             }
+             if(input.get("historical")!=null){
+                algo.registerStrategy("com.incurrency.algorithms.historical.Historical");
+            }
+            
             algo.postInit();
             
             

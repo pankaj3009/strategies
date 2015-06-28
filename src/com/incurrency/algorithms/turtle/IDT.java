@@ -142,7 +142,8 @@ public class IDT extends Strategy implements Serializable, HistoricalBarListener
             bestPnl.add(0D);
         }
         for (int i = 0; i < Parameters.symbol.size(); i++) {
-             if (Parameters.symbol.get(i).getBarsstarttime() != null && !"realtimebars".equals(MainAlgorithm.getInput().get("bars"))) {
+            String barsSource=com.incurrency.framework.Algorithm.globalProperties.getProperty("bars","tick");
+             if (Parameters.symbol.get(i).getBarsstarttime() != null && !"realtimebars".equals(barsSource)) {
                 Parameters.symbol.get(i).getIntraDayBarsFromTick().addHistoricalBarListener(this);
             } else if (Parameters.symbol.get(i).getBarsstarttime() != null) {
                 Parameters.symbol.get(i).getOneMinuteBarFromRealTimeBars().addHistoricalBarListener(this);
