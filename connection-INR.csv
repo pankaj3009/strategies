@@ -1,3 +1,0 @@
-ip,port,clientID,purpose,rtMessageLimit,histMessageLimit,tickersLimit,strategy
-72.55.156.141,2502,12,Trading,48,10,0,adr
-72.55.156.141,4830,11,Trading,48,10,70,idt

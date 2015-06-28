@@ -12,7 +12,7 @@ stk=india.nse.equity.s4.daily,open,high,low,settle,volume
 fut=india.nse.future.s4.daily,open,high,low,settle,volume
 opt=india.nse.option.s4.daily,open,high,low,settle,volume
 ind=india.nse.index.s4.daily,open,high,low,settle,volume
-path=sandbox.pkspartners.com:5555
+path=notanotherfund.com:5559
 #properties to handle save parameters
 savetofile=false
 savetomemory=true

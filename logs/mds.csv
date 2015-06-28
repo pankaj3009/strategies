@@ -1,0 +1,63 @@
+[15:34:55.641],102, Symbol File, 201506_futures-inr.csv
+[15:34:55.715],102, Connection File, connections-inr.csv
+[15:34:55.731],100,inStratVersion,1.03B-20140826
+[15:34:55.732],100,inStratInputParameters,historical=historical.txt propertyfile=globalproperties.txt
+[15:34:55.741],100,ConnectionParameters, IP_1_127.0.0.1 
+[15:34:55.742],100,ConnectionParameters, Port_1_4830 
+[15:34:55.742],100,ConnectionParameters, ClientID_1_71 
+[15:34:55.743],100,ConnectionParameters, Strategy_1_adr 
+[15:34:55.743],100,ConnectionParameters, Purpose_1_Data 
+[15:34:55.744],100,ConnectionParameters, # RealTime Market Data_1_0 
+[15:34:55.745],100,ConnectionParameters, Pause in seconds between historical data_1_11 
+[15:34:55.746],100,ConnectionParameters, Messages per second_1_45 
+[15:34:55.746],100,ConnectionParameters, Orders Per 2 minutes for triggering system halt_1_7 
+[15:34:55.747],100,ConnectionParameters, Owner Email_1_psharma@incurrency.com 
+[15:34:56.941],Next OrderID Received,127.0.0.1_4,830_71_1
+[15:34:56.947],100,ConnectionParameters, IP_2_127.0.0.1 
+[15:34:56.949],100,ConnectionParameters, Port_2_4170 
+[15:34:56.950],100,ConnectionParameters, ClientID_2_72 
+[15:34:56.952],100,ConnectionParameters, Strategy_2_adr 
+[15:34:56.954],100,ConnectionParameters, Purpose_2_Data 
+[15:34:56.955],100,ConnectionParameters, # RealTime Market Data_2_75 
+[15:34:56.957],100,ConnectionParameters, Pause in seconds between historical data_2_11 
+[15:34:56.958],100,ConnectionParameters, Messages per second_2_45 
+[15:34:56.960],100,ConnectionParameters, Orders Per 2 minutes for triggering system halt_2_7 
+[15:34:56.962],100,ConnectionParameters, Owner Email_2_sharma.pankaj.kumar@gmail.com 
+[15:34:57.342],102,2104,127.0.0.1_4830_71_-1_API.msg2: Market data farm connection is OK:hfarm
+[15:34:57.346],102,2104,127.0.0.1_4830_71_-1_API.msg2: Market data farm connection is OK:jfarm
+[15:34:57.348],102,2104,127.0.0.1_4830_71_-1_API.msg2: Market data farm connection is OK:eufarm
+[15:34:57.350],102,2104,127.0.0.1_4830_71_-1_API.msg2: Market data farm connection is OK:usfuture
+[15:34:57.352],102,2104,127.0.0.1_4830_71_-1_API.msg2: Market data farm connection is OK:cashfarm
+[15:34:57.354],102,2104,127.0.0.1_4830_71_-1_API.msg2: Market data farm connection is OK:usfarm
+[15:34:57.356],102,2106,127.0.0.1_4830_71_-1_API.msg2: HMDS data farm connection is OK:ilhmds
+[15:34:57.358],102,2106,127.0.0.1_4830_71_-1_API.msg2: HMDS data farm connection is OK:hthmds
+[15:34:57.360],102,2106,127.0.0.1_4830_71_-1_API.msg2: HMDS data farm connection is OK:ushmds
+[15:34:59.025],Next OrderID Received,127.0.0.1_4,170_72_1
+[15:34:59.028],100,ConnectionParameters, IP_3_127.0.0.1 
+[15:34:59.030],100,ConnectionParameters, Port_3_8600 
+[15:34:59.031],100,ConnectionParameters, ClientID_3_73 
+[15:34:59.033],100,ConnectionParameters, Strategy_3_none 
+[15:34:59.034],100,ConnectionParameters, Purpose_3_Data 
+[15:34:59.036],100,ConnectionParameters, # RealTime Market Data_3_75 
+[15:34:59.037],100,ConnectionParameters, Pause in seconds between historical data_3_11 
+[15:34:59.039],100,ConnectionParameters, Messages per second_3_45 
+[15:34:59.041],100,ConnectionParameters, Orders Per 2 minutes for triggering system halt_3_7 
+[15:34:59.042],100,ConnectionParameters, Owner Email_3_pankajsharmain1@gmail.com 
+[15:35:01.138],Next OrderID Received,127.0.0.1_8,600_73_1
+[15:35:01.141],100,ConnectionParameters, IP_4_127.0.0.1 
+[15:35:01.142],100,ConnectionParameters, Port_4_1740 
+[15:35:01.144],100,ConnectionParameters, ClientID_4_74 
+[15:35:01.146],100,ConnectionParameters, Strategy_4_none 
+[15:35:01.147],100,ConnectionParameters, Purpose_4_Data 
+[15:35:01.149],100,ConnectionParameters, # RealTime Market Data_4_75 
+[15:35:01.150],100,ConnectionParameters, Pause in seconds between historical data_4_11 
+[15:35:01.152],100,ConnectionParameters, Messages per second_4_45 
+[15:35:01.153],100,ConnectionParameters, Orders Per 2 minutes for triggering system halt_4_7 
+[15:35:01.155],100,ConnectionParameters, Owner Email_4_pankajsharmain1@gmail.com 
+[15:35:03.234],Next OrderID Received,127.0.0.1_1,740_74_1
+[15:35:15.117],103,ShutDownDate,29/06/15 03:35
+[15:35:15.126],100,inStratShutdown,Mon Jun 29 03:35:15 IST 2015
+[15:35:21.745],102,2100,127.0.0.1_4830_71_-1_API.msg2: API client has been unsubscribed from account data.
+[15:35:21.746],102,2100,127.0.0.1_1740_74_-1_API.msg2: API client has been unsubscribed from account data.
+[15:35:21.746],102,2100,127.0.0.1_8600_73_-1_API.msg2: API client has been unsubscribed from account data.
+[15:35:21.746],102,2100,127.0.0.1_4170_72_-1_API.msg2: API client has been unsubscribed from account data.
