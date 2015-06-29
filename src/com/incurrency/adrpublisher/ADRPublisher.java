@@ -82,8 +82,8 @@ public class ADRPublisher extends Strategy implements TradeListener, UpdateListe
     private String adrRuleName;
     HashMap<Integer,Boolean> closePriceReceived=new HashMap<>();
     
-    public ADRPublisher(MainAlgorithm m, Properties p,String parameterFile, ArrayList<String> accounts) {
-        super(m, "pankaj", "FUT", p,parameterFile, accounts,null);
+    public ADRPublisher(MainAlgorithm m, Properties p,String parameterFile, ArrayList<String> accounts,Integer stratCount) {
+        super(m, "pankaj", "FUT", p,parameterFile, accounts,stratCount);
         loadParameters("adr", parameterFile);
         TradingUtil.writeToFile("ADR.csv", "adr" + "," + "adrTRIN" + "," + "tick" + "," + "tickTRIN" + "," + "price" + "," + "adrHigh" + "," + "adrLow" + "," + "adrAvg" + "," + "adrTRINHigh" + "," + "adrTRINLow" + "," + "adrTRINAvg" + "," + "indexHigh" + "," + "indexLow" + "," + "indexAvg" + "," + "indexDayHigh" + "," + "indexDayLow");
         mEsperEvtProcessor = new ADRPublisherEventProcessor(this);
@@ -96,6 +96,9 @@ public class ADRPublisher extends Strategy implements TradeListener, UpdateListe
                  closePriceReceived.put(s.getSerialno()-1,Boolean.FALSE);
             }
         }
+        int length=tempStrategyArray.length;
+        //int index=MainAlgorithm.strategies.indexOf(tempStrategyArray[length-1]);
+        MainAlgorithm.delStrategies(tempStrategyArray[length-1]);
          for (BeanConnection c : Parameters.connection) {
             c.getWrapper().addTradeListener(this);
             c.getWrapper().removeOrderStatusListener(getOms()); //is this needed? Why would i receive orderstatus on this ?

@@ -118,7 +118,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
     DateTimeComparator comparator;
 
     public ADR(MainAlgorithm m, Properties prop, String parameterFile, ArrayList<String> accounts, Integer stratCount) throws ParseException {
-        super(m, "adr", "FUT", prop, parameterFile, accounts, stratCount);
+        super(m, "adr", "FUT", prop, parameterFile, accounts, null);
         this.openDate = openingTimeFormat.parse("09:15:00");
         this.openDateBuffer = openingTimeFormat.parse("09:16:00");
         loadParameters(prop, parameterFile);

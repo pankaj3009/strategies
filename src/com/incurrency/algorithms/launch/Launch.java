@@ -390,6 +390,9 @@ public class Launch extends javax.swing.JFrame {
             if(input.get("adr")!=null){
                 algo.registerStrategy("com.incurrency.algorithms.adr.ADR");
             }
+            if(input.get("adrpublisher")!=null){
+                algo.registerStrategy("com.incurrency.adrpublisher.ADRPublisher");
+            }
             if(input.get("csv")!=null){
                 algo.registerStrategy("com.incurrency.algorithms.csv.CSV");//
             }
