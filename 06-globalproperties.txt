@@ -1,18 +1,19 @@
 ### File used for MarketDataServer
 timezone=Asia/Kolkata
 openhour=9
-opentime=15
+openminute=15
 closehour=15
-closetime=30
+closeminute=30
 connectionfileneeded=true
 symbolfileneeded=true
 symbolfile=06-symbols-inr.csv
-connectionfile=06-connection-inr.csv
+connectionfile=06-connections-inr.csv
 holidayfile=
 getsnapshotfromallconnections=false
 headless=false
 backtest=false
 trading=false
+subscribetomarketdata=true
 #threadlimit=1
 ######################################
 #Parameters for backtest
@@ -28,7 +29,7 @@ deemedcancellation=103,135,201,202,461
 #used if you are using kairosdb for storing historical data and instrat for serving this data. provide path of instrat response server 
 historicaldataserver=notanotherfund.com:5559
 #For subscribing to market data and contract information
-datasource=notanotherfund.com
+datasource=
 requestport=5555
 pubsubport=5556
 topic=INR
