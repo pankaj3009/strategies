@@ -408,8 +408,8 @@ public class Launch extends javax.swing.JFrame {
              if(input.get("historical")!=null){
                 algo.registerStrategy("com.incurrency.algorithms.historical.Historical");
             }
-             if(input.get("rateserver")!=null){
-                algo.registerStrategy("com.incurrency.rateserver.RateServer");
+             if(input.get("dataserver")!=null){
+                algo.registerStrategy("com.incurrency.dataserver.DataServer");
             }
             
             algo.postInit();
