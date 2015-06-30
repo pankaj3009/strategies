@@ -17,8 +17,9 @@ public class CustomOutputStream extends OutputStream {
      
      
     @Override
-    public void write(int b) {
+    public synchronized void write(int b) {
         // redirects data to the text area
+
         Launch.txtAreaLog.append(String.valueOf((char)b));
         // scrolls the text area to the end of data
         Launch.txtAreaLog.setCaretPosition(Launch.txtAreaLog.getDocument().getLength());
