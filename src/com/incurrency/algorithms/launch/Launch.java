@@ -12,6 +12,7 @@ import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
@@ -30,6 +31,7 @@ public class Launch extends javax.swing.JFrame {
    private static final Logger logger=Logger.getLogger(Launch.class.getName());
    public static HashMap <String, String> input =new HashMap();
    static private int level;
+   static PrintStream printStream;
     /**
      * Creates new form Launch
      */
@@ -51,11 +53,6 @@ public class Launch extends javax.swing.JFrame {
         lblCaptionIBMessage = new javax.swing.JLabel();
         Font font = new Font("Courier", Font.BOLD,12);
         lblCaptionIBMessage.setFont(font);
-        lblIBMessage = new javax.swing.JLabel();
-        lblCaptionProgramMessage = new javax.swing.JLabel();
-        font = new Font("Courier", Font.BOLD,12);
- lblCaptionProgramMessage.setFont(font);
-        lblProgramMessage = new javax.swing.JLabel();
         cmdTerminate = new javax.swing.JButton();
         cmdOrderLogs = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
@@ -64,6 +61,8 @@ public class Launch extends javax.swing.JFrame {
         radioInfo = new javax.swing.JRadioButton();
         radioError = new javax.swing.JRadioButton();
         btnViewVariables = new javax.swing.JButton();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        txtAreaLog = new javax.swing.JTextArea();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         getContentPane().setLayout(new java.awt.GridBagLayout());
@@ -73,42 +72,8 @@ public class Launch extends javax.swing.JFrame {
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.weighty = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 0, 0);
+        gridBagConstraints.insets = new java.awt.Insets(5, 0, 0, 0);
         getContentPane().add(lblCaptionIBMessage, gridBagConstraints);
-
-        lblIBMessage.setText("...");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 5;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.weighty = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 0, 0);
-        getContentPane().add(lblIBMessage, gridBagConstraints);
-
-        lblCaptionProgramMessage.setText("Program Message:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.weighty = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 0, 0);
-        getContentPane().add(lblCaptionProgramMessage, gridBagConstraints);
-
-        lblProgramMessage.setText("...");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.gridwidth = 5;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.weighty = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 0, 0);
-        getContentPane().add(lblProgramMessage, gridBagConstraints);
 
         cmdTerminate.setText("Terminate ALL Algorithms");
         cmdTerminate.addActionListener(new java.awt.event.ActionListener() {
@@ -118,10 +83,10 @@ public class Launch extends javax.swing.JFrame {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 0, 0);
+        gridBagConstraints.insets = new java.awt.Insets(6, 0, 0, 0);
         getContentPane().add(cmdTerminate, gridBagConstraints);
 
         cmdOrderLogs.setText("Print Order & Trade logs");
@@ -132,8 +97,8 @@ public class Launch extends javax.swing.JFrame {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 0, 0);
         getContentPane().add(cmdOrderLogs, gridBagConstraints);
@@ -198,13 +163,12 @@ public class Launch extends javax.swing.JFrame {
         jPanel1.add(radioError, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridx = 8;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.RELATIVE;
-        gridBagConstraints.gridheight = 5;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.VERTICAL;
+        gridBagConstraints.gridheight = 3;
+        gridBagConstraints.ipady = -46;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.weighty = 0.5;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 28);
         getContentPane().add(jPanel1, gridBagConstraints);
 
         btnViewVariables.setText("View Variables");
@@ -214,12 +178,29 @@ public class Launch extends javax.swing.JFrame {
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 5;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 0, 0);
+        gridBagConstraints.insets = new java.awt.Insets(6, 261, 0, 0);
         getContentPane().add(btnViewVariables, gridBagConstraints);
+
+        txtAreaLog.setColumns(20);
+        txtAreaLog.setRows(5);
+        jScrollPane1.setViewportView(txtAreaLog);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 4;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.ipadx = 485;
+        gridBagConstraints.ipady = 111;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(6, 0, 0, 0);
+        getContentPane().add(jScrollPane1, gridBagConstraints);
 
         setBounds(0, 0, 726, 254);
     }// </editor-fold>//GEN-END:initComponents
@@ -369,11 +350,15 @@ public class Launch extends javax.swing.JFrame {
                 int y = (int) rect.getMaxY() - f.getHeight()-50;
                 f.setLocation(x, y);
                 f.setVisible(true);
-                f.setVisible(true);                
+                f.setVisible(true);   
                 }
             }
         });
         
+      printStream = new PrintStream(new CustomOutputStream());
+      System.setOut(printStream);
+      System.setErr(printStream);
+
             Thread.sleep(3000);
             boolean trading=false;
             if(input.containsKey("backtest")){
@@ -418,19 +403,9 @@ public class Launch extends javax.swing.JFrame {
 
                 //JFrame d=new com.incurrency.framework.display.DashBoardNew();
 
-    }
-    
-    public static synchronized void setIBMessage(String message) {
-        if(!headless){
-        lblIBMessage.setText("<html>" + message + "</html>");
-        }
-    }
-
-    public static synchronized void setMessage(String message) {
-        if(!headless){
-            lblProgramMessage.setText(message);
-        }
     }    
+
+    
 
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -439,13 +414,12 @@ public class Launch extends javax.swing.JFrame {
     private javax.swing.JButton cmdOrderLogs;
     private javax.swing.JButton cmdTerminate;
     private javax.swing.JPanel jPanel1;
+    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel lblCaptionIBMessage;
-    private javax.swing.JLabel lblCaptionProgramMessage;
-    private static javax.swing.JLabel lblIBMessage;
-    private static javax.swing.JLabel lblProgramMessage;
     private static javax.swing.JRadioButton radioError;
     private static javax.swing.JRadioButton radioFine;
     private static javax.swing.JRadioButton radioFiner;
     private static javax.swing.JRadioButton radioInfo;
+    protected static javax.swing.JTextArea txtAreaLog;
     // End of variables declaration//GEN-END:variables
 }

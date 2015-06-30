@@ -257,7 +257,7 @@ public class IDT extends Strategy implements Serializable, HistoricalBarListener
             Thread t = new Thread(new HistoricalBars(mainStrategy, "STK",EnumSource.IB));
             t.setName("Historical Bars");
             if (!Launch.headless) {
-                Launch.setMessage("Starting request of Historical Data for yesterday");
+//                Launch.setMessage("Starting request of Historical Data for yesterday");
             }
             t.start();
 //            t.join();
@@ -304,7 +304,7 @@ public class IDT extends Strategy implements Serializable, HistoricalBarListener
     private void requestRealTimeBars() {
         if (!Launch.headless) {
             //TurtleMainUI.setStart(false);
-            Launch.setMessage("Starting request of RealTime Bars");
+//            Launch.setMessage("Starting request of RealTime Bars");
         }
         new RealTimeBars();
     }

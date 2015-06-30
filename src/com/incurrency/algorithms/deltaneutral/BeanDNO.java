@@ -116,7 +116,7 @@ public class BeanDNO implements TradeListener, BidAskListener, HistoricalBarList
             Thread t = new Thread(new HistoricalBars(strategy,type,EnumSource.IB));
             t.setName("Historical Bars");
             if (!Launch.headless) {
-                Launch.setMessage("Starting request of Historical Data for yesterday");
+//                Launch.setMessage("Starting request of Historical Data for yesterday");
             }
             t.start();
             t.join();

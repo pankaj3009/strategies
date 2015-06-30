@@ -229,7 +229,7 @@ public class BeanSwing extends Strategy implements Serializable, TradeListener {
             Thread t = new Thread(new HistoricalBars(strategy, type,EnumSource.IB));
             t.setName("Historical Bars");
             if (!Launch.headless) {
-                Launch.setMessage("Starting request of Historical Data");
+//                Launch.setMessage("Starting request of Historical Data");
             }
             t.start();
             } catch (Exception ex) {

@@ -22,7 +22,7 @@ MaxSlippageExit=0.5
 MaxOrderDuration=1
 DynamicOrderDuration=1
 #Include brokerage rates for index in this file
-BrokerageFile=inrfutbrokerage.txt
+BrokerageFile=03-inrfutbrokerage.txt
 TradeFile=INRADRTrades.csv
 OrderFile=INRADROrders.csv
 StartingCapital=500000
