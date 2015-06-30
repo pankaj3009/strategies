@@ -1,0 +1,23 @@
+#historical server
+#the file names are used when instrat is running to publish historical data.
+historical=false
+symbolnamechangesfile=
+splitfile=
+
+#realtimeserver
+# time when server shuts down
+realtime=true
+endtime=
+usertvolume=false
+topic=INR
+tickequitymetric=india.nse.equity.s1.tick
+tickfuturemetric=india.nse.future.s1.tick
+tickoptionmetric=india.nse.option.s1.tick
+rtequitymetric=india.nse.equity.s1.rt
+rtfuturemetric=india.nse.future.s1.rt
+rtoptionmetric=india.nse.option.s1.rt
+savetocassandra=false
+
+#General
+responseport=5555
+publishport=5556

@@ -1,0 +1,35 @@
+export=false
+validate=false
+gaps=false
+scansplits=false
+getsymbols=false
+historical=true
+mysql=false
+cassandra=true
+
+startdate=
+enddate=
+metric=
+tradingminutesinday=375
+opentime=09:15:00
+closetime=15:30:00
+batch=500
+runtime=720
+strategylog=true
+
+#sql properties
+mysqlconnection=jdbc:mysql://192.187.112.162:3306/newhistdata?rewriteBatchedStatements=true
+mysqlusername=psharma
+mysqlpassword=1history23
+sqlbarsize=1min,1sec,daily
+sql1min=india_nse_equity_s1_1min
+sql1sec=india_nse_equity_s1_1sec
+sqldaily=india_nse_equity_s1_daily
+
+#cassandra properties
+cassandraconnection=192.187.112.162
+cassandraport=4242
+cassandrabarsize=1sec
+cassandra1min=india.nse.equity.s1.1min
+cassandra1sec=india.nse.equity.s1.1sec
+cassandradaily=india.nse.equity.s1.daily

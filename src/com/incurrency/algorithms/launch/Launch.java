@@ -373,6 +373,7 @@ public class Launch extends javax.swing.JFrame {
                 }
             }
         });
+        
             Thread.sleep(3000);
             boolean trading=false;
             if(input.containsKey("backtest")){
@@ -380,6 +381,11 @@ public class Launch extends javax.swing.JFrame {
             }else{
                 trading=true;
             }
+            String title="Running Strategies";
+            for(int i=1;i<args.length;i++){
+                title=title+":"+args[i];
+            }
+            Launch.getFrames()[0].setTitle(title);
                 algo=MainAlgorithm.getInstance(input);
                 //register strategy
                 while(MainAlgorithm.getInstance()==null){
@@ -401,6 +407,9 @@ public class Launch extends javax.swing.JFrame {
             }
              if(input.get("historical")!=null){
                 algo.registerStrategy("com.incurrency.algorithms.historical.Historical");
+            }
+             if(input.get("rateserver")!=null){
+                algo.registerStrategy("com.incurrency.rateserver.RateServer");
             }
             
             algo.postInit();

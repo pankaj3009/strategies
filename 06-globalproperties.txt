@@ -1,0 +1,34 @@
+### File used for MarketDataServer
+timezone=Asia/Kolkata
+openhour=9
+opentime=15
+closehour=15
+closetime=30
+connectionfileneeded=true
+symbolfileneeded=true
+symbolfile=06-symbols-inr.csv
+connectionfile=06-connection-inr.csv
+holidayfile=
+getsnapshotfromallconnections=false
+headless=false
+backtest=false
+trading=false
+#threadlimit=1
+######################################
+#Parameters for backtest
+# backtest prices can be tick or bar. if tick, bars are created using these "ticks"
+backtestprices=tick
+backtestvariationfile= 
+# bars can be set as "realtimebars" or "tick". If excluded, tick is assumed
+bars=realtimebars
+# lowest denomination of barsize that is needed. 
+barsize=1sec
+######################################
+deemedcancellation=103,135,201,202,461
+#used if you are using kairosdb for storing historical data and instrat for serving this data. provide path of instrat response server 
+historicaldataserver=notanotherfund.com:5559
+#For subscribing to market data and contract information
+datasource=notanotherfund.com
+requestport=5555
+pubsubport=5556
+topic=INR

@@ -1,3 +1,0 @@
-serialno,symbol,servicename,type,exchange,primaryexchange,currency,expiry,option,right,minsize,barsstarttime,streamingpriority,strategy
-1,NSENIFTY,NSENIFTY,IND,NSE,,INR,,,,1,,100,
-2,END,END,STK,NSE,,INR,,,,1,,100,

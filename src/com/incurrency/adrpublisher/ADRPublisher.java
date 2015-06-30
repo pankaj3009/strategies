@@ -35,7 +35,7 @@ import java.util.regex.Pattern;
 public class ADRPublisher extends Strategy implements TradeListener, UpdateListener {
 
     public ADRPublisherEventProcessor mEsperEvtProcessor = null;
-    static com.incurrency.framework.rateserver.RateServer adrServer = new com.incurrency.framework.rateserver.RateServer(5557);
+    static com.incurrency.rateserver.ServerPubSub adrServer = new com.incurrency.rateserver.ServerPubSub(5557);
     private static final Logger logger = Logger.getLogger(ADRPublisher.class.getName());
     private final String delimiter = "_";
     //----- updated by ADRListener and TickListener, were earlier static methods
