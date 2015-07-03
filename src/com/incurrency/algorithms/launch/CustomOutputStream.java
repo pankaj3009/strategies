@@ -21,13 +21,14 @@ final static Lock lock = new ReentrantLock();
     @Override
     public void write(int b) {
         // redirects data to the text area
-        try{
-        if (lock.tryLock()){
-        Launch.txtAreaLog.append(String.valueOf((char)b));
-        // scrolls the text area to the end of data
-        Launch.txtAreaLog.setCaretPosition(Launch.txtAreaLog.getDocument().getLength());
-    }
-        }finally{
+        try {
+            if (lock.tryLock()) {
+                Launch.txtAreaLog.append(String.valueOf((char) b));
+                // scrolls the text area to the end of data
+                Launch.txtAreaLog.setCaretPosition(Launch.txtAreaLog.getDocument().getLength());
+            }
+        } catch (Exception e) {
+        } finally {
             lock.unlock();
         }
     }
