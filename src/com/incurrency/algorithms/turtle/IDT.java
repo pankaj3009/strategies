@@ -254,14 +254,14 @@ public class IDT extends Strategy implements Serializable, HistoricalBarListener
         try {
             //get historical data - this can be done before start time, assuming the program is started next day
             //String type = Parameters.symbol.get(strategySymbols.get(0)).getType();
-            Thread t = new Thread(new HistoricalBars(mainStrategy, "STK",EnumSource.IB));
+            Thread t = new Thread();//new Thread(new HistoricalBars(mainStrategy, "STK",EnumSource.IB));
             t.setName("Historical Bars");
             if (!Launch.headless) {
 //                Launch.setMessage("Starting request of Historical Data for yesterday");
             }
             t.start();
 //            t.join();
-            Thread i = new Thread(new HistoricalBars(mainStrategy, "IND",EnumSource.IB));
+            Thread i = new Thread();//new Thread(new HistoricalBars(mainStrategy, "IND",EnumSource.IB));
             i.setName("Index");
             i.start();
 //            i.join();

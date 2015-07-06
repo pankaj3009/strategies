@@ -113,7 +113,7 @@ public class BeanDNO implements TradeListener, BidAskListener, HistoricalBarList
         try {
             //get historical data - this can be done before start time, assuming the program is started next day
 
-            Thread t = new Thread(new HistoricalBars(strategy,type,EnumSource.IB));
+            Thread t=new Thread();// = new Thread(new HistoricalBars(strategy,type,EnumSource.IB));
             t.setName("Historical Bars");
             if (!Launch.headless) {
 //                Launch.setMessage("Starting request of Historical Data for yesterday");

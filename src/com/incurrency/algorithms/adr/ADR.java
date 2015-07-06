@@ -121,7 +121,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
         super(m, "adr", "FUT", prop, parameterFile, accounts, null);
         this.openDate = openingTimeFormat.parse("09:15:00");
         this.openDateBuffer = openingTimeFormat.parse("09:16:00");
-        loadParameters(prop, parameterFile);
+        loadParameters(prop);
         getStrategySymbols().clear();
         for (BeanSymbol s : Parameters.symbol) {
             if (Pattern.compile(Pattern.quote(adrRuleName), Pattern.CASE_INSENSITIVE).matcher(s.getStrategy()).find()) {
@@ -159,7 +159,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                 cal_endDate.add(Calendar.YEAR, -5);
                 Date startDate = cal_endDate.getTime();
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd HH:mm:ss");
-                Utilities.requestMarketData(symb, new String[]{"open", "high", "low", "settle"}, "india.nse.index.s4.daily", sdf.format(startDate), sdf.format(endDate), EnumBarSize.DAILY, false);
+                Utilities.requestHistoricalData(symb, new String[]{"open", "high", "low", "settle"}, "india.nse.index.s4.daily", sdf.format(startDate), sdf.format(endDate), EnumBarSize.DAILY, false);
                 Indicators.swing(symb, EnumBarSize.DAILY);
                 int length = symb.getTimeSeriesLength(EnumBarSize.DAILY);
                 double[] trends =  symb.getTimeSeries(EnumBarSize.DAILY, "trend").data;
@@ -199,7 +199,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
 
     }
 
-    private void loadParameters(Properties p, String parameterFile) {
+    private void loadParameters(Properties p) {
         setTrading(Boolean.valueOf(p.getProperty("Trading")));
         setIndex(p.getProperty("Index"));
         setType(p.getProperty("Type"));
