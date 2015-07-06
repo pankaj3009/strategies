@@ -19,6 +19,11 @@ final static Lock lock = new ReentrantLock();
      
      
     @Override
+    public void write(int b){
+        //LogWorker logger=new LogWorker(String.valueOf((char) b));
+        //logger.start();
+    }
+    /*
     public void write(int b) {
         // redirects data to the text area
         try {
@@ -32,4 +37,5 @@ final static Lock lock = new ReentrantLock();
             lock.unlock();
         }
     }
+   */
 }

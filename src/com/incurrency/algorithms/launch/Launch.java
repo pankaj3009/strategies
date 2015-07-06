@@ -6,12 +6,15 @@ package com.incurrency.algorithms.launch;
 
 import com.incurrency.framework.MainAlgorithm;
 import com.incurrency.framework.Strategy;
+import java.awt.AWTEvent;
 import java.awt.Font;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.logging.Level;
@@ -26,12 +29,14 @@ import javax.swing.JOptionPane;
  */
 public class Launch extends javax.swing.JFrame {
 
-   static public MainAlgorithm algo;
-   static public boolean headless=false;
-   private static final Logger logger=Logger.getLogger(Launch.class.getName());
-   public static HashMap <String, String> input =new HashMap();
-   static private int level;
-   static PrintStream printStream;
+    static public MainAlgorithm algo;
+    static public Launch launch;
+    static public boolean headless = false;
+    private static final Logger logger = Logger.getLogger(Launch.class.getName());
+    public static HashMap<String, String> input = new HashMap();
+    static private int level;
+    static PrintStream printStream;
+
     /**
      * Creates new form Launch
      */
@@ -208,77 +213,77 @@ public class Launch extends javax.swing.JFrame {
     private void cmdTerminateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdTerminateActionPerformed
 
         if (input.containsKey("datasource")) { //use jeromq connector
-            
-            MainAlgorithm.socketListener.getSubs().getSubscriber().disconnect("tcp://" + input.get("datasource")+":"+"5556");
+
+            MainAlgorithm.socketListener.getSubs().getSubscriber().disconnect("tcp://" + input.get("datasource") + ":" + "5556");
             MainAlgorithm.socketListener.getSubs().close();
         }
 
         int dialogResult = JOptionPane.showConfirmDialog(null, "Do you want to terminate all running algorithms?", "Warning", JOptionPane.YES_NO_OPTION);
         if (dialogResult == JOptionPane.YES_OPTION) {
-            if(algo!=null && !algo.getStrategies().contains("nostrategy")){
-                for(Strategy s:algo.getStrategyInstances()){
-                    s.printOrders("",s);
+            if (algo != null && !algo.getStrategies().contains("nostrategy")) {
+                for (Strategy s : algo.getStrategyInstances()) {
+                    s.printOrders("", s);
                     //logger.log(Level.INFO,"101",s.getClass().getName());
                 }
             }
             System.exit(0);
-            
+
         }
 
     }//GEN-LAST:event_cmdTerminateActionPerformed
 
     private void cmdOrderLogsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdOrderLogsActionPerformed
-              
-                    if(algo!=null){
-                for(Strategy s:algo.getStrategyInstances()){
-                    s.printOrders("tmp",s);
-                }
+
+        if (algo != null) {
+            for (Strategy s : algo.getStrategyInstances()) {
+                s.printOrders("tmp", s);
             }
-               /* commented out after reflection change     
-        if(algo!=null && algo.getParamADR()!=null){
-                algo.getParamADR().printOrders("tmp");
-            }
-            if(algo !=null && algo.getParamTurtle()!=null){
-                algo.getParamTurtle().printOrders("tmp");
-            }
-            if(algo !=null && algo.getParamSwing()!=null){
-                algo.getParamSwing().printOrders("tmp");
-            }*/
+        }
+        /* commented out after reflection change     
+         if(algo!=null && algo.getParamADR()!=null){
+         algo.getParamADR().printOrders("tmp");
+         }
+         if(algo !=null && algo.getParamTurtle()!=null){
+         algo.getParamTurtle().printOrders("tmp");
+         }
+         if(algo !=null && algo.getParamSwing()!=null){
+         algo.getParamSwing().printOrders("tmp");
+         }*/
     }//GEN-LAST:event_cmdOrderLogsActionPerformed
 
     private void radioFinerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioFinerActionPerformed
-        Logger incurrency=Logger.getLogger("com.incurrency");
-        Logger console=Logger.getLogger("java.util.logging.ConsoleHandler");
+        Logger incurrency = Logger.getLogger("com.incurrency");
+        Logger console = Logger.getLogger("java.util.logging.ConsoleHandler");
         console.setLevel(Level.FINER);
         incurrency.setLevel(Level.FINER);
     }//GEN-LAST:event_radioFinerActionPerformed
 
     private void radioFineActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioFineActionPerformed
-        Logger incurrency=Logger.getLogger("com.incurrency");
-        Logger console=Logger.getLogger("java.util.logging.ConsoleHandler");
+        Logger incurrency = Logger.getLogger("com.incurrency");
+        Logger console = Logger.getLogger("java.util.logging.ConsoleHandler");
         console.setLevel(Level.FINE);
         incurrency.setLevel(Level.FINE);
     }//GEN-LAST:event_radioFineActionPerformed
 
     private void radioInfoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioInfoActionPerformed
-        Logger incurrency=Logger.getLogger("com.incurrency");
-        Logger console=Logger.getLogger("java.util.logging.ConsoleHandler");
+        Logger incurrency = Logger.getLogger("com.incurrency");
+        Logger console = Logger.getLogger("java.util.logging.ConsoleHandler");
         console.setLevel(Level.INFO);
         incurrency.setLevel(Level.INFO);
-        
+
     }//GEN-LAST:event_radioInfoActionPerformed
 
     private void radioErrorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioErrorActionPerformed
-        Logger incurrency=Logger.getLogger("com.incurrency");
-        Logger console=Logger.getLogger("java.util.logging.ConsoleHandler");
+        Logger incurrency = Logger.getLogger("com.incurrency");
+        Logger console = Logger.getLogger("java.util.logging.ConsoleHandler");
         console.setLevel(Level.SEVERE);
         incurrency.setLevel(Level.SEVERE);
     }//GEN-LAST:event_radioErrorActionPerformed
 
     private void btnViewVariablesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnViewVariablesActionPerformed
-        int index=MainAlgorithm.selectedStrategy;
-        Strategy s=MainAlgorithm.strategyInstances.get(index);
-          s.displayStrategyValues();
+        int index = MainAlgorithm.selectedStrategy;
+        Strategy s = MainAlgorithm.strategyInstances.get(index);
+        s.displayStrategyValues();
     }//GEN-LAST:event_btnViewVariablesActionPerformed
 
     /**
@@ -301,113 +306,219 @@ public class Launch extends javax.swing.JFrame {
             logger.log(java.util.logging.Level.INFO, "101", ex);
         }
         //</editor-fold>
-         for(int i=0;i<args.length;i++){
+        launch = new Launch();
+        launch.init(args);
+/*
+        for (int i = 0; i < args.length; i++) {
             input.put(args[i].split("=")[0].toLowerCase(), args[i].split("=")[1].toLowerCase());
         }
-         headless=(input.get("headless")==null||input.get("headless").compareTo("false")==0)?false:true;
-            FileInputStream configFile;
-            if(new File("logging.properties").exists()){
+        headless = (input.get("headless") == null || input.get("headless").compareTo("false") == 0) ? false : true;
+        FileInputStream configFile;
+        if (new File("logging.properties").exists()) {
             configFile = new FileInputStream("logging.properties");
             LogManager.getLogManager().readConfiguration(configFile);
-            Logger incurrency=Logger.getLogger("com.incurrency");
-            Level loggingLevel=incurrency.getLevel();
-            level=loggingLevel.intValue();
-            }
+            Logger incurrency = Logger.getLogger("com.incurrency");
+            Level loggingLevel = incurrency.getLevel();
+            level = loggingLevel.intValue();
+        }
+     */
+        /* Create and display the form */
+       /*
+        java.awt.EventQueue.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                if (!headless) {
+                    JFrame f = new Launch();
+                    f.pack();
+                    switch (level) {
+                        case 1000:
+                            radioError.setSelected(true);
+                            break;
+                        case 800:
+                            radioInfo.setSelected(true);
+                            break;
+                        case 500:
+                            radioFine.setSelected(true);
+                            break;
+                        case 400:
+                            radioFiner.setSelected(true);
+                            break;
+                        default:
+                            break;
 
-            
-            
-    
+                    }
+                    f.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+                    GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+                    GraphicsDevice defaultScreen = ge.getDefaultScreenDevice();
+                    Rectangle rect = defaultScreen.getDefaultConfiguration().getBounds();
+                    //int x = (int) rect.getMaxX() - f.getWidth();
+                    int x = 0;
+                    int y = (int) rect.getMaxY() - f.getHeight() - 50;
+                    f.setLocation(x, y);
+                    f.setVisible(true);
+                    f.setVisible(true);
+                }
+            }
+        });
+
+        printStream = new PrintStream(new CustomOutputStream());
+        System.setOut(printStream);
+        System.setErr(printStream);
+
+        Thread.sleep(3000);
+        boolean trading = false;
+        if (input.containsKey("backtest")) {
+            trading = false;
+        } else {
+            trading = true;
+        }
+        String title = "Running Strategies";
+        for (int i = 1; i < args.length; i++) {
+            title = title + ":" + args[i];
+        }
+        Launch.getFrames()[0].setTitle(title);
+        algo = MainAlgorithm.getInstance(input);
+        //register strategy
+        while (MainAlgorithm.getInstance() == null) {
+            Thread.yield();
+        }
+        algo = MainAlgorithm.getInstance();
+
+        if (input.get("adr") != null) {
+            algo.registerStrategy("com.incurrency.algorithms.adr.ADR");
+        }
+        if (input.get("adrpublisher") != null) {
+            algo.registerStrategy("com.incurrency.adrpublisher.ADRPublisher");
+        }
+        if (input.get("csv") != null) {
+            algo.registerStrategy("com.incurrency.algorithms.csv.CSV");//
+        }
+        if (input.get("idt") != null) {
+            algo.registerStrategy("com.incurrency.algorithms.turtle.IDT");
+        }
+        if (input.get("historical") != null) {
+            algo.registerStrategy("com.incurrency.algorithms.historical.Historical");
+        }
+        if (input.get("dataserver") != null) {
+            algo.registerStrategy("com.incurrency.dataserver.DataServer");
+        }
+
+        algo.postInit();
+        //JFrame d=new com.incurrency.framework.display.DashBoardNew();
+*/
+    }
+
+    public void init(String[] args) throws FileNotFoundException, IOException, InterruptedException, Exception {
+        enableEvents(SimpleAWTEvent.EVENT_ID);
+        for (int i = 0; i < args.length; i++) {
+            input.put(args[i].split("=")[0].toLowerCase(), args[i].split("=")[1].toLowerCase());
+        }
+        headless = (input.get("headless") == null || input.get("headless").compareTo("false") == 0) ? false : true;
+        FileInputStream configFile;
+        if (new File("logging.properties").exists()) {
+            configFile = new FileInputStream("logging.properties");
+            LogManager.getLogManager().readConfiguration(configFile);
+            Logger incurrency = Logger.getLogger("com.incurrency");
+            Level loggingLevel = incurrency.getLevel();
+            level = loggingLevel.intValue();
+        }
+
+
+
+
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             @Override
             public void run() {
-                if(!headless){
-                JFrame f=new Launch();
-                f.pack();
-                switch(level){
-                    case 1000:
-                        radioError.setSelected(true);
-                        break;
-                    case 800:
-                        radioInfo.setSelected(true);
-                        break;
-                    case 500:
-                        radioFine.setSelected(true);
-                        break;
-                    case 400:
-                        radioFiner.setSelected(true);
-                        break;
-                    default:
-                        break;
-                            
-                }
-                f.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-                GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-                GraphicsDevice defaultScreen = ge.getDefaultScreenDevice();
-                Rectangle rect = defaultScreen.getDefaultConfiguration().getBounds();
-                //int x = (int) rect.getMaxX() - f.getWidth();
-                int x=0;
-                int y = (int) rect.getMaxY() - f.getHeight()-50;
-                f.setLocation(x, y);
-                f.setVisible(true);
-                f.setVisible(true);   
+                if (!headless) {
+                    launch.pack();
+                    switch (level) {
+                        case 1000:
+                            radioError.setSelected(true);
+                            break;
+                        case 800:
+                            radioInfo.setSelected(true);
+                            break;
+                        case 500:
+                            radioFine.setSelected(true);
+                            break;
+                        case 400:
+                            radioFiner.setSelected(true);
+                            break;
+                        default:
+                            break;
+
+                    }
+                    launch.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+                    GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+                    GraphicsDevice defaultScreen = ge.getDefaultScreenDevice();
+                    Rectangle rect = defaultScreen.getDefaultConfiguration().getBounds();
+                    //int x = (int) rect.getMaxX() - f.getWidth();
+                    int x = 0;
+                    int y = (int) rect.getMaxY() - launch.getHeight() - 50;
+                    launch.setLocation(x, y);
+                    launch.setVisible(true);
+                    launch.setVisible(true);
                 }
             }
         });
-        
-      printStream = new PrintStream(new CustomOutputStream());
-      System.setOut(printStream);
-      System.setErr(printStream);
 
-            Thread.sleep(3000);
-            boolean trading=false;
-            if(input.containsKey("backtest")){
-                trading=false;
-            }else{
-                trading=true;
-            }
-            String title="Running Strategies";
-            for(int i=1;i<args.length;i++){
-                title=title+":"+args[i];
-            }
-            Launch.getFrames()[0].setTitle(title);
-                algo=MainAlgorithm.getInstance(input);
-                //register strategy
-                while(MainAlgorithm.getInstance()==null){
-                 Thread.yield();
-                }
-                algo=MainAlgorithm.getInstance();
-            
-            if(input.get("adr")!=null){
-                algo.registerStrategy("com.incurrency.algorithms.adr.ADR");
-            }
-            if(input.get("adrpublisher")!=null){
-                algo.registerStrategy("com.incurrency.adrpublisher.ADRPublisher");
-            }
-            if(input.get("csv")!=null){
-                algo.registerStrategy("com.incurrency.algorithms.csv.CSV");//
-            }
-            if(input.get("idt")!=null){
-                algo.registerStrategy("com.incurrency.algorithms.turtle.IDT");
-            }
-             if(input.get("historical")!=null){
-                algo.registerStrategy("com.incurrency.algorithms.historical.Historical");
-            }
-             if(input.get("dataserver")!=null){
-                algo.registerStrategy("com.incurrency.dataserver.DataServer");
-            }
-            
-            algo.postInit();
-            
-            
+        printStream = new PrintStream(new LogWorker());
+        System.setOut(printStream);
+        System.setErr(printStream);
 
-                //JFrame d=new com.incurrency.framework.display.DashBoardNew();
+        Thread.sleep(3000);
+        boolean trading = false;
+        if (input.containsKey("backtest")) {
+            trading = false;
+        } else {
+            trading = true;
+        }
+        String title = "Running Strategies";
+        for (int i = 1; i < args.length; i++) {
+            title = title + ":" + args[i];
+        }
+        Launch.getFrames()[0].setTitle(title);
+        algo = MainAlgorithm.getInstance(input);
+        //register strategy
+        while (MainAlgorithm.getInstance() == null) {
+            Thread.yield();
+        }
+        algo = MainAlgorithm.getInstance();
 
-    }    
+        if (input.get("adr") != null) {
+            algo.registerStrategy("com.incurrency.algorithms.adr.ADR");
+        }
+        if (input.get("adrpublisher") != null) {
+            algo.registerStrategy("com.incurrency.adrpublisher.ADRPublisher");
+        }
+        if (input.get("csv") != null) {
+            algo.registerStrategy("com.incurrency.algorithms.csv.CSV");//
+        }
+        if (input.get("idt") != null) {
+            algo.registerStrategy("com.incurrency.algorithms.turtle.IDT");
+        }
+        if (input.get("historical") != null) {
+            algo.registerStrategy("com.incurrency.algorithms.historical.Historical");
+        }
+        if (input.get("dataserver") != null) {
+            algo.registerStrategy("com.incurrency.dataserver.DataServer");
+        }
 
-    
+        algo.postInit();
+    }
 
-    
+    @Override
+    protected void processEvent(AWTEvent event) {
+        if (event instanceof SimpleAWTEvent) {
+            SimpleAWTEvent ev = (SimpleAWTEvent) event;
+            this.txtAreaLog.append(ev.getStr()); // access GUI component
+            this.txtAreaLog.setCaretPosition(txtAreaLog.getDocument().getLength());
+        } else // other events go to the system default process event handler
+        {
+            super.processEvent(event);
+        }
+    }
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnViewVariables;
     private javax.swing.ButtonGroup buttonGroup1;
@@ -420,6 +531,6 @@ public class Launch extends javax.swing.JFrame {
     private static javax.swing.JRadioButton radioFine;
     private static javax.swing.JRadioButton radioFiner;
     private static javax.swing.JRadioButton radioInfo;
-    protected static javax.swing.JTextArea txtAreaLog;
+    protected javax.swing.JTextArea txtAreaLog;
     // End of variables declaration//GEN-END:variables
 }

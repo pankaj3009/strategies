@@ -1,5 +1,5 @@
-ip,port,clientID,purpose,rtMessageLimit,histMessageLimit,tickersLimit,strategy,orders,
-notanotherfund.com,4830,14,Data,40,10,0,None,7,psharma@incurrency.com
-notanotherfund.com,4170,15,Data,40,10,100,None,7,psharma@incurrency.com
-notanotherfund.com,8600,16,Data,40,10,100,None,7,psharma@incurrency.com
-notanotherfund.com,1740,17,Data,40,10,100,None,7,psharma@incurrency.com
+ip,port,clientID,purpose,rtMessageLimit,histMessageLimit,tickersLimit,strategy,orders
+127.0.0.1,4830,15,ADR,40,10,0,None,7,psharma@incurrency.com
+127.0.0.1,4170,16,ADR,40,10,100,None,7,psharma@incurrency.com
+127.0.0.1,8600,17,ADR,40,10,100,None,7,psharma@incurrency.com
+127.0.0.1,1740,18,ADR,40,10,100,None,7,psharma@incurrency.com

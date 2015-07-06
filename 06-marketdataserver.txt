@@ -7,7 +7,7 @@ splitfile=
 #realtimeserver
 # time when server shuts down
 realtime=true
-endtime=
+endtime=15:32:00
 usertvolume=false
 topic=INR
 tickequitymetric=india.nse.equity.s1.tick

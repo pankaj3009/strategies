@@ -1,8 +1,8 @@
 timezone=Asia/Kolkata
 openhour=9
-openminute=15
+opentime=15
 closehour=15
-closeminute=30
+closetime=30
 connectionfileneeded=true
 symbolfileneeded=true
 symbolfile=02-futures-inr.csv

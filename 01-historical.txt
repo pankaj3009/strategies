@@ -15,7 +15,6 @@ opentime=09:15:00
 closetime=15:30:00
 batch=500
 runtime=720
-strategylog=true
 
 #sql properties
 mysqlconnection=jdbc:mysql://192.187.112.162:3306/newhistdata?rewriteBatchedStatements=true
