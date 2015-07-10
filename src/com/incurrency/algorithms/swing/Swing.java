@@ -63,6 +63,7 @@ public class Swing extends Strategy implements TradeListener {
     long openTime;
     boolean customRange = false;
     Timer eodProcessing;
+    boolean testing=false;
 
     public Swing(MainAlgorithm m, Properties p, String parameterFile, ArrayList<String> accounts, Integer stratCount) {
         super(m, "swing", "FUT", p, parameterFile, accounts, stratCount);
@@ -101,12 +102,12 @@ public class Swing extends Strategy implements TradeListener {
         } catch (Exception e) {
             logger.log(Level.SEVERE, null, e);
         }
-        // Next three lines to be removed in production
-        //**************
-        Calendar tmpCalendar=Calendar.getInstance(TimeZone.getTimeZone(Algorithm.timeZone));
-        tmpCalendar.add(Calendar.SECOND, 15);
-        entryScanDate=tmpCalendar.getTime();
-        //*******
+        if (testing) {
+            Calendar tmpCalendar = Calendar.getInstance(TimeZone.getTimeZone(Algorithm.timeZone));
+            tmpCalendar.add(Calendar.SECOND, 15);
+            entryScanDate = tmpCalendar.getTime();
+        }
+        
         eodProcessing = new Timer("Timer: Close Positions");
         eodProcessing.schedule(eodProcessingTask, entryScanDate);
     }
@@ -131,7 +132,7 @@ public class Swing extends Strategy implements TradeListener {
         timeSeries = p.getProperty("timeseries", "").toString().trim().split(",");
         cassandraMetric = p.getProperty("cassandrametric", "").toString().trim();
         customRange = Boolean.parseBoolean(p.getProperty("UseCustomDateRangeForTraining", "false").toString().trim());
-        
+        testing=Boolean.parseBoolean(p.getProperty("Testing", "false").toString().trim());
     }
 
     @Override
