@@ -1,0 +1,30 @@
+timezone=Asia/Kolkata
+openhour=9
+openminute=15
+closehour=15
+closeminute=30
+connectionfileneeded=true
+symbolfileneeded=true
+symbolfile=07-symbols-inr.csv
+connectionfile=07-connections-inr.csv
+holidayfile=
+datasource=notanotherfund.com
+requestport=5555
+pubsubport=5556
+topic=INR
+getsnapshotfromallconnections=false
+headless=false
+backtest=false
+trading=true
+loggingtoui=false
+# backtest prices can be tick or bar. if tick, bars are created using these "ticks"
+backtestprices=tick
+# A backtest needs a set of parameters that will be iterated through.
+backtestvariationfile=
+# bars can be set as "realtimebars" or "tick". If excluded, tick is assumed
+bars=realtimebars
+# lowest denomination of barsize that is needed. 
+barsize=1sec
+deemedcancellation=103,135,201,202,461
+threadlimit=1
+historicaldataserver=notanotherfund.com:5559

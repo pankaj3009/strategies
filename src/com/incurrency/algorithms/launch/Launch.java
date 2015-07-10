@@ -504,6 +504,9 @@ public class Launch extends javax.swing.JFrame {
         if (input.get("dataserver") != null) {
             algo.registerStrategy("com.incurrency.dataserver.DataServer");
         }
+        if(input.get("swing")!=null){
+            algo.registerStrategy("com.incurrency.algorithms.swing.Swing");
+        }
 
         algo.postInit();
     }
