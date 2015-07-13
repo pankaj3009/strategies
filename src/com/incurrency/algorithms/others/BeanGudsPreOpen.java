@@ -39,14 +39,14 @@ public class BeanGudsPreOpen extends TimerTask{
             //check tempfilteredstocks and add items to filteredstocks as matches are found
             for(Iterator<BeanSymbol> itrStock = tempfilteredStocks.iterator(); itrStock.hasNext();){
                 BeanSymbol s3=itrStock.next();
-                if (s3.getSymbol().compareTo(s2.getSymbol())==0){
+                if (s3.getBrokerSymbol().compareTo(s2.getBrokerSymbol())==0){
                     filteredStocks.add(s3);
                     itrStock.remove();
                     return;
                 }
             }
             filteredStocks.add(new BeanSymbol());
-            filteredStocks.get(filteredStocks.size()-1).setSymbol(s2.getSymbol());
+            filteredStocks.get(filteredStocks.size()-1).setBrokerSymbol(s2.getBrokerSymbol());
             }
         int i=0;
         for(BeanSymbol s:filteredFutures){

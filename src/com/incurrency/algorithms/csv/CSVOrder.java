@@ -8,8 +8,10 @@ import com.incurrency.framework.EnumOrderReason;
 import com.incurrency.framework.EnumOrderSide;
 import com.incurrency.framework.EnumOrderStage;
 import com.incurrency.framework.EnumOrderType;
+import com.incurrency.framework.Parameters;
 import com.incurrency.framework.ReaderWriterInterface;
 import com.incurrency.framework.TradingUtil;
+import com.incurrency.framework.Utilities;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -84,7 +86,7 @@ public class CSVOrder implements ReaderWriterInterface {
         if(this.type.equals("COMBO")){//update Parameters.Symbols if first time
 
         }else{
-        id=TradingUtil.getIDFromSymbol(symbol, type, expiry, right, optionStrike);
+        id=Utilities.getIDFromSymbol(Parameters.symbol,symbol, type, expiry, right, optionStrike);
         }
     }
 

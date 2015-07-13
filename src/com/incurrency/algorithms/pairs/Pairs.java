@@ -92,14 +92,14 @@ public class Pairs extends Strategy {
             for (PairDefinition p : targetOrders) {
                 synchronized(p.lockPosition){
                 logger.log(Level.FINE,"Leve14, BuySymbol:{0}, Buyid:{2},ShortSymbol:{3},Shortid:{4}",new Object[]{p.buySymbol,p.buyid,p.shortSymbol,p.shortid});
-                logger.log(Level.INFO,"{0},{1},Strategy,Parameters,Symbol:{2},Minimum Size;{3},BuyRatio:{4},ShortRatio:{5},Exposure{6}",new Object[]{allAccounts,getStrategy(),Parameters.symbol.get(p.buyid).getSymbol(),Parameters.symbol.get(p.buyid).getMinsize(),p.buyratio,p.shortratio,getExposure()} );
+                logger.log(Level.INFO,"{0},{1},Strategy,Parameters,Symbol:{2},Minimum Size;{3},BuyRatio:{4},ShortRatio:{5},Exposure{6}",new Object[]{allAccounts,getStrategy(),Parameters.symbol.get(p.buyid).getBrokerSymbol(),Parameters.symbol.get(p.buyid).getMinsize(),p.buyratio,p.shortratio,getExposure()} );
                int buySize = getExposure()==0?(int)(Parameters.symbol.get(p.buyid).getMinsize() * getNumberOfContracts()*p.buyratio):(int)(Parameters.symbol.get(p.buyid).getMinsize() * getExposure()/Parameters.symbol.get(p.buyid).getLastPrice()*p.buyratio);
                 int shortSize = getExposure()==0?(int)(Parameters.symbol.get(p.shortid).getMinsize() * getNumberOfContracts()*p.shortratio):(int)(Parameters.symbol.get(p.shortid).getMinsize() * getExposure()/Parameters.symbol.get(p.shortid).getLastPrice()*p.shortratio);
                 double level = 0;
                 if (Parameters.symbol.get(p.buyid).getAskPrice() > 0 && Parameters.symbol.get(p.shortid).getBidPrice() > 0) {
                     level = -Parameters.symbol.get(p.buyid).getAskPrice() * buySize + Parameters.symbol.get(p.shortid).getBidPrice() * shortSize;
                 }
-                TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(p.buyid).getSymbol() + "," + Parameters.symbol.get(p.shortid).getSymbol() + "," + p.entryPrice + "," + level + "," + "SCAN");
+                TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(p.buyid).getBrokerSymbol() + "," + Parameters.symbol.get(p.shortid).getBrokerSymbol() + "," + p.entryPrice + "," + level + "," + "SCAN");
                 
                 if (p.getPosition() == 0 && DateUtil.addSeconds(DateUtil.parseDate("yyyyMMddHHmmss", p.timeStamp,getTimeZone()), minutesToStale * 60).after(new Date()) && (p.slHitTime.getTime() + 60000 * restPeriodAfterSLHit) < (new Date().getTime()) && lastOrderDate.after(new Date())) {
 //                    if (level < Double.parseDouble(p.entryPrice) && Parameters.symbol.get(p.buyid).getAskPrice()>0 && Parameters.symbol.get(p.shortid).getBidPrice()>0) {
@@ -108,7 +108,7 @@ public class Pairs extends Strategy {
                         entry(p.shortid, EnumOrderSide.SHORT,shortSize, EnumOrderType.MKT, 0, 0, EnumOrderReason.REGULARENTRY,EnumOrderStage.INIT,getMaxOrderDuration(),getDynamicOrderDuration(),getMaxSlippageExit(),"","DAY","",false, true);
                         p.setPosition(1);
                         p.positionPrice = level;
-                        TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(p.buyid).getSymbol() + "," + Parameters.symbol.get(p.shortid).getSymbol() + "," + p.entryPrice + "," + level + "," + "ENTRY");
+                        TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(p.buyid).getBrokerSymbol() + "," + Parameters.symbol.get(p.shortid).getBrokerSymbol() + "," + p.entryPrice + "," + level + "," + "ENTRY");
                     }
                 } else if (p.getPosition() > 0) {
                     double tp = p.pairTakeProfit > 0 ? p.pairTakeProfit : takeProfit;
@@ -116,14 +116,14 @@ public class Pairs extends Strategy {
                     if (level != 0 && tp > 0 && level < p.positionPrice - tp) { //profit by a threshold
                         exit(p.buyid, EnumOrderSide.SELL,buySize, EnumOrderType.MKT, 0, 0, EnumOrderReason.REGULAREXIT,EnumOrderStage.INIT,getMaxOrderDuration(),getDynamicOrderDuration(),getMaxSlippageExit(),"","DAY","",false, true);
                         exit(p.shortid, EnumOrderSide.COVER,shortSize, EnumOrderType.MKT, 0, 0, EnumOrderReason.REGULAREXIT,EnumOrderStage.INIT,getMaxOrderDuration(),getDynamicOrderDuration(),getMaxSlippageExit(),"","DAY","",false, true);
-                        TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(p.buyid).getSymbol() + "," + Parameters.symbol.get(p.shortid).getSymbol() + "," + p.positionPrice + "," + level + "," + "PROFIT");
+                        TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(p.buyid).getBrokerSymbol() + "," + Parameters.symbol.get(p.shortid).getBrokerSymbol() + "," + p.positionPrice + "," + level + "," + "PROFIT");
                         p.setPosition(0);
                         p.positionPrice = 0D;
 
                     } else if (level != 0 && sl > 0 && level > p.positionPrice + sl) {
                         exit(p.buyid, EnumOrderSide.SELL,buySize, EnumOrderType.MKT, 0, 0, EnumOrderReason.REGULAREXIT,EnumOrderStage.INIT,getMaxOrderDuration(),getDynamicOrderDuration(),getMaxSlippageExit(),"","DAY","",false, true);
                         exit(p.shortid, EnumOrderSide.COVER,shortSize, EnumOrderType.MKT, 0, 0, EnumOrderReason.REGULAREXIT,EnumOrderStage.INIT,getMaxOrderDuration(),getDynamicOrderDuration(),getMaxSlippageExit(),"","DAY","",false, true);
-                        TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(p.buyid).getSymbol() + "," + Parameters.symbol.get(p.shortid).getSymbol() + "," + p.positionPrice + "," + level + "," + "STOP LOSS");
+                        TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(p.buyid).getBrokerSymbol() + "," + Parameters.symbol.get(p.shortid).getBrokerSymbol() + "," + p.positionPrice + "," + level + "," + "STOP LOSS");
                         p.setPosition(0);
                         p.positionPrice = 0D;
                         p.slHitTime = new Date();
@@ -144,9 +144,9 @@ public class Pairs extends Strategy {
                         exit(p.shortid, EnumOrderSide.COVER,shortSize, EnumOrderType.MKT, 0, 0, EnumOrderReason.REGULAREXIT,EnumOrderStage.INIT,getMaxOrderDuration(),getDynamicOrderDuration(),getMaxSlippageExit(),"","DAY","",false, true);
                         p.setPosition(0);
                         if (level < p.positionPrice) {
-                            TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(p.buyid).getSymbol() + "," + Parameters.symbol.get(p.shortid).getSymbol() + "," + p.positionPrice + "," + level + "," + "EOD Close Profit");
+                            TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(p.buyid).getBrokerSymbol() + "," + Parameters.symbol.get(p.shortid).getBrokerSymbol() + "," + p.positionPrice + "," + level + "," + "EOD Close Profit");
                         } else {
-                            TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(p.buyid).getSymbol() + "," + Parameters.symbol.get(p.shortid).getSymbol() + "," + p.positionPrice + "," + level + "," + "EOD Close Loss");
+                            TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(p.buyid).getBrokerSymbol() + "," + Parameters.symbol.get(p.shortid).getBrokerSymbol() + "," + p.positionPrice + "," + level + "," + "EOD Close Loss");
                         }
                     }
                     }

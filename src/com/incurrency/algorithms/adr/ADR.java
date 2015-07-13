@@ -151,7 +151,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
         comparator = DateTimeComparator.getTimeOnlyInstance();
         sdf = new SimpleDateFormat("yyyyMMdd");
         if (swingSymbol != null) {
-            int id = TradingUtil.getIDFromDisplayName(swingSymbol.toUpperCase());
+            int id = Utilities.getIDFromDisplayName(Parameters.symbol,swingSymbol.toUpperCase());
             if (id >= 0) {
                 BeanSymbol symb = Parameters.symbol.get(id);
                 Date endDate = new Date();
@@ -303,7 +303,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                 }
             }
             String symbolexpiry = Parameters.symbol.get(id).getExpiry() == null ? "" : Parameters.symbol.get(id).getExpiry();
-            if (getTrading() && Parameters.symbol.get(id).getSymbol().equals(getIndex()) && Parameters.symbol.get(id).getType().equals(getType()) && symbolexpiry.equals(getExpiry()) && event.getTickType() == com.ib.client.TickType.LAST) {
+            if (getTrading() && Parameters.symbol.get(id).getBrokerSymbol().equals(getIndex()) && Parameters.symbol.get(id).getType().equals(getType()) && symbolexpiry.equals(getExpiry()) && event.getTickType() == com.ib.client.TickType.LAST) {
                 double price = Parameters.symbol.get(id).getLastPrice();
                 if (adr > 0) { //calculate high low only after minimum ticks have been received.
                     mEsperEvtProcessor.sendEvent(new ADREvent(ADRTickType.INDEX, price));

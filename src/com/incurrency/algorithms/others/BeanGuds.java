@@ -137,7 +137,7 @@ public class BeanGuds implements Serializable, TradeListener {
             connect = DriverManager.getConnection("jdbc:mysql://localhost:3306/histdata", "root", "spark123");
             //statement = connect.createStatement();
             for (int j = 0; j < Parameters.symbol.size(); j++) {
-                String name = Parameters.symbol.get(j).getSymbol() + "_FUT";
+                String name = Parameters.symbol.get(j).getBrokerSymbol() + "_FUT";
                 preparedStatement = connect.prepareStatement("select * from dharasymb where name=? order by date asc");
                 preparedStatement.setString(1, name);
                 rs = preparedStatement.executeQuery();
@@ -152,7 +152,7 @@ public class BeanGuds implements Serializable, TradeListener {
                 ArrayList<Double> histlow = new ArrayList<>();
                 ArrayList<Double> histhigh = new ArrayList<>();
                 ArrayList<Long> histvolume = new ArrayList<>();
-                System.out.println("Symbol:" + Parameters.symbol.get(j).getSymbol());
+                System.out.println("Symbol:" + Parameters.symbol.get(j).getBrokerSymbol());
                 while (rs.next()) {
                     priorDate = priorDate == null ? rs.getDate("date") : priorDate;
                     //String name = rs.getString("name");

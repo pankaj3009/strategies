@@ -40,7 +40,7 @@ public class FundamentalDataCollector extends Algorithm implements FundamentalDa
         BeanConnection tempC = Parameters.connection.get(0);
         for (BeanSymbol s : Parameters.symbol) {
             tempC.getWrapper().getContractDetails(s,"");
-            System.out.print("ContractDetails Requested:" + s.getSymbol());
+            System.out.print("ContractDetails Requested:" + s.getBrokerSymbol());
         }
 
         while (TWSConnection.mTotalSymbols > 0) {

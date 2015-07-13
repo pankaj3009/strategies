@@ -234,7 +234,7 @@ public class IDT extends Strategy implements Serializable, HistoricalBarListener
         channelDuration = Integer.parseInt(System.getProperty("ChannelDuration"));
         regressionLookBack = Integer.parseInt(System.getProperty("RegressionLookBack"));
         startBars = Integer.parseInt(System.getProperty("StartBars"));
-        index = TradingUtil.getIDFromSymbol(System.getProperty("Index"), "IND", "", "", "");
+        index = Utilities.getIDFromSymbol(Parameters.symbol,System.getProperty("Index"), "IND", "", "", "");
         expiry = System.getProperty("FutureExpiry") == null ? "" : System.getProperty("FutureExpiry");
         entryCushion = System.getProperty("EntryCushion") == null ? 0D : Double.parseDouble(System.getProperty("EntryCushion"));
         exitCushion = System.getProperty("ExitCushion") == null ? 0D : Double.parseDouble(System.getProperty("ExitCushion"));
@@ -280,7 +280,7 @@ public class IDT extends Strategy implements Serializable, HistoricalBarListener
             //statement = connect.createStatement();
             for (int j = 0; j < Parameters.symbol.size(); j++) {
                 if (Pattern.compile(Pattern.quote("idt"), Pattern.CASE_INSENSITIVE).matcher(Parameters.symbol.get(j).getStrategy()).find()) {
-                    String name = Parameters.symbol.get(j).getSymbol() + "_FUT";
+                    String name = Parameters.symbol.get(j).getBrokerSymbol() + "_FUT";
                     preparedStatement = connect.prepareStatement("select * from dharasymb where name=? order by date desc LIMIT 1");
                     preparedStatement.setString(1, name);
                     rs = preparedStatement.executeQuery();
@@ -477,7 +477,7 @@ public class IDT extends Strategy implements Serializable, HistoricalBarListener
                                 yesterdayZScore.set(id, ((close_1 / close_2) - 1) / symbolSD);
                                 yesterdayClose.set(id, close_1);
                                 logger.log(Level.INFO,"502,OpeningStat,{0}",new Object[]{getStrategy()+delimiter+s.getDisplayname()+delimiter+close_2+delimiter+close_1+delimiter+symbolSD+delimiter+yesterdayZScore.get(id)});
-                                TradingUtil.writeToFile(getStrategy() + ".csv", s.getSymbol() + "," + 0 + "," + close_1 + "," + 0 + "," + (close_1 / close_2 - 1) / symbolSD + "," + 0 + "," +0+","+0+ "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + "initialization");
+                                TradingUtil.writeToFile(getStrategy() + ".csv", s.getBrokerSymbol() + "," + 0 + "," + close_1 + "," + 0 + "," + (close_1 / close_2 - 1) / symbolSD + "," + 0 + "," +0+","+0+ "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + "initialization");
                             }
                         }
                         }
@@ -494,7 +494,7 @@ public class IDT extends Strategy implements Serializable, HistoricalBarListener
     public void tradeReceived(TradeEvent event) {
         try {
             int id = event.getSymbolID(); //here symbolID is with zero base.
-            int futureid = expiry.equals("") ? id : TradingUtil.getFutureIDFromSymbol(id, expiry);
+            int futureid = expiry.equals("") ? id : Utilities.getFutureIDFromSymbol(Parameters.symbol,id, expiry);
             if (getPosition().get(futureid) != null && yesterdayClose.get(id) > 0 && getClose().get(id)!=0) { //do initialization checks 
                 if (getStrategySymbols().contains(id) && event.getTickType() == com.ib.client.TickType.LAST && Parameters.symbol.get(id).getType().equals("STK")) {
                     double symbolClose = getClose().get(id);
@@ -521,7 +521,7 @@ public class IDT extends Strategy implements Serializable, HistoricalBarListener
                             zScoreOnEntry.set(id, zscore);
                             entryBar.set(id, this.getCumVolume().get(id).size());
                             bestPnl.set(id, 0D);
-                            TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(id).getSymbol() + "," + cumVolume.get(id).size() + "," + yesterdayClose.get(id) + "," + indexZScoreYesterday + "," + symbolZScoreYesterday + "," + zscore + "," +zscoreFromTodayLow+","+zscoreFromTodayHigh+ "," + highBoundary + "," + lowBoundary + "," + Parameters.symbol.get(id).getLastPrice() + "," + close.get(id) + "," + relativeVol + "," + entryBar.get(id) + "," + zScoreOnEntry.get(id) + "," + (zScoreOnEntry.get(id) - worstCaseLoss) * (this.getCumVolume().get(id).size() - entryBar.get(id)) / (365 - entryBar.get(id)) + "," + (getClose().get(id) - yesterdayClose.get(id)) / yesterdayClose.get(id) + "," + "BUY");
+                            TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(id).getBrokerSymbol() + "," + cumVolume.get(id).size() + "," + yesterdayClose.get(id) + "," + indexZScoreYesterday + "," + symbolZScoreYesterday + "," + zscore + "," +zscoreFromTodayLow+","+zscoreFromTodayHigh+ "," + highBoundary + "," + lowBoundary + "," + Parameters.symbol.get(id).getLastPrice() + "," + close.get(id) + "," + relativeVol + "," + entryBar.get(id) + "," + zScoreOnEntry.get(id) + "," + (zScoreOnEntry.get(id) - worstCaseLoss) * (this.getCumVolume().get(id).size() - entryBar.get(id)) / (365 - entryBar.get(id)) + "," + (getClose().get(id) - yesterdayClose.get(id)) / yesterdayClose.get(id) + "," + "BUY");
                         } else if (symbolClose > 0 && getShortOnly() && this.getCumVolume().get(id).size() >= this.getChannelDuration() && getPosition().get(futureid).getPosition() == 0 && (zscore < -1||zscoreFromTodayLow<-1) && Parameters.symbol.get(id).getLastPrice() <= lowBoundary && relativeVol > 2 && getLastOrderDate().compareTo(TradingUtil.getAlgoDate()) > 0) {
                             double midPoint = (Math.round((Parameters.symbol.get(futureid).getBidPrice() + Parameters.symbol.get(futureid).getAskPrice()) / 2 / getTickSize())) * getTickSize();
                             double entryPrice = Math.max(Parameters.symbol.get(futureid).getLastPrice(), midPoint);
@@ -534,12 +534,12 @@ public class IDT extends Strategy implements Serializable, HistoricalBarListener
                             zScoreOnEntry.set(id, zscore);
                             entryBar.set(id, this.getCumVolume().get(id).size());
                             bestPnl.set(id, 0D);
-                            TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(id).getSymbol() + "," + cumVolume.get(id).size() + "," + yesterdayClose.get(id) + "," + indexZScoreYesterday + "," + symbolZScoreYesterday + "," + zscore+ "," +zscoreFromTodayLow+","+zscoreFromTodayHigh + "," + highBoundary + "," + lowBoundary + "," + Parameters.symbol.get(id).getLastPrice() + "," + close.get(id) + "," + relativeVol + "," + entryBar.get(id) + "," + zScoreOnEntry.get(id) + "," + (zScoreOnEntry.get(id) - worstCaseLoss) * (this.getCumVolume().get(id).size() - entryBar.get(id)) / (365 - entryBar.get(id)) + "," + (getClose().get(id) - yesterdayClose.get(id)) / yesterdayClose.get(id) + "," + "SHORT");
+                            TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(id).getBrokerSymbol() + "," + cumVolume.get(id).size() + "," + yesterdayClose.get(id) + "," + indexZScoreYesterday + "," + symbolZScoreYesterday + "," + zscore+ "," +zscoreFromTodayLow+","+zscoreFromTodayHigh + "," + highBoundary + "," + lowBoundary + "," + Parameters.symbol.get(id).getLastPrice() + "," + close.get(id) + "," + relativeVol + "," + entryBar.get(id) + "," + zScoreOnEntry.get(id) + "," + (zScoreOnEntry.get(id) - worstCaseLoss) * (this.getCumVolume().get(id).size() - entryBar.get(id)) / (365 - entryBar.get(id)) + "," + (getClose().get(id) - yesterdayClose.get(id)) / yesterdayClose.get(id) + "," + "SHORT");
                         } else if (symbolClose > 0 && getPosition().get(futureid).getPosition() > 0 && (Math.max(zscore, zscoreFromTodayLow) < worstCaseLoss + (zScoreOnEntry.get(id) - worstCaseLoss) * (this.getCumVolume().get(id).size() - entryBar.get(id)) / (365 - entryBar.get(id)) || System.currentTimeMillis() > getEndDate().getTime())) {
                             double midPoint = (Math.round((Parameters.symbol.get(futureid).getBidPrice() + Parameters.symbol.get(futureid).getAskPrice()) / 2 / getTickSize())) * getTickSize();
                             double entryPrice = Math.max(Parameters.symbol.get(futureid).getLastPrice(), midPoint);
                             exit(futureid, EnumOrderSide.SELL,0, EnumOrderType.LMT, entryPrice, 0, EnumOrderReason.REGULAREXIT,EnumOrderStage.INIT,getMaxOrderDuration(),getDynamicOrderDuration(),getMaxSlippageExit(),"","DAY","",false, true);
-                            TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(id).getSymbol() + "," + cumVolume.get(id).size() + "," + yesterdayClose.get(id) + "," + indexZScoreYesterday + "," + symbolZScoreYesterday + "," + zscore+ "," +zscoreFromTodayLow+","+zscoreFromTodayHigh + "," + highBoundary + "," + lowBoundary + "," + Parameters.symbol.get(id).getLastPrice() + "," + close.get(id) + "," + relativeVol + "," + getCumVolume().get(id).size() + "," + zScoreOnEntry.get(id) + "," + (zScoreOnEntry.get(id) - worstCaseLoss) * (this.getCumVolume().get(id).size() - entryBar.get(id)) / (365 - entryBar.get(id)) + (getClose().get(id) - yesterdayClose.get(id)) / yesterdayClose.get(id) + "," + "," + "SELL");
+                            TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(id).getBrokerSymbol() + "," + cumVolume.get(id).size() + "," + yesterdayClose.get(id) + "," + indexZScoreYesterday + "," + symbolZScoreYesterday + "," + zscore+ "," +zscoreFromTodayLow+","+zscoreFromTodayHigh + "," + highBoundary + "," + lowBoundary + "," + Parameters.symbol.get(id).getLastPrice() + "," + close.get(id) + "," + relativeVol + "," + getCumVolume().get(id).size() + "," + zScoreOnEntry.get(id) + "," + (zScoreOnEntry.get(id) - worstCaseLoss) * (this.getCumVolume().get(id).size() - entryBar.get(id)) / (365 - entryBar.get(id)) + (getClose().get(id) - yesterdayClose.get(id)) / yesterdayClose.get(id) + "," + "," + "SELL");
                             zScoreOnEntry.set(id, 0D);
                             entryBar.set(id, 0);
                             bestPnl.set(id, 0D);
@@ -547,7 +547,7 @@ public class IDT extends Strategy implements Serializable, HistoricalBarListener
                             double midPoint = (Math.round((Parameters.symbol.get(futureid).getBidPrice() + Parameters.symbol.get(futureid).getAskPrice()) / 2 / getTickSize())) * getTickSize();
                             double entryPrice = Math.min(Parameters.symbol.get(futureid).getLastPrice(), midPoint);
                             exit(futureid, EnumOrderSide.COVER,0, EnumOrderType.LMT, entryPrice, 0, EnumOrderReason.REGULAREXIT,EnumOrderStage.INIT,getMaxOrderDuration(),getDynamicOrderDuration(),getMaxSlippageExit(),"","DAY","",false, true);
-                            TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(id).getSymbol() + "," + cumVolume.get(id).size() + "," + yesterdayClose.get(id) + "," + indexZScoreYesterday + "," + symbolZScoreYesterday + "," + zscore+ "," +zscoreFromTodayLow+","+zscoreFromTodayHigh + "," + highBoundary + "," + lowBoundary + "," + Parameters.symbol.get(id).getLastPrice() + "," + close.get(id) + "," + relativeVol + "," + getCumVolume().get(id).size() + "," + zScoreOnEntry.get(id) + "," + (zScoreOnEntry.get(id) - worstCaseLoss) * (this.getCumVolume().get(id).size() - entryBar.get(id)) / (365 - entryBar.get(id)) + (getClose().get(id) - yesterdayClose.get(id)) / yesterdayClose.get(id) + "," + "," + "COVER");
+                            TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(id).getBrokerSymbol() + "," + cumVolume.get(id).size() + "," + yesterdayClose.get(id) + "," + indexZScoreYesterday + "," + symbolZScoreYesterday + "," + zscore+ "," +zscoreFromTodayLow+","+zscoreFromTodayHigh + "," + highBoundary + "," + lowBoundary + "," + Parameters.symbol.get(id).getLastPrice() + "," + close.get(id) + "," + relativeVol + "," + getCumVolume().get(id).size() + "," + zScoreOnEntry.get(id) + "," + (zScoreOnEntry.get(id) - worstCaseLoss) * (this.getCumVolume().get(id).size() - entryBar.get(id)) / (365 - entryBar.get(id)) + (getClose().get(id) - yesterdayClose.get(id)) / yesterdayClose.get(id) + "," + "," + "COVER");
                             entryBar.set(id, 0);
                             zScoreOnEntry.set(id, 0D);
                             bestPnl.set(id, 0D);
@@ -560,7 +560,7 @@ public class IDT extends Strategy implements Serializable, HistoricalBarListener
                             double midPoint = (Math.round((Parameters.symbol.get(futureid).getBidPrice() + Parameters.symbol.get(futureid).getAskPrice()) / 2 / getTickSize())) * getTickSize();
                             double entryPrice = Math.min(Parameters.symbol.get(futureid).getLastPrice(), midPoint);
                             exit(futureid, EnumOrderSide.COVER,0, EnumOrderType.LMT, entryPrice, 0, EnumOrderReason.REGULAREXIT,EnumOrderStage.INIT,getMaxOrderDuration(),getDynamicOrderDuration(),getMaxSlippageExit(),"","DAY","",false, true);
-                            TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(id).getSymbol() + "," + cumVolume.get(id).size() + "," + yesterdayClose.get(id) + "," + indexZScoreYesterday + "," + symbolZScoreYesterday + "," + zscore+ "," +zscoreFromTodayLow+","+zscoreFromTodayHigh + "," + highBoundary + "," + lowBoundary + "," + Parameters.symbol.get(id).getLastPrice() + "," + close.get(id) + "," + relativeVol + "," + getCumVolume().get(id).size() + "," + zScoreOnEntry.get(id) + "," + (zScoreOnEntry.get(id) - worstCaseLoss) * (this.getCumVolume().get(id).size() - entryBar.get(id)) / (365 - entryBar.get(id)) + (getClose().get(id) - yesterdayClose.get(id)) / yesterdayClose.get(id) + "," + "," + "COVERTRAILING");
+                            TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(id).getBrokerSymbol() + "," + cumVolume.get(id).size() + "," + yesterdayClose.get(id) + "," + indexZScoreYesterday + "," + symbolZScoreYesterday + "," + zscore+ "," +zscoreFromTodayLow+","+zscoreFromTodayHigh + "," + highBoundary + "," + lowBoundary + "," + Parameters.symbol.get(id).getLastPrice() + "," + close.get(id) + "," + relativeVol + "," + getCumVolume().get(id).size() + "," + zScoreOnEntry.get(id) + "," + (zScoreOnEntry.get(id) - worstCaseLoss) * (this.getCumVolume().get(id).size() - entryBar.get(id)) / (365 - entryBar.get(id)) + (getClose().get(id) - yesterdayClose.get(id)) / yesterdayClose.get(id) + "," + "," + "COVERTRAILING");
                             entryBar.set(id, 0);
                             zScoreOnEntry.set(id, 0D);
                             bestPnl.set(id, 0D);
@@ -574,13 +574,13 @@ public class IDT extends Strategy implements Serializable, HistoricalBarListener
                             double midPoint = (Math.round((Parameters.symbol.get(futureid).getBidPrice() + Parameters.symbol.get(futureid).getAskPrice()) / 2 / getTickSize())) * getTickSize();
                             double entryPrice = Math.min(Parameters.symbol.get(futureid).getLastPrice(), midPoint);
                             exit(futureid, EnumOrderSide.SELL,0, EnumOrderType.LMT, entryPrice, 0, EnumOrderReason.REGULAREXIT,EnumOrderStage.INIT,getMaxOrderDuration(),getDynamicOrderDuration(),getMaxSlippageExit(),"","DAY","",false, true);
-                            TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(id).getSymbol() + "," + cumVolume.get(id).size() + "," + yesterdayClose.get(id) + "," + indexZScoreYesterday + "," + symbolZScoreYesterday + "," + zscore+ "," +zscoreFromTodayLow+","+zscoreFromTodayHigh + "," + highBoundary + "," + lowBoundary + "," + Parameters.symbol.get(id).getLastPrice() + "," + close.get(id) + "," + relativeVol + "," + getCumVolume().get(id).size() + "," + zScoreOnEntry.get(id) + "," + (zScoreOnEntry.get(id) - worstCaseLoss) * (this.getCumVolume().get(id).size() - entryBar.get(id)) / (365 - entryBar.get(id)) + (getClose().get(id) - yesterdayClose.get(id)) / yesterdayClose.get(id) + "," + "," + "SELLTRAILING");
+                            TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(id).getBrokerSymbol() + "," + cumVolume.get(id).size() + "," + yesterdayClose.get(id) + "," + indexZScoreYesterday + "," + symbolZScoreYesterday + "," + zscore+ "," +zscoreFromTodayLow+","+zscoreFromTodayHigh + "," + highBoundary + "," + lowBoundary + "," + Parameters.symbol.get(id).getLastPrice() + "," + close.get(id) + "," + relativeVol + "," + getCumVolume().get(id).size() + "," + zScoreOnEntry.get(id) + "," + (zScoreOnEntry.get(id) - worstCaseLoss) * (this.getCumVolume().get(id).size() - entryBar.get(id)) / (365 - entryBar.get(id)) + (getClose().get(id) - yesterdayClose.get(id)) / yesterdayClose.get(id) + "," + "," + "SELLTRAILING");
                             entryBar.set(id, 0);
                             zScoreOnEntry.set(id, 0D);
                             bestPnl.set(id, 0D);
                             }
                         }   else if (symbolClose > 0 && (zscore>2||zscoreFromTodayLow > 2) || (zscore < -1||zscoreFromTodayHigh<-1)) {
-                            TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(id).getSymbol() + "," + cumVolume.get(id).size() + "," + yesterdayClose.get(id) + "," + indexZScoreYesterday + "," + symbolZScoreYesterday + "," + zscore + "," +zscoreFromTodayLow+","+zscoreFromTodayHigh+","+ highBoundary + "," + lowBoundary + "," + Parameters.symbol.get(id).getLastPrice() + "," + close.get(id) + "," + relativeVol + "," + entryBar.get(id) + "," + zScoreOnEntry.get(id) + "," + (zScoreOnEntry.get(id) - worstCaseLoss) * (this.getCumVolume().get(id).size() - entryBar.get(id)) / (365 - entryBar.get(id)) + "," + (getClose().get(id) - yesterdayClose.get(id)) / yesterdayClose.get(id) + "," + "SCAN");
+                            TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(id).getBrokerSymbol() + "," + cumVolume.get(id).size() + "," + yesterdayClose.get(id) + "," + indexZScoreYesterday + "," + symbolZScoreYesterday + "," + zscore + "," +zscoreFromTodayLow+","+zscoreFromTodayHigh+","+ highBoundary + "," + lowBoundary + "," + Parameters.symbol.get(id).getLastPrice() + "," + close.get(id) + "," + relativeVol + "," + entryBar.get(id) + "," + zScoreOnEntry.get(id) + "," + (zScoreOnEntry.get(id) - worstCaseLoss) * (this.getCumVolume().get(id).size() - entryBar.get(id)) / (365 - entryBar.get(id)) + "," + (getClose().get(id) - yesterdayClose.get(id)) / yesterdayClose.get(id) + "," + "SCAN");
                         }
                     }
                 }
@@ -615,7 +615,7 @@ public class IDT extends Strategy implements Serializable, HistoricalBarListener
                 double entryPrice = Math.max(Parameters.symbol.get(id).getLastPrice(), midPoint);
                 getOms().tes.fireOrderEvent(internalorderid, entryInternalOrderID, Parameters.symbol.get(id), EnumOrderSide.SELL, EnumOrderReason.REGULAREXIT, EnumOrderType.LMT, size, entryPrice + cushion, 0, getStrategy(), getMaxOrderDuration(), EnumOrderStage.CANCEL, getDynamicOrderDuration(), getMaxSlippageExit(),true,"DAY", false, "","",null);
                 getOms().tes.fireOrderEvent(internalorderid, entryInternalOrderID, Parameters.symbol.get(id), EnumOrderSide.SELL, EnumOrderReason.REGULAREXIT, EnumOrderType.LMT, size, entryPrice + cushion, 0, getStrategy(), getMaxOrderDuration(), EnumOrderStage.INIT, getDynamicOrderDuration(), getMaxSlippageExit(),true,"DAY", false, "","",null);
-                TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(id).getSymbol() + "," + cumVolume.get(id).size() + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + Parameters.symbol.get(id).getLastPrice() + "," + close.get(id) + "," + "SELL CLOSE");
+                TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(id).getBrokerSymbol() + "," + cumVolume.get(id).size() + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + Parameters.symbol.get(id).getLastPrice() + "," + close.get(id) + "," + "SELL CLOSE");
                 this.advanceExitOrder.set(id, 0L);
             } else if (position < 0) {
                 //close short
@@ -639,7 +639,7 @@ public class IDT extends Strategy implements Serializable, HistoricalBarListener
                 double entryPrice = Math.min(Parameters.symbol.get(id).getLastPrice(), midPoint);
                 getOms().tes.fireOrderEvent(internalorderid, entryInternalOrderID, Parameters.symbol.get(id), EnumOrderSide.COVER, EnumOrderReason.REGULAREXIT, EnumOrderType.LMT, size, entryPrice - cushion, 0, getStrategy(), getMaxOrderDuration(), EnumOrderStage.CANCEL, getDynamicOrderDuration(), getMaxSlippageExit(),true,"DAY", false, "","",null);
                 getOms().tes.fireOrderEvent(internalorderid, entryInternalOrderID, Parameters.symbol.get(id), EnumOrderSide.COVER, EnumOrderReason.REGULAREXIT, EnumOrderType.LMT, size, entryPrice - cushion, 0, getStrategy(), getMaxOrderDuration(), EnumOrderStage.INIT, getDynamicOrderDuration(), getMaxSlippageExit(),true,"DAY", false, "","",null);
-                TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(id).getSymbol() + "," + cumVolume.get(id).size() + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + Parameters.symbol.get(id).getLastPrice() + "," + close.get(id) + "," + "COVER CLOSE");
+                TradingUtil.writeToFile(getStrategy() + ".csv", Parameters.symbol.get(id).getBrokerSymbol() + "," + cumVolume.get(id).size() + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + Parameters.symbol.get(id).getLastPrice() + "," + close.get(id) + "," + "COVER CLOSE");
                 this.advanceExitOrder.set(id, 0L);
             }
         }

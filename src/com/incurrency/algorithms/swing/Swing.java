@@ -259,7 +259,7 @@ public class Swing extends Strategy implements TradeListener {
                         c.assign("lowzscore", dlowzscore.data);
                         c.assign("mazscore", dmazscore.data);
                         c.assign("y", dy.data);
-                        c.eval("save(lowzscore,file=\"lowzscore_" + sRef.getDisplayname() + ".Rdata\")");
+                        c.eval("save(lowzscore,file=\"lowzscore_" + sRef.getDisplayname()+ ".Rdata\")");
                         c.eval("data<-data.frame("
                                 + "tradedate=tradedate,"
                                 + "trend=trend,"
@@ -282,7 +282,7 @@ public class Swing extends Strategy implements TradeListener {
                         c.eval("data$tradedate<-as.POSIXct(as.numeric(as.character(data$tradedate))/1000,tz=\"Asia/Kolkata\",origin=\"1970-01-01\")");
                         c.eval("data[data==-1000001] = NA");
                         c.eval("data<-na.omit(data)");
-                        c.eval("save(data,file=\"data_" + sRef.getDisplayname() + ".Rdata\")");
+                        c.eval("save(data,file=\"data_" + sRef.getDisplayname()+ ".Rdata\")");
                         c.eval("data$y<-as.factor(data$y)");
 //                        c.eval(("data<-data[dim(data)[1],]"));
                         String path="\""+parameterObjectPath+"/"+"fit_"+sRef.getDisplayname()+".RData"+"\"";

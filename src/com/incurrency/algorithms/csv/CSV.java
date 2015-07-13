@@ -20,6 +20,7 @@ import com.incurrency.framework.Strategy;
 import com.incurrency.framework.SymbolOrderMap;
 import com.incurrency.framework.Trade;
 import com.incurrency.framework.TradingUtil;
+import com.incurrency.framework.Utilities;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -208,14 +209,14 @@ public class CSV extends Strategy {
 
     private void placeOrder(CSVOrder orderItem) {
         if (TradingUtil.getAlgoDate().after(getStartDate()) && TradingUtil.getAlgoDate().before(getEndDate())) {
-            int id = TradingUtil.getIDFromDisplayName(orderItem.getHappyName());
+            int id = Utilities.getIDFromDisplayName(Parameters.symbol,orderItem.getHappyName());
             if (orderItem.getType().equals("COMBO")) {
                 if (id == -1 && !Strategy.getCombosAdded().containsKey(orderItem.getHappyName())) {
                     Parameters.symbol.add(new BeanSymbol(orderItem.getSymbol(), orderItem.getHappyName(), getStrategy()));
                     Strategy.getCombosAdded().put(orderItem.getHappyName(), orderItem.getSymbol());
-                    id = TradingUtil.getIDFromDisplayName(orderItem.getHappyName());
+                    id = Utilities.getIDFromDisplayName(Parameters.symbol,orderItem.getHappyName());
                 } else {
-                    id = TradingUtil.getIDFromSymbol(orderItem.getSymbol(), orderItem.getType(), "", "", "");
+                    id = Utilities.getIDFromSymbol(Parameters.symbol,orderItem.getSymbol(), orderItem.getType(), "", "", "");
                 }
                 if (!getStrategySymbols().contains(id)) {
                     getStrategySymbols().add(id);
@@ -229,7 +230,7 @@ public class CSV extends Strategy {
 
 
             } else {
-                id = TradingUtil.getIDFromDisplayName(orderItem.getHappyName());
+                id = Utilities.getIDFromDisplayName(Parameters.symbol,orderItem.getHappyName());
             }
 
 
