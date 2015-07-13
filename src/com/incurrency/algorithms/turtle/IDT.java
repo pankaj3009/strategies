@@ -234,7 +234,7 @@ public class IDT extends Strategy implements Serializable, HistoricalBarListener
         channelDuration = Integer.parseInt(System.getProperty("ChannelDuration"));
         regressionLookBack = Integer.parseInt(System.getProperty("RegressionLookBack"));
         startBars = Integer.parseInt(System.getProperty("StartBars"));
-        index = Utilities.getIDFromSymbol(Parameters.symbol,System.getProperty("Index"), "IND", "", "", "");
+        index = Utilities.getIDFromExchangeSymbol(Parameters.symbol,System.getProperty("Index"), "IND", "", "", "");
         expiry = System.getProperty("FutureExpiry") == null ? "" : System.getProperty("FutureExpiry");
         entryCushion = System.getProperty("EntryCushion") == null ? 0D : Double.parseDouble(System.getProperty("EntryCushion"));
         exitCushion = System.getProperty("ExitCushion") == null ? 0D : Double.parseDouble(System.getProperty("ExitCushion"));

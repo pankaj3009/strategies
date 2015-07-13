@@ -216,7 +216,7 @@ public class CSV extends Strategy {
                     Strategy.getCombosAdded().put(orderItem.getHappyName(), orderItem.getSymbol());
                     id = Utilities.getIDFromDisplayName(Parameters.symbol,orderItem.getHappyName());
                 } else {
-                    id = Utilities.getIDFromSymbol(Parameters.symbol,orderItem.getSymbol(), orderItem.getType(), "", "", "");
+                    id = Utilities.getIDFromBrokerSymbol(Parameters.symbol,orderItem.getSymbol(), orderItem.getType(), "", "", "");
                 }
                 if (!getStrategySymbols().contains(id)) {
                     getStrategySymbols().add(id);
