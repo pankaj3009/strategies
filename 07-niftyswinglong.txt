@@ -8,7 +8,7 @@ MaxOrderDuration=1
 DynamicOrderDuration=1
 StrategyLog=true
 TickSize=0.05
-NumberOfContracts=20
+NumberOfContracts=40
 #Exposure
 PointValue=1
 ClawProfitTarget=0

@@ -350,7 +350,7 @@ public class EODMaintenance {
                     Utilities.writeToFile(outputFile, content);
                 }
                 //write END row
-                content = symbols.size() + 2 + "," + "END" + "," + "END" + "," + "END" + "," + "END" + "," + "END" + "," + "END" + "," + "" + "," + "" + "," + "" + "," + "" + "," + "" + "," + "" + "," + 4 + "," + "DATA";
+                content = symbols.size() + 2 + "," + "END" + "," + "END" + "," + "END" + "," + "END" + "," + "END" + "," + "END" + "," + "" + "," + "" + "," + "" + "," + "" + "," + "1" + "," + "" + "," + 4 + "," + "DATA";
                 Utilities.writeToFile(outputFile, content);
 
             }
@@ -450,7 +450,7 @@ public class EODMaintenance {
                 Utilities.writeToFile(outputFile, content);
             }
             //write END row
-            content = stockSymbols.size() + 2 + "," + "END" + "," + "END" + "," + "END" + "," + "END" + "," + "END" + "," + "END" + "," + "" + "," + "" + "," + "" + "," + "" + "," + "" + "," + "" + "," + 4 + "," + "DATA";
+            content = stockSymbols.size() + 2 + "," + "END" + "," + "END" + "," + "END" + "," + "END" + "," + "END" + "," + "END" + "," + "" + "," + "" + "," + "" + "," + "" + "," + "1" + "," + "" + "," + 4 + "," + "DATA";
             Utilities.writeToFile(outputFile, content);
 
         }
