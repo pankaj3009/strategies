@@ -27,6 +27,8 @@ import com.incurrency.framework.TradeListener;
 import com.incurrency.framework.TradingUtil;
 import com.incurrency.framework.Utilities;
 import com.incurrency.indicators.Indicators;
+import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -40,6 +42,7 @@ import java.util.logging.Logger;
 import org.jblas.DoubleMatrix;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.Rserve.RConnection;
+import static com.incurrency.framework.MatrixMethods.*;
 
 /**
  *
@@ -68,9 +71,11 @@ public class Swing extends Strategy implements TradeListener {
     public Swing(MainAlgorithm m, Properties p, String parameterFile, ArrayList<String> accounts, Integer stratCount) {
         super(m, "swing", "FUT", p, parameterFile, accounts, stratCount);
         loadParameters(p);
-
-        TradingUtil.writeToFile(getStrategy() + ".csv", "comma seperated header columns ");
-
+        File f=new File(getStrategy()+".csv");
+        if(!f.exists()){
+            TradingUtil.writeToFile(getStrategy() + ".csv", "trend,daysinupswing,daysindownswing,daysoutsidetrend,daysintrend,closezscore,highzscore,lowzscore,mazscore,nextdayprob,y");
+        }
+        
         String[] tempStrategyArray = parameterFile.split("\\.")[0].split("-");
         for (BeanConnection c : Parameters.connection) {
             c.getWrapper().addTradeListener(this);
@@ -292,6 +297,18 @@ public class Swing extends Strategy implements TradeListener {
                         int output = predict_prob.length;
                         double today_predict_prob = predict_prob[output - 1];
                         int size = this.getPosition().get(id).getPosition();
+                        TradingUtil.writeToFile(getStrategy() + ".csv", lValue(dtrend) + 
+                                "," + lValue(ddaysinupswing) + 
+                                "," + lValue(ddaysindownswing) + 
+                                "," + lValue(ddaysoutsidetrend) + 
+                                "," + lValue(ddaysintrend) +
+                                "," + lValue(dclosezscore) + 
+                                "," + lValue(dhighzscore) +
+                                "," + lValue(dlowzscore) + 
+                                "," + lValue(dmazscore) +
+                                "," + today_predict_prob + 
+                                "," + lValue(dy)
+                                );
                         if (this.getLongOnly() && size == 0 && today_predict_prob >= upProbabilityThreshold) {
                             //BUY ORDER
                             this.entry(id, EnumOrderSide.BUY, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULARENTRY, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
