@@ -35,8 +35,9 @@ UpProbabilityThreshold=0.7
 DownProbabilityThreshold=0.3
 cassandrametric=india.nse.index.s4.daily
 timeseries=open,high,low,settle,volume
-ParameterObjectPath=/home/psharma/strategies/swing
+#ParameterObjectPath=/home/psharma/strategies/swing
+ParameterObjectPath=C:/Users/Pankaj/Documents/Seafile/ML-Coursera/R
 #not used at present
 UseCustomDateRangeForTraining=true 
-Testing=false
+Testing=true
 
