@@ -41,8 +41,8 @@ public class PairDefinition {
         this.timeStamp = timeStamp;
         this.entryPrice = entryPrice;
         expiry=expiry==null?"":expiry;
-        buyid=Utilities.getIDFromSymbol(Parameters.symbol,buySymbol, type, expiry, "", "");
-        shortid=Utilities.getIDFromSymbol(Parameters.symbol,shortSymbol, type, expiry, "", "");
+        buyid=Utilities.getIDFromBrokerSymbol(Parameters.symbol,buySymbol, type, expiry, "", "");
+        shortid=Utilities.getIDFromBrokerSymbol(Parameters.symbol,shortSymbol, type, expiry, "", "");
         this.pairStopLoss=TradingUtil.isDouble(stopLoss)?Double.parseDouble(stopLoss):0D;
         this.pairTakeProfit=TradingUtil.isDouble(takeProfit)?Double.parseDouble(takeProfit):0D;
         this.buyratio=Double.parseDouble(buyratio);

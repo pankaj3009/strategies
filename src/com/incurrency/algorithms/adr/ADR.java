@@ -128,9 +128,11 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                 getStrategySymbols().add(s.getSerialno() - 1);
                 closePriceReceived.put(s.getSerialno() - 1, Boolean.FALSE);
             }
+            /*
             if (Pattern.compile(Pattern.quote("adr"), Pattern.CASE_INSENSITIVE).matcher(s.getStrategy()).find() && s.getType().equals("FUT")) {
                 getStrategySymbols().add(s.getSerialno() - 1);
             }
+           */
         }
         TradingUtil.writeToFile(getStrategy() + ".csv", "buyZone,ShortZone,TradingSide,adr,adrHigh,adrLow,adrDayHigh,adrDayLow,adrAvg,BuyZone1,ShortZone1,index,indexHigh,indexLow,indexDayHigh,indexDayLow,indexAvg,BuyZone2,ShortZone2,adrTRIN,adrTRINAvg,BuyZone3,ShortZone3,tick,tickTRIN,adrTRINHigh,adrTRINLow,HighRange,LowRange,Comment");
 

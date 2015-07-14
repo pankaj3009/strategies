@@ -28,5 +28,5 @@ OrderFile=ADROrders.csv
 StartingCapital=500000
 ScalpingMode=True
 ReentryMinimumMove=8
-ADRSymbolTag=CNX500
+ADRSymbolTag=ADR
 TradeTimeZone=Asia/Kolkata

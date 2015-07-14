@@ -86,7 +86,7 @@ public class CSVOrder implements ReaderWriterInterface {
         if(this.type.equals("COMBO")){//update Parameters.Symbols if first time
 
         }else{
-        id=Utilities.getIDFromSymbol(Parameters.symbol,symbol, type, expiry, right, optionStrike);
+        id=Utilities.getIDFromBrokerSymbol(Parameters.symbol,symbol, type, expiry, right, optionStrike);
         }
     }
 
