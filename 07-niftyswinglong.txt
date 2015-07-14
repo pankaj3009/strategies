@@ -38,4 +38,4 @@ timeseries=open,high,low,settle,volume
 ParameterObjectPath=/home/psharma/strategies/swing
 #not used at present
 UseCustomDateRangeForTraining=true 
-Testing=false
+Testing=true

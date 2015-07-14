@@ -71,7 +71,8 @@ public class Swing extends Strategy implements TradeListener {
     public Swing(MainAlgorithm m, Properties p, String parameterFile, ArrayList<String> accounts, Integer stratCount) {
         super(m, "swing", "FUT", p, parameterFile, accounts, stratCount);
         loadParameters(p);
-        File f=new File(getStrategy()+".csv");
+        File dir = new File("logs");
+        File f = new File(dir, getStrategy()+".csv");
         if(!f.exists()){
             TradingUtil.writeToFile(getStrategy() + ".csv", "trend,daysinupswing,daysindownswing,daysoutsidetrend,daysintrend,closezscore,highzscore,lowzscore,mazscore,nextdayprob,y");
         }
