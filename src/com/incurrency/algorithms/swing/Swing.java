@@ -291,7 +291,7 @@ public class Swing extends Strategy implements TradeListener {
                         c.eval("save(data,file=\"data_" + sRef.getDisplayname()+ ".Rdata\")");
                         c.eval("data$y<-as.factor(data$y)");
 //                        c.eval(("data<-data[dim(data)[1],]"));
-                        String path="\""+parameterObjectPath+"/"+"fit_"+sRef.getDisplayname()+".RData"+"\"";
+                        String path="\""+parameterObjectPath+"/"+"fit_"+sRef.getDisplayname()+".Rdata"+"\"";
                         c.eval("load("+path+")");
                         c.eval("today_predict_prob<-predict(fit, newdata = data, type=\"raw\")");
                         double[] predict_prob = c.eval("today_predict_prob").asDoubles();
