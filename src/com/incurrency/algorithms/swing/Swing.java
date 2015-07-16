@@ -310,20 +310,20 @@ public class Swing extends Strategy implements TradeListener {
                                 "," + today_predict_prob + 
                                 "," + lValue(dy)
                                 );
-                        if (this.getLongOnly() && size == 0 && today_predict_prob >= upProbabilityThreshold) {
+                        if (s.getLastPrice()!=0 && this.getLongOnly() && size == 0 && today_predict_prob >= upProbabilityThreshold) {
                             //BUY ORDER
                             this.entry(id, EnumOrderSide.BUY, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULARENTRY, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
-                        } else if (this.getLongOnly() && size > 0 && today_predict_prob <= downProbabilityThreshold) {
+                        } else if (s.getLastPrice()!=0 && this.getLongOnly() && size > 0 && today_predict_prob <= downProbabilityThreshold) {
                             //SELL ORDER 
                             this.entry(id, EnumOrderSide.SELL, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
                         } else {
                             //do nothing
                         }
                         
-                        if (this.getShortOnly() && size == 0 && today_predict_prob <= downProbabilityThreshold) {
+                        if (s.getLastPrice()!=0 && this.getShortOnly() && size == 0 && today_predict_prob <= downProbabilityThreshold) {
                             //SHORT ORDER
                             this.entry(id, EnumOrderSide.SHORT, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULARENTRY, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
-                        } else if (this.getShortOnly() && size < 0 && today_predict_prob >= upProbabilityThreshold) {
+                        } else if (s.getLastPrice()!=0 && this.getShortOnly() && size < 0 && today_predict_prob >= upProbabilityThreshold) {
                             //COVER ORDER 
                             this.entry(id, EnumOrderSide.COVER, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
                         } else {
