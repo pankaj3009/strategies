@@ -66,17 +66,17 @@ public class Swing extends Strategy implements TradeListener {
     long openTime;
     boolean customRange = false;
     Timer eodProcessing;
-    boolean testing=false;
+    boolean testing = false;
 
     public Swing(MainAlgorithm m, Properties p, String parameterFile, ArrayList<String> accounts, Integer stratCount) {
         super(m, "swing", "FUT", p, parameterFile, accounts, stratCount);
         loadParameters(p);
         File dir = new File("logs");
-        File f = new File(dir, getStrategy()+".csv");
-        if(!f.exists()){
+        File f = new File(dir, getStrategy() + ".csv");
+        if (!f.exists()) {
             TradingUtil.writeToFile(getStrategy() + ".csv", "trend,daysinupswing,daysindownswing,daysoutsidetrend,daysintrend,closezscore,highzscore,lowzscore,mazscore,nextdayprob,y");
         }
-        
+
         String[] tempStrategyArray = parameterFile.split("\\.")[0].split("-");
         for (BeanConnection c : Parameters.connection) {
             c.getWrapper().addTradeListener(this);
@@ -113,7 +113,7 @@ public class Swing extends Strategy implements TradeListener {
             tmpCalendar.add(Calendar.SECOND, 15);
             entryScanDate = tmpCalendar.getTime();
         }
-        
+
         eodProcessing = new Timer("Timer: Close Positions");
         eodProcessing.schedule(eodProcessingTask, entryScanDate);
     }
@@ -138,7 +138,7 @@ public class Swing extends Strategy implements TradeListener {
         timeSeries = p.getProperty("timeseries", "").toString().trim().split(",");
         cassandraMetric = p.getProperty("cassandrametric", "").toString().trim();
         customRange = Boolean.parseBoolean(p.getProperty("UseCustomDateRangeForTraining", "false").toString().trim());
-        testing=Boolean.parseBoolean(p.getProperty("Testing", "false").toString().trim());
+        testing = Boolean.parseBoolean(p.getProperty("Testing", "false").toString().trim());
     }
 
     @Override
@@ -147,13 +147,13 @@ public class Swing extends Strategy implements TradeListener {
         if (this.getStrategySymbols().contains(id) && !Parameters.symbol.get(id).getType().equals(referenceCashType)) {
             if (this.getPosition().get(id).getPosition() > 0) {
                 Double tradePrice = this.getPosition().get(id).getPrice();
-                if (Parameters.symbol.get(id).getLastPrice()!=0 && Parameters.symbol.get(id).getLastPrice() <= tradePrice * (1 - stopLoss/100)) {
+                if (Parameters.symbol.get(id).getLastPrice() != 0 && Parameters.symbol.get(id).getLastPrice() <= tradePrice * (1 - stopLoss / 100)) {
                     int size = this.getPosition().get(id).getPosition();
                     this.entry(id, EnumOrderSide.SELL, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
                 }
-            }else if (this.getPosition().get(id).getPosition() < 0) {
+            } else if (this.getPosition().get(id).getPosition() < 0) {
                 Double tradePrice = this.getPosition().get(id).getPrice();
-                if (Parameters.symbol.get(id).getLastPrice()!=0 && Parameters.symbol.get(id).getLastPrice() >= tradePrice * (1 + stopLoss/100)) {
+                if (Parameters.symbol.get(id).getLastPrice() != 0 && Parameters.symbol.get(id).getLastPrice() >= tradePrice * (1 + stopLoss / 100)) {
                     int size = this.getPosition().get(id).getPosition();
                     this.entry(id, EnumOrderSide.COVER, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
                 }
@@ -168,13 +168,25 @@ public class Swing extends Strategy implements TradeListener {
     };
 
     public void scan() {
+        SimpleDateFormat sdf_yyyyMMdd = new SimpleDateFormat("yyyyMMdd");
+        String currentDay = sdf_yyyyMMdd.format(getStartDate());
+        boolean rollover = false;
+        try {
+            Date today = sdf_yyyyMMdd.parse(currentDay);
+            Date expiry = sdf_yyyyMMdd.parse(expiryNearMonth);
+            if (today.compareTo(expiry) >= 0) {
+                rollover = true;
+            }
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, null, e);
+        }
         for (BeanSymbol s : Parameters.symbol) {
-            if (!s.getType().equals(referenceCashType)) {
+            if (!s.getType().equals(referenceCashType) && !s.getExpiry().equals(expiryFarMonth)) {
                 int id = s.getSerialno() - 1;
                 int referenceid = Utilities.getReferenceID(Parameters.symbol, id, referenceCashType);
                 BeanSymbol sRef = Parameters.symbol.get(referenceid);
                 //add current bar'sRef data to matrix
-                if (sRef.getTimeSeriesLength(EnumBarSize.DAILY)>-1 && sRef.getTimeSeriesLength(EnumBarSize.DAILY) > 0) {
+                if (sRef.getTimeSeriesLength(EnumBarSize.DAILY) > -1 && sRef.getTimeSeriesLength(EnumBarSize.DAILY) > 0) {
                     sRef.setTimeSeries(EnumBarSize.DAILY, openTime, new String[]{"open", "high", "low", "settle", "volume"}, new double[]{sRef.getOpenPrice(), sRef.getHighPrice(), sRef.getLowPrice(), sRef.getLastPrice(), sRef.getVolume()});
                     DoubleMatrix dtrend = Indicators.swing(sRef, EnumBarSize.DAILY).getTimeSeries(EnumBarSize.DAILY, "trend");
                     int[] indices = dtrend.ne(ReservedValues.EMPTY).findIndices();
@@ -226,8 +238,8 @@ public class Swing extends Strategy implements TradeListener {
                     DoubleMatrix dlowzscore = Indicators.zscore(dlow, 10);
                     DoubleMatrix drsi = Indicators.rsi(dclose, 14);
                     DoubleMatrix drsizscore = Indicators.zscore(drsi, 10);
-                    DoubleMatrix dma=Indicators.ma(dclose, 10);
-                    DoubleMatrix dmazscore=Indicators.zscore(dma, 10);
+                    DoubleMatrix dma = Indicators.ma(dclose, 10);
+                    DoubleMatrix dmazscore = Indicators.zscore(dma, 10);
                     DoubleMatrix dy = MatrixMethods.ref(dupdownbar, 1).eq(1);
                     RConnection c = null;
                     try {
@@ -236,15 +248,15 @@ public class Swing extends Strategy implements TradeListener {
                         c = new RConnection(rServerIP);
                         REXP x = c.eval("R.version.string");
                         System.out.println(x.asString());
-                        REXP wd=c.eval("getwd()");
+                        REXP wd = c.eval("getwd()");
                         System.out.println(wd.asString());
                         c.eval("options(encoding = \"UTF-8\")");
                         c.eval("rm(list=ls())");
                         c.eval("set.seed(42)");
                         c.eval("library(nnet)");
-                        String[] out=c.eval("search()").asStrings();
-                        for(int i=0;i<out.length;i++){
-                            System.out.println("Loaded Package:"+out[i]);
+                        String[] out = c.eval("search()").asStrings();
+                        for (int i = 0; i < out.length; i++) {
+                            System.out.println("Loaded Package:" + out[i]);
                         }
                         //c.eval("setwd(" + rWorkingDirectory + ")");
                         c.assign("tradedate", Utilities.convertLongListToArray(dT));
@@ -265,7 +277,7 @@ public class Swing extends Strategy implements TradeListener {
                         c.assign("lowzscore", dlowzscore.data);
                         c.assign("mazscore", dmazscore.data);
                         c.assign("y", dy.data);
-                        c.eval("save(lowzscore,file=\"lowzscore_" + sRef.getDisplayname()+ ".Rdata\")");
+                        c.eval("save(lowzscore,file=\"lowzscore_" + sRef.getDisplayname() + ".Rdata\")");
                         c.eval("data<-data.frame("
                                 + "tradedate=tradedate,"
                                 + "trend=trend,"
@@ -273,13 +285,13 @@ public class Swing extends Strategy implements TradeListener {
                                 + "daysindownswing=daysindownswing,"
                                 + "daysoutsidetrend=daysoutsidetrend,"
                                 + "daysintrend=daysintrend,"
-                               // + "stickytrend=stickytrend,"
-                               // + "fliptrend=fliptrend,"
-                               // + "daysinuptrend=daysinuptrend,"
-                               // + "daysindowntrend=daysindowntrend,"
-                               // + "updownbarclean=updownbarclean,"
-                               // + "updownbar=updownbar,"
-                               // + "rsizscore=rsizscore,"
+                                // + "stickytrend=stickytrend,"
+                                // + "fliptrend=fliptrend,"
+                                // + "daysinuptrend=daysinuptrend,"
+                                // + "daysindowntrend=daysindowntrend,"
+                                // + "updownbarclean=updownbarclean,"
+                                // + "updownbar=updownbar,"
+                                // + "rsizscore=rsizscore,"
                                 + "closezscore=closezscore,"
                                 + "highzscore=highzscore,"
                                 + "lowzscore=lowzscore,"
@@ -288,100 +300,90 @@ public class Swing extends Strategy implements TradeListener {
                         c.eval("data$tradedate<-as.POSIXct(as.numeric(as.character(data$tradedate))/1000,tz=\"Asia/Kolkata\",origin=\"1970-01-01\")");
                         c.eval("data[data==-1000001] = NA");
                         c.eval("data<-na.omit(data)");
-                        c.eval("save(data,file=\"data_" + sRef.getDisplayname()+ ".Rdata\")");
+                        c.eval("save(data,file=\"data_" + sRef.getDisplayname() + ".Rdata\")");
                         c.eval("data$y<-as.factor(data$y)");
 //                        c.eval(("data<-data[dim(data)[1],]"));
-                        String path="\""+parameterObjectPath+"/"+"fit_"+sRef.getDisplayname()+".Rdata"+"\"";
-                        c.eval("load("+path+")");
+                        String path = "\"" + parameterObjectPath + "/" + "fit_" + sRef.getDisplayname() + ".Rdata" + "\"";
+                        c.eval("load(" + path + ")");
                         c.eval("today_predict_prob<-predict(fit, newdata = data, type=\"raw\")");
                         double[] predict_prob = c.eval("today_predict_prob").asDoubles();
                         int output = predict_prob.length;
                         double today_predict_prob = predict_prob[output - 1];
                         int size = this.getPosition().get(id).getPosition();
-                        TradingUtil.writeToFile(getStrategy() + ".csv", lValue(dtrend) + 
-                                "," + lValue(ddaysinupswing) + 
-                                "," + lValue(ddaysindownswing) + 
-                                "," + lValue(ddaysoutsidetrend) + 
-                                "," + lValue(ddaysintrend) +
-                                "," + lValue(dclosezscore) + 
-                                "," + lValue(dhighzscore) +
-                                "," + lValue(dlowzscore) + 
-                                "," + lValue(dmazscore) +
-                                "," + today_predict_prob + 
-                                "," + lValue(dy)
-                                );
-                        if (s.getLastPrice()!=0 && this.getLongOnly() && size == 0 && today_predict_prob >= upProbabilityThreshold) {
-                            //BUY ORDER
-                            this.entry(id, EnumOrderSide.BUY, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULARENTRY, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
-                        } else if (s.getLastPrice()!=0 && this.getLongOnly() && size > 0 && today_predict_prob <= downProbabilityThreshold) {
-                            //SELL ORDER 
-                            this.entry(id, EnumOrderSide.SELL, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
-                        } else {
-                            //do nothing
-                        }
-                        
-                        if (s.getLastPrice()!=0 && this.getShortOnly() && size == 0 && today_predict_prob <= downProbabilityThreshold) {
-                            //SHORT ORDER
-                            this.entry(id, EnumOrderSide.SHORT, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULARENTRY, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
-                        } else if (s.getLastPrice()!=0 && this.getShortOnly() && size < 0 && today_predict_prob >= upProbabilityThreshold) {
-                            //COVER ORDER 
-                            this.entry(id, EnumOrderSide.COVER, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
-                        } else {
-                            //do nothing
+                        TradingUtil.writeToFile(getStrategy() + ".csv", lValue(dtrend)
+                                + "," + lValue(ddaysinupswing)
+                                + "," + lValue(ddaysindownswing)
+                                + "," + lValue(ddaysoutsidetrend)
+                                + "," + lValue(ddaysintrend)
+                                + "," + lValue(dclosezscore)
+                                + "," + lValue(dhighzscore)
+                                + "," + lValue(dlowzscore)
+                                + "," + lValue(dmazscore)
+                                + "," + today_predict_prob
+                                + "," + lValue(dy));
+
+                        if (!rollover) {
+                            if (s.getLastPrice() != 0 && this.getLongOnly() && size == 0 && today_predict_prob >= upProbabilityThreshold) {
+                                //BUY ORDER
+                                this.entry(id, EnumOrderSide.BUY, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULARENTRY, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
+                            } else if (s.getLastPrice() != 0 && this.getLongOnly() && size > 0 && today_predict_prob <= downProbabilityThreshold) {
+                                //SELL ORDER 
+                                this.entry(id, EnumOrderSide.SELL, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
+                            } else {
+                                //do nothing
+                            }
+
+                            if (s.getLastPrice() != 0 && this.getShortOnly() && size == 0 && today_predict_prob <= downProbabilityThreshold) {
+                                //SHORT ORDER
+                                this.entry(id, EnumOrderSide.SHORT, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULARENTRY, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
+                            } else if (s.getLastPrice() != 0 && this.getShortOnly() && size < 0 && today_predict_prob >= upProbabilityThreshold) {
+                                //COVER ORDER 
+                                this.entry(id, EnumOrderSide.COVER, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
+                            } else {
+                                //do nothing
+                            }
+                        } else { //rollover.
+                            if (today_predict_prob >= upProbabilityThreshold && s.getLastPrice() != 0 && this.getLongOnly() && size == 0) {
+                                //BUY ORDER
+                                id = Utilities.getNextExpiryID(Parameters.symbol, id, expiryFarMonth);
+                                this.entry(id, EnumOrderSide.BUY, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULARENTRY, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
+                            } else if (today_predict_prob <= downProbabilityThreshold && s.getLastPrice() != 0 && this.getLongOnly() && size > 0) {
+                                //SELL ORDER 
+                                this.entry(id, EnumOrderSide.SELL, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
+                            } else if(this.getLongOnly()){
+                                if(size>0){
+                                //SELL ORDER 
+                                this.entry(id, EnumOrderSide.SELL, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
+                                //BUY ORDER
+                                id = Utilities.getNextExpiryID(Parameters.symbol, id, expiryFarMonth);
+                                this.entry(id, EnumOrderSide.BUY, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULARENTRY, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
+                                }
+                                
+                            }
+
+                            if (today_predict_prob <= downProbabilityThreshold && s.getLastPrice() != 0 && this.getShortOnly() && size == 0) {
+                                //SHORT ORDER
+                                id = Utilities.getNextExpiryID(Parameters.symbol, id, expiryFarMonth);
+                                this.entry(id, EnumOrderSide.SHORT, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULARENTRY, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
+                            } else if (s.getLastPrice() != 0 && this.getShortOnly() && size < 0 && today_predict_prob >= upProbabilityThreshold) {
+                                //COVER ORDER 
+                                this.entry(id, EnumOrderSide.COVER, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
+                            } else if(this.getShortOnly()){ 
+                                if(size<0){
+                                //COVER ORDER 
+                                this.entry(id, EnumOrderSide.COVER, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
+                                //SHORT ORDER
+                                id = Utilities.getNextExpiryID(Parameters.symbol, id, expiryFarMonth);
+                                this.entry(id, EnumOrderSide.SHORT, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULARENTRY, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
+                                }
+                            }
                         }
 
                     } catch (Exception ex) {
                         logger.log(Level.SEVERE, null, ex);
-                    }
-                    //calculate indicators and check probability
-
+                    }                    
                 }
             }
         }
     }
 }
-
-
-
-/*
- c.assign("tradedate", Utilities.convertLongListToArray(dT));
-                    c.assign("trend", dtrend.data);
-                    c.assign("daysinupswing", ddaysinupswing.data);
-                    c.assign("daysindownswing", ddaysindownswing.data);
-                    c.assign("daysoutsidetrend", ddaysoutsidetrend.data);
-                    c.assign("daysintrend",ddaysintrend.data);
-                    c.assign("stickytrend", dstickytrend.data);
-                    c.assign("fliptrend", dfliptrend.data);
-                    c.assign("daysinuptrend", ddaysinuptrend.data);
-                    c.assign("daysindowntrend", ddaysindowntrend.data);
-                    c.assign("updownbarclean", dupdownbarclean.data);
-                    c.assign("updownbar", dupdownbar.data);
-                    c.assign("rsizscore", drsizscore.data);
-                    c.assign("closezscore", dclosezscore.data);
-                    c.assign("highzscore", dhighzscore.data);
-                    c.assign("lowzscore", dlowzscore.data);
-                    c.assign("y", dy.data);
-                    c.eval("data<-data.frame("
-                            +"tradedate="
-                            + "trend=trend,"
-                            + "daysinupswing=daysinupswing,"
-                            + "daysindownswing=daysindownswing,"
-                            + "daysoutsidetrend=daysoutsidetrend,"
-                            + "daysintrend=daysintrend,"
-                            + "stickytrend=stickytrend,"
-                            + "daysintrend=daysintrend,"
-                            + "stickytrend=stickytrend,"
-                            + "fliptrend=fliptrend,"
-                            + "daysinuptrend=daysinuptrend,"
-                            + "daysindowntrend=daysindowntrend,"
-                            + "updownbarclean=updownbarclean,"
-                            + "updownbar=updownbar,"
-                            + "rsizscore=rsizscore,"
-                            + "closezscore=closezscore,"
-                            + "highzscore=highzscore,"
-                            + "lowzscore=lowzscore,"
-                            + "y=y)");
-                    c.eval("data[data==-1000001] = NA");
-                    c.eval("data<-na.omit(data)");
-                    c.eval("data$y<-as.factor(data$y)");
- */
