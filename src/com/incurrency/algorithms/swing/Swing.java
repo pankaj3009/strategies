@@ -43,6 +43,8 @@ import org.jblas.DoubleMatrix;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.Rserve.RConnection;
 import static com.incurrency.framework.MatrixMethods.*;
+import java.util.HashMap;
+import java.util.TreeMap;
 
 /**
  *
@@ -67,6 +69,12 @@ public class Swing extends Strategy implements TradeListener {
     boolean customRange = false;
     Timer eodProcessing;
     boolean testing = false;
+    boolean portfolio=false;
+    int maxPositions=0;
+    int positionCount=0;
+    TreeMap<Double,Integer> longPositionScore=new TreeMap<>();
+    TreeMap<Double,Integer> shortPositionScore=new TreeMap<>();
+
 
     public Swing(MainAlgorithm m, Properties p, String parameterFile, ArrayList<String> accounts, Integer stratCount) {
         super(m, "swing", "FUT", p, parameterFile, accounts, stratCount);
@@ -116,6 +124,16 @@ public class Swing extends Strategy implements TradeListener {
 
         eodProcessing = new Timer("Timer: Close Positions");
         eodProcessing.schedule(eodProcessingTask, entryScanDate);
+        if(this.getLongOnly()){
+        positionCount=Utilities.openPositionCount(Parameters.symbol, this.getOrderFile(), this.getStrategy(), this.getPointValue(), true);
+        }
+        if(this.getShortOnly()){
+        positionCount=positionCount+Utilities.openPositionCount(Parameters.symbol, this.getOrderFile(), this.getStrategy(), this.getPointValue(), false);
+        }
+        logger.log(Level.INFO,"100,StrategyParameters,{0}",new Object[]{getStrategy() + delimiter + "Max Open Position" + delimiter + maxPositions});
+        logger.log(Level.INFO,"100,StrategyParameters,{0}",new Object[]{getStrategy() + delimiter + "Current Open Position" + delimiter + positionCount});
+        logger.log(Level.INFO,"100,StrategyParameters,{0}",new Object[]{getStrategy() + delimiter + "Portfolio Mode" + delimiter + portfolio});
+
     }
 
     private void loadParameters(Properties p) {
@@ -139,6 +157,8 @@ public class Swing extends Strategy implements TradeListener {
         cassandraMetric = p.getProperty("cassandrametric", "").toString().trim();
         customRange = Boolean.parseBoolean(p.getProperty("UseCustomDateRangeForTraining", "false").toString().trim());
         testing = Boolean.parseBoolean(p.getProperty("Testing", "false").toString().trim());
+        portfolio = Boolean.parseBoolean(p.getProperty("Portfolio", "false").toString().trim());
+        maxPositions = Integer.parseInt(p.getProperty("MaxPositions", "1").toString().trim());
     }
 
     @Override
@@ -305,12 +325,13 @@ public class Swing extends Strategy implements TradeListener {
 //                        c.eval(("data<-data[dim(data)[1],]"));
                         String path = "\"" + parameterObjectPath + "/" + "fit_" + sRef.getDisplayname() + ".Rdata" + "\"";
                         c.eval("load(" + path + ")");
-                        c.eval("today_predict_prob<-predict(fit, newdata = data, type=\"raw\")");
+                        c.eval("today_predict_prob<-predict(fit$finalModel, newdata = data, type=\"raw\")");
                         double[] predict_prob = c.eval("today_predict_prob").asDoubles();
                         int output = predict_prob.length;
                         double today_predict_prob = predict_prob[output - 1];
                         int size = this.getPosition().get(id).getPosition();
-                        TradingUtil.writeToFile(getStrategy() + ".csv", lValue(dtrend)
+                        TradingUtil.writeToFile(getStrategy() + ".csv",s.getDisplayname()
+                                + "," + lValue(dtrend)
                                 + "," + lValue(ddaysinupswing)
                                 + "," + lValue(ddaysindownswing)
                                 + "," + lValue(ddaysoutsidetrend)
@@ -321,68 +342,94 @@ public class Swing extends Strategy implements TradeListener {
                                 + "," + lValue(dmazscore)
                                 + "," + today_predict_prob
                                 + "," + lValue(dy));
-
-                        if (!rollover) {
-                            if (s.getLastPrice() != 0 && this.getLongOnly() && size == 0 && today_predict_prob >= upProbabilityThreshold) {
-                                //BUY ORDER
-                                this.entry(id, EnumOrderSide.BUY, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULARENTRY, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
-                            } else if (s.getLastPrice() != 0 && this.getLongOnly() && size > 0 && today_predict_prob <= downProbabilityThreshold) {
-                                //SELL ORDER 
-                                this.entry(id, EnumOrderSide.SELL, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
-                            } else {
-                                //do nothing
-                            }
-
-                            if (s.getLastPrice() != 0 && this.getShortOnly() && size == 0 && today_predict_prob <= downProbabilityThreshold) {
-                                //SHORT ORDER
-                                this.entry(id, EnumOrderSide.SHORT, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULARENTRY, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
-                            } else if (s.getLastPrice() != 0 && this.getShortOnly() && size < 0 && today_predict_prob >= upProbabilityThreshold) {
-                                //COVER ORDER 
-                                this.entry(id, EnumOrderSide.COVER, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
-                            } else {
-                                //do nothing
-                            }
-                        } else { //rollover.
-                            if (today_predict_prob >= upProbabilityThreshold && s.getLastPrice() != 0 && this.getLongOnly() && size == 0) {
-                                //BUY ORDER
-                                id = Utilities.getNextExpiryID(Parameters.symbol, id, expiryFarMonth);
-                                this.entry(id, EnumOrderSide.BUY, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULARENTRY, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
-                            } else if (today_predict_prob <= downProbabilityThreshold && s.getLastPrice() != 0 && this.getLongOnly() && size > 0) {
-                                //SELL ORDER 
-                                this.entry(id, EnumOrderSide.SELL, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
-                            } else if(this.getLongOnly()){
-                                if(size>0){
-                                //SELL ORDER 
-                                this.entry(id, EnumOrderSide.SELL, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
-                                //BUY ORDER
-                                id = Utilities.getNextExpiryID(Parameters.symbol, id, expiryFarMonth);
-                                this.entry(id, EnumOrderSide.BUY, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULARENTRY, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
-                                }
-                                
-                            }
-
-                            if (today_predict_prob <= downProbabilityThreshold && s.getLastPrice() != 0 && this.getShortOnly() && size == 0) {
-                                //SHORT ORDER
-                                id = Utilities.getNextExpiryID(Parameters.symbol, id, expiryFarMonth);
-                                this.entry(id, EnumOrderSide.SHORT, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULARENTRY, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
-                            } else if (s.getLastPrice() != 0 && this.getShortOnly() && size < 0 && today_predict_prob >= upProbabilityThreshold) {
-                                //COVER ORDER 
-                                this.entry(id, EnumOrderSide.COVER, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
-                            } else if(this.getShortOnly()){ 
-                                if(size<0){
-                                //COVER ORDER 
-                                this.entry(id, EnumOrderSide.COVER, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
-                                //SHORT ORDER
-                                id = Utilities.getNextExpiryID(Parameters.symbol, id, expiryFarMonth);
-                                this.entry(id, EnumOrderSide.SHORT, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULARENTRY, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
-                                }
-                            }
+                        
+                        Trigger swingTrigger = Trigger.UNDEFINED;
+                        boolean cBuy= today_predict_prob > upProbabilityThreshold && s.getLastPrice()!=0 && this.getLongOnly() && size==0;
+                        boolean cSell= today_predict_prob < downProbabilityThreshold && s.getLastPrice()!=0 && this.getLongOnly() && size>0;
+                        boolean cShort= today_predict_prob < downProbabilityThreshold && s.getLastPrice() != 0 && this.getShortOnly() && size == 0 ;
+                        boolean cCover=today_predict_prob >= upProbabilityThreshold && s.getLastPrice() != 0 && this.getShortOnly() && size < 0;
+                        if(cBuy && !portfolio){
+                            swingTrigger=Trigger.BUY;
+                        }else if(cSell){
+                            swingTrigger=Trigger.SELL;
+                        }else if(cShort && !portfolio){
+                            swingTrigger=Trigger.SHORT;
+                        }else if (cCover){
+                            swingTrigger=Trigger.COVER;
+                        }else if (cBuy && portfolio){
+                            swingTrigger=Trigger.BUYPORT;
+                        }else if (cShort && portfolio){
+                            swingTrigger=Trigger.SHORTPORT;
                         }
-
+                        
+                        switch(swingTrigger){
+                            case BUY:
+                                if(rollover){
+                                   id=Utilities.getNextExpiryID(Parameters.symbol, id, expiryFarMonth);
+                                }
+                                size=Parameters.symbol.get(id).getMinsize()*this.getNumberOfContracts();
+                                this.entry(id, EnumOrderSide.BUY, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULARENTRY, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);                                
+                                break;
+                            case SELL:
+                                this.entry(id, EnumOrderSide.SELL, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
+                                break;
+                            case SHORT:
+                                if(rollover){
+                                   id=Utilities.getNextExpiryID(Parameters.symbol, id, expiryFarMonth);
+                                }
+                                size=Parameters.symbol.get(id).getMinsize()*this.getNumberOfContracts();
+                                this.entry(id, EnumOrderSide.SHORT, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULARENTRY, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
+                                break;
+                            case COVER:
+                                 this.entry(id, EnumOrderSide.COVER, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
+                                break;
+                            case BUYPORT:
+                                if(rollover){
+                                    id=Utilities.getNextExpiryID(Parameters.symbol, id, expiryFarMonth);
+                                }
+                                longPositionScore.put(stopLoss, id);
+                                break;
+                            case SHORTPORT:
+                                if(rollover){
+                                    id=Utilities.getNextExpiryID(Parameters.symbol, id, expiryFarMonth);
+                                }
+                                shortPositionScore.put(stopLoss, id);
+                                break;
+                            default:
+                                break;
+                                
+                        }
+                        
                     } catch (Exception ex) {
                         logger.log(Level.SEVERE, null, ex);
                     }                    
                 }
+            }
+        }
+        portfolioTrades();
+    }
+    
+    private void portfolioTrades() {
+        if (this.getLongOnly()) {
+            positionCount = Utilities.openPositionCount(Parameters.symbol, this.getOrderFile(), this.getStrategy(), this.getPointValue(), true);
+        }
+        if (this.getShortOnly()) {
+            positionCount = positionCount + Utilities.openPositionCount(Parameters.symbol, this.getOrderFile(), this.getStrategy(), this.getPointValue(), false);
+        }
+        int gap = maxPositions - positionCount;
+        for (int id : longPositionScore.values()) {
+            if (gap > 0) {
+                gap = gap - 1;
+                int size = Parameters.symbol.get(id).getMinsize() * this.getNumberOfContracts();
+                this.entry(id, EnumOrderSide.BUY, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULARENTRY, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
+            }
+        }
+
+        for (int id : shortPositionScore.values()) {
+            if (gap > 0) {
+                gap = gap - 1;
+                int size = Parameters.symbol.get(id).getMinsize() * this.getNumberOfContracts();
+                this.entry(id, EnumOrderSide.SHORT, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULARENTRY, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
             }
         }
     }
