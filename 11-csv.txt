@@ -1,0 +1,26 @@
+######## CORE VARIABLES##################
+TradeTimeZone=Asia/Kolkata
+StartTime=00:01:00
+EndTime=23:59:00
+MaxSlippageEntry=0.5
+MaxSlippageExit=0.5
+MaxOrderDuration=1
+DynamicOrderDuration=1
+StrategyLog=true
+TickSize=0.05
+NumberOfContracts=1
+#Exposure
+PointValue=1
+ClawProfitTarget=0
+DayProfitTarget=0
+DayStopLoss=0
+MaximumOpenPositions=10
+BrokerageFile=11-inrfutbrokerage.txt
+TradeFile=INRCSVTrades.csv
+OrderFile=INRCSVOders.csv
+StartingCapital=1000000
+Long=true
+Short=true
+############## PER STRATEGY VARIABLES ##################
+OrderFileName=orders.csv
+Directory="C:\\Users\\Pankaj\\Documents\\Seafile\\git\\strategies"

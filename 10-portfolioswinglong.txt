@@ -8,7 +8,7 @@ MaxOrderDuration=1
 DynamicOrderDuration=1
 StrategyLog=true
 TickSize=0.05
-NumberOfContracts=40
+NumberOfContracts=1
 #Exposure
 PointValue=1
 ClawProfitTarget=0
@@ -16,11 +16,11 @@ DayProfitTarget=0
 DayStopLoss=0
 MaximumOpenPositions=1
 BrokerageFile=08-inrfutbrokerage.txt
-TradeFile=INRSWINGSHORTTrades.csv
-OrderFile=INRSWINGSHORTOrders.csv
+TradeFile=INRSWINGPORTLONGTrades.csv
+OrderFile=INRSWINGPORTLONGOrders.csv
 StartingCapital=1000000
-Long=false
-Short=true
+Long=true
+Short=false
 ############## PER STRATEGY VARIABLES ##################
 #Traded Symbol Name
 NearMonthExpiry=20150730
@@ -37,9 +37,9 @@ cassandrametric=india.nse.index.s4.daily
 timeseries=open,high,low,settle,volume
 #ParameterObjectPath=/home/psharma/strategies/swing
 ParameterObjectPath=C:/Users/Pankaj/Documents/Seafile/ML-Coursera/R
+Portfolio=true
+MaxPositions=5
 #not used at present
 UseCustomDateRangeForTraining=true 
 Testing=true
-Portfolio=true
-MaxPositions=5
 

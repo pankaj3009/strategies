@@ -85,22 +85,11 @@ public class CSV extends Strategy {
     }
 
     private void loadParameters(String strategy, String parameterFile) {
-        Properties p = new Properties(System.getProperties());
-        FileInputStream propFile;
-        try {
-            propFile = new FileInputStream(parameterFile);
-            try {
-                p.load(propFile);
-            } catch (Exception ex) {
-                logger.log(Level.INFO, "101", ex);
-            }
-        } catch (Exception ex) {
-            logger.log(Level.INFO, "101", ex);
-        }
-        System.setProperties(p);
-        orderFile = System.getProperty("OrderFileName") == null ? "orderfile.csv" : System.getProperty("OrderFileName");
-        directory = System.getProperty("Directory") == null ? "orders" : System.getProperty("Directory");
+        Properties p=Utilities.loadParameters(parameterFile);
+        orderFile = p.getProperty("OrderFileName") == null ? "orderfile.csv" : p.getProperty("OrderFileName");
+        directory = p.getProperty("Directory") == null ? "orders" : p.getProperty("Directory");
         directory = directory.replace("\\", "/");
+        directory = directory.replace("\"", "");
     }
 
     public void processOrders(Path dir) {
@@ -123,50 +112,57 @@ public class CSV extends Strategy {
                 }
                 //place any OCO orders
                 while (ocoOrderList.size() > 0) {
-                    int id = ocoOrderList.get(0).getId();
+                    int id = Integer.valueOf(ocoOrderList.get(0).getOrder().get("id").toString());
                     ArrayList<CSVOrder> activeOCOOrderList = new ArrayList<>();
                     Iterator<CSVOrder> it = ocoOrderList.iterator();
                     while (it.hasNext()) {
                         CSVOrder ord = it.next();
-                        if (ord.getId() == id) {
+                        int sid = Integer.valueOf(ord.getOrder().get("id").toString());
+                        
+                        if (sid == id) {
                             activeOCOOrderList.add(ord);
                         }
                         it.remove();
                     }
                     //place OCO orders
-                    String link = "";
+                    String link ;
                     if (activeOCOOrderList.size() > 0) {
-                        link = activeOCOOrderList.get(0).getSymbol() + DateUtil.getFormatedDate("yyyyMMdd", TradingUtil.getAlgoDate().getTime(), TimeZone.getTimeZone(getTimeZone()));
+                        //link = activeOCOOrderList.get(0).getSymbol() + DateUtil.getFormatedDate("yyyyMMdd", TradingUtil.getAlgoDate().getTime(), TimeZone.getTimeZone(getTimeZone()));
                     }
                     for (int i = 0; i < activeOCOOrderList.size() - 1; i++) {//loop through the first n-1 orders
                         //update internal orders
                         int entryID = 0;
                         int exitID = 0;
                         CSVOrder ord = activeOCOOrderList.get(i);
-                        switch (ord.getSide()) {
+                        int sid = Integer.valueOf(ord.getOrder().get("id").toString());
+                        EnumOrderSide sside=EnumOrderSide.valueOf(ord.getOrder().get("side").toString());
+                        EnumOrderReason sreason=EnumOrderReason.valueOf(ord.getOrder().get("reason").toString());
+                        EnumOrderReason sstage=EnumOrderReason.valueOf(ord.getOrder().get("stage").toString());
+                        int ssize=Integer.valueOf(ord.getOrder().get("size").toString());
+                        switch (sside) {
                             case BUY:
                             case SHORT:
                                 int internalorderid = getInternalOrderID();
                                 entryID = internalorderid;
                                 exitID = entryID;
                                 this.internalOpenOrders.put(id, internalorderid);
-                                getTrades().put(new OrderLink(internalorderid, 0, "Order"), new Trade(id, id, ord.getReason(), ord.getSide(), Parameters.symbol.get(id).getLastPrice(), ord.getSize(), internalorderid, 0, getTimeZone(), "Order"));
+                                int parentorderid=Trade.getParentExitOrderIDInternal(getTrades(), internalorderid);
+                                new Trade(getTrades(),id, id, sreason, sside, Parameters.symbol.get(id).getLastPrice(), ssize, internalorderid, 0, parentorderid,getTimeZone(), "Order");
                                 break;
                             case SELL:
                             case COVER:
                                 internalorderid = getInternalOrderID();
-                                int tempinternalOrderID = this.getFirstInternalOpenOrder(id, ord.getSide(), "Order");
+                                int tempinternalOrderID = this.getFirstInternalOpenOrder(id, sside, "Order");
                                 entryID = tempinternalOrderID;
                                 exitID = internalorderid;
-                                Trade tempTrade = getTrades().get(new OrderLink(tempinternalOrderID, 0, "Order"));
-                                tempTrade.updateExit(id, ord.getReason(), ord.getSide(), Parameters.symbol.get(id).getLastPrice(), ord.getSize(), internalorderid, 0, getTimeZone(), "Order");
-                                getTrades().put(new OrderLink(tempinternalOrderID, 0, "Order"), tempTrade);
+                                parentorderid=Trade.getParentExitOrderIDInternal(getTrades(), tempinternalOrderID);
+                                Trade.updateExit(getTrades(), id, EnumOrderReason.SL, EnumOrderSide.BUY, i, i, internalorderid, id, parentorderid, entryID, timeZone, allAccounts);
                                 break;
                             default:
                                 break;
                         }
-                        logger.log(Level.INFO, "Strategy,{0}, {1},OCO Order, New Position: {2}, Position Price:{3}, OrderSide: {4}, Order Stage: {5}, Order Reason:{6},", new Object[]{allAccounts, getStrategy(), getPosition().get(id).getPosition(), getPosition().get(id).getPrice(), ord.getSide(), ord.getStage(), ord.getReason()});
-                        getOms().tes.fireOrderEvent(entryID, exitID, Parameters.symbol.get(id), ord.getSide(), ord.getReason(), ord.getOrderType(), ord.getSize(), ord.getLimitPrice(), ord.getTriggerPrice(), getStrategy(), ord.getEffectiveDuration(), ord.getStage(), ord.getDynamicDuration(), ord.getSlippage(), false, ord.getTif(), true, "", ord.getEffectiveFrom(), null);
+                        logger.log(Level.INFO, "Strategy,{0}, {1},OCO Order, New Position: {2}, Position Price:{3}, OrderSide: {4}, Order Stage: {5}, Order Reason:{6},", new Object[]{allAccounts, getStrategy(), getPosition().get(id).getPosition(), getPosition().get(id).getPrice(), sside, sstage, sreason});
+                        getOms().tes.fireOrderEvent(ord.getOrder());
 
                     }
                     //place the last leg of the OCO and set transmit = true;
@@ -174,31 +170,36 @@ public class CSV extends Strategy {
                     int entryID = 0;
                     int exitID = 0;
                     CSVOrder ord = activeOCOOrderList.get(activeOCOOrderList.size() - 1); //get last element
-                    switch (ord.getSide()) {
+                    int sid = Integer.valueOf(ord.getOrder().get("id").toString());
+                        EnumOrderSide sside=EnumOrderSide.valueOf(ord.getOrder().get("side").toString());
+                        EnumOrderReason sreason=EnumOrderReason.valueOf(ord.getOrder().get("reason").toString());
+                        EnumOrderReason sstage=EnumOrderReason.valueOf(ord.getOrder().get("stage").toString());
+                        int ssize=Integer.valueOf(ord.getOrder().get("size").toString());
+                        switch (sside) {
                         case BUY:
                         case SHORT:
                             int internalorderid = getInternalOrderID();
                             entryID = internalorderid;
                             exitID = entryID;
+                            int parentorderid=Trade.getParentExitOrderIDInternal(getTrades(), internalorderid);
                             this.internalOpenOrders.put(id, internalorderid);
-                            getTrades().put(new OrderLink(internalorderid, 0, "Order"), new Trade(id, id, ord.getReason(), ord.getSide(), Parameters.symbol.get(id).getLastPrice(), ord.getSize(), internalorderid, 0, getTimeZone(), "Order"));
+                            new Trade(getTrades(),id, id, sreason, sside, Parameters.symbol.get(id).getLastPrice(), ssize, internalorderid, 0, parentorderid,getTimeZone(), "Order");
                             break;
                         case SELL:
                         case COVER:
                             internalorderid = getInternalOrderID();
-                            int tempinternalOrderID = this.getFirstInternalOpenOrder(id, ord.getSide(), "Order");
+                            int tempinternalOrderID = this.getFirstInternalOpenOrder(id, sside, "Order");
                             entryID = tempinternalOrderID;
                             exitID = internalorderid;
-                            Trade tempTrade = getTrades().get(new OrderLink(tempinternalOrderID, 0, "Order"));
-                            tempTrade.updateExit(id, ord.getReason(), ord.getSide(), Parameters.symbol.get(id).getLastPrice(), ord.getSize(), internalorderid, 0, getTimeZone(), "Order");
-                            getTrades().put(new OrderLink(tempinternalOrderID, 0, "Order"), tempTrade);
+                            parentorderid=Trade.getParentExitOrderIDInternal(getTrades(), tempinternalOrderID);
+                            Trade.updateExit(getTrades(),id, sreason, sside,Parameters.symbol.get(id).getLastPrice(), ssize, internalorderid, 0, parentorderid,entryID,getTimeZone(), "Order");
                             break;
                         default:
                             break;
                     }
-                    logger.log(Level.INFO, "Strategy,{0}, {1},OCO Order, New Position: {2}, Position Price:{3}, OrderSide: {4}, Order Stage: {5}, Order Reason:{6},", new Object[]{allAccounts, getStrategy(), getPosition().get(id).getPosition(), getPosition().get(id).getPrice(), ord.getSide(), ord.getStage(), ord.getReason()});
+                    logger.log(Level.INFO, "Strategy,{0}, {1},OCO Order, New Position: {2}, Position Price:{3}, OrderSide: {4}, Order Stage: {5}, Order Reason:{6},", new Object[]{allAccounts, getStrategy(), getPosition().get(id).getPosition(), getPosition().get(id).getPrice(), sside, sstage, sreason});
 
-                    getOms().tes.fireOrderEvent(entryID, exitID, Parameters.symbol.get(id), ord.getSide(), ord.getReason(), ord.getOrderType(), ord.getSize(), ord.getLimitPrice(), ord.getTriggerPrice(), getStrategy(), ord.getEffectiveDuration(), ord.getStage(), ord.getDynamicDuration(), ord.getSlippage(), true, ord.getTif(), true, "", ord.getEffectiveFrom(), null);
+                    getOms().tes.fireOrderEvent(ord.getOrder());
                 }
             } catch (IOException ex) {
                 logger.log(Level.INFO, "101", ex + "," + getStrategy());
@@ -208,6 +209,13 @@ public class CSV extends Strategy {
     }
 
     private void placeOrder(CSVOrder orderItem) {
+        EnumOrderSide side=EnumOrderSide.valueOf(orderItem.getOrder().get("side").toString());
+        if(side.equals(EnumOrderSide.BUY)||side.equals(EnumOrderSide.SHORT)){
+            this.entry(orderItem.getOrder());
+        }else{
+            this.exit(orderItem.getOrder());
+        }
+        /*
         if (TradingUtil.getAlgoDate().after(getStartDate()) && TradingUtil.getAlgoDate().before(getEndDate())) {
             int id = Utilities.getIDFromDisplayName(Parameters.symbol,orderItem.getHappyName());
             if (orderItem.getType().equals("COMBO")) {
@@ -262,7 +270,8 @@ public class CSV extends Strategy {
                         entryID = internalorderid;
                         exitID = entryID;
                         this.internalOpenOrders.put(id, internalorderid);
-                        getTrades().put(new OrderLink(internalorderid, 0, "Order"), new Trade(id, id, orderItem.getReason(), orderItem.getSide(), Parameters.symbol.get(id).getLastPrice(), orderItem.getSize(), internalorderid, 0, getTimeZone(), "Order"));
+                        int parentorderid=Trade.getParentEntryOrderIDInternal(getTrades(), internalorderid);
+                        new Trade(getTrades(),id, id, orderItem.getReason(), orderItem.getSide(), Parameters.symbol.get(id).getLastPrice(), orderItem.getSize(), internalorderid, 0, parentorderid,getTimeZone(), "Order");
                         break;
                     case SELL:
                     case COVER:
@@ -270,11 +279,8 @@ public class CSV extends Strategy {
                         int tempinternalOrderID = getFirstInternalOpenOrder(id, orderItem.getSide(), "Order");
                         exitID = tempinternalOrderID;
                         entryID = internalorderid;
-                        Trade tempTrade = getTrades().get(new OrderLink(tempinternalOrderID, 0, "Order"));
-                        if (tempTrade != null) {
-                            tempTrade.updateExit(id, orderItem.getReason(), orderItem.getSide(), Parameters.symbol.get(id).getLastPrice(), orderItem.getSize(), internalorderid, 0, getTimeZone(), "Order");
-                            getTrades().put(new OrderLink(tempinternalOrderID, 0, "Order"), tempTrade);
-                        }
+                        parentorderid=Trade.getParentExitOrderIDInternal(getTrades(), tempinternalOrderID);
+                        Trade.updateExit(getTrades(),id, orderItem.getReason(), orderItem.getSide(), Parameters.symbol.get(id).getLastPrice(), orderItem.getSize(), internalorderid, 0,parentorderid, tempinternalOrderID,getTimeZone(), "Order");
                         break;
                     default:
                         break;
@@ -331,5 +337,6 @@ public class CSV extends Strategy {
 
             }
         }
+        */
     }
 }

@@ -560,7 +560,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
         lowRange = 0;
         trailingTPActive = false;
         stopLossHit = false;
-        getTrades().clear();
+        getTrades().store.clear();
         long memoryNow = Runtime.getRuntime().freeMemory();
         System.gc();
         long memoryLater = Runtime.getRuntime().freeMemory();

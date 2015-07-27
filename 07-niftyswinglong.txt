@@ -39,4 +39,4 @@ timeseries=open,high,low,settle,volume
 ParameterObjectPath=C:/Users/Pankaj/Documents/Seafile/ML-Coursera/R
 #not used at present
 UseCustomDateRangeForTraining=true 
-Testing=true
+Testing=false
