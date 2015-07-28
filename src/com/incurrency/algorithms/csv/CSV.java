@@ -5,33 +5,21 @@
 package com.incurrency.algorithms.csv;
 
 import com.incurrency.framework.BeanConnection;
-import com.incurrency.framework.BeanPosition;
-import com.incurrency.framework.BeanSymbol;
-import com.incurrency.framework.DateUtil;
 import com.incurrency.framework.EnumOrderReason;
 import com.incurrency.framework.EnumOrderSide;
-import com.incurrency.framework.EnumOrderStage;
-import com.incurrency.framework.EnumOrderType;
-import com.incurrency.framework.Index;
 import com.incurrency.framework.MainAlgorithm;
-import com.incurrency.framework.OrderLink;
 import com.incurrency.framework.Parameters;
 import com.incurrency.framework.Strategy;
-import com.incurrency.framework.SymbolOrderMap;
 import com.incurrency.framework.Trade;
-import com.incurrency.framework.TradingUtil;
 import com.incurrency.framework.Utilities;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Properties;
-import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -148,6 +136,7 @@ public class CSV extends Strategy {
                                 this.internalOpenOrders.put(id, internalorderid);
                                 int parentorderid=Trade.getParentExitOrderIDInternal(getTrades(), internalorderid);
                                 new Trade(getTrades(),id, id, sreason, sside, Parameters.symbol.get(id).getLastPrice(), ssize, internalorderid, 0, parentorderid,getTimeZone(), "Order");
+                                //this.entry(ord.getOrder());
                                 break;
                             case SELL:
                             case COVER:
@@ -157,6 +146,7 @@ public class CSV extends Strategy {
                                 exitID = internalorderid;
                                 parentorderid=Trade.getParentExitOrderIDInternal(getTrades(), tempinternalOrderID);
                                 Trade.updateExit(getTrades(), id, EnumOrderReason.SL, EnumOrderSide.BUY, i, i, internalorderid, id, parentorderid, entryID, timeZone, allAccounts);
+                                //this.exit(ord.getOrder());
                                 break;
                             default:
                                 break;
@@ -184,6 +174,7 @@ public class CSV extends Strategy {
                             int parentorderid=Trade.getParentExitOrderIDInternal(getTrades(), internalorderid);
                             this.internalOpenOrders.put(id, internalorderid);
                             new Trade(getTrades(),id, id, sreason, sside, Parameters.symbol.get(id).getLastPrice(), ssize, internalorderid, 0, parentorderid,getTimeZone(), "Order");
+                            //this.entry(ord.getOrder());
                             break;
                         case SELL:
                         case COVER:
@@ -193,6 +184,7 @@ public class CSV extends Strategy {
                             exitID = internalorderid;
                             parentorderid=Trade.getParentExitOrderIDInternal(getTrades(), tempinternalOrderID);
                             Trade.updateExit(getTrades(),id, sreason, sside,Parameters.symbol.get(id).getLastPrice(), ssize, internalorderid, 0, parentorderid,entryID,getTimeZone(), "Order");
+                            //this.exit(ord.getOrder());
                             break;
                         default:
                             break;
