@@ -70,6 +70,10 @@ public class Swing extends Strategy implements TradeListener {
     Timer eodProcessing;
     boolean testing = false;
     boolean portfolio=false;
+    boolean optimalThreshold=false;
+    double sensitivityThreshold=0.5;
+    double specificityThreshold=0.5;
+    double exitLaziness=0;
     int maxPositions=0;
     int positionCount=0;
     TreeMap<Double,Integer> longPositionScore=new TreeMap<>();
@@ -159,6 +163,10 @@ public class Swing extends Strategy implements TradeListener {
         testing = Boolean.parseBoolean(p.getProperty("Testing", "false").toString().trim());
         portfolio = Boolean.parseBoolean(p.getProperty("Portfolio", "false").toString().trim());
         maxPositions = Integer.parseInt(p.getProperty("MaxPositions", "1").toString().trim());
+        optimalThreshold=Boolean.parseBoolean(p.getProperty("OptimalThreshold", "false").toString().trim());
+        sensitivityThreshold=Utilities.getDouble(p.getProperty("SensitivityThreshold"), 0.5);
+        specificityThreshold=Utilities.getDouble(p.getProperty("SpecificityThreshold"),0.5);
+        exitLaziness=Utilities.getDouble(p.getProperty("ExitLaziness"), 0);
     }
 
     @Override
@@ -274,6 +282,7 @@ public class Swing extends Strategy implements TradeListener {
                         c.eval("rm(list=ls())");
                         c.eval("set.seed(42)");
                         c.eval("library(nnet)");
+                        c.eval("library(pROC)");
                         String[] out = c.eval("search()").asStrings();
                         for (int i = 0; i < out.length; i++) {
                             System.out.println("Loaded Package:" + out[i]);
@@ -326,6 +335,15 @@ public class Swing extends Strategy implements TradeListener {
                         String path = "\"" + parameterObjectPath + "/" + "fit_" + sRef.getDisplayname() + ".Rdata" + "\"";
                         c.eval("load(" + path + ")");
                         c.eval("today_predict_prob<-predict(fit$finalModel, newdata = data, type=\"raw\")");
+                        c.eval("actual<-fit$finalModel$fitted.values+fit$finalModel$residuals");
+                        c.eval("actual<-as.numeric(actual)");
+                        c.eval("prediction<-fit$finalModel$fitted.values");
+                        c.eval("prediction<-as.numeric(prediction)");
+                        c.eval("rocCurve   <- roc(response = actual, predictor = prediction)");
+                        c.eval("result.coords <- coords(rocCurve, <DQ>best<DQ>, best.method=<DQ>closest.topleft<DQ>, ret=c(<DQ>threshold<DQ>, <DQ>accuracy<DQ>,<DQ>specificity<DQ>,<DQ>sensitivity<DQ>))");
+                        double threshold=c.eval("result.coords[<DQ>threshold<DQ>]").asDouble();
+                        double specificity=c.eval("result.coords[<DQ>specificity<DQ>]").asDouble();
+                        double sensitivity=c.eval("result.coords[<DQ>sensitivity<DQ>]").asDouble();
                         double[] predict_prob = c.eval("today_predict_prob").asDoubles();
                         int output = predict_prob.length;
                         double today_predict_prob = predict_prob[output - 1];
@@ -341,9 +359,27 @@ public class Swing extends Strategy implements TradeListener {
                                 + "," + lValue(dlowzscore)
                                 + "," + lValue(dmazscore)
                                 + "," + today_predict_prob
-                                + "," + lValue(dy));
-                        
+                                + "," + lValue(dy));                        
                         Trigger swingTrigger = Trigger.UNDEFINED;
+                        if(optimalThreshold){
+                        boolean cBuy= today_predict_prob > threshold && sensitivity>sensitivityThreshold && s.getLastPrice()!=0 && this.getLongOnly() && size==0;
+                        boolean cSell= today_predict_prob < threshold-exitLaziness && s.getLastPrice()!=0 && this.getLongOnly() && size>0;
+                        boolean cShort= today_predict_prob < threshold && specificity>specificityThreshold && s.getLastPrice() != 0 && this.getShortOnly() && size == 0 ;
+                        boolean cCover=today_predict_prob > threshold+exitLaziness && s.getLastPrice() != 0 && this.getShortOnly() && size < 0;
+                        if(cBuy && !portfolio){
+                            swingTrigger=Trigger.BUY;
+                        }else if(cSell){
+                            swingTrigger=Trigger.SELL;
+                        }else if(cShort && !portfolio){
+                            swingTrigger=Trigger.SHORT;
+                        }else if (cCover){
+                            swingTrigger=Trigger.COVER;
+                        }else if (cBuy && portfolio){
+                            swingTrigger=Trigger.BUYPORT;
+                        }else if (cShort && portfolio){
+                            swingTrigger=Trigger.SHORTPORT;
+                        }                            
+                        }else{
                         boolean cBuy= today_predict_prob > upProbabilityThreshold && s.getLastPrice()!=0 && this.getLongOnly() && size==0;
                         boolean cSell= today_predict_prob < downProbabilityThreshold && s.getLastPrice()!=0 && this.getLongOnly() && size>0;
                         boolean cShort= today_predict_prob < downProbabilityThreshold && s.getLastPrice() != 0 && this.getShortOnly() && size == 0 ;
@@ -361,7 +397,7 @@ public class Swing extends Strategy implements TradeListener {
                         }else if (cShort && portfolio){
                             swingTrigger=Trigger.SHORTPORT;
                         }
-                        
+                        }
                         switch(swingTrigger){
                             case BUY:
                                 if(rollover){
@@ -387,13 +423,13 @@ public class Swing extends Strategy implements TradeListener {
                                 if(rollover){
                                     id=Utilities.getNextExpiryID(Parameters.symbol, id, expiryFarMonth);
                                 }
-                                longPositionScore.put(stopLoss, id);
+                                longPositionScore.put(100-(sensitivity*100), id);
                                 break;
                             case SHORTPORT:
                                 if(rollover){
                                     id=Utilities.getNextExpiryID(Parameters.symbol, id, expiryFarMonth);
                                 }
-                                shortPositionScore.put(stopLoss, id);
+                                shortPositionScore.put(100-(specificity*100), id);
                                 break;
                             default:
                                 break;
@@ -421,7 +457,19 @@ public class Swing extends Strategy implements TradeListener {
             if (gap > 0) {
                 gap = gap - 1;
                 int size = Parameters.symbol.get(id).getMinsize() * this.getNumberOfContracts();
-                this.entry(id, EnumOrderSide.BUY, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULARENTRY, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
+                HashMap<String,Object>order=new HashMap<>();
+                order.put("id",id);
+                order.put("side", EnumOrderSide.BUY);
+                order.put("size", size);
+                order.put("type", EnumOrderType.LMT);
+                order.put("limitprice", Parameters.symbol.get(id).getLastPrice());
+                order.put("reason", EnumOrderReason.REGULARENTRY);
+                order.put("orderstage", EnumOrderStage.INIT);
+                order.put("expiretime", this.getMaxOrderDuration());
+                order.put("dynamicorderduration", getDynamicOrderDuration());
+                order.put("maxslippage", this.getMaxSlippageEntry());
+                entry(order);
+//                this.entry(id, EnumOrderSide.BUY, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULARENTRY, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
             }
         }
 
@@ -429,7 +477,19 @@ public class Swing extends Strategy implements TradeListener {
             if (gap > 0) {
                 gap = gap - 1;
                 int size = Parameters.symbol.get(id).getMinsize() * this.getNumberOfContracts();
-                this.entry(id, EnumOrderSide.SHORT, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULARENTRY, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
+                HashMap<String,Object>order=new HashMap<>();
+                order.put("id",id);
+                order.put("side", EnumOrderSide.SHORT);
+                order.put("size", size);
+                order.put("type", EnumOrderType.LMT);
+                order.put("limitprice", Parameters.symbol.get(id).getLastPrice());
+                order.put("reason", EnumOrderReason.REGULARENTRY);
+                order.put("orderstage", EnumOrderStage.INIT);
+                order.put("expiretime", this.getMaxOrderDuration());
+                order.put("dynamicorderduration", getDynamicOrderDuration());
+                order.put("maxslippage", this.getMaxSlippageExit());
+                entry(order);
+                //this.entry(id, EnumOrderSide.SHORT, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULARENTRY, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
             }
         }
     }

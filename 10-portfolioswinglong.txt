@@ -25,7 +25,7 @@ Short=false
 #Traded Symbol Name
 NearMonthExpiry=20150730
 FarMonthExpiry=20150827
-ReferenceCashType=IND
+ReferenceCashType=STK
 RServerIP=127.0.0.1
 RWorkingDirectory=/home/psharma/strategies/swing
 EntryScanTime=15:26:00
@@ -33,12 +33,16 @@ StopLoss=1
 TakeProfit=5
 UpProbabilityThreshold=0.7
 DownProbabilityThreshold=0.3
-cassandrametric=india.nse.index.s4.daily
+cassandrametric=india.nse.equity.s4.daily
 timeseries=open,high,low,settle,volume
 #ParameterObjectPath=/home/psharma/strategies/swing
 ParameterObjectPath=C:/Users/Pankaj/Documents/Seafile/ML-Coursera/R
 Portfolio=true
 MaxPositions=5
+OptimalThreshold=true
+ExitLaziness=0.2
+SensitivityThreshold=0.7
+SpecificityThreshold=0.7
 #not used at present
 UseCustomDateRangeForTraining=true 
 Testing=true
