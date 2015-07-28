@@ -45,6 +45,8 @@ import org.rosuda.REngine.Rserve.RConnection;
 import static com.incurrency.framework.MatrixMethods.*;
 import java.util.HashMap;
 import java.util.TreeMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  *
@@ -107,22 +109,21 @@ public class Swing extends Strategy implements TradeListener {
         calToday.add(Calendar.YEAR, -5);
         String hdStartDate = DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", calToday.getTimeInMillis(), TimeZone.getTimeZone(Algorithm.timeZone));
         try {
-            Thread t = new Thread(new HistoricalBars("swing", "IND", EnumSource.CASSANDRA, timeSeries, cassandraMetric, hdStartDate, hdEndDate, EnumBarSize.DAILY, false));
-            t.setName("Historical Bars");
-            logger.log(Level.INFO, "Historical Request Started");
-            t.start();
-//        t.join();
-            t = new Thread(new HistoricalBars("swing", "STK", EnumSource.CASSANDRA, timeSeries, cassandraMetric, hdStartDate, hdEndDate, EnumBarSize.DAILY, false));
-            t.setName("Historical Bars");
-            logger.log(Level.INFO, "Historical Request Started");
-            t.start();
-//        t.join();
+            for (BeanSymbol s : Parameters.symbol) {
+                if (s.getType().equals("STK") || s.getType().equals("IND")) {
+                    Thread t = new Thread(new HistoricalBars(s, EnumSource.CASSANDRA, timeSeries, cassandraMetric, hdStartDate, hdEndDate, EnumBarSize.DAILY, false));
+                    t.start();
+                    while (t.getState() != Thread.State.TERMINATED) {
+                        Thread.sleep(1000);
+                    }
+                }
+            }
         } catch (Exception e) {
             logger.log(Level.SEVERE, null, e);
         }
         if (testing) {
             Calendar tmpCalendar = Calendar.getInstance(TimeZone.getTimeZone(Algorithm.timeZone));
-            tmpCalendar.add(Calendar.SECOND, 15);
+            tmpCalendar.add(Calendar.HOUR, 15);
             entryScanDate = tmpCalendar.getTime();
         }
 
@@ -340,10 +341,10 @@ public class Swing extends Strategy implements TradeListener {
                         c.eval("prediction<-fit$finalModel$fitted.values");
                         c.eval("prediction<-as.numeric(prediction)");
                         c.eval("rocCurve   <- roc(response = actual, predictor = prediction)");
-                        c.eval("result.coords <- coords(rocCurve, <DQ>best<DQ>, best.method=<DQ>closest.topleft<DQ>, ret=c(<DQ>threshold<DQ>, <DQ>accuracy<DQ>,<DQ>specificity<DQ>,<DQ>sensitivity<DQ>))");
-                        double threshold=c.eval("result.coords[<DQ>threshold<DQ>]").asDouble();
-                        double specificity=c.eval("result.coords[<DQ>specificity<DQ>]").asDouble();
-                        double sensitivity=c.eval("result.coords[<DQ>sensitivity<DQ>]").asDouble();
+                        c.eval("result.coords <- coords(rocCurve, \"best\", best.method=\"closest.topleft\", ret=c(\"threshold\", \"accuracy\",\"specificity\",\"sensitivity\"))");
+                        double threshold=c.eval("result.coords[\"threshold\"]").asDouble();
+                        double specificity=c.eval("result.coords[\"specificity\"]").asDouble();
+                        double sensitivity=c.eval("result.coords[\"sensitivity\"]").asDouble();
                         double[] predict_prob = c.eval("today_predict_prob").asDoubles();
                         int output = predict_prob.length;
                         double today_predict_prob = predict_prob[output - 1];
