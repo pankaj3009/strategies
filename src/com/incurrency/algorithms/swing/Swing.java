@@ -74,7 +74,7 @@ public class Swing extends Strategy implements TradeListener {
     long openTime;
     boolean customRange = false;
     Timer eodProcessing;
-    boolean testing = false;
+    int testingTimer = 0;
     boolean portfolio = false;
     boolean optimalThreshold = false;
     double sensitivityThreshold = 0.5;
@@ -106,16 +106,16 @@ public class Swing extends Strategy implements TradeListener {
             Subscribe.tes.addTradeListener(this);
         }
         /*
-        Calendar calToday = Calendar.getInstance(TimeZone.getTimeZone(Algorithm.timeZone));
-        String hdEndDate = DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", calToday.getTimeInMillis(), TimeZone.getTimeZone(Algorithm.timeZone));
-        calToday.set(Calendar.HOUR_OF_DAY, Algorithm.openHour);
-        calToday.set(Calendar.MINUTE, Algorithm.openMinute);
-        calToday.set(Calendar.SECOND, 0);
-        calToday.set(Calendar.MILLISECOND, 0);
-        openTime = calToday.getTimeInMillis();
-        calToday.add(Calendar.YEAR, -5);
-        String hdStartDate = DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", calToday.getTimeInMillis(), TimeZone.getTimeZone(Algorithm.timeZone));
-        */
+         Calendar calToday = Calendar.getInstance(TimeZone.getTimeZone(Algorithm.timeZone));
+         String hdEndDate = DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", calToday.getTimeInMillis(), TimeZone.getTimeZone(Algorithm.timeZone));
+         calToday.set(Calendar.HOUR_OF_DAY, Algorithm.openHour);
+         calToday.set(Calendar.MINUTE, Algorithm.openMinute);
+         calToday.set(Calendar.SECOND, 0);
+         calToday.set(Calendar.MILLISECOND, 0);
+         openTime = calToday.getTimeInMillis();
+         calToday.add(Calendar.YEAR, -5);
+         String hdStartDate = DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", calToday.getTimeInMillis(), TimeZone.getTimeZone(Algorithm.timeZone));
+         */
         (new Thread() {
             public void run() {
                 Calendar calToday = Calendar.getInstance(TimeZone.getTimeZone(Algorithm.timeZone));
@@ -143,23 +143,23 @@ public class Swing extends Strategy implements TradeListener {
             }
         }).start();
         /*
-        try {
-            for (BeanSymbol s : Parameters.symbol) {
-                if (s.getType().equals("STK") || s.getType().equals("IND")) {
-                    Thread t = new Thread(new HistoricalBars(s, EnumSource.CASSANDRA, timeSeries, cassandraMetric, hdStartDate, hdEndDate, EnumBarSize.DAILY, false));
-                    t.start();
-                    while (t.getState() != Thread.State.TERMINATED) {
-                        Thread.sleep(1000);
-                    }
-                }
-            }
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, null, e);
-        }
-        */
-        if (testing) {
+         try {
+         for (BeanSymbol s : Parameters.symbol) {
+         if (s.getType().equals("STK") || s.getType().equals("IND")) {
+         Thread t = new Thread(new HistoricalBars(s, EnumSource.CASSANDRA, timeSeries, cassandraMetric, hdStartDate, hdEndDate, EnumBarSize.DAILY, false));
+         t.start();
+         while (t.getState() != Thread.State.TERMINATED) {
+         Thread.sleep(1000);
+         }
+         }
+         }
+         } catch (Exception e) {
+         logger.log(Level.SEVERE, null, e);
+         }
+         */
+        if (testingTimer > 0) {
             Calendar tmpCalendar = Calendar.getInstance(TimeZone.getTimeZone(Algorithm.timeZone));
-            tmpCalendar.add(Calendar.SECOND, 30);
+            tmpCalendar.add(Calendar.MINUTE, testingTimer);
             entryScanDate = tmpCalendar.getTime();
         }
 
@@ -180,7 +180,7 @@ public class Swing extends Strategy implements TradeListener {
         logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Take Profit %" + delimiter + takeProfit});
         logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Time Series" + delimiter + timeSeries});
         logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Cassandra Metric" + delimiter + cassandraMetric});
-        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Testing Mode" + delimiter + testing});
+        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Testing Timer Duration" + delimiter + testingTimer});
         logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Optimal Threshold set" + delimiter + optimalThreshold});
         logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Sensitivity Threshold" + delimiter + sensitivityThreshold});
         logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Specificity Threshold" + delimiter + specificityThreshold});
@@ -207,7 +207,7 @@ public class Swing extends Strategy implements TradeListener {
         downProbabilityThreshold = Utilities.getDouble(p.getProperty("DownProbabilityThreshold", "0.3"), 0.3);
         timeSeries = p.getProperty("timeseries", "").toString().trim().split(",");
         cassandraMetric = p.getProperty("cassandrametric", "").toString().trim();
-        testing = Boolean.parseBoolean(p.getProperty("Testing", "false").toString().trim());
+        testingTimer = Utilities.getInt(p.getProperty("TestingTimer"), 0);
         portfolio = Boolean.parseBoolean(p.getProperty("Portfolio", "false").toString().trim());
         maxPositions = Integer.parseInt(p.getProperty("MaxPositions", "1").toString().trim());
         optimalThreshold = Boolean.parseBoolean(p.getProperty("OptimalThreshold", "false").toString().trim());
@@ -298,6 +298,25 @@ public class Swing extends Strategy implements TradeListener {
         } catch (Exception e) {
             logger.log(Level.SEVERE, null, e);
         }
+        RConnection c = null;
+        try {
+            c = new RConnection(rServerIP);
+            REXP x = c.eval("R.version.string");
+            System.out.println(x.asString());
+            REXP wd = c.eval("getwd()");
+            System.out.println(wd.asString());
+            c.eval("options(encoding = \"UTF-8\")");
+            c.eval("rm(list=ls())");
+            c.eval("set.seed(42)");
+            c.eval("library(nnet)");
+            c.eval("library(pROC)");
+            String[] out = c.eval("search()").asStrings();
+            for (int i = 0; i < out.length; i++) {
+                System.out.println("Loaded Package:" + out[i]);
+            }
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, null, e);
+        }
         for (BeanSymbol s : Parameters.symbol) {
             if (!s.getType().equals(referenceCashType) && !s.getExpiry().equals(expiryFarMonth)) {
                 int id = s.getSerialno() - 1;
@@ -305,9 +324,12 @@ public class Swing extends Strategy implements TradeListener {
                 BeanSymbol sRef = Parameters.symbol.get(referenceid);
                 //add current bar'sRef data to matrix
                 if (sRef.getTimeSeriesLength(EnumBarSize.DAILY) > -1 && sRef.getTimeSeriesLength(EnumBarSize.DAILY) > 0) {
+                    //create the last bar
                     sRef.setTimeSeries(EnumBarSize.DAILY, openTime, new String[]{"open", "high", "low", "settle", "volume"}, new double[]{sRef.getOpenPrice(), sRef.getHighPrice(), sRef.getLowPrice(), sRef.getLastPrice(), sRef.getVolume()});
                     DoubleMatrix dtrend = Indicators.swing(sRef, EnumBarSize.DAILY).getTimeSeries(EnumBarSize.DAILY, "trend");
                     int[] indices = dtrend.ne(ReservedValues.EMPTY).findIndices();
+                    logger.log(Level.INFO,"102,SymbolDataLength,{0}",new Object[]{sRef.getDisplayname()+delimiter+indices.length});
+                    if(indices.length>100){
                     DoubleMatrix dclose = sRef.getTimeSeries(EnumBarSize.DAILY, "settle");
                     indices = Utilities.addArraysNoDuplicates(indices, dclose.ne(ReservedValues.EMPTY).findIndices());
                     DoubleMatrix dhigh = sRef.getTimeSeries(EnumBarSize.DAILY, "high");
@@ -359,24 +381,9 @@ public class Swing extends Strategy implements TradeListener {
                     DoubleMatrix dma = Indicators.ma(dclose, 10);
                     DoubleMatrix dmazscore = Indicators.zscore(dma, 10);
                     DoubleMatrix dy = MatrixMethods.ref(dupdownbar, 1).eq(1);
-                    RConnection c = null;
                     try {
                         //c = new RConnection("162.251.114.10");
                         int length = dtrend.length;
-                        c = new RConnection(rServerIP);
-                        REXP x = c.eval("R.version.string");
-                        System.out.println(x.asString());
-                        REXP wd = c.eval("getwd()");
-                        System.out.println(wd.asString());
-                        c.eval("options(encoding = \"UTF-8\")");
-                        c.eval("rm(list=ls())");
-                        c.eval("set.seed(42)");
-                        c.eval("library(nnet)");
-                        c.eval("library(pROC)");
-                        String[] out = c.eval("search()").asStrings();
-                        for (int i = 0; i < out.length; i++) {
-                            System.out.println("Loaded Package:" + out[i]);
-                        }
                         //c.eval("setwd(" + rWorkingDirectory + ")");
                         c.assign("tradedate", Utilities.convertLongListToArray(dT));
                         c.assign("trend", dtrend.data);
@@ -522,6 +529,7 @@ public class Swing extends Strategy implements TradeListener {
                     } catch (Exception ex) {
                         logger.log(Level.SEVERE, null, ex);
                     }
+                    }
                 }
             }
         }
@@ -566,7 +574,7 @@ public class Swing extends Strategy implements TradeListener {
                     ArrayList<Stop> stops = new ArrayList<>();
                     stops.add(sl);
                     stops.add(tp);
-                    Trade.setStop(getTrades(), orderid+"_"+"Order", stops);
+                    Trade.setStop(getTrades(), orderid + "_" + "Order", stops);
                 }
             }
 

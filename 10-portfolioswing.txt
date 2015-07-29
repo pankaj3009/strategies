@@ -15,12 +15,12 @@ ClawProfitTarget=0
 DayProfitTarget=0
 DayStopLoss=0
 MaximumOpenPositions=1
-BrokerageFile=08-inrfutbrokerage.txt
-TradeFile=INRSWINGPORTLONGTrades.csv
-OrderFile=INRSWINGPORTLONGOrders.csv
+BrokerageFile=10-inrfutbrokerage.txt
+TradeFile=INRSWINGPORTTrades.json
+OrderFile=INRSWINGPORTOrders.json
 StartingCapital=1000000
 Long=true
-Short=false
+Short=true
 ############## PER STRATEGY VARIABLES ##################
 #Traded Symbol Name
 NearMonthExpiry=20150730
@@ -35,7 +35,7 @@ UpProbabilityThreshold=0.7
 DownProbabilityThreshold=0.3
 cassandrametric=india.nse.equity.s4.daily
 timeseries=open,high,low,settle,volume
-ParameterObjectPath=/home/psharma/strategies/portswing
+ParameterObjectPath=/home/psharma/strategies/swing
 #ParameterObjectPath=C:/Users/Pankaj/Documents/Seafile/ML-Coursera/R
 Portfolio=true
 MaxPositions=5
@@ -46,5 +46,5 @@ SensitivityThreshold=0.7
 SpecificityThreshold=0.7
 #not used at present
 UseCustomDateRangeForTraining=true 
-Testing=true
+TestingTimer=3
 
