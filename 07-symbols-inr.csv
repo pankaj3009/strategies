@@ -1,3 +1,4 @@
 serialno,brokersymbol,exchangesymbol,happyname,type,exchange,primaryexchange,currency,expiry,option,right,minsize,barsstarttime,streamingpriority,strategy
-1,NIFTY50,NSENIFTY,,FUT,NSE,,INR,20150827,,,25,,0,SWING
+1,NIFTY50,NSENIFTY,,FUT,NSE,,INR,20150730,,,25,,0,SWING
 2,NIFTY50,NSENIFTY,,IND,NSE,,INR,,,,1,,0,SWING
+3,NIFTY50,NSENIFTY,,FUT,NSE,,INR,20150827,,,25,,0,SWING

@@ -105,6 +105,7 @@ public class Swing extends Strategy implements TradeListener {
         if (Subscribe.tes != null) {
             Subscribe.tes.addTradeListener(this);
         }
+        /*
         Calendar calToday = Calendar.getInstance(TimeZone.getTimeZone(Algorithm.timeZone));
         String hdEndDate = DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", calToday.getTimeInMillis(), TimeZone.getTimeZone(Algorithm.timeZone));
         calToday.set(Calendar.HOUR_OF_DAY, Algorithm.openHour);
@@ -114,6 +115,34 @@ public class Swing extends Strategy implements TradeListener {
         openTime = calToday.getTimeInMillis();
         calToday.add(Calendar.YEAR, -5);
         String hdStartDate = DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", calToday.getTimeInMillis(), TimeZone.getTimeZone(Algorithm.timeZone));
+        */
+        (new Thread() {
+            public void run() {
+                Calendar calToday = Calendar.getInstance(TimeZone.getTimeZone(Algorithm.timeZone));
+                String hdEndDate = DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", calToday.getTimeInMillis(), TimeZone.getTimeZone(Algorithm.timeZone));
+                calToday.set(Calendar.HOUR_OF_DAY, Algorithm.openHour);
+                calToday.set(Calendar.MINUTE, Algorithm.openMinute);
+                calToday.set(Calendar.SECOND, 0);
+                calToday.set(Calendar.MILLISECOND, 0);
+                openTime = calToday.getTimeInMillis();
+                calToday.add(Calendar.YEAR, -5);
+                String hdStartDate = DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", calToday.getTimeInMillis(), TimeZone.getTimeZone(Algorithm.timeZone));
+                for (BeanSymbol s : Parameters.symbol) {
+                    if (s.getType().equals("STK") || s.getType().equals("IND")) {
+                        Thread t = new Thread(new HistoricalBars(s, EnumSource.CASSANDRA, timeSeries, cassandraMetric, hdStartDate, hdEndDate, EnumBarSize.DAILY, false));
+                        t.start();
+                        while (t.getState() != Thread.State.TERMINATED) {
+                            try {
+                                Thread.sleep(1000);
+                            } catch (InterruptedException ex) {
+                                Logger.getLogger(Swing.class.getName()).log(Level.SEVERE, null, ex);
+                            }
+                        }
+                    }
+                }
+            }
+        }).start();
+        /*
         try {
             for (BeanSymbol s : Parameters.symbol) {
                 if (s.getType().equals("STK") || s.getType().equals("IND")) {
@@ -127,6 +156,7 @@ public class Swing extends Strategy implements TradeListener {
         } catch (Exception e) {
             logger.log(Level.SEVERE, null, e);
         }
+        */
         if (testing) {
             Calendar tmpCalendar = Calendar.getInstance(TimeZone.getTimeZone(Algorithm.timeZone));
             tmpCalendar.add(Calendar.SECOND, 30);
@@ -536,7 +566,7 @@ public class Swing extends Strategy implements TradeListener {
                     ArrayList<Stop> stops = new ArrayList<>();
                     stops.add(sl);
                     stops.add(tp);
-                    Trade.setStop(getTrades(), orderid, stops);
+                    Trade.setStop(getTrades(), orderid+"_"+"Order", stops);
                 }
             }
 
