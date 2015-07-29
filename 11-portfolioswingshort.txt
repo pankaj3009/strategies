@@ -16,11 +16,11 @@ DayProfitTarget=0
 DayStopLoss=0
 MaximumOpenPositions=1
 BrokerageFile=08-inrfutbrokerage.txt
-TradeFile=INRSWINGPORTLONGTrades.csv
-OrderFile=INRSWINGPORTLONGOrders.csv
+TradeFile=INRSWINGPORTSHORTTrades.csv
+OrderFile=INRSWINGPORTSHORTOrders.csv
 StartingCapital=1000000
-Long=true
-Short=false
+Long=false
+Short=true
 ############## PER STRATEGY VARIABLES ##################
 #Traded Symbol Name
 NearMonthExpiry=20150730
@@ -41,7 +41,6 @@ Portfolio=true
 MaxPositions=5
 OptimalThreshold=true
 ExitLaziness=0.2
-EntryLaziness=0.1
 SensitivityThreshold=0.7
 SpecificityThreshold=0.7
 #not used at present

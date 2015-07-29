@@ -16,6 +16,8 @@ import com.incurrency.framework.EnumOrderSide;
 import com.incurrency.framework.EnumOrderStage;
 import com.incurrency.framework.EnumOrderType;
 import com.incurrency.framework.EnumSource;
+import com.incurrency.framework.EnumStopMode;
+import com.incurrency.framework.EnumStopType;
 import com.incurrency.framework.HistoricalBars;
 import com.incurrency.framework.MainAlgorithm;
 import com.incurrency.framework.MatrixMethods;
@@ -43,10 +45,12 @@ import org.jblas.DoubleMatrix;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.Rserve.RConnection;
 import static com.incurrency.framework.MatrixMethods.*;
+import com.incurrency.framework.Stop;
+import com.incurrency.framework.Trade;
 import java.util.HashMap;
 import java.util.TreeMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import org.rosuda.REngine.REXPMismatchException;
+import org.rosuda.REngine.REngineException;
 
 /**
  *
@@ -71,16 +75,18 @@ public class Swing extends Strategy implements TradeListener {
     boolean customRange = false;
     Timer eodProcessing;
     boolean testing = false;
-    boolean portfolio=false;
-    boolean optimalThreshold=false;
-    double sensitivityThreshold=0.5;
-    double specificityThreshold=0.5;
-    double exitLaziness=0;
-    int maxPositions=0;
-    int positionCount=0;
-    TreeMap<Double,Integer> longPositionScore=new TreeMap<>();
-    TreeMap<Double,Integer> shortPositionScore=new TreeMap<>();
-
+    boolean portfolio = false;
+    boolean optimalThreshold = false;
+    double sensitivityThreshold = 0.5;
+    double specificityThreshold = 0.5;
+    double exitLaziness = 0;
+    double entryLaziness = 0;
+    int maxPositions = 0;
+    int longpositionCount = 0;
+    int shortpositionCount = 0;
+    TreeMap<Double, Integer> longPositionScore = new TreeMap<>();
+    TreeMap<Double, Integer> shortPositionScore = new TreeMap<>();
+    HashMap<Integer, Double> thresholdDistance = new HashMap<>(); //holds the symbol id: probability-threshold
 
     public Swing(MainAlgorithm m, Properties p, String parameterFile, ArrayList<String> accounts, Integer stratCount) {
         super(m, "swing", "FUT", p, parameterFile, accounts, stratCount);
@@ -129,15 +135,26 @@ public class Swing extends Strategy implements TradeListener {
 
         eodProcessing = new Timer("Timer: Close Positions");
         eodProcessing.schedule(eodProcessingTask, entryScanDate);
-        if(this.getLongOnly()){
-        positionCount=Utilities.openPositionCount(Parameters.symbol, this.getOrderFile(), this.getStrategy(), this.getPointValue(), true);
+        if (this.getLongOnly()) {
+            longpositionCount = Utilities.openPositionCount(Parameters.symbol, this.getOrderFile(), this.getStrategy(), this.getPointValue(), true);
         }
-        if(this.getShortOnly()){
-        positionCount=positionCount+Utilities.openPositionCount(Parameters.symbol, this.getOrderFile(), this.getStrategy(), this.getPointValue(), false);
+        if (this.getShortOnly()) {
+            shortpositionCount = Utilities.openPositionCount(Parameters.symbol, this.getOrderFile(), this.getStrategy(), this.getPointValue(), false);
         }
-        logger.log(Level.INFO,"100,StrategyParameters,{0}",new Object[]{getStrategy() + delimiter + "Max Open Position" + delimiter + maxPositions});
-        logger.log(Level.INFO,"100,StrategyParameters,{0}",new Object[]{getStrategy() + delimiter + "Current Open Position" + delimiter + positionCount});
-        logger.log(Level.INFO,"100,StrategyParameters,{0}",new Object[]{getStrategy() + delimiter + "Portfolio Mode" + delimiter + portfolio});
+        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Max Open Position" + delimiter + maxPositions});
+        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Current Long Open Position" + delimiter + longpositionCount});
+        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Current Short Open Position" + delimiter + shortpositionCount});
+        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Portfolio Mode" + delimiter + portfolio});
+        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Entry Scan Time" + delimiter + entryScanDate});
+        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Stop Loss %" + delimiter + stopLoss});
+        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Take Profit %" + delimiter + takeProfit});
+        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Time Series" + delimiter + timeSeries});
+        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Cassandra Metric" + delimiter + cassandraMetric});
+        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Testing Mode" + delimiter + testing});
+        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Optimal Threshold set" + delimiter + optimalThreshold});
+        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Sensitivity Threshold" + delimiter + sensitivityThreshold});
+        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Specificity Threshold" + delimiter + specificityThreshold});
+        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Exit Laziness" + delimiter + exitLaziness});
 
     }
 
@@ -160,14 +177,14 @@ public class Swing extends Strategy implements TradeListener {
         downProbabilityThreshold = Utilities.getDouble(p.getProperty("DownProbabilityThreshold", "0.3"), 0.3);
         timeSeries = p.getProperty("timeseries", "").toString().trim().split(",");
         cassandraMetric = p.getProperty("cassandrametric", "").toString().trim();
-        customRange = Boolean.parseBoolean(p.getProperty("UseCustomDateRangeForTraining", "false").toString().trim());
         testing = Boolean.parseBoolean(p.getProperty("Testing", "false").toString().trim());
         portfolio = Boolean.parseBoolean(p.getProperty("Portfolio", "false").toString().trim());
         maxPositions = Integer.parseInt(p.getProperty("MaxPositions", "1").toString().trim());
-        optimalThreshold=Boolean.parseBoolean(p.getProperty("OptimalThreshold", "false").toString().trim());
-        sensitivityThreshold=Utilities.getDouble(p.getProperty("SensitivityThreshold"), 0.5);
-        specificityThreshold=Utilities.getDouble(p.getProperty("SpecificityThreshold"),0.5);
-        exitLaziness=Utilities.getDouble(p.getProperty("ExitLaziness"), 0);
+        optimalThreshold = Boolean.parseBoolean(p.getProperty("OptimalThreshold", "false").toString().trim());
+        sensitivityThreshold = Utilities.getDouble(p.getProperty("SensitivityThreshold"), 0.5);
+        specificityThreshold = Utilities.getDouble(p.getProperty("SpecificityThreshold"), 0.5);
+        exitLaziness = Utilities.getDouble(p.getProperty("ExitLaziness"), 0);
+        entryLaziness = Utilities.getDouble(p.getProperty("EntryLaziness"), 0);
     }
 
     @Override
@@ -176,15 +193,57 @@ public class Swing extends Strategy implements TradeListener {
         if (this.getStrategySymbols().contains(id) && !Parameters.symbol.get(id).getType().equals(referenceCashType)) {
             if (this.getPosition().get(id).getPosition() > 0) {
                 Double tradePrice = this.getPosition().get(id).getPrice();
-                if (Parameters.symbol.get(id).getLastPrice() != 0 && Parameters.symbol.get(id).getLastPrice() <= tradePrice * (1 - stopLoss / 100)) {
+                ArrayList<Stop> stops = Trade.getStop(getTrades(), internalOpenOrders.get(id));
+                boolean tpTrigger = false;
+                boolean slTrigger = false;
+                if (stops == null && Parameters.symbol.get(id).getLastPrice() != 0) {
+                    slTrigger = Parameters.symbol.get(id).getLastPrice() <= tradePrice * (1 - stopLoss / 100);
+                    tpTrigger = Parameters.symbol.get(id).getLastPrice() >= tradePrice * (1 + takeProfit / 100);
+
+                } else if (stops != null && Parameters.symbol.get(id).getLastPrice() != 0) {
+                    for (Stop stop : stops) {
+                        switch (stop.stopType) {
+                            case TAKEPROFIT:
+                                tpTrigger = Parameters.symbol.get(id).getLastPrice() - tradePrice >= stop.stopValue;
+                                break;
+                            case STOPLOSS:
+                                slTrigger = tradePrice - Parameters.symbol.get(id).getLastPrice() >= stop.stopValue;
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
+                if (slTrigger || tpTrigger) {
                     int size = this.getPosition().get(id).getPosition();
                     this.entry(id, EnumOrderSide.SELL, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
                 }
             } else if (this.getPosition().get(id).getPosition() < 0) {
                 Double tradePrice = this.getPosition().get(id).getPrice();
-                if (Parameters.symbol.get(id).getLastPrice() != 0 && Parameters.symbol.get(id).getLastPrice() >= tradePrice * (1 + stopLoss / 100)) {
+                ArrayList<Stop> stops = Trade.getStop(getTrades(), internalOpenOrders.get(id));
+                boolean tpTrigger = false;
+                boolean slTrigger = false;
+                if (stops == null && Parameters.symbol.get(id).getLastPrice() != 0) {
+                    slTrigger = Parameters.symbol.get(id).getLastPrice() >= tradePrice * (1 + stopLoss / 100);
+                    tpTrigger = Parameters.symbol.get(id).getLastPrice() <= tradePrice * (1 - takeProfit / 100);
+
+                } else if (stops != null && Parameters.symbol.get(id).getLastPrice() != 0) {
+                    for (Stop stop : stops) {
+                        switch (stop.stopType) {
+                            case TAKEPROFIT:
+                                tpTrigger = tradePrice - Parameters.symbol.get(id).getLastPrice() >= stop.stopValue;
+                                break;
+                            case STOPLOSS:
+                                slTrigger = Parameters.symbol.get(id).getLastPrice() - tradePrice >= stop.stopValue;
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
+                if (slTrigger || tpTrigger) {
                     int size = this.getPosition().get(id).getPosition();
-                    this.entry(id, EnumOrderSide.COVER, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
+                    this.entry(id, EnumOrderSide.COVER, Math.abs(size), EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
                 }
             }
         }
@@ -315,13 +374,6 @@ public class Swing extends Strategy implements TradeListener {
                                 + "daysindownswing=daysindownswing,"
                                 + "daysoutsidetrend=daysoutsidetrend,"
                                 + "daysintrend=daysintrend,"
-                                // + "stickytrend=stickytrend,"
-                                // + "fliptrend=fliptrend,"
-                                // + "daysinuptrend=daysinuptrend,"
-                                // + "daysindowntrend=daysindowntrend,"
-                                // + "updownbarclean=updownbarclean,"
-                                // + "updownbar=updownbar,"
-                                // + "rsizscore=rsizscore,"
                                 + "closezscore=closezscore,"
                                 + "highzscore=highzscore,"
                                 + "lowzscore=lowzscore,"
@@ -332,7 +384,6 @@ public class Swing extends Strategy implements TradeListener {
                         c.eval("data<-na.omit(data)");
                         c.eval("save(data,file=\"data_" + sRef.getDisplayname() + ".Rdata\")");
                         c.eval("data$y<-as.factor(data$y)");
-//                        c.eval(("data<-data[dim(data)[1],]"));
                         String path = "\"" + parameterObjectPath + "/" + "fit_" + sRef.getDisplayname() + ".Rdata" + "\"";
                         c.eval("load(" + path + ")");
                         c.eval("today_predict_prob<-predict(fit$finalModel, newdata = data, type=\"raw\")");
@@ -342,14 +393,14 @@ public class Swing extends Strategy implements TradeListener {
                         c.eval("prediction<-as.numeric(prediction)");
                         c.eval("rocCurve   <- roc(response = actual, predictor = prediction)");
                         c.eval("result.coords <- coords(rocCurve, \"best\", best.method=\"closest.topleft\", ret=c(\"threshold\", \"accuracy\",\"specificity\",\"sensitivity\"))");
-                        double threshold=c.eval("result.coords[\"threshold\"]").asDouble();
-                        double specificity=c.eval("result.coords[\"specificity\"]").asDouble();
-                        double sensitivity=c.eval("result.coords[\"sensitivity\"]").asDouble();
+                        double threshold = c.eval("result.coords[\"threshold\"]").asDouble();
+                        double specificity = c.eval("result.coords[\"specificity\"]").asDouble();
+                        double sensitivity = c.eval("result.coords[\"sensitivity\"]").asDouble();
                         double[] predict_prob = c.eval("today_predict_prob").asDoubles();
                         int output = predict_prob.length;
                         double today_predict_prob = predict_prob[output - 1];
                         int size = this.getPosition().get(id).getPosition();
-                        TradingUtil.writeToFile(getStrategy() + ".csv",s.getDisplayname()
+                        TradingUtil.writeToFile(getStrategy() + ".csv", s.getDisplayname()
                                 + "," + lValue(dtrend)
                                 + "," + lValue(ddaysinupswing)
                                 + "," + lValue(ddaysindownswing)
@@ -360,137 +411,171 @@ public class Swing extends Strategy implements TradeListener {
                                 + "," + lValue(dlowzscore)
                                 + "," + lValue(dmazscore)
                                 + "," + today_predict_prob
-                                + "," + lValue(dy));                        
+                                + "," + lValue(dy));
                         Trigger swingTrigger = Trigger.UNDEFINED;
-                        if(optimalThreshold){
-                        boolean cBuy= today_predict_prob > threshold && sensitivity>sensitivityThreshold && s.getLastPrice()!=0 && this.getLongOnly() && size==0;
-                        boolean cSell= today_predict_prob < threshold-exitLaziness && s.getLastPrice()!=0 && this.getLongOnly() && size>0;
-                        boolean cShort= today_predict_prob < threshold && specificity>specificityThreshold && s.getLastPrice() != 0 && this.getShortOnly() && size == 0 ;
-                        boolean cCover=today_predict_prob > threshold+exitLaziness && s.getLastPrice() != 0 && this.getShortOnly() && size < 0;
-                        if(cBuy && !portfolio){
-                            swingTrigger=Trigger.BUY;
-                        }else if(cSell){
-                            swingTrigger=Trigger.SELL;
-                        }else if(cShort && !portfolio){
-                            swingTrigger=Trigger.SHORT;
-                        }else if (cCover){
-                            swingTrigger=Trigger.COVER;
-                        }else if (cBuy && portfolio){
-                            swingTrigger=Trigger.BUYPORT;
-                        }else if (cShort && portfolio){
-                            swingTrigger=Trigger.SHORTPORT;
-                        }                            
-                        }else{
-                        boolean cBuy= today_predict_prob > upProbabilityThreshold && s.getLastPrice()!=0 && this.getLongOnly() && size==0;
-                        boolean cSell= today_predict_prob < downProbabilityThreshold && s.getLastPrice()!=0 && this.getLongOnly() && size>0;
-                        boolean cShort= today_predict_prob < downProbabilityThreshold && s.getLastPrice() != 0 && this.getShortOnly() && size == 0 ;
-                        boolean cCover=today_predict_prob >= upProbabilityThreshold && s.getLastPrice() != 0 && this.getShortOnly() && size < 0;
-                        if(cBuy && !portfolio){
-                            swingTrigger=Trigger.BUY;
-                        }else if(cSell){
-                            swingTrigger=Trigger.SELL;
-                        }else if(cShort && !portfolio){
-                            swingTrigger=Trigger.SHORT;
-                        }else if (cCover){
-                            swingTrigger=Trigger.COVER;
-                        }else if (cBuy && portfolio){
-                            swingTrigger=Trigger.BUYPORT;
-                        }else if (cShort && portfolio){
-                            swingTrigger=Trigger.SHORTPORT;
+                        if (optimalThreshold) {
+                            boolean cBuy = today_predict_prob > (threshold + entryLaziness) && sensitivity > sensitivityThreshold && s.getLastPrice() != 0 && this.getLongOnly() && size == 0;
+                            boolean cSell = today_predict_prob < (threshold - exitLaziness) && s.getLastPrice() != 0 && this.getLongOnly() && size > 0;
+                            boolean cShort = today_predict_prob < (threshold - entryLaziness) && specificity > specificityThreshold && s.getLastPrice() != 0 && this.getShortOnly() && size == 0;
+                            boolean cCover = today_predict_prob > (threshold + exitLaziness) && s.getLastPrice() != 0 && this.getShortOnly() && size < 0;
+                            if (cBuy && !portfolio) {
+                                swingTrigger = Trigger.BUY;
+                            } else if (cSell) {
+                                swingTrigger = Trigger.SELL;
+                            } else if (cShort && !portfolio) {
+                                swingTrigger = Trigger.SHORT;
+                            } else if (cCover) {
+                                swingTrigger = Trigger.COVER;
+                            } else if (cBuy && portfolio) {
+                                swingTrigger = Trigger.BUYPORT;
+                            } else if (cShort && portfolio) {
+                                swingTrigger = Trigger.SHORTPORT;
+                            }
+                        } else {
+                            boolean cBuy = today_predict_prob > upProbabilityThreshold && s.getLastPrice() != 0 && this.getLongOnly() && size == 0;
+                            boolean cSell = today_predict_prob < downProbabilityThreshold && s.getLastPrice() != 0 && this.getLongOnly() && size > 0;
+                            boolean cShort = today_predict_prob < downProbabilityThreshold && s.getLastPrice() != 0 && this.getShortOnly() && size == 0;
+                            boolean cCover = today_predict_prob >= upProbabilityThreshold && s.getLastPrice() != 0 && this.getShortOnly() && size < 0;
+                            if (cBuy && !portfolio) {
+                                swingTrigger = Trigger.BUY;
+                            } else if (cSell) {
+                                swingTrigger = Trigger.SELL;
+                            } else if (cShort && !portfolio) {
+                                swingTrigger = Trigger.SHORT;
+                            } else if (cCover) {
+                                swingTrigger = Trigger.COVER;
+                            } else if (cBuy && portfolio) {
+                                swingTrigger = Trigger.BUYPORT;
+                            } else if (cShort && portfolio) {
+                                swingTrigger = Trigger.SHORTPORT;
+                            }
                         }
-                        }
-                        switch(swingTrigger){
+                        switch (swingTrigger) {
                             case BUY:
-                                if(rollover){
-                                   id=Utilities.getNextExpiryID(Parameters.symbol, id, expiryFarMonth);
+                                if (rollover) {
+                                    id = Utilities.getNextExpiryID(Parameters.symbol, id, expiryFarMonth);
                                 }
-                                size=Parameters.symbol.get(id).getMinsize()*this.getNumberOfContracts();
-                                this.entry(id, EnumOrderSide.BUY, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULARENTRY, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);                                
+                                size = Parameters.symbol.get(id).getMinsize() * this.getNumberOfContracts();
+                                this.entry(id, EnumOrderSide.BUY, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULARENTRY, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
                                 break;
                             case SELL:
                                 this.entry(id, EnumOrderSide.SELL, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
                                 break;
                             case SHORT:
-                                if(rollover){
-                                   id=Utilities.getNextExpiryID(Parameters.symbol, id, expiryFarMonth);
+                                if (rollover) {
+                                    id = Utilities.getNextExpiryID(Parameters.symbol, id, expiryFarMonth);
                                 }
-                                size=Parameters.symbol.get(id).getMinsize()*this.getNumberOfContracts();
+                                size = Parameters.symbol.get(id).getMinsize() * this.getNumberOfContracts();
                                 this.entry(id, EnumOrderSide.SHORT, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULARENTRY, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
                                 break;
                             case COVER:
-                                 this.entry(id, EnumOrderSide.COVER, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
+                                this.entry(id, EnumOrderSide.COVER, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
                                 break;
                             case BUYPORT:
-                                if(rollover){
-                                    id=Utilities.getNextExpiryID(Parameters.symbol, id, expiryFarMonth);
+                                if (rollover) {
+                                    id = Utilities.getNextExpiryID(Parameters.symbol, id, expiryFarMonth);
                                 }
-                                longPositionScore.put(100-(sensitivity*100), id);
+                                thresholdDistance.put(id, today_predict_prob - threshold);
+                                longPositionScore.put(100 - (sensitivity * 100), id);
                                 break;
                             case SHORTPORT:
-                                if(rollover){
-                                    id=Utilities.getNextExpiryID(Parameters.symbol, id, expiryFarMonth);
+                                if (rollover) {
+                                    id = Utilities.getNextExpiryID(Parameters.symbol, id, expiryFarMonth);
                                 }
-                                shortPositionScore.put(100-(specificity*100), id);
+                                thresholdDistance.put(id, today_predict_prob - threshold);
+                                shortPositionScore.put(100 - (specificity * 100), id);
                                 break;
                             default:
                                 break;
-                                
                         }
-                        
+
                     } catch (Exception ex) {
                         logger.log(Level.SEVERE, null, ex);
-                    }                    
+                    }
                 }
             }
         }
         portfolioTrades();
     }
-    
-    private void portfolioTrades() {
-        if (this.getLongOnly()) {
-            positionCount = Utilities.openPositionCount(Parameters.symbol, this.getOrderFile(), this.getStrategy(), this.getPointValue(), true);
-        }
-        if (this.getShortOnly()) {
-            positionCount = positionCount + Utilities.openPositionCount(Parameters.symbol, this.getOrderFile(), this.getStrategy(), this.getPointValue(), false);
-        }
-        int gap = maxPositions - positionCount;
-        for (int id : longPositionScore.values()) {
-            if (gap > 0) {
-                gap = gap - 1;
-                int size = Parameters.symbol.get(id).getMinsize() * this.getNumberOfContracts();
-                HashMap<String,Object>order=new HashMap<>();
-                order.put("id",id);
-                order.put("side", EnumOrderSide.BUY);
-                order.put("size", size);
-                order.put("type", EnumOrderType.LMT);
-                order.put("limitprice", Parameters.symbol.get(id).getLastPrice());
-                order.put("reason", EnumOrderReason.REGULARENTRY);
-                order.put("orderstage", EnumOrderStage.INIT);
-                order.put("expiretime", this.getMaxOrderDuration());
-                order.put("dynamicorderduration", getDynamicOrderDuration());
-                order.put("maxslippage", this.getMaxSlippageEntry());
-                entry(order);
-//                this.entry(id, EnumOrderSide.BUY, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULARENTRY, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
-            }
-        }
 
-        for (int id : shortPositionScore.values()) {
-            if (gap > 0) {
-                gap = gap - 1;
-                int size = Parameters.symbol.get(id).getMinsize() * this.getNumberOfContracts();
-                HashMap<String,Object>order=new HashMap<>();
-                order.put("id",id);
-                order.put("side", EnumOrderSide.SHORT);
-                order.put("size", size);
-                order.put("type", EnumOrderType.LMT);
-                order.put("limitprice", Parameters.symbol.get(id).getLastPrice());
-                order.put("reason", EnumOrderReason.REGULARENTRY);
-                order.put("orderstage", EnumOrderStage.INIT);
-                order.put("expiretime", this.getMaxOrderDuration());
-                order.put("dynamicorderduration", getDynamicOrderDuration());
-                order.put("maxslippage", this.getMaxSlippageExit());
-                entry(order);
-                //this.entry(id, EnumOrderSide.SHORT, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULARENTRY, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
+    private void portfolioTrades() {
+        if (portfolio) {
+            int longgap = maxPositions - longpositionCount;
+            int shortgap = maxPositions - shortpositionCount;
+            for (int id : longPositionScore.values()) {
+                if (longgap > 0) {
+                    longgap = longgap - 1;
+                    int size = Parameters.symbol.get(id).getMinsize() * this.getNumberOfContracts();
+                    HashMap<String, Object> order = new HashMap<>();
+                    order.put("id", id);
+                    order.put("side", EnumOrderSide.BUY);
+                    order.put("size", size);
+                    order.put("type", EnumOrderType.LMT);
+                    order.put("limitprice", Parameters.symbol.get(id).getLastPrice());
+                    order.put("reason", EnumOrderReason.REGULARENTRY);
+                    order.put("orderstage", EnumOrderStage.INIT);
+                    order.put("expiretime", this.getMaxOrderDuration());
+                    order.put("dynamicorderduration", getDynamicOrderDuration());
+                    order.put("maxslippage", this.getMaxSlippageEntry());
+                    int orderid = entry(order);
+                    Stop tp = new Stop();
+                    tp.stopType = EnumStopType.TAKEPROFIT;
+                    tp.stopMode = EnumStopMode.POINT;
+                    tp.stopValue = Parameters.symbol.get(id).getHighPrice() - Parameters.symbol.get(id).getLowPrice();
+                    double distance = thresholdDistance.get(id);
+                    distance = distance <= 0 ? 1 : 1 + distance;
+                    tp.stopValue = distance * tp.stopValue;
+                    tp.stopValue = Math.max(getTickSize(), Utilities.roundTo(tp.stopValue, getTickSize()));
+                    tp.recalculate = false;
+                    Stop sl = new Stop();
+                    sl.stopType = EnumStopType.STOPLOSS;
+                    sl.stopMode = EnumStopMode.POINT;
+                    sl.stopValue = Parameters.symbol.get(id).getLastPrice() - Parameters.symbol.get(id).getLowPrice();
+                    sl.stopValue = Math.max(getTickSize(), Utilities.roundTo(tp.stopValue, getTickSize()));
+                    sl.recalculate = false;
+                    ArrayList<Stop> stops = new ArrayList<>();
+                    stops.add(sl);
+                    stops.add(tp);
+                    Trade.setStop(getTrades(), orderid, stops);
+                }
+            }
+
+            for (int id : shortPositionScore.values()) {
+                if (shortgap > 0) {
+                    shortgap = shortgap - 1;
+                    int size = Parameters.symbol.get(id).getMinsize() * this.getNumberOfContracts();
+                    HashMap<String, Object> order = new HashMap<>();
+                    order.put("id", id);
+                    order.put("side", EnumOrderSide.SHORT);
+                    order.put("size", size);
+                    order.put("type", EnumOrderType.LMT);
+                    order.put("limitprice", Parameters.symbol.get(id).getLastPrice());
+                    order.put("reason", EnumOrderReason.REGULARENTRY);
+                    order.put("orderstage", EnumOrderStage.INIT);
+                    order.put("expiretime", this.getMaxOrderDuration());
+                    order.put("dynamicorderduration", getDynamicOrderDuration());
+                    order.put("maxslippage", this.getMaxSlippageExit());
+                    int orderid = entry(order);
+                    Stop tp = new Stop();
+                    tp.stopType = EnumStopType.TAKEPROFIT;
+                    tp.stopMode = EnumStopMode.POINT;
+                    tp.stopValue = Parameters.symbol.get(id).getHighPrice() - Parameters.symbol.get(id).getLowPrice();
+                    double distance = thresholdDistance.get(id);
+                    distance = distance >= 0 ? 1 : 1 - distance;
+                    tp.stopValue = distance * tp.stopValue;
+                    tp.stopValue = Math.max(getTickSize(), Utilities.roundTo(tp.stopValue, getTickSize()));
+                    tp.recalculate = false;
+                    Stop sl = new Stop();
+                    sl.stopType = EnumStopType.STOPLOSS;
+                    sl.stopMode = EnumStopMode.POINT;
+                    sl.stopValue = Parameters.symbol.get(id).getHighPrice() - Parameters.symbol.get(id).getLastPrice();
+                    sl.stopValue = Math.max(getTickSize(), Utilities.roundTo(tp.stopValue, getTickSize()));
+                    sl.recalculate = false;
+                    ArrayList<Stop> stops = new ArrayList<>();
+                    stops.add(sl);
+                    stops.add(tp);
+                    Trade.setStop(getTrades(), orderid, stops);
+                }
             }
         }
     }
