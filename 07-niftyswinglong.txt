@@ -23,8 +23,8 @@ Long=true
 Short=false
 ############## PER STRATEGY VARIABLES ##################
 #Traded Symbol Name
-NearMonthExpiry=20150730
-FarMonthExpiry=20150827
+NearMonthExpiry=20150827
+FarMonthExpiry=20150924
 ReferenceCashType=IND
 RServerIP=notanotherfund.com
 RWorkingDirectory=/home/psharma/strategies/swing
