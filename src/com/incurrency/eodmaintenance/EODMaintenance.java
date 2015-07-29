@@ -44,6 +44,7 @@ public class EODMaintenance {
         SimpleDateFormat sdf_yyyyMMdd = new SimpleDateFormat("yyyyMMdd");
         String fnolotsizeurl = properties.getProperty("fnolotsizeurl", "http://www.nseindia.com/content/fo/fo_mktlots.csv").toString().trim();
         String cnx500url = properties.getProperty("fnolotsizeurl", "http://www.nseindia.com/content/indices/ind_cnx500list.csv").toString().trim();
+        String niftyurl=properties.getProperty("fnolotsizeurl", "http://www.nseindia.com/content/indices/ind_niftylist.csv").toString().trim();
         String currentDay = properties.getProperty("currentday", sdf_yyyyMMdd.format(Calendar.getInstance(TimeZone.getTimeZone(Algorithm.timeZone)).getTime()));
         String historicalfutures = properties.getProperty("historicalfutures");
         String historicalstocks = properties.getProperty("historicalstocks");
@@ -63,12 +64,24 @@ public class EODMaintenance {
             inradr(cnx500url, nextExpiry, 1, adrinrstocks);
         }
         if (rateserverinrmarket != null) {
-            inrmarket(fnolotsizeurl, 11,cnx500url,1,nextExpiry, rateserverinrmarket);
+            inrmarket(fnolotsizeurl, 11,cnx500url,1,niftyurl,1,nextExpiry, rateserverinrmarket);
         }
         MainAlgorithm.setCloseDate(new Date());
     }
 
-    public void inrmarket(String fnourl, int rowsToSkipFNO, String stockurl, int rowsToSkipStocks, String expiry, String outputfilename) throws MalformedURLException, IOException, ParseException {
+    /**
+     * prints out a symbol file for use in inr marketdata server.Handles requirements for ADR and Swing.
+     * @param fnourl
+     * @param rowsToSkipFNO
+     * @param cnx500url
+     * @param rowsToSkipCNX500Stocks
+     * @param expiry
+     * @param outputfilename
+     * @throws MalformedURLException
+     * @throws IOException
+     * @throws ParseException 
+     */
+    public void inrmarket(String fnourl, int rowsToSkipFNO, String cnx500url, int rowsToSkipCNX500Stocks, String niftyurl,int rowsToSkipNifty,String expiry, String outputfilename) throws MalformedURLException, IOException, ParseException {
         //NSENIFTY, IND AND FUT is priority 1
         //FNO stocks are priority 2
         //Residual CNX500 stocks are priority 3
@@ -78,6 +91,14 @@ public class EODMaintenance {
         s.setExchange("NSE");
         s.setStreamingpriority(1);
         s.setStrategy("DATA");
+        s.setMinsize(25);
+        stockSymbols.add(s);
+        s = new BeanSymbol("NIFTY50", "NSENIFTY", "FUT", this.getNextExpiry(expiry), "", "");
+        s.setCurrency("INR");
+        s.setExchange("NSE");
+        s.setStreamingpriority(1);
+        s.setStrategy("DATA");
+        s.setMinsize(25);
         stockSymbols.add(s);
         s = new BeanSymbol("NIFTY50", "NSENIFTY", "IND", "", "", "");
         s.setCurrency("INR");
@@ -85,8 +106,9 @@ public class EODMaintenance {
         s.setStreamingpriority(1);
         s.setStrategy("DATA");
         stockSymbols.add(s);
-
-        //Add FNO Stocks
+        
+        //Add FNO Stocks. By default priority set to 3.
+        //Unless they are pary of nifty. In which case priority set to 2.
         SimpleDateFormat formatInFile = new SimpleDateFormat("MMM-yy");
         SimpleDateFormat sdf_yyyyMMdd = new SimpleDateFormat("yyyyMMdd");
         String expiryFormattedAsInput = formatInFile.format(sdf_yyyyMMdd.parse(expiry));
@@ -125,7 +147,8 @@ public class EODMaintenance {
                                 s1.setExpiry("");
                                 s1.setMinsize(minsize);
                                 s1.setStrategy("DATA");
-                                s1.setStreamingpriority(2);
+                                s1.setStreamingpriority(3);
+                                s1.setSerialno(stockSymbols.size()+1);
                                 stockSymbols.add(s1);
                             }
                         }
@@ -134,17 +157,75 @@ public class EODMaintenance {
             }
         }
 
-        //Residual CNX500 stocks are priority 2
+        //Read nifty stocks. Add them with priority 3, if they are not in fno
+        //Add current expiry future with priority 2, if nifty stock is in fno.
+        //Add next expiry future with priority 5, if nifty stock is in fno
+        //Non nifty stocks in fno, move priority to 3
         columnNumber = -1;
-        URL stockURL = new URL(stockurl);
-        if (getResponseCode(stockurl) != 404) {
+        URL niftyURL = new URL(niftyurl);
+           if (getResponseCode(niftyurl) != 404) {
+            BufferedReader in = new BufferedReader(new InputStreamReader(niftyURL.openStream()));
+            int j = 0;
+            int i = 0;
+            String line;
+            while ((line = in.readLine()) != null) {
+                j = j + 1;
+                if (j > rowsToSkipNifty) {
+                    String[] input = line.split(",");
+                    if (input[2].trim().length() > 0) {//not an empty row
+                        String exchangesymbol = input[2].trim().toUpperCase();
+                        //String displayName = input[2].trim().toUpperCase().replaceAll("[^A-Za-z0-9]", "");
+                        int id = Utilities.getIDFromExchangeSymbol(symbols, exchangesymbol, "STK", "", "", "");
+                        int existingID = Utilities.getIDFromExchangeSymbol(stockSymbols, exchangesymbol, "STK", "", "", "");
+                        if (id >= 0 && existingID == -1) {//symbol not in existing file
+                            s = symbols.get(id);
+                            BeanSymbol s1 = s.clone(s);
+                            s1.setType("STK");
+                            s1.setExpiry("");
+                            s1.setMinsize(1);
+                            s1.setStrategy("DATA");
+                            s1.setStreamingpriority(3);
+                            stockSymbols.add(s1);
+                        }else{//add future
+                            s = stockSymbols.get(existingID);
+                            s.setStreamingpriority(2);
+                            BeanSymbol s1 = s.clone(s);
+                            s1.setType("FUT");
+                            s1.setExpiry(expiry);
+                            s1.setStrategy("DATA");
+                            s1.setStreamingpriority(2);
+                            s1.setSerialno(stockSymbols.size()+1);
+                            stockSymbols.add(s1);
+                            
+                            s = stockSymbols.get(existingID);
+                            s1 = s.clone(s);
+                            s1.setType("FUT");
+                            String expiry1=this.getNextExpiry(expiry);
+                            s1.setExpiry(expiry1);
+                            s1.setStrategy("DATA");
+                            s1.setStreamingpriority(5);
+                            s1.setSerialno(stockSymbols.size()+1);
+                            stockSymbols.add(s1);
+                            
+                        }
+                    }
+                }
+            }
+        }
+           
+        //           //Non nifty stocks in fno, move priority to 3
+                
+        //Residual NIFTY,CNX500 stocks are priority 4
+        columnNumber = -1;
+        URL stockURL = new URL(cnx500url);
+        if (getResponseCode(cnx500url) != 404) {
             BufferedReader in = new BufferedReader(new InputStreamReader(stockURL.openStream()));
             int j = 0;
             int i = 0;
             String line;
             while ((line = in.readLine()) != null) {
                 j = j + 1;
-                if (j > rowsToSkipStocks) {
+                if (j > rowsToSkipCNX500Stocks) {
                     String[] input = line.split(",");
                     if (input[2].trim().length() > 0) {//not an empty row
                         String exchangesymbol = input[2].trim().toUpperCase();
@@ -159,7 +240,8 @@ public class EODMaintenance {
                             s1.setExpiry("");
                             s1.setMinsize(minsize);
                             s1.setStrategy("DATA");
-                            s1.setStreamingpriority(3);
+                            s1.setStreamingpriority(4);
+                            s1.setSerialno(stockSymbols.size()+1);
                             stockSymbols.add(s1);
                         }
                     }
@@ -305,7 +387,6 @@ public class EODMaintenance {
                                 s1.setMinsize(minsize);
                                 s1.setStrategy("DATA");
                                 s1.setStreamingpriority(4);
-                                s1.setDisplayname(displayName);
                                 fnoSymbols.add(s1);
                             } else {
                                 //do not add row as minsize was not available
@@ -330,7 +411,7 @@ public class EODMaintenance {
                 String header = "serialno,brokersymbol,exchangesymbol,displayname,type,exchange,primaryexchange,currency,expiry,option,right,minsize,barstarttime,streaming,strategy";
                 Utilities.writeToFile(outputFile, header);
                 //Write Index row
-                String content = 1 + "," + "NIFTY50" + "," + "NSENIFTY" + "," + "NSENIFTY" + "," + "FUT" + "," + "NSE" + "," + "" + "," + "INR" + "," + expiry + "," + "" + "," + "" + "," + 25 + "," + "" + "," + 4 + "," + "DATA";
+                String content = 1 + "," + "NIFTY50" + "," + "NSENIFTY" + "," + "" + "," + "FUT" + "," + "NSE" + "," + "" + "," + "INR" + "," + expiry + "," + "" + "," + "" + "," + 25 + "," + "" + "," + 4 + "," + "DATA";
                 Utilities.writeToFile(outputFile, content);
 
                 for (BeanSymbol s : fnoSymbols) {
@@ -350,13 +431,22 @@ public class EODMaintenance {
                     Utilities.writeToFile(outputFile, content);
                 }
                 //write END row
-                content = symbols.size() + 2 + "," + "END" + "," + "END" + "," + "END" + "," + "END" + "," + "END" + "," + "END" + "," + "" + "," + "" + "," + "" + "," + "" + "," + "1" + "," + "" + "," + 4 + "," + "DATA";
+                content = fnoSymbols.size() + 2 + "," + "END" + "," + "END" + "," + "END" + "," + "END" + "," + "END" + "," + "END" + "," + "" + "," + "" + "," + "" + "," + "" + "," + "1" + "," + "" + "," + 4 + "," + "DATA";
                 Utilities.writeToFile(outputFile, content);
 
             }
         }
     }
 
+    /**
+     * Creates data file for collection of 1 second stock data for cnx500.Supremeind is an outlier that is added manually
+     * @param url
+     * @param rowsToSkip
+     * @param outputfilename
+     * @throws MalformedURLException
+     * @throws IOException
+     * @throws ParseException 
+     */
     public void rateServerStocks(String url, int rowsToSkip, String outputfilename) throws MalformedURLException, IOException, ParseException {
         ArrayList<BeanSymbol> stockSymbols = new ArrayList<>();
         //load existing file, if exists
@@ -391,7 +481,6 @@ public class EODMaintenance {
                             s1.setMinsize(minsize);
                             s1.setStrategy("DATA");
                             s1.setStreamingpriority(4);
-                            s1.setDisplayname(displayName);
                             stockSymbols.add(s1);
                         } else if (id > 0 && existingID > 0) {
                             BeanSymbol s = stockSymbols.get(existingID);
@@ -400,7 +489,6 @@ public class EODMaintenance {
                             s.setMinsize(minsize);
                             s.setStrategy("DATA");
                             s.setStreamingpriority(4);
-                            s.setDisplayname(displayName);
 
                         } else {
                             System.out.println("Exchange Symbol " + exchangesymbol + " not found in IB data");
@@ -430,7 +518,7 @@ public class EODMaintenance {
             Utilities.writeToFile(outputFile, header);
             //Write Index row
 
-            String content = 1 + "," + "NIFTY50" + "," + "NSENIFTY" + "," + "NSENIFTY" + "," + "IND" + "," + "NSE" + "," + "" + "," + "INR" + "," + "" + "," + "" + "," + "" + "," + 1 + "," + "" + "," + 4 + "," + "DATA";
+            String content = 1 + "," + "NIFTY50" + "," + "NSENIFTY" + "," + "" + "," + "IND" + "," + "NSE" + "," + "" + "," + "INR" + "," + "" + "," + "" + "," + "" + "," + 1 + "," + "" + "," + 4 + "," + "DATA";
             Utilities.writeToFile(outputFile, content);
 
             for (BeanSymbol s : stockSymbols) {
@@ -456,6 +544,16 @@ public class EODMaintenance {
         }
     }
 
+    /**
+     * Generates symbol file for adr
+     * @param url
+     * @param expiry
+     * @param rowsToSkip
+     * @param outputfilename
+     * @throws MalformedURLException
+     * @throws IOException
+     * @throws ParseException 
+     */
     public void inradr(String url, String expiry, int rowsToSkip, String outputfilename) throws MalformedURLException, IOException, ParseException {
         ArrayList<BeanSymbol> adrSymbols = new ArrayList<>();
         SimpleDateFormat formatInFile = new SimpleDateFormat("MMM-yy");
@@ -484,7 +582,6 @@ public class EODMaintenance {
                             s1.setMinsize(minsize);
                             s1.setStrategy("ADR");
                             s1.setStreamingpriority(4);
-                            s1.setDisplayname(displayName);
                             adrSymbols.add(s1);
                         } else {
                             System.out.println("Exchange Symbol " + exchangesymbol + " not found in IB data");
@@ -508,7 +605,7 @@ public class EODMaintenance {
             Utilities.writeToFile(outputFile, header);
             //Write Index row
 
-            String content = 1 + "," + "NIFTY50" + "," + "NSENIFTY" + "," + "NSENIFTY" + "," + "FUT" + "," + "NSE" + "," + "" + "," + "INR" + "," + expiry + "," + "" + "," + "" + "," + 25 + "," + "" + "," + 0 + "," + "ADR";
+            String content = 1 + "," + "NIFTY50" + "," + "NSENIFTY" + "," + "" + "," + "FUT" + "," + "NSE" + "," + "" + "," + "INR" + "," + expiry + "," + "" + "," + "" + "," + 25 + "," + "" + "," + 0 + "," + "ADR";
             Utilities.writeToFile(outputFile, content);
 
             for (BeanSymbol s : adrSymbols) {

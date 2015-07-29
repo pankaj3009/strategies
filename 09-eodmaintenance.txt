@@ -1,4 +1,4 @@
-#currentday=20150626
+#currentday=20150730
 historicalfutures=02-futures-inr.csv
 historicalstocks=01-symbols-inr.csv
 adrinrstocks=03-symbols-inr.csv
