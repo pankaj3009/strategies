@@ -129,7 +129,7 @@ public class Swing extends Strategy implements TradeListener {
         }
         if (testing) {
             Calendar tmpCalendar = Calendar.getInstance(TimeZone.getTimeZone(Algorithm.timeZone));
-            tmpCalendar.add(Calendar.HOUR, 15);
+            tmpCalendar.add(Calendar.SECOND, 30);
             entryScanDate = tmpCalendar.getTime();
         }
 
@@ -189,7 +189,7 @@ public class Swing extends Strategy implements TradeListener {
 
     @Override
     public void tradeReceived(TradeEvent event) {
-        Integer id = event.getSymbolID() - 1;
+        Integer id = event.getSymbolID();
         if (this.getStrategySymbols().contains(id) && !Parameters.symbol.get(id).getType().equals(referenceCashType)) {
             if (this.getPosition().get(id).getPosition() > 0) {
                 Double tradePrice = this.getPosition().get(id).getPrice();
