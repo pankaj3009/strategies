@@ -579,7 +579,7 @@ public class Swing extends Strategy implements TradeListener {
                     sl.stopType = EnumStopType.STOPLOSS;
                     sl.stopMode = EnumStopMode.POINT;
                     sl.stopValue = Parameters.symbol.get(id).getLastPrice() - Parameters.symbol.get(id).getLowPrice();
-                    sl.stopValue = Math.max(getTickSize(), Utilities.roundTo(tp.stopValue, getTickSize()));
+                    sl.stopValue = Math.max(getTickSize(), Utilities.roundTo(sl.stopValue, getTickSize()));
                     sl.recalculate = false;
                     ArrayList<Stop> stops = new ArrayList<>();
                     stops.add(sl);
@@ -618,7 +618,7 @@ public class Swing extends Strategy implements TradeListener {
                     sl.stopType = EnumStopType.STOPLOSS;
                     sl.stopMode = EnumStopMode.POINT;
                     sl.stopValue = Parameters.symbol.get(id).getHighPrice() - Parameters.symbol.get(id).getLastPrice();
-                    sl.stopValue = Math.max(getTickSize(), Utilities.roundTo(tp.stopValue, getTickSize()));
+                    sl.stopValue = Math.max(getTickSize(), Utilities.roundTo(sl.stopValue, getTickSize()));
                     sl.recalculate = false;
                     ArrayList<Stop> stops = new ArrayList<>();
                     stops.add(sl);
