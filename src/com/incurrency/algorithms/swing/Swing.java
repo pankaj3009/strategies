@@ -326,10 +326,11 @@ public class Swing extends Strategy implements TradeListener {
                 if (sRef.getTimeSeriesLength(EnumBarSize.DAILY) > -1 && sRef.getTimeSeriesLength(EnumBarSize.DAILY) > 0) {
                     //create the last bar
                     sRef.setTimeSeries(EnumBarSize.DAILY, openTime, new String[]{"open", "high", "low", "settle", "volume"}, new double[]{sRef.getOpenPrice(), sRef.getHighPrice(), sRef.getLowPrice(), sRef.getLastPrice(), sRef.getVolume()});
+                    int[] indicesCheck=sRef.getTimeSeries(EnumBarSize.DAILY, "settle").ne(ReservedValues.EMPTY).findIndices();
+                    if(indicesCheck.length>100){
                     DoubleMatrix dtrend = Indicators.swing(sRef, EnumBarSize.DAILY).getTimeSeries(EnumBarSize.DAILY, "trend");
                     int[] indices = dtrend.ne(ReservedValues.EMPTY).findIndices();
                     logger.log(Level.INFO,"102,SymbolDataLength,{0}",new Object[]{sRef.getDisplayname()+delimiter+indices.length});
-                    if(indices.length>100){
                     DoubleMatrix dclose = sRef.getTimeSeries(EnumBarSize.DAILY, "settle");
                     indices = Utilities.addArraysNoDuplicates(indices, dclose.ne(ReservedValues.EMPTY).findIndices());
                     DoubleMatrix dhigh = sRef.getTimeSeries(EnumBarSize.DAILY, "high");
@@ -613,7 +614,7 @@ public class Swing extends Strategy implements TradeListener {
                     ArrayList<Stop> stops = new ArrayList<>();
                     stops.add(sl);
                     stops.add(tp);
-                    Trade.setStop(getTrades(), orderid, stops);
+                    Trade.setStop(getTrades(), orderid + "_" + "Order", stops);
                 }
             }
         }
