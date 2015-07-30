@@ -386,6 +386,7 @@ public class EODMaintenance {
                                 s1.setExpiry(expiry);
                                 s1.setMinsize(minsize);
                                 s1.setStrategy("DATA");
+                                s1.setDisplayname(displayName);
                                 s1.setStreamingpriority(4);
                                 fnoSymbols.add(s1);
                             } else {
@@ -411,7 +412,7 @@ public class EODMaintenance {
                 String header = "serialno,brokersymbol,exchangesymbol,displayname,type,exchange,primaryexchange,currency,expiry,option,right,minsize,barstarttime,streaming,strategy";
                 Utilities.writeToFile(outputFile, header);
                 //Write Index row
-                String content = 1 + "," + "NIFTY50" + "," + "NSENIFTY" + "," + "" + "," + "FUT" + "," + "NSE" + "," + "" + "," + "INR" + "," + expiry + "," + "" + "," + "" + "," + 25 + "," + "" + "," + 4 + "," + "DATA";
+                String content = 1 + "," + "NIFTY50" + "," + "NSENIFTY" + "," + "NSENIFTY" + "," + "FUT" + "," + "NSE" + "," + "" + "," + "INR" + "," + expiry + "," + "" + "," + "" + "," + 25 + "," + "" + "," + 4 + "," + "DATA";
                 Utilities.writeToFile(outputFile, content);
 
                 for (BeanSymbol s : fnoSymbols) {
@@ -480,6 +481,7 @@ public class EODMaintenance {
                             s1.setExpiry("");
                             s1.setMinsize(minsize);
                             s1.setStrategy("DATA");
+                            s1.setDisplayname(displayName);
                             s1.setStreamingpriority(4);
                             stockSymbols.add(s1);
                         } else if (id > 0 && existingID > 0) {
@@ -488,6 +490,7 @@ public class EODMaintenance {
                             s.setExpiry("");
                             s.setMinsize(minsize);
                             s.setStrategy("DATA");
+                            s.setDisplayname(displayName);
                             s.setStreamingpriority(4);
 
                         } else {
@@ -518,7 +521,7 @@ public class EODMaintenance {
             Utilities.writeToFile(outputFile, header);
             //Write Index row
 
-            String content = 1 + "," + "NIFTY50" + "," + "NSENIFTY" + "," + "" + "," + "IND" + "," + "NSE" + "," + "" + "," + "INR" + "," + "" + "," + "" + "," + "" + "," + 1 + "," + "" + "," + 4 + "," + "DATA";
+            String content = 1 + "," + "NIFTY50" + "," + "NSENIFTY" + "," + "NSENIFTY" + "," + "IND" + "," + "NSE" + "," + "" + "," + "INR" + "," + "" + "," + "" + "," + "" + "," + 1 + "," + "" + "," + 4 + "," + "DATA";
             Utilities.writeToFile(outputFile, content);
 
             for (BeanSymbol s : stockSymbols) {
