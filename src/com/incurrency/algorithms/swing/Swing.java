@@ -324,47 +324,51 @@ public class Swing extends Strategy implements TradeListener {
         Date tradeDate = DateUtil.parseDate(tradeDateString, tradeTimeFormat, Algorithm.timeZone);
         long historicalTime = Parameters.symbol.get(childid).getTimeFloor(EnumBarSize.DAILY, tradeDate.getTime(), "settle");
         if (historicalTime != ReservedValues.EMPTY) {
-            double close = Parameters.symbol.get(childid).getTimeSeriesValue(EnumBarSize.DAILY, historicalTime, "settle");
-            double high = Parameters.symbol.get(childid).getTimeSeriesValue(EnumBarSize.DAILY, historicalTime, "settle");
-            double low = Parameters.symbol.get(childid).getTimeSeriesValue(EnumBarSize.DAILY, historicalTime, "settle");
-            EnumOrderSide side = Trade.getEntrySide(getTrades(), key);
-            switch (side) {
-                case BUY:
-                    EnumStopType type = stop.stopType;
-                    switch (type) {
-                        case STOPLOSS:
-                            double sl = close - low;
-                            stop.stopValue = sl;
-                            break;
-                        case TAKEPROFIT:
-                            double multiplier = stop.StopLevel;
-                            double tp = multiplier > 1 ? (high - low) * multiplier : (high - low);
-                            stop.stopValue = tp;
-                            break;
-                        default:
-                            break;
-                    }
-                    break;
-                case SHORT:
-                    type = stop.stopType;
-                    switch (type) {
-                        case STOPLOSS:
-                            double sl = high - close;
-                            stop.stopValue = sl;
-                            break;
-                        case TAKEPROFIT:
-                            double multiplier = stop.StopLevel;
-                            double tp = multiplier > 1 ? (high - low) * multiplier : (high - low);
-                            stop.stopValue = tp;
-                            break;
-                        default:
-                            break;
-                    }
-                    break;
-                default:
-                    break;
+            //check if dates match
+            String historicalDateString = DateUtil.getFormatedDate("yyyy-MM-dd", historicalTime, TimeZone.getTimeZone(Algorithm.timeZone));
+            if (tradeDateString.equals(historicalDateString)) {
+                double close = Parameters.symbol.get(childid).getTimeSeriesValue(EnumBarSize.DAILY, historicalTime, "settle");
+                double high = Parameters.symbol.get(childid).getTimeSeriesValue(EnumBarSize.DAILY, historicalTime, "settle");
+                double low = Parameters.symbol.get(childid).getTimeSeriesValue(EnumBarSize.DAILY, historicalTime, "settle");
+                EnumOrderSide side = Trade.getEntrySide(getTrades(), key);
+                switch (side) {
+                    case BUY:
+                        EnumStopType type = stop.stopType;
+                        switch (type) {
+                            case STOPLOSS:
+                                double sl = close - low;
+                                stop.stopValue = sl;
+                                break;
+                            case TAKEPROFIT:
+                                double multiplier = stop.StopLevel;
+                                double tp = multiplier > 1 ? (high - low) * multiplier : (high - low);
+                                stop.stopValue = tp;
+                                break;
+                            default:
+                                break;
+                        }
+                        break;
+                    case SHORT:
+                        type = stop.stopType;
+                        switch (type) {
+                            case STOPLOSS:
+                                double sl = high - close;
+                                stop.stopValue = sl;
+                                break;
+                            case TAKEPROFIT:
+                                double multiplier = stop.StopLevel;
+                                double tp = multiplier > 1 ? (high - low) * multiplier : (high - low);
+                                stop.stopValue = tp;
+                                break;
+                            default:
+                                break;
+                        }
+                        break;
+                    default:
+                        break;
+                }
+                stop.recalculate = Boolean.FALSE;
             }
-            stop.recalculate = Boolean.FALSE;
         }
     }
     
