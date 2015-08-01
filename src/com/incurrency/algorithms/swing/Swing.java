@@ -340,9 +340,10 @@ public class Swing extends Strategy implements TradeListener {
                                 stop.stopValue = sl;
                                 break;
                             case TAKEPROFIT:
-                                double multiplier = stop.StopLevel;
-                                double tp = multiplier > 1 ? (high - low) * multiplier : (high - low);
+                                double distance = stop.StopLevel;
+                                double tp = distance > 1 ? (high - low) * distance : (high - low);
                                 stop.stopValue = tp;
+                                stop.stopValue = Math.max(getTickSize(), Utilities.roundTo(stop.stopValue, getTickSize()));
                                 break;
                             default:
                                 break;
@@ -356,9 +357,10 @@ public class Swing extends Strategy implements TradeListener {
                                 stop.stopValue = sl;
                                 break;
                             case TAKEPROFIT:
-                                double multiplier = stop.StopLevel;
-                                double tp = multiplier > 1 ? (high - low) * multiplier : (high - low);
+                                double distance = stop.StopLevel;
+                                double tp = distance > 1 ? (high - low) * distance : (high - low);
                                 stop.stopValue = tp;
+                                stop.stopValue = Math.max(getTickSize(), Utilities.roundTo(stop.stopValue, getTickSize()));
                                 break;
                             default:
                                 break;
@@ -693,6 +695,7 @@ public class Swing extends Strategy implements TradeListener {
                     tp.stopValue = Parameters.symbol.get(id).getHighPrice() - Parameters.symbol.get(id).getLowPrice();
                     double distance = thresholdDistance.get(id);
                     distance = distance <= 0 ? 1 : (1 + Math.abs(distance));
+                    tp.StopLevel=distance;
                     logger.log(Level.INFO, "501,StopParameters,{0}", new Object[]{Parameters.symbol.get(referenceid).getHighPrice() + delimiter + Parameters.symbol.get(referenceid).getLowPrice() + delimiter + Parameters.symbol.get(referenceid).getLastPrice() + delimiter + distance});
                     tp.stopValue = Parameters.symbol.get(referenceid).getHighPrice() - Parameters.symbol.get(referenceid).getLowPrice();
                     tp.stopValue = distance * tp.stopValue;
@@ -735,6 +738,7 @@ public class Swing extends Strategy implements TradeListener {
                     tp.stopValue = Parameters.symbol.get(id).getHighPrice() - Parameters.symbol.get(id).getLowPrice();
                     double distance = thresholdDistance.get(id);
                     distance = distance >= 0 ? 1 : (1 + Math.abs(distance));
+                    tp.StopLevel=distance;
                     logger.log(Level.INFO, "501,StopParameters,{0}", new Object[]{Parameters.symbol.get(id).getHighPrice() + delimiter + Parameters.symbol.get(id).getLowPrice() + delimiter + Parameters.symbol.get(id).getLastPrice() + delimiter + distance});
                     tp.stopValue = Parameters.symbol.get(referenceid).getHighPrice() - Parameters.symbol.get(referenceid).getLowPrice();
                     tp.stopValue = distance * tp.stopValue;
