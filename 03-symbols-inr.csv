@@ -1,5 +1,5 @@
 serialno,brokersymbol,exchangesymbol,displayname,type,exchange,primaryexchange,currency,expiry,option,right,minsize,barstarttime,streaming,strategy
-1,NIFTY50,NSENIFTY,,FUT,NSE,,INR,20150730,,,25,,0,ADR
+1,NIFTY50,NSENIFTY,,FUT,NSE,,INR,20150827,,,25,,0,ADR
 2,3MINDIA,3MINDIA,,STK,NSE,,INR,,,,1,,4,ADR
 3,ABB,ABB,,STK,NSE,,INR,,,,1,,4,ADR
 4,ABGSHIP,ABGSHIP,,STK,NSE,,INR,,,,1,,4,ADR

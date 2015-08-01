@@ -16,8 +16,8 @@ DayProfitTarget=0
 DayStopLoss=0
 MaximumOpenPositions=1
 BrokerageFile=08-inrfutbrokerage.txt
-TradeFile=INRSWINGSHORTTrades.csv
-OrderFile=INRSWINGSHORTOrders.csv
+TradeFile=INRSWINGSHORTTrades.json
+OrderFile=INRSWINGSHORTOrders.json
 StartingCapital=1000000
 Long=false
 Short=true
@@ -39,5 +39,5 @@ timeseries=open,high,low,settle,volume
 ParameterObjectPath=C:/Users/Pankaj/Documents/Seafile/ML-Coursera/R
 #not used at present
 UseCustomDateRangeForTraining=true 
-Testing=true
+TestingTimer=10000
 

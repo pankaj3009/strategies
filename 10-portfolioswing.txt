@@ -14,7 +14,7 @@ PointValue=1
 ClawProfitTarget=0
 DayProfitTarget=0
 DayStopLoss=0
-MaximumOpenPositions=1
+MaximumOpenPositions=10
 BrokerageFile=10-inrfutbrokerage.txt
 TradeFile=INRSWINGPORTTrades.json
 OrderFile=INRSWINGPORTOrders.json
@@ -23,8 +23,8 @@ Long=true
 Short=true
 ############## PER STRATEGY VARIABLES ##################
 #Traded Symbol Name
-NearMonthExpiry=20150730
-FarMonthExpiry=20150827
+NearMonthExpiry=20150830
+FarMonthExpiry=20150927
 ReferenceCashType=STK
 RServerIP=notanotherfund.com
 RWorkingDirectory=/home/psharma/strategies/swing
@@ -46,5 +46,5 @@ SensitivityThreshold=0.7
 SpecificityThreshold=0.7
 #not used at present
 UseCustomDateRangeForTraining=true 
-TestingTimer=3
+TestingTimer=1
 
