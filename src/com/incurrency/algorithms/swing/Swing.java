@@ -87,7 +87,9 @@ public class Swing extends Strategy implements TradeListener {
     TreeMap<Double, Integer> longPositionScore = new TreeMap<>();
     TreeMap<Double, Integer> shortPositionScore = new TreeMap<>();
     HashMap<Integer, Double> thresholdDistance = new HashMap<>(); //holds the symbol id: probability-threshold
-
+    ArrayList<Integer>longsExitedToday=new ArrayList<>();
+    ArrayList<Integer>shortsExitedToday=new ArrayList<>();
+    
     public Swing(MainAlgorithm m, Properties p, String parameterFile, ArrayList<String> accounts, Integer stratCount) {
         super(m, "swing", "FUT", p, parameterFile, accounts, stratCount);
         loadParameters(p);
@@ -233,6 +235,10 @@ public class Swing extends Strategy implements TradeListener {
                 if (slTrigger || tpTrigger) {
                     int size = this.getPosition().get(id).getPosition();
                     this.entry(id, EnumOrderSide.SELL, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
+                    if (rolloverDay()) {
+                        id = Utilities.getNextExpiryID(Parameters.symbol, id, expiryFarMonth);
+                    }
+                    longsExitedToday.add(id);
                 }
             } else if (this.getPosition().get(id).getPosition() < 0) {
                 Double tradePrice = this.getPosition().get(id).getPrice();
@@ -260,10 +266,31 @@ public class Swing extends Strategy implements TradeListener {
                 if (slTrigger || tpTrigger) {
                     int size = this.getPosition().get(id).getPosition();
                     this.entry(id, EnumOrderSide.COVER, Math.abs(size), EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
+                    if (rolloverDay()) {
+                        id = Utilities.getNextExpiryID(Parameters.symbol, id, expiryFarMonth);
+                    }
+                    shortsExitedToday.add(id);
                 }
             }
         }
     }
+    
+    private boolean rolloverDay() {
+        boolean rollover = false;
+        try{
+        SimpleDateFormat sdf_yyyyMMdd = new SimpleDateFormat("yyyyMMdd");
+        String currentDay = sdf_yyyyMMdd.format(getStartDate());
+        Date today = sdf_yyyyMMdd.parse(currentDay);
+        Date expiry = sdf_yyyyMMdd.parse(expiryNearMonth);
+        if (today.compareTo(expiry) >= 0) {
+            rollover = true;
+        }
+        }catch (Exception e){
+            logger.log(Level.INFO,null,e);
+        }
+        return rollover;
+    }
+    
     TimerTask eodProcessingTask = new TimerTask() {
         @Override
         public void run() {
@@ -483,9 +510,11 @@ public class Swing extends Strategy implements TradeListener {
                                 if (rollover) {
                                     id = Utilities.getNextExpiryID(Parameters.symbol, id, expiryFarMonth);
                                 }
+                                if(!longsExitedToday.contains(Integer.valueOf(id))){
                                 size = Parameters.symbol.get(id).getMinsize() * this.getNumberOfContracts();
                                 logger.log(Level.INFO, "501,Strategy BUY,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(id)});
                                 this.entry(id, EnumOrderSide.BUY, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULARENTRY, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
+                                }
                                 break;
                             case SELL:
                                 logger.log(Level.INFO, "501,Strategy SELL,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(id)});
@@ -495,31 +524,41 @@ public class Swing extends Strategy implements TradeListener {
                                 if (rollover) {
                                     id = Utilities.getNextExpiryID(Parameters.symbol, id, expiryFarMonth);
                                 }
-                                size = Parameters.symbol.get(id).getMinsize() * this.getNumberOfContracts();
-                                logger.log(Level.INFO, "501,Strategy SHORT,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(id)});
-                                this.entry(id, EnumOrderSide.SHORT, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULARENTRY, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
+                                if (!shortsExitedToday.contains(Integer.valueOf(id))) {
+                                    size = Parameters.symbol.get(id).getMinsize() * this.getNumberOfContracts();
+                                    logger.log(Level.INFO, "501,Strategy SHORT,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(id)});
+                                    this.entry(id, EnumOrderSide.SHORT, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULARENTRY, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
+                                }
                                 break;
                             case COVER:
                                logger.log(Level.INFO, "501,Strategy COVER,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(id)});
                                 this.entry(id, EnumOrderSide.COVER, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
+                                if (rollover) {
+                                    id = Utilities.getNextExpiryID(Parameters.symbol, id, expiryFarMonth);
+                                }
+                                shortsExitedToday.add(id);
                                 break;
                             case BUYPORT:
                                 if (rollover) {
                                     id = Utilities.getNextExpiryID(Parameters.symbol, id, expiryFarMonth);
                                 }
-                                double distance=today_predict_prob-threshold;
-                                logger.log(Level.INFO, "501,Strategy BUYPORT,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(id)+delimiter+distance+delimiter+(100 - (sensitivity * 100))});
-                                thresholdDistance.put(id, distance);
-                                longPositionScore.put(100 - (sensitivity * 100), id);
+                                if (!longsExitedToday.contains(Integer.valueOf(id))) {
+                                    double distance = today_predict_prob - threshold;
+                                    logger.log(Level.INFO, "501,Strategy BUYPORT,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(id) + delimiter + distance + delimiter + (100 - (sensitivity * 100))});
+                                    thresholdDistance.put(id, distance);
+                                    longPositionScore.put(100 - (sensitivity * 100), id);
+                                }
                                 break;
                             case SHORTPORT:
                                 if (rollover) {
                                     id = Utilities.getNextExpiryID(Parameters.symbol, id, expiryFarMonth);
                                 }
-                                distance=today_predict_prob-threshold;
-                                logger.log(Level.INFO, "501,Strategy SHORTPORT,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(id)+delimiter+distance+delimiter+(100 - (specificity * 100))});
-                                thresholdDistance.put(id, today_predict_prob - threshold);
-                                shortPositionScore.put(100 - (specificity * 100), id);
+                                if (!shortsExitedToday.contains(Integer.valueOf(id))) {
+                                    double distance = today_predict_prob - threshold;
+                                    logger.log(Level.INFO, "501,Strategy SHORTPORT,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(id) + delimiter + distance + delimiter + (100 - (specificity * 100))});
+                                    thresholdDistance.put(id, today_predict_prob - threshold);
+                                    shortPositionScore.put(100 - (specificity * 100), id);
+                                }
                                 break;
                             default:
                                 break;
