@@ -299,6 +299,7 @@ public class Swing extends Strategy implements TradeListener {
     }
 
     private void updateStops() {
+        logger.log(Level.INFO,"501,BOD Update Stop Process started");
         RConnection c = null;
         try {
             c = new RConnection(rServerIP);
@@ -413,6 +414,7 @@ public class Swing extends Strategy implements TradeListener {
     };
 
     private void scan() {
+        logger.log(Level.INFO,"501,Scan Started");
         RConnection c = null;
         try {
             c = new RConnection(rServerIP);
