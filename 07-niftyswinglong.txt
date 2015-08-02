@@ -8,27 +8,27 @@ MaxOrderDuration=1
 DynamicOrderDuration=1
 StrategyLog=true
 TickSize=0.05
-NumberOfContracts=40
+NumberOfContracts=1
 #Exposure
 PointValue=1
 ClawProfitTarget=0
 DayProfitTarget=0
 DayStopLoss=0
 MaximumOpenPositions=1
-BrokerageFile=07-inrfutbrokerage.txt
-TradeFile=INRSWINGLONGTrades.json
-OrderFile=INRSWINGLONGOrders.json
+BrokerageFile=10-inrfutbrokerage.txt
+TradeFile=NIFTYSWINGLONGTrades.json
+OrderFile=NIFTYSWINGLONGOrders.json
 StartingCapital=1000000
 Long=true
 Short=false
 ############## PER STRATEGY VARIABLES ##################
 #Traded Symbol Name
-NearMonthExpiry=20150827
-FarMonthExpiry=20150924
+NearMonthExpiry=20150830
+FarMonthExpiry=20150927
 ReferenceCashType=IND
 RServerIP=notanotherfund.com
 RWorkingDirectory=/home/psharma/strategies/swing
-EntryScanTime=15:25:00
+EntryScanTime=15:26:00
 StopLoss=1
 TakeProfit=5
 UpProbabilityThreshold=0.7
@@ -37,6 +37,14 @@ cassandrametric=india.nse.index.s4.daily
 timeseries=open,high,low,settle,volume
 ParameterObjectPath=/home/psharma/strategies/swing
 #ParameterObjectPath=C:/Users/Pankaj/Documents/Seafile/ML-Coursera/R
+Portfolio=true
+MaxPositions=1
+OptimalThreshold=true
+ExitLaziness=0.2
+EntryLaziness=0.1
+SensitivityThreshold=0.7
+SpecificityThreshold=0.7
 #not used at present
 UseCustomDateRangeForTraining=true 
-Testing=true
+TestingTimer=0
+

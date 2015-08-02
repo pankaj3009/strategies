@@ -363,7 +363,7 @@ public class Swing extends Strategy implements TradeListener {
                                 case STOPLOSS:
                                     double sl = close - low;
                                     stop.stopValue = Math.max(getTickSize(), Utilities.roundTo(sl, getTickSize()));
-                                    logger.log(Level.INFO,"501,UpdatedSLStop,{0}",new Object[]{getStrategy()+delimiter+Parameters.symbol.get(referenceid).getDisplayname()});
+                                    logger.log(Level.INFO, "501,UpdatedSLStop,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(referenceid).getDisplayname()});
                                     break;
                                 case TAKEPROFIT:
                                     double distance = today_predict_prob - threshold > 0 ? 1 + today_predict_prob - threshold : 1;
@@ -371,7 +371,7 @@ public class Swing extends Strategy implements TradeListener {
                                     double tp = (high - low) * distance;
                                     stop.stopValue = tp;
                                     stop.stopValue = Math.max(getTickSize(), Utilities.roundTo(stop.stopValue, getTickSize()));
-                                    logger.log(Level.INFO,"501,UpdatedTPStop,{0}",new Object[]{getStrategy()+delimiter+Parameters.symbol.get(referenceid).getDisplayname()});
+                                    logger.log(Level.INFO, "501,UpdatedTPStop,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(referenceid).getDisplayname()});
                                     break;
                                 default:
                                     break;
@@ -383,7 +383,7 @@ public class Swing extends Strategy implements TradeListener {
                                 case STOPLOSS:
                                     double sl = high - close;
                                     stop.stopValue = Math.max(getTickSize(), Utilities.roundTo(sl, getTickSize()));
-                                    logger.log(Level.INFO,"501,UpdatedSLStop,{0}",new Object[]{getStrategy()+delimiter+Parameters.symbol.get(referenceid).getDisplayname()});
+                                    logger.log(Level.INFO, "501,UpdatedSLStop,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(referenceid).getDisplayname()});
                                     break;
                                 case TAKEPROFIT:
                                     double distance = threshold - today_predict_prob > 0 ? 1 + threshold - today_predict_prob : 1;
@@ -391,7 +391,7 @@ public class Swing extends Strategy implements TradeListener {
                                     double tp = (high - low) * distance;
                                     stop.stopValue = tp;
                                     stop.stopValue = Math.max(getTickSize(), Utilities.roundTo(stop.stopValue, getTickSize()));
-                                    logger.log(Level.INFO,"501,UpdatedTPStop,{0}",new Object[]{getStrategy()+delimiter+Parameters.symbol.get(referenceid).getDisplayname()});
+                                    logger.log(Level.INFO, "501,UpdatedTPStop,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(referenceid).getDisplayname()});
                                     break;
                                 default:
                                     break;
@@ -405,7 +405,6 @@ public class Swing extends Strategy implements TradeListener {
             }
         }
     }
-    
     TimerTask eodProcessingTask = new TimerTask() {
         @Override
         public void run() {
@@ -414,18 +413,6 @@ public class Swing extends Strategy implements TradeListener {
     };
 
     private void scan() {
-        SimpleDateFormat sdf_yyyyMMdd = new SimpleDateFormat("yyyyMMdd");
-        String currentDay = sdf_yyyyMMdd.format(getStartDate());
-        boolean rollover = false;
-        try {
-            Date today = sdf_yyyyMMdd.parse(currentDay);
-            Date expiry = sdf_yyyyMMdd.parse(expiryNearMonth);
-            if (today.compareTo(expiry) >= 0) {
-                rollover = true;
-            }
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, null, e);
-        }
         RConnection c = null;
         try {
             c = new RConnection(rServerIP);
@@ -463,101 +450,129 @@ public class Swing extends Strategy implements TradeListener {
                         boolean cSell = today_predict_prob >= 0 && today_predict_prob < (threshold - exitLaziness) && s.getLastPrice() != 0 && this.getLongOnly() && size > 0;
                         boolean cShort = today_predict_prob >= 0 && today_predict_prob < (threshold - entryLaziness) && specificity > specificityThreshold && this.getShortOnly() && size == 0;
                         boolean cCover = today_predict_prob >= 0 && today_predict_prob > (threshold + exitLaziness) && s.getLastPrice() != 0 && this.getShortOnly() && size < 0;
-                        if (cBuy && !portfolio) {
-                            swingTrigger = Trigger.BUY;
-                        } else if (cSell) {
+                        //First Handle Exits
+                        if (cSell) {
                             swingTrigger = Trigger.SELL;
-                        } else if (cShort && !portfolio) {
-                            swingTrigger = Trigger.SHORT;
                         } else if (cCover) {
                             swingTrigger = Trigger.COVER;
+                        }
+                        processSignal(swingTrigger, stats);
+
+                        //Then handle entries                       
+                        swingTrigger = Trigger.UNDEFINED;
+                        if (cBuy && !portfolio) {
+                            swingTrigger = Trigger.BUY;
+                        } else if (cShort && !portfolio) {
+                            swingTrigger = Trigger.SHORT;
                         } else if (cBuy && portfolio) {
                             swingTrigger = Trigger.BUYPORT;
                         } else if (cShort && portfolio) {
                             swingTrigger = Trigger.SHORTPORT;
                         }
-                    } else {
-                        //&& s.getLastPrice() != 0
+                        processSignal(swingTrigger, stats);
+
+                    } else { //threshold is specified in the parameter file
                         boolean cBuy = today_predict_prob > upProbabilityThreshold && s.getLastPrice() != 0 && this.getLongOnly() && size == 0;
                         boolean cSell = today_predict_prob < downProbabilityThreshold && s.getLastPrice() != 0 && this.getLongOnly() && size > 0;
                         boolean cShort = today_predict_prob < downProbabilityThreshold && s.getLastPrice() != 0 && this.getShortOnly() && size == 0;
                         boolean cCover = today_predict_prob >= upProbabilityThreshold && s.getLastPrice() != 0 && this.getShortOnly() && size < 0;
-                        if (cBuy && !portfolio) {
-                            swingTrigger = Trigger.BUY;
-                        } else if (cSell) {
+                        //First handle exits
+                        swingTrigger = Trigger.UNDEFINED;
+                        if (cSell) {
                             swingTrigger = Trigger.SELL;
-                        } else if (cShort && !portfolio) {
-                            swingTrigger = Trigger.SHORT;
                         } else if (cCover) {
                             swingTrigger = Trigger.COVER;
+                        }
+                        processSignal(swingTrigger, stats);
+
+                        //Then handle entries
+                        swingTrigger = Trigger.UNDEFINED;
+                        if (cBuy && !portfolio) {
+                            swingTrigger = Trigger.BUY;
+                        } else if (cShort && !portfolio) {
+                            swingTrigger = Trigger.SHORT;
                         } else if (cBuy && portfolio) {
                             swingTrigger = Trigger.BUYPORT;
                         } else if (cShort && portfolio) {
                             swingTrigger = Trigger.SHORTPORT;
                         }
-                    }
-                    switch (swingTrigger) {
-                        case BUY:
-                            if (rollover) {
-                                id = Utilities.getNextExpiryID(Parameters.symbol, id, expiryFarMonth);
-                            }
-                            if (!longsExitedToday.contains(Integer.valueOf(id))) {
-                                size = Parameters.symbol.get(id).getMinsize() * this.getNumberOfContracts();
-                                logger.log(Level.INFO, "501,Strategy BUY,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(id)});
-                                this.entry(id, EnumOrderSide.BUY, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULARENTRY, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
-                            }
-                            break;
-                        case SELL:
-                            logger.log(Level.INFO, "501,Strategy SELL,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(id)});
-                            this.entry(id, EnumOrderSide.SELL, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
-                            break;
-                        case SHORT:
-                            if (rollover) {
-                                id = Utilities.getNextExpiryID(Parameters.symbol, id, expiryFarMonth);
-                            }
-                            if (!shortsExitedToday.contains(Integer.valueOf(id))) {
-                                size = Parameters.symbol.get(id).getMinsize() * this.getNumberOfContracts();
-                                logger.log(Level.INFO, "501,Strategy SHORT,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(id)});
-                                this.entry(id, EnumOrderSide.SHORT, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULARENTRY, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
-                            }
-                            break;
-                        case COVER:
-                            logger.log(Level.INFO, "501,Strategy COVER,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(id)});
-                            this.entry(id, EnumOrderSide.COVER, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
-                            if (rollover) {
-                                id = Utilities.getNextExpiryID(Parameters.symbol, id, expiryFarMonth);
-                            }
-                            shortsExitedToday.add(id);
-                            break;
-                        case BUYPORT:
-                            if (rollover) {
-                                id = Utilities.getNextExpiryID(Parameters.symbol, id, expiryFarMonth);
-                            }
-                            if (!longsExitedToday.contains(Integer.valueOf(id))) {
-                                double distance = today_predict_prob - threshold;
-                                logger.log(Level.INFO, "501,Strategy BUYPORT,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(id) + delimiter + distance + delimiter + (100 - (sensitivity * 100))});
-                                thresholdDistance.put(id, distance);
-                                longPositionScore.put(100 - (sensitivity * 100), id);
-                            }
-                            break;
-                        case SHORTPORT:
-                            if (rollover) {
-                                id = Utilities.getNextExpiryID(Parameters.symbol, id, expiryFarMonth);
-                            }
-                            if (!shortsExitedToday.contains(Integer.valueOf(id))) {
-                                double distance = today_predict_prob - threshold;
-                                logger.log(Level.INFO, "501,Strategy SHORTPORT,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(id) + delimiter + distance + delimiter + (100 - (specificity * 100))});
-                                thresholdDistance.put(id, today_predict_prob - threshold);
-                                shortPositionScore.put(100 - (specificity * 100), id);
-                            }
-                            break;
-                        default:
-                            break;
+                        processSignal(swingTrigger, stats);
+
                     }
                 }
             }
         }
         portfolioTrades();
+    }
+
+    private void processSignal(Trigger swingTrigger, HashMap<String, Double> stats) {
+        int id = 0;
+        int size = 0;
+        boolean rollover = rolloverDay();
+        double threshold = Utilities.getDouble(stats.get("threshold"), 0.5);
+        double today_predict_prob = Utilities.getDouble(stats.get("probability"), -1);
+        double sensitivity = Utilities.getDouble(stats.get("sensitivity"), 0);
+        double specificity = Utilities.getDouble(stats.get("specificity"), 0);
+
+        switch (swingTrigger) {
+            case BUY:
+                if (rollover) {
+                    id = Utilities.getNextExpiryID(Parameters.symbol, id, expiryFarMonth);
+                }
+                if (!longsExitedToday.contains(Integer.valueOf(id))) {
+                    size = Parameters.symbol.get(id).getMinsize() * this.getNumberOfContracts();
+                    logger.log(Level.INFO, "501,Strategy BUY,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(id)});
+                    this.entry(id, EnumOrderSide.BUY, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULARENTRY, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
+                }
+                break;
+            case SELL:
+                logger.log(Level.INFO, "501,Strategy SELL,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(id)});
+                this.entry(id, EnumOrderSide.SELL, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
+                longsExitedToday.add(id);
+                break;
+            case SHORT:
+                if (rollover) {
+                    id = Utilities.getNextExpiryID(Parameters.symbol, id, expiryFarMonth);
+                }
+                if (!shortsExitedToday.contains(Integer.valueOf(id))) {
+                    size = Parameters.symbol.get(id).getMinsize() * this.getNumberOfContracts();
+                    logger.log(Level.INFO, "501,Strategy SHORT,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(id)});
+                    this.entry(id, EnumOrderSide.SHORT, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULARENTRY, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
+                }
+                break;
+            case COVER:
+                logger.log(Level.INFO, "501,Strategy COVER,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(id)});
+                this.entry(id, EnumOrderSide.COVER, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
+                if (rollover) {
+                    id = Utilities.getNextExpiryID(Parameters.symbol, id, expiryFarMonth);
+                }
+                shortsExitedToday.add(id);
+                break;
+            case BUYPORT:
+                if (rollover) {
+                    id = Utilities.getNextExpiryID(Parameters.symbol, id, expiryFarMonth);
+                }
+                if (!longsExitedToday.contains(Integer.valueOf(id))) {
+                    double distance = today_predict_prob - threshold;
+                    logger.log(Level.INFO, "501,Strategy BUYPORT,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(id) + delimiter + distance + delimiter + (100 - (sensitivity * 100))});
+                    thresholdDistance.put(id, distance);
+                    longPositionScore.put(100 - (sensitivity * 100), id);
+                }
+                break;
+            case SHORTPORT:
+                if (rollover) {
+                    id = Utilities.getNextExpiryID(Parameters.symbol, id, expiryFarMonth);
+                }
+                if (!shortsExitedToday.contains(Integer.valueOf(id))) {
+                    double distance = today_predict_prob - threshold;
+                    logger.log(Level.INFO, "501,Strategy SHORTPORT,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(id) + delimiter + distance + delimiter + (100 - (specificity * 100))});
+                    thresholdDistance.put(id, today_predict_prob - threshold);
+                    shortPositionScore.put(100 - (specificity * 100), id);
+                }
+                break;
+            default:
+                break;
+        }
     }
 
     private HashMap<String, Double> getStats(RConnection c, int referenceid, boolean today) {
