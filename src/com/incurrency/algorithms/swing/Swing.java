@@ -222,17 +222,17 @@ public class Swing extends Strategy implements TradeListener {
                 boolean tpTrigger = false;
                 boolean slTrigger = false;
                 if (stops == null && Parameters.symbol.get(id).getLastPrice() != 0) {
-                    slTrigger = Parameters.symbol.get(id).getLastPrice() <= tradePrice * (1 - stopLoss / 100);
-                    tpTrigger = Parameters.symbol.get(id).getLastPrice() >= tradePrice * (1 + takeProfit / 100);
+                    slTrigger = Parameters.symbol.get(id).getLastPrice()!=0 && (Parameters.symbol.get(id).getLastPrice() <= tradePrice * (1 - stopLoss / 100));
+                    tpTrigger = Parameters.symbol.get(id).getLastPrice()!=0 && (Parameters.symbol.get(id).getLastPrice() >= tradePrice * (1 + takeProfit / 100));
 
                 } else if (stops != null && Parameters.symbol.get(id).getLastPrice() != 0) {
                     for (Stop stop : stops) {
                         switch (stop.stopType) {
                             case TAKEPROFIT:
-                                tpTrigger = Parameters.symbol.get(id).getLastPrice() - tradePrice >= stop.stopValue;
+                                tpTrigger = Parameters.symbol.get(id).getLastPrice()!=0 && (Parameters.symbol.get(id).getLastPrice() - tradePrice >= stop.stopValue);
                                 break;
                             case STOPLOSS:
-                                slTrigger = tradePrice - Parameters.symbol.get(id).getLastPrice() >= stop.stopValue;
+                                slTrigger = Parameters.symbol.get(id).getLastPrice()!=0 && (tradePrice - Parameters.symbol.get(id).getLastPrice() >= stop.stopValue);
                                 break;
                             default:
                                 break;
@@ -253,17 +253,17 @@ public class Swing extends Strategy implements TradeListener {
                 boolean tpTrigger = false;
                 boolean slTrigger = false;
                 if (stops == null && Parameters.symbol.get(id).getLastPrice() != 0) {
-                    slTrigger = Parameters.symbol.get(id).getLastPrice() >= tradePrice * (1 + stopLoss / 100);
-                    tpTrigger = Parameters.symbol.get(id).getLastPrice() <= tradePrice * (1 - takeProfit / 100);
+                    slTrigger = Parameters.symbol.get(id).getLastPrice()!=0 && (Parameters.symbol.get(id).getLastPrice() >= tradePrice * (1 + stopLoss / 100));
+                    tpTrigger = Parameters.symbol.get(id).getLastPrice()!=0 && (Parameters.symbol.get(id).getLastPrice() <= tradePrice * (1 - takeProfit / 100));
 
                 } else if (stops != null && Parameters.symbol.get(id).getLastPrice() != 0) {
                     for (Stop stop : stops) {
                         switch (stop.stopType) {
                             case TAKEPROFIT:
-                                tpTrigger = tradePrice - Parameters.symbol.get(id).getLastPrice() >= stop.stopValue;
+                                tpTrigger = Parameters.symbol.get(id).getLastPrice()!=0 && (tradePrice - Parameters.symbol.get(id).getLastPrice() >= stop.stopValue);
                                 break;
                             case STOPLOSS:
-                                slTrigger = Parameters.symbol.get(id).getLastPrice() - tradePrice >= stop.stopValue;
+                                slTrigger = Parameters.symbol.get(id).getLastPrice()!=0 && (Parameters.symbol.get(id).getLastPrice() - tradePrice >= stop.stopValue);
                                 break;
                             default:
                                 break;
