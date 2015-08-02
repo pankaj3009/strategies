@@ -110,7 +110,7 @@ public class Swing extends Strategy implements TradeListener {
         if (Subscribe.tes != null) {
             Subscribe.tes.addTradeListener(this);
         }
-        Thread historicalDataRetriever = new Thread() {
+        historicalDataRetriever = new Thread() {
             public void run() {
                 Calendar calToday = Calendar.getInstance(TimeZone.getTimeZone(Algorithm.timeZone));
                 String hdEndDate = DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", calToday.getTimeInMillis(), TimeZone.getTimeZone(Algorithm.timeZone));
@@ -170,6 +170,7 @@ public class Swing extends Strategy implements TradeListener {
         Timer bodProcessing = new Timer("Timer: " + this.getStrategy() + " BODProcessing");
         bodProcessing.schedule(runBOD, 1 * 60 * 1000);
     }
+    
     TimerTask runBOD = new TimerTask() {
         public void run() {
             while (historicalDataRetriever != null && historicalDataRetriever.getState() != Thread.State.TERMINATED) {
