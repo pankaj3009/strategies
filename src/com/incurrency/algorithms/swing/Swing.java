@@ -475,9 +475,9 @@ public class Swing extends Strategy implements TradeListener {
                     int size = this.getPosition().get(id).getPosition();
                     Trigger swingTrigger = Trigger.UNDEFINED;
                     if (optimalThreshold) {
-                        boolean cBuy = today_predict_prob >= 0 && today_predict_prob > (threshold + entryLaziness) && sensitivity > sensitivityThreshold && this.getLongOnly() && size == 0;
+                        boolean cBuy = today_predict_prob >= 0 && today_predict_prob > (threshold + entryLaziness) && s.getLastPrice() != 0 && sensitivity > sensitivityThreshold && this.getLongOnly() && size == 0;
                         boolean cSell = today_predict_prob >= 0 && today_predict_prob < (threshold - exitLaziness) && s.getLastPrice() != 0 && this.getLongOnly() && size > 0;
-                        boolean cShort = today_predict_prob >= 0 && today_predict_prob < (threshold - entryLaziness) && specificity > specificityThreshold && this.getShortOnly() && size == 0;
+                        boolean cShort = today_predict_prob >= 0 && today_predict_prob < (threshold - entryLaziness) && s.getLastPrice() != 0 && specificity > specificityThreshold && this.getShortOnly() && size == 0;
                         boolean cCover = today_predict_prob >= 0 && today_predict_prob > (threshold + exitLaziness) && s.getLastPrice() != 0 && this.getShortOnly() && size < 0;
                         //First Handle Exits
                         if (cSell) {
