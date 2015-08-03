@@ -122,7 +122,6 @@ public class Swing extends Strategy implements TradeListener {
                 calToday.add(Calendar.YEAR, -5);
                 String hdStartDate = DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", calToday.getTimeInMillis(), TimeZone.getTimeZone(Algorithm.timeZone));
                 for (BeanSymbol s : Parameters.symbol) {
-                    logger.log(Level.INFO,"SymbolSize:{0}",new Object[]{s.getDisplayname()+delimiter+s.getDataLength(EnumBarSize.DAILY, "settle")});
                     if (s.getDataLength(EnumBarSize.DAILY,"settle")==0 && (s.getType().equals("STK") || s.getType().equals("IND")) && s.getStrategy().toLowerCase().contains("swing")) {
                         Thread t = new Thread(new HistoricalBars(s, EnumSource.CASSANDRA, timeSeries, cassandraMetric, hdStartDate, hdEndDate, EnumBarSize.DAILY, false));
                         t.start();
@@ -462,9 +461,10 @@ public class Swing extends Strategy implements TradeListener {
             logger.log(Level.SEVERE, null, e);
         }
         for (BeanSymbol s : Parameters.symbol) {
-            if (!s.getType().equals(referenceCashType) && !s.getExpiry().equals(expiryFarMonth)) {
+            if (!s.getType().equals(referenceCashType) && s.getExpiry()!=null && !s.getExpiry().equals(expiryFarMonth)) {
                 int id = s.getSerialno() - 1;
                 int referenceid = Utilities.getReferenceID(Parameters.symbol, id, referenceCashType);
+                if(referenceid>=0){
                 HashMap<String, Double> stats = getStats(c, referenceid, true);
                 if (!stats.isEmpty()) {
                     double threshold = Utilities.getDouble(stats.get("threshold"), 0.5);
@@ -528,6 +528,7 @@ public class Swing extends Strategy implements TradeListener {
                         processSignal(id,swingTrigger, stats);
 
                     }
+                }
                 }
             }
         }
