@@ -122,6 +122,7 @@ public class Swing extends Strategy implements TradeListener {
                 calToday.add(Calendar.YEAR, -5);
                 String hdStartDate = DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", calToday.getTimeInMillis(), TimeZone.getTimeZone(Algorithm.timeZone));
                 for (BeanSymbol s : Parameters.symbol) {
+                    logger.log(Level.INFO,"SymbolSize:{0}",new Object[]{s.getDisplayname()+delimiter+s.getDataLength(EnumBarSize.DAILY, "settle")});
                     if (s.getDataLength(EnumBarSize.DAILY,"settle")==0 && (s.getType().equals("STK") || s.getType().equals("IND")) && s.getStrategy().toLowerCase().contains("swing")) {
                         Thread t = new Thread(new HistoricalBars(s, EnumSource.CASSANDRA, timeSeries, cassandraMetric, hdStartDate, hdEndDate, EnumBarSize.DAILY, false));
                         t.start();
@@ -484,7 +485,7 @@ public class Swing extends Strategy implements TradeListener {
                         } else if (cCover) {
                             swingTrigger = Trigger.COVER;
                         }
-                        processSignal(swingTrigger, stats);
+                        processSignal(id,swingTrigger, stats);
 
                         //Then handle entries                       
                         swingTrigger = Trigger.UNDEFINED;
@@ -497,7 +498,7 @@ public class Swing extends Strategy implements TradeListener {
                         } else if (cShort && portfolio) {
                             swingTrigger = Trigger.SHORTPORT;
                         }
-                        processSignal(swingTrigger, stats);
+                        processSignal(id,swingTrigger, stats);
 
                     } else { //threshold is specified in the parameter file
                         boolean cBuy = today_predict_prob > upProbabilityThreshold && s.getLastPrice() != 0 && this.getLongOnly() && size == 0;
@@ -511,7 +512,7 @@ public class Swing extends Strategy implements TradeListener {
                         } else if (cCover) {
                             swingTrigger = Trigger.COVER;
                         }
-                        processSignal(swingTrigger, stats);
+                        processSignal(id,swingTrigger, stats);
 
                         //Then handle entries
                         swingTrigger = Trigger.UNDEFINED;
@@ -524,7 +525,7 @@ public class Swing extends Strategy implements TradeListener {
                         } else if (cShort && portfolio) {
                             swingTrigger = Trigger.SHORTPORT;
                         }
-                        processSignal(swingTrigger, stats);
+                        processSignal(id,swingTrigger, stats);
 
                     }
                 }
@@ -533,8 +534,7 @@ public class Swing extends Strategy implements TradeListener {
         portfolioTrades();
     }
 
-    private void processSignal(Trigger swingTrigger, HashMap<String, Double> stats) {
-        int id = 0;
+    private void processSignal(int id,Trigger swingTrigger, HashMap<String, Double> stats) {
         int size = 0;
         boolean rollover = rolloverDay();
         double threshold = Utilities.getDouble(stats.get("threshold"), 0.5);
