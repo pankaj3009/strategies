@@ -15,12 +15,12 @@ ClawProfitTarget=0
 DayProfitTarget=0
 DayStopLoss=0
 MaximumOpenPositions=10
-BrokerageFile=11-inrfutbrokerage.txt
-TradeFile=PORTSWINGSHORTTrades.json
-OrderFile=PORTSWINGSHORTOrders.json
+BrokerageFile=10-inrfutbrokerage.txt
+TradeFile=PORTSWINGLONGTrades.json
+OrderFile=PORTSWINGLONGOrders.json
 StartingCapital=1000000
-Long=false
-Short=true
+Long=true
+Short=false
 ############## PER STRATEGY VARIABLES ##################
 #Traded Symbol Name
 NearMonthExpiry=20150827

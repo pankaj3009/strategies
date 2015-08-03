@@ -242,7 +242,19 @@ public class Swing extends Strategy implements TradeListener {
                 }
                 if (slTrigger || tpTrigger) {
                     int size = this.getPosition().get(id).getPosition();
-                    this.exit(id, EnumOrderSide.SELL, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
+                    HashMap<String, Object> order = new HashMap<>();
+                    order.put("id", id);
+                    order.put("side", EnumOrderSide.SELL);
+                    order.put("size", size);
+                    order.put("type", EnumOrderType.LMT);
+                    order.put("limitprice", Parameters.symbol.get(id).getLastPrice());
+                    order.put("reason", EnumOrderReason.REGULAREXIT);
+                    order.put("orderstage", EnumOrderStage.INIT);
+                    order.put("expiretime", this.getMaxOrderDuration());
+                    order.put("dynamicorderduration", getDynamicOrderDuration());
+                    order.put("maxslippage", this.getMaxSlippageExit());
+                    this.exit(order);
+//                    this.exit(id, EnumOrderSide.SELL, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
                     if (rolloverDay()) {
                         id = Utilities.getNextExpiryID(Parameters.symbol, id, expiryFarMonth);
                     }
@@ -273,7 +285,20 @@ public class Swing extends Strategy implements TradeListener {
                 }
                 if (slTrigger || tpTrigger) {
                     int size = this.getPosition().get(id).getPosition();
-                    this.exit(id, EnumOrderSide.COVER, Math.abs(size), EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
+                    HashMap<String, Object> order = new HashMap<>();
+                    order.put("id", id);
+                    order.put("side", EnumOrderSide.COVER);
+                    order.put("size", size);
+                    order.put("type", EnumOrderType.LMT);
+                    order.put("limitprice", Parameters.symbol.get(id).getLastPrice());
+                    order.put("reason", EnumOrderReason.REGULAREXIT);
+                    order.put("orderstage", EnumOrderStage.INIT);
+                    order.put("expiretime", this.getMaxOrderDuration());
+                    order.put("dynamicorderduration", getDynamicOrderDuration());
+                    order.put("maxslippage", this.getMaxSlippageExit());
+                    this.exit(order);
+
+                    //this.exit(id, EnumOrderSide.COVER, Math.abs(size), EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
                     if (rolloverDay()) {
                         id = Utilities.getNextExpiryID(Parameters.symbol, id, expiryFarMonth);
                     }
@@ -525,12 +550,36 @@ public class Swing extends Strategy implements TradeListener {
                 if (!longsExitedToday.contains(Integer.valueOf(id))) {
                     size = Parameters.symbol.get(id).getMinsize() * this.getNumberOfContracts();
                     logger.log(Level.INFO, "501,Strategy BUY,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(id)});
-                    this.entry(id, EnumOrderSide.BUY, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULARENTRY, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
+                    HashMap<String, Object> order = new HashMap<>();
+                    order.put("id", id);
+                    order.put("side", EnumOrderSide.BUY);
+                    order.put("size", size);
+                    order.put("type", EnumOrderType.LMT);
+                    order.put("limitprice", Parameters.symbol.get(id).getLastPrice());
+                    order.put("reason", EnumOrderReason.REGULARENTRY);
+                    order.put("orderstage", EnumOrderStage.INIT);
+                    order.put("expiretime", this.getMaxOrderDuration());
+                    order.put("dynamicorderduration", getDynamicOrderDuration());
+                    order.put("maxslippage", this.getMaxSlippageEntry());
+                    this.entry(order);
+                    //this.entry(id, EnumOrderSide.BUY, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULARENTRY, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
                 }
                 break;
             case SELL:
                 logger.log(Level.INFO, "501,Strategy SELL,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(id)});
-                this.exit(id, EnumOrderSide.SELL, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
+                    HashMap<String, Object> order = new HashMap<>();
+                    order.put("id", id);
+                    order.put("side", EnumOrderSide.SELL);
+                    order.put("size", size);
+                    order.put("type", EnumOrderType.LMT);
+                    order.put("limitprice", Parameters.symbol.get(id).getLastPrice());
+                    order.put("reason", EnumOrderReason.REGULAREXIT);
+                    order.put("orderstage", EnumOrderStage.INIT);
+                    order.put("expiretime", this.getMaxOrderDuration());
+                    order.put("dynamicorderduration", getDynamicOrderDuration());
+                    order.put("maxslippage", this.getMaxSlippageExit());
+                this.exit(order);
+                  //  this.exit(id, EnumOrderSide.SELL, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
                 longsExitedToday.add(id);
                 break;
             case SHORT:
@@ -540,12 +589,36 @@ public class Swing extends Strategy implements TradeListener {
                 if (!shortsExitedToday.contains(Integer.valueOf(id))) {
                     size = Parameters.symbol.get(id).getMinsize() * this.getNumberOfContracts();
                     logger.log(Level.INFO, "501,Strategy SHORT,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(id)});
-                    this.entry(id, EnumOrderSide.SHORT, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULARENTRY, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
+                    order = new HashMap<>();
+                    order.put("id", id);
+                    order.put("side", EnumOrderSide.SHORT);
+                    order.put("size", size);
+                    order.put("type", EnumOrderType.LMT);
+                    order.put("limitprice", Parameters.symbol.get(id).getLastPrice());
+                    order.put("reason", EnumOrderReason.REGULARENTRY);
+                    order.put("orderstage", EnumOrderStage.INIT);
+                    order.put("expiretime", this.getMaxOrderDuration());
+                    order.put("dynamicorderduration", getDynamicOrderDuration());
+                    order.put("maxslippage", this.getMaxSlippageEntry());
+                    this.entry(order);
+//                    this.entry(id, EnumOrderSide.SHORT, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULARENTRY, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
                 }
                 break;
             case COVER:
                 logger.log(Level.INFO, "501,Strategy COVER,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(id)});
-                this.exit(id, EnumOrderSide.COVER, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
+                    order = new HashMap<>();
+                    order.put("id", id);
+                    order.put("side", EnumOrderSide.COVER);
+                    order.put("size", size);
+                    order.put("type", EnumOrderType.LMT);
+                    order.put("limitprice", Parameters.symbol.get(id).getLastPrice());
+                    order.put("reason", EnumOrderReason.REGULAREXIT);
+                    order.put("orderstage", EnumOrderStage.INIT);
+                    order.put("expiretime", this.getMaxOrderDuration());
+                    order.put("dynamicorderduration", getDynamicOrderDuration());
+                    order.put("maxslippage", this.getMaxSlippageExit());
+                    this.exit(order);
+                //this.exit(id, EnumOrderSide.COVER, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
                 if (rollover) {
                     id = Utilities.getNextExpiryID(Parameters.symbol, id, expiryFarMonth);
                 }
