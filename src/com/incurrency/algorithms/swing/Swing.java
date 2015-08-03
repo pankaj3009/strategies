@@ -122,7 +122,7 @@ public class Swing extends Strategy implements TradeListener {
                 calToday.add(Calendar.YEAR, -5);
                 String hdStartDate = DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", calToday.getTimeInMillis(), TimeZone.getTimeZone(Algorithm.timeZone));
                 for (BeanSymbol s : Parameters.symbol) {
-                    if ((s.getType().equals("STK") || s.getType().equals("IND")) && s.getStrategy().toLowerCase().contains("swing")) {
+                    if (s.getDataLength(EnumBarSize.DAILY,"settle")==0 && (s.getType().equals("STK") || s.getType().equals("IND")) && s.getStrategy().toLowerCase().contains("swing")) {
                         Thread t = new Thread(new HistoricalBars(s, EnumSource.CASSANDRA, timeSeries, cassandraMetric, hdStartDate, hdEndDate, EnumBarSize.DAILY, false));
                         t.start();
                         while (t.getState() != Thread.State.TERMINATED) {

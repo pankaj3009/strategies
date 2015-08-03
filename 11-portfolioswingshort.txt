@@ -15,11 +15,11 @@ ClawProfitTarget=0
 DayProfitTarget=0
 DayStopLoss=0
 MaximumOpenPositions=10
-BrokerageFile=10-inrfutbrokerage.txt
-TradeFile=PORTSWINGLONGTrades.json
-OrderFile=PORTSWINGLONGOrders.json
+BrokerageFile=11-inrfutbrokerage.txt
+TradeFile=INRSWINGPORTTrades.json
+OrderFile=INRSWINGPORTOrders.json
 StartingCapital=1000000
-Long=true
+Long=false
 Short=true
 ############## PER STRATEGY VARIABLES ##################
 #Traded Symbol Name
