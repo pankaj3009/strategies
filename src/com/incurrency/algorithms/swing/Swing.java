@@ -223,18 +223,25 @@ public class Swing extends Strategy implements TradeListener {
                 ArrayList<Stop> stops = Trade.getStop(getTrades(), internalOpenOrders.get(id));
                 boolean tpTrigger = false;
                 boolean slTrigger = false;
+                double tpDistance=0D;
+                double slDistance=0D;
+                double sl=Double.MAX_VALUE;
+                double tp=Double.MAX_VALUE;
                 if (stops == null && Parameters.symbol.get(id).getLastPrice() != 0) {
                     slTrigger = Parameters.symbol.get(id).getLastPrice()!=0 && (Parameters.symbol.get(id).getLastPrice() <= tradePrice * (1 - stopLoss / 100));
                     tpTrigger = Parameters.symbol.get(id).getLastPrice()!=0 && (Parameters.symbol.get(id).getLastPrice() >= tradePrice * (1 + takeProfit / 100));
-
                 } else if (stops != null && Parameters.symbol.get(id).getLastPrice() != 0) {
                     for (Stop stop : stops) {
                         switch (stop.stopType) {
                             case TAKEPROFIT:
-                                tpTrigger = Parameters.symbol.get(id).getLastPrice()!=0 && (Parameters.symbol.get(id).getLastPrice() - tradePrice >= stop.stopValue);
+                                tpDistance=Parameters.symbol.get(id).getLastPrice() - tradePrice;
+                                tp=stop.stopValue;
+                                tpTrigger = Parameters.symbol.get(id).getLastPrice()!=0 && tpDistance >= tp;
                                 break;
                             case STOPLOSS:
-                                slTrigger = Parameters.symbol.get(id).getLastPrice()!=0 && (tradePrice - Parameters.symbol.get(id).getLastPrice() >= stop.stopValue);
+                                slDistance=tradePrice - Parameters.symbol.get(id).getLastPrice();
+                                sl=stop.stopValue;
+                                slTrigger = Parameters.symbol.get(id).getLastPrice()!=0 && slDistance >= sl;
                                 break;
                             default:
                                 break;
@@ -242,6 +249,7 @@ public class Swing extends Strategy implements TradeListener {
                     }
                 }
                 if (slTrigger || tpTrigger) {
+                   logger.log(Level.INFO,"501,SLTP Exit,{0}",new Object[]{this.getStrategy()+delimiter+Parameters.symbol.get(id).getDisplayname()+delimiter+slTrigger+delimiter+tpTrigger+Parameters.symbol.get(id).getLastPrice()+delimiter+slDistance+delimiter+tpDistance+delimiter+sl+delimiter+tp});
                     int size = this.getPosition().get(id).getPosition();
                     HashMap<String, Object> order = new HashMap<>();
                     order.put("id", id);
@@ -266,6 +274,10 @@ public class Swing extends Strategy implements TradeListener {
                 ArrayList<Stop> stops = Trade.getStop(getTrades(), internalOpenOrders.get(id));
                 boolean tpTrigger = false;
                 boolean slTrigger = false;
+                double tpDistance=0D;
+                double slDistance=0D;
+                double sl=Double.MAX_VALUE;
+                double tp=Double.MAX_VALUE;
                 if (stops == null && Parameters.symbol.get(id).getLastPrice() != 0) {
                     slTrigger = Parameters.symbol.get(id).getLastPrice()!=0 && (Parameters.symbol.get(id).getLastPrice() >= tradePrice * (1 + stopLoss / 100));
                     tpTrigger = Parameters.symbol.get(id).getLastPrice()!=0 && (Parameters.symbol.get(id).getLastPrice() <= tradePrice * (1 - takeProfit / 100));
@@ -274,10 +286,14 @@ public class Swing extends Strategy implements TradeListener {
                     for (Stop stop : stops) {
                         switch (stop.stopType) {
                             case TAKEPROFIT:
-                                tpTrigger = Parameters.symbol.get(id).getLastPrice()!=0 && (tradePrice - Parameters.symbol.get(id).getLastPrice() >= stop.stopValue);
+                                tpDistance=tradePrice - Parameters.symbol.get(id).getLastPrice();
+                                tp=stop.stopValue;
+                                tpTrigger = Parameters.symbol.get(id).getLastPrice()!=0 && tpDistance>= tp;
                                 break;
                             case STOPLOSS:
-                                slTrigger = Parameters.symbol.get(id).getLastPrice()!=0 && (Parameters.symbol.get(id).getLastPrice() - tradePrice >= stop.stopValue);
+                                slDistance=Parameters.symbol.get(id).getLastPrice() - tradePrice;
+                                sl=stop.stopValue;
+                                slTrigger = Parameters.symbol.get(id).getLastPrice()!=0 && slDistance >= sl;
                                 break;
                             default:
                                 break;
@@ -285,6 +301,7 @@ public class Swing extends Strategy implements TradeListener {
                     }
                 }
                 if (slTrigger || tpTrigger) {
+                   logger.log(Level.INFO,"501,SLTP Exit,{0}",new Object[]{this.getStrategy()+delimiter+Parameters.symbol.get(id).getDisplayname()+delimiter+slTrigger+delimiter+tpTrigger+Parameters.symbol.get(id).getLastPrice()+delimiter+slDistance+delimiter+tpDistance+delimiter+sl+delimiter+tp});
                     int size = this.getPosition().get(id).getPosition();
                     HashMap<String, Object> order = new HashMap<>();
                     order.put("id", id);
