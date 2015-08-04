@@ -26,7 +26,7 @@ Short=false
 NearMonthExpiry=20150827
 FarMonthExpiry=20150924
 ReferenceCashType=STK
-RServerIP=notanotherfund.com
+RServerIP=127.0.0.1
 RWorkingDirectory=/home/psharma/strategies/swing
 EntryScanTime=15:26:00
 StopLoss=1
@@ -46,4 +46,4 @@ SensitivityThreshold=0.7
 SpecificityThreshold=0.7
 #not used at present
 UseCustomDateRangeForTraining=true 
-TestingTimer=1
+TestingTimer=0
