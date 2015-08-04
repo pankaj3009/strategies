@@ -111,6 +111,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
     private Double[] scaleoutTargets;
     private Integer[] scaleOutSizes;
     private int scaleoutCount = 1;
+    public Indicators ind=new Indicators();
     private final Object lockHighRange = new Object();
     private final Object lockLowRange = new Object();
     private final Object lockFlush = new Object();
@@ -162,7 +163,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                 Date startDate = cal_endDate.getTime();
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd HH:mm:ss");
                 Utilities.requestHistoricalData(symb, new String[]{"open", "high", "low", "settle"}, "india.nse.index.s4.daily", sdf.format(startDate), sdf.format(endDate), EnumBarSize.DAILY, false);
-                Indicators.swing(symb, EnumBarSize.DAILY);
+                ind.swing(symb, EnumBarSize.DAILY);
                 int length = symb.getTimeSeriesLength(EnumBarSize.DAILY);
                 double[] trends =  symb.getTimeSeries(EnumBarSize.DAILY, "trend").data;
                 double[] flipTrends = symb.getTimeSeries(EnumBarSize.DAILY, "fliptrend").data;

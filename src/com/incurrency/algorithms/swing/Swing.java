@@ -92,6 +92,7 @@ public class Swing extends Strategy implements TradeListener {
     ArrayList<Integer> longsExitedToday = new ArrayList<>();
     ArrayList<Integer> shortsExitedToday = new ArrayList<>();
     Thread historicalDataRetriever;
+    public Indicators ind=new Indicators();
 
     public Swing(MainAlgorithm m, Properties p, String parameterFile, ArrayList<String> accounts, Integer stratCount) {
         super(m, "swing", "FUT", p, parameterFile, accounts, stratCount);
@@ -660,7 +661,7 @@ public class Swing extends Strategy implements TradeListener {
                 //create the last bar
                 sRef.setTimeSeries(EnumBarSize.DAILY, openTime, new String[]{"open", "high", "low", "settle", "volume"}, new double[]{sRef.getOpenPrice(), sRef.getHighPrice(), sRef.getLowPrice(), sRef.getLastPrice(), sRef.getVolume()});
             }
-            DoubleMatrix dtrend = Indicators.swing(sRef, EnumBarSize.DAILY).getTimeSeries(EnumBarSize.DAILY, "trend");
+            DoubleMatrix dtrend = ind.swing(sRef, EnumBarSize.DAILY).getTimeSeries(EnumBarSize.DAILY, "trend");
             int[] indices = dtrend.ne(ReservedValues.EMPTY).findIndices();
             logger.log(Level.INFO, "102,SymbolDataLength,{0}", new Object[]{sRef.getDisplayname() + delimiter + indices.length});
             DoubleMatrix dclose = sRef.getTimeSeries(EnumBarSize.DAILY, "settle");
@@ -706,13 +707,13 @@ public class Swing extends Strategy implements TradeListener {
             dupdownbarclean = MatrixMethods.getSubSetVector(dupdownbarclean, indices);
             List<Long> dT = sRef.getColumnLabels().get(EnumBarSize.DAILY);
             dT = Utilities.subList(indices, dT);
-            DoubleMatrix dclosezscore = Indicators.zscore(dclose, 10);
-            DoubleMatrix dhighzscore = Indicators.zscore(dhigh, 10);
-            DoubleMatrix dlowzscore = Indicators.zscore(dlow, 10);
-            DoubleMatrix drsi = Indicators.rsi(dclose, 14);
-            DoubleMatrix drsizscore = Indicators.zscore(drsi, 10);
-            DoubleMatrix dma = Indicators.ma(dclose, 10);
-            DoubleMatrix dmazscore = Indicators.zscore(dma, 10);
+            DoubleMatrix dclosezscore = ind.zscore(dclose, 10);
+            DoubleMatrix dhighzscore = ind.zscore(dhigh, 10);
+            DoubleMatrix dlowzscore = ind.zscore(dlow, 10);
+            DoubleMatrix drsi = ind.rsi(dclose, 14);
+            DoubleMatrix drsizscore = ind.zscore(drsi, 10);
+            DoubleMatrix dma = ind.ma(dclose, 10);
+            DoubleMatrix dmazscore = ind.zscore(dma, 10);
             DoubleMatrix dy = MatrixMethods.ref(dupdownbar, 1).eq(1);
             try {
                 c.assign("tradedate", Utilities.convertLongListToArray(dT));
