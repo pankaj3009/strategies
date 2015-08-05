@@ -93,7 +93,8 @@ public class Swing extends Strategy implements TradeListener {
     ArrayList<Integer> shortsExitedToday = new ArrayList<>();
     Thread historicalDataRetriever;
     public Indicators ind=new Indicators();
-
+    private final Object lockTradeReceived_1 = new Object();
+    
     public Swing(MainAlgorithm m, Properties p, String parameterFile, ArrayList<String> accounts, Integer stratCount) {
         super(m, "swing", "FUT", p, parameterFile, accounts, stratCount);
         loadParameters(p);
@@ -216,6 +217,7 @@ public class Swing extends Strategy implements TradeListener {
 
     @Override
     public void tradeReceived(TradeEvent event) {
+        synchronized(lockTradeReceived_1){
         Integer id = event.getSymbolID();
         if (this.getStrategySymbols().contains(id) && !Parameters.symbol.get(id).getType().equals(referenceCashType)) {
             if (this.getPosition().get(id).getPosition() > 0) {
@@ -249,7 +251,7 @@ public class Swing extends Strategy implements TradeListener {
                     }
                 }
                 if (slTrigger || tpTrigger) {
-                   logger.log(Level.INFO,"501,SLTP Exit,{0}",new Object[]{this.getStrategy()+delimiter+Parameters.symbol.get(id).getDisplayname()+delimiter+slTrigger+delimiter+tpTrigger+Parameters.symbol.get(id).getLastPrice()+delimiter+slDistance+delimiter+tpDistance+delimiter+sl+delimiter+tp});
+                   logger.log(Level.INFO,"501,Long SLTP Exit,{0}",new Object[]{this.getStrategy()+delimiter+Parameters.symbol.get(id).getDisplayname()+delimiter+slTrigger+delimiter+tpTrigger+delimiter+Parameters.symbol.get(id).getLastPrice()+delimiter+slDistance+delimiter+tpDistance+delimiter+sl+delimiter+tp});
                     int size = this.getPosition().get(id).getPosition();
                     HashMap<String, Object> order = new HashMap<>();
                     order.put("id", id);
@@ -301,7 +303,7 @@ public class Swing extends Strategy implements TradeListener {
                     }
                 }
                 if (slTrigger || tpTrigger) {
-                   logger.log(Level.INFO,"501,SLTP Exit,{0}",new Object[]{this.getStrategy()+delimiter+Parameters.symbol.get(id).getDisplayname()+delimiter+slTrigger+delimiter+tpTrigger+Parameters.symbol.get(id).getLastPrice()+delimiter+slDistance+delimiter+tpDistance+delimiter+sl+delimiter+tp});
+                   logger.log(Level.INFO,"501,Short SLTP Exit,{0}",new Object[]{this.getStrategy()+delimiter+Parameters.symbol.get(id).getDisplayname()+delimiter+slTrigger+delimiter+tpTrigger+delimiter+Parameters.symbol.get(id).getLastPrice()+delimiter+slDistance+delimiter+tpDistance+delimiter+sl+delimiter+tp});
                     int size = this.getPosition().get(id).getPosition();
                     HashMap<String, Object> order = new HashMap<>();
                     order.put("id", id);
@@ -324,6 +326,7 @@ public class Swing extends Strategy implements TradeListener {
                 }
             }
         }
+    }
     }
 
     private boolean rolloverDay() {
