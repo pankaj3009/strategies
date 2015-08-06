@@ -46,5 +46,5 @@ SensitivityThreshold=0.7
 SpecificityThreshold=0.7
 #not used at present
 UseCustomDateRangeForTraining=true 
-TestingTimer=0
+TestingTimer=1
 
