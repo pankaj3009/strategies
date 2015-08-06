@@ -391,6 +391,7 @@ public class Swing extends Strategy implements TradeListener {
         if (!stats.isEmpty()) {
             double threshold = Utilities.getDouble(stats.get("threshold"), 0.5);
             double today_predict_prob = Utilities.getDouble(stats.get("probability"), -1);
+            double atr=Utilities.getDouble(stats.get("atr"), 1);
             String tradeTimeFormat = "yyyy-MM-dd HH:mm:ss";
             String tradeDateString = Trade.getEntryTime(getTrades(), key);
             Date tradeDate = DateUtil.parseDate(tradeTimeFormat, tradeDateString, Algorithm.timeZone);
@@ -411,7 +412,8 @@ public class Swing extends Strategy implements TradeListener {
                                 case STOPLOSS:
                                     double sl = close - low;
                                     stop.stopValue = Math.max(getTickSize(), Utilities.roundTo(sl, getTickSize()));
-                                    logger.log(Level.INFO, "501,UpdatedSLStop,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(referenceid).getDisplayname()});
+                                    stop.stopValue=Math.max(getTickSize(), Utilities.roundTo(atr, getTickSize()));
+                                    logger.log(Level.INFO, "501,UpdatedSLStop,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(referenceid).getDisplayname()+delimiter+stop.stopValue});
                                     break;
                                 case TAKEPROFIT:
                                     double distance = today_predict_prob - threshold > 0 ? 1 + today_predict_prob - threshold : 1;
@@ -419,7 +421,8 @@ public class Swing extends Strategy implements TradeListener {
                                     double tp = (high - low) * distance;
                                     stop.stopValue = tp;
                                     stop.stopValue = Math.max(getTickSize(), Utilities.roundTo(stop.stopValue, getTickSize()));
-                                    logger.log(Level.INFO, "501,UpdatedTPStop,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(referenceid).getDisplayname()});
+                                    stop.stopValue=Math.max(getTickSize(), Utilities.roundTo(2*atr*distance, getTickSize()));
+                                    logger.log(Level.INFO, "501,UpdatedTPStop,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(referenceid).getDisplayname()+delimiter+stop.stopValue});
                                     break;
                                 default:
                                     break;
@@ -431,7 +434,8 @@ public class Swing extends Strategy implements TradeListener {
                                 case STOPLOSS:
                                     double sl = high - close;
                                     stop.stopValue = Math.max(getTickSize(), Utilities.roundTo(sl, getTickSize()));
-                                    logger.log(Level.INFO, "501,UpdatedSLStop,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(referenceid).getDisplayname()});
+                                    stop.stopValue=Math.max(getTickSize(), Utilities.roundTo(atr, getTickSize()));
+                                    logger.log(Level.INFO, "501,UpdatedSLStop,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(referenceid).getDisplayname()+delimiter+stop.stopValue});
                                     break;
                                 case TAKEPROFIT:
                                     double distance = threshold - today_predict_prob > 0 ? 1 + threshold - today_predict_prob : 1;
@@ -439,7 +443,8 @@ public class Swing extends Strategy implements TradeListener {
                                     double tp = (high - low) * distance;
                                     stop.stopValue = tp;
                                     stop.stopValue = Math.max(getTickSize(), Utilities.roundTo(stop.stopValue, getTickSize()));
-                                    logger.log(Level.INFO, "501,UpdatedTPStop,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(referenceid).getDisplayname()});
+                                    stop.stopValue=Math.max(getTickSize(), Utilities.roundTo(2*atr*distance, getTickSize()));
+                                    logger.log(Level.INFO, "501,UpdatedTPStop,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(referenceid).getDisplayname()+delimiter+stop.stopValue});
                                     break;
                                 default:
                                     break;
@@ -493,14 +498,19 @@ public class Swing extends Strategy implements TradeListener {
                     double today_predict_prob = Utilities.getDouble(stats.get("probability"), -1);
                     double sensitivity = Utilities.getDouble(stats.get("sensitivity"), 0);
                     double specificity = Utilities.getDouble(stats.get("specificity"), 0);
-                    DoubleMatrix datr=ind.atr(sRef.getTimeSeries(EnumBarSize.DAILY, "high"), sRef.getTimeSeries(EnumBarSize.DAILY, "low"), sRef.getTimeSeries(EnumBarSize.DAILY, "settle"), 10);
+                    double trend=Utilities.getDouble(stats.get("trend"), 0);
+                    double daysinupswing=Utilities.getDouble(stats.get("daysinupswing"), 0);
+                    double daysindownswing=Utilities.getDouble(stats.get("daysindownswing"), 0);
+                    
                     int size = this.getPosition().get(id).getPosition();
                     Trigger swingTrigger = Trigger.UNDEFINED;
                     if (optimalThreshold) {
-                        boolean cBuy = today_predict_prob >= 0 && today_predict_prob > (threshold + entryLaziness) && s.getLastPrice() != 0 && sensitivity > sensitivityThreshold && this.getLongOnly() && size == 0;
+                        boolean cBuy = daysinupswing>0 && daysinupswing<=4 && trend==1 && today_predict_prob >= 0 && today_predict_prob > (threshold + entryLaziness) && s.getLastPrice() != 0 && sensitivity > sensitivityThreshold && this.getLongOnly() && size == 0;
                         boolean cSell = today_predict_prob >= 0 && today_predict_prob < (threshold - exitLaziness) && s.getLastPrice() != 0 && this.getLongOnly() && size > 0;
-                        boolean cShort = today_predict_prob >= 0 && today_predict_prob < (threshold - entryLaziness) && s.getLastPrice() != 0 && specificity > specificityThreshold && this.getShortOnly() && size == 0;
+                        boolean cShort = daysindownswing>0 && daysindownswing<=4 && trend==-1 && today_predict_prob >= 0 && today_predict_prob < (threshold - entryLaziness) && s.getLastPrice() != 0 && specificity > specificityThreshold && this.getShortOnly() && size == 0;
                         boolean cCover = today_predict_prob >= 0 && today_predict_prob > (threshold + exitLaziness) && s.getLastPrice() != 0 && this.getShortOnly() && size < 0;
+                        cSell=false;
+                        cCover=false;
                         //First Handle Exits
                         if (cSell) {
                             swingTrigger = Trigger.SELL;
@@ -682,7 +692,7 @@ public class Swing extends Strategy implements TradeListener {
                 //create the last bar
                 sRef.setTimeSeries(EnumBarSize.DAILY, openTime, new String[]{"open", "high", "low", "settle", "volume"}, new double[]{sRef.getOpenPrice(), sRef.getHighPrice(), sRef.getLowPrice(), sRef.getLastPrice(), sRef.getVolume()});
             }
-            DoubleMatrix datr=ind.atr(sRef.getTimeSeries(EnumBarSize.DAILY, "high"), sRef.getTimeSeries(EnumBarSize.DAILY, "low"), sRef.getTimeSeries(EnumBarSize.DAILY, "settle"), 1);
+            DoubleMatrix datr=ind.atr(sRef.getTimeSeries(EnumBarSize.DAILY, "high"), sRef.getTimeSeries(EnumBarSize.DAILY, "low"), sRef.getTimeSeries(EnumBarSize.DAILY, "settle"), 10);
             DoubleMatrix dtrend = ind.swing(sRef, EnumBarSize.DAILY).getTimeSeries(EnumBarSize.DAILY, "trend");
             int[] indices = dtrend.ne(ReservedValues.EMPTY).findIndices();
             logger.log(Level.INFO, "102,SymbolDataLength,{0}", new Object[]{sRef.getDisplayname() + delimiter + indices.length});
@@ -816,6 +826,9 @@ public class Swing extends Strategy implements TradeListener {
                 out.put("sensitivity", sensitivity);
                 out.put("probability", today_predict_prob);
                 out.put("atr", atr);
+                out.put("trend", lValue(dtrend));
+                out.put("daysinupswing", lValue(ddaysinupswing));
+                out.put("daysindownswing", lValue(ddaysindownswing));
                 
             } catch (Exception e) {
                 logger.log(Level.SEVERE, null, e);
@@ -843,7 +856,7 @@ public class Swing extends Strategy implements TradeListener {
                     longgap = longgap - 1;
                     int referenceid = Utilities.getReferenceID(Parameters.symbol, id, referenceCashType);
                    BeanSymbol sRef=Parameters.symbol.get(referenceid);
-                   DoubleMatrix datr=ind.atr(sRef.getTimeSeries(EnumBarSize.DAILY, "high"), sRef.getTimeSeries(EnumBarSize.DAILY, "low"), sRef.getTimeSeries(EnumBarSize.DAILY, "settle"), 1);
+                   DoubleMatrix datr=ind.atr(sRef.getTimeSeries(EnumBarSize.DAILY, "high"), sRef.getTimeSeries(EnumBarSize.DAILY, "low"), sRef.getTimeSeries(EnumBarSize.DAILY, "settle"), 10);
                    int size = Parameters.symbol.get(id).getMinsize() * this.getNumberOfContracts();
                     HashMap<String, Object> order = new HashMap<>();
                     order.put("id", id);
@@ -861,9 +874,9 @@ public class Swing extends Strategy implements TradeListener {
                     Stop tp = new Stop();
                     tp.stopType = EnumStopType.TAKEPROFIT;
                     tp.stopMode = EnumStopMode.POINT;
-                    tp.stopValue=3*lValue(datr);
                     double distance = thresholdDistance.get(id);
                     distance = distance <= 0 ? 1 : (1 + Math.abs(distance));
+                    tp.stopValue=distance*2*lValue(datr);
                     tp.StopLevel = distance;
                     logger.log(Level.INFO, "501,StopParameters,{0}", new Object[]{Parameters.symbol.get(referenceid).getHighPrice() + delimiter + Parameters.symbol.get(referenceid).getLowPrice() + delimiter + Parameters.symbol.get(referenceid).getLastPrice() + delimiter + distance});
                     //tp.stopValue = Parameters.symbol.get(referenceid).getHighPrice() - Parameters.symbol.get(referenceid).getLowPrice();
@@ -905,19 +918,21 @@ public class Swing extends Strategy implements TradeListener {
                     tp.stopType = EnumStopType.TAKEPROFIT;
                     tp.stopMode = EnumStopMode.POINT;
                     int referenceid = Utilities.getReferenceID(Parameters.symbol, id, referenceCashType);
-                    tp.stopValue = Parameters.symbol.get(id).getHighPrice() - Parameters.symbol.get(id).getLowPrice();
+                   BeanSymbol sRef=Parameters.symbol.get(referenceid);
+                   DoubleMatrix datr=ind.atr(sRef.getTimeSeries(EnumBarSize.DAILY, "high"), sRef.getTimeSeries(EnumBarSize.DAILY, "low"), sRef.getTimeSeries(EnumBarSize.DAILY, "settle"), 10);
                     double distance = thresholdDistance.get(id);
                     distance = distance >= 0 ? 1 : (1 + Math.abs(distance));
+                    tp.stopValue=distance*2*lValue(datr);
                     tp.StopLevel = distance;
                     logger.log(Level.INFO, "501,StopParameters,{0}", new Object[]{Parameters.symbol.get(id).getHighPrice() + delimiter + Parameters.symbol.get(id).getLowPrice() + delimiter + Parameters.symbol.get(id).getLastPrice() + delimiter + distance});
                     tp.stopValue = Parameters.symbol.get(referenceid).getHighPrice() - Parameters.symbol.get(referenceid).getLowPrice();
-                    tp.stopValue = distance * tp.stopValue;
                     tp.stopValue = Math.max(getTickSize(), Utilities.roundTo(tp.stopValue, getTickSize()));
                     tp.recalculate = true;
                     Stop sl = new Stop();
                     sl.stopType = EnumStopType.STOPLOSS;
                     sl.stopMode = EnumStopMode.POINT;
-                    sl.stopValue = Parameters.symbol.get(referenceid).getHighPrice() - Parameters.symbol.get(referenceid).getLastPrice();
+//                    sl.stopValue = Parameters.symbol.get(referenceid).getHighPrice() - Parameters.symbol.get(referenceid).getLastPrice();
+                    sl.stopValue=lValue(datr);
                     sl.stopValue = Math.max(getTickSize(), Utilities.roundTo(sl.stopValue, getTickSize()));
                     sl.recalculate = true;
                     ArrayList<Stop> stops = new ArrayList<>();
