@@ -413,7 +413,7 @@ public class Swing extends Strategy implements TradeListener {
                                     double sl = close - low;
                                     stop.stopValue = Math.max(getTickSize(), Utilities.roundTo(sl, getTickSize()));
                                     stop.stopValue=Math.max(getTickSize(), Utilities.roundTo(atr, getTickSize()));
-                                    logger.log(Level.INFO, "501,UpdatedSLStop,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(referenceid).getDisplayname()+delimiter+stop.stopValue});
+                                    logger.log(Level.INFO, "501,UpdatedSLStop,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(referenceid).getDisplayname()+delimiter+atr+delimiter+1+delimiter+stop.stopValue});
                                     break;
                                 case TAKEPROFIT:
                                     double distance = today_predict_prob - threshold > 0 ? 1 + today_predict_prob - threshold : 1;
@@ -422,7 +422,7 @@ public class Swing extends Strategy implements TradeListener {
                                     stop.stopValue = tp;
                                     stop.stopValue = Math.max(getTickSize(), Utilities.roundTo(stop.stopValue, getTickSize()));
                                     stop.stopValue=Math.max(getTickSize(), Utilities.roundTo(2*atr*distance, getTickSize()));
-                                    logger.log(Level.INFO, "501,UpdatedTPStop,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(referenceid).getDisplayname()+delimiter+stop.stopValue});
+                                    logger.log(Level.INFO, "501,UpdatedTPStop,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(referenceid).getDisplayname()+delimiter+atr+delimiter+distance+delimiter+stop.stopValue});
                                     break;
                                 default:
                                     break;
@@ -435,7 +435,7 @@ public class Swing extends Strategy implements TradeListener {
                                     double sl = high - close;
                                     stop.stopValue = Math.max(getTickSize(), Utilities.roundTo(sl, getTickSize()));
                                     stop.stopValue=Math.max(getTickSize(), Utilities.roundTo(atr, getTickSize()));
-                                    logger.log(Level.INFO, "501,UpdatedSLStop,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(referenceid).getDisplayname()+delimiter+stop.stopValue});
+                                    logger.log(Level.INFO, "501,UpdatedSLStop,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(referenceid).getDisplayname()+delimiter+atr+delimiter+1+delimiter+stop.stopValue});
                                     break;
                                 case TAKEPROFIT:
                                     double distance = threshold - today_predict_prob > 0 ? 1 + threshold - today_predict_prob : 1;
@@ -444,7 +444,7 @@ public class Swing extends Strategy implements TradeListener {
                                     stop.stopValue = tp;
                                     stop.stopValue = Math.max(getTickSize(), Utilities.roundTo(stop.stopValue, getTickSize()));
                                     stop.stopValue=Math.max(getTickSize(), Utilities.roundTo(2*atr*distance, getTickSize()));
-                                    logger.log(Level.INFO, "501,UpdatedTPStop,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(referenceid).getDisplayname()+delimiter+stop.stopValue});
+                                    logger.log(Level.INFO, "501,UpdatedTPStop,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(referenceid).getDisplayname()+delimiter+atr+delimiter+distance+delimiter+stop.stopValue});
                                     break;
                                 default:
                                     break;
