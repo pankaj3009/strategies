@@ -20,7 +20,7 @@ TradeFile=NIFTYSWINGLONGTrades.json
 OrderFile=NIFTYSWINGLONGOrders.json
 StartingCapital=1000000
 Long=true
-Short=false
+Short=true
 ############## PER STRATEGY VARIABLES ##################
 #Traded Symbol Name
 NearMonthExpiry=20150827
