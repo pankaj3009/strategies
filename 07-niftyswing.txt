@@ -37,13 +37,14 @@ cassandrametric=india.nse.index.s4.daily
 timeseries=open,high,low,settle,volume
 ParameterObjectPath=/home/psharma/strategies/swing
 #ParameterObjectPath=C:/Users/Pankaj/Documents/Seafile/ML-Coursera/R
-Portfolio=true
+Portfolio=false
 MaxPositions=1
 OptimalThreshold=true
 ExitLaziness=0.2
 EntryLaziness=0.1
 SensitivityThreshold=0.7
 SpecificityThreshold=0.7
+SameDayReentry=true
 #not used at present
 UseCustomDateRangeForTraining=true 
 TestingTimer=1
