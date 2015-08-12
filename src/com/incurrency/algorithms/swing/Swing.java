@@ -365,7 +365,7 @@ public class Swing extends Strategy implements TradeListener {
                 HashMap<String, Double> stats = getStats(c, referenceid, false);
                 if (!stats.isEmpty()) {
                     for (Stop stop : stops) {
-                        if (stop.recalculate = Boolean.TRUE) {
+                        if (stop.recalculate == Boolean.TRUE) {
                             if (childid >= 0) {
                                 updateStop(stats, key, childid, stop);
                             }
