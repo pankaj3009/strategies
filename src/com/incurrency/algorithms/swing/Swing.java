@@ -716,7 +716,6 @@ public class Swing extends Strategy implements TradeListener {
     }
 
     private void portfolioTrades() {
-        if (portfolio) {
             //Recalculate open positions to handle changes during scan.    
             if (this.getLongOnly()) {
                 longpositionCount = Utilities.openPositionCount(Parameters.symbol, this.getOrderFile(), this.getStrategy(), this.getPointValue(), true);
@@ -810,7 +809,7 @@ public class Swing extends Strategy implements TradeListener {
                     Trade.setStop(getTrades(), orderid + "_" + "Order", stops);
                 }
             }
-        }
+        
     }
 
     private boolean rolloverDay() {
