@@ -103,7 +103,7 @@ public class Swing extends Strategy implements TradeListener {
         File dir = new File("logs");
         File f = new File(dir, getStrategy() + ".csv");
         if (!f.exists()) {
-            TradingUtil.writeToFile(getStrategy() + ".csv", "symbol,scan,high,low,close,trend,daysinupswing,daysindownswing,daysoutsidetrend,daysintrend,closezscore,highzscore,lowzscore,mazscore,nextdayprob,threshold,sensitivity,specificity,y");
+            TradingUtil.writeToFile(getStrategy() + ".csv", "symbol,scan,high,low,close,trend,daysinupswing,daysindownswing,daysoutsidetrend,daysintrend,closezscore,highzscore,lowzscore,mazscore,result,nextdayprob,threshold,sensitivity,specificity,y");
         }
 
         String[] tempStrategyArray = parameterFile.split("\\.")[0].split("-");
@@ -696,6 +696,7 @@ public class Swing extends Strategy implements TradeListener {
                         + "," + lValue(dhighzscore)
                         + "," + lValue(dlowzscore)
                         + "," + lValue(dmazscore)
+                        + "," + today_result
                         + "," + today_predict_prob
                         + "," + today_result
                         + "," + atr
