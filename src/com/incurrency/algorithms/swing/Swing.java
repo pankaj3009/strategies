@@ -263,7 +263,8 @@ public class Swing extends Strategy implements TradeListener {
                     }
                 } else if (this.getPosition().get(id).getPosition() < 0) {
                     Double tradePrice = this.getPosition().get(id).getPrice();
-                    ArrayList<Stop> stops = Trade.getStop(getTrades(), internalOpenOrders.get(id));
+                    int internalorderid=this.getFirstInternalOpenOrder(id, EnumOrderSide.SHORT, "Order");
+                    ArrayList<Stop> stops = Trade.getStop(getTrades(), internalorderid+"_Order");
                     boolean tpTrigger = false;
                     boolean slTrigger = false;
                     double tpDistance = 0D;

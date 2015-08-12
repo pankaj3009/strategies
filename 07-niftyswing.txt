@@ -8,16 +8,16 @@ MaxOrderDuration=1
 DynamicOrderDuration=1
 StrategyLog=true
 TickSize=0.05
-NumberOfContracts=1
+NumberOfContracts=20
 #Exposure
 PointValue=1
 ClawProfitTarget=0
 DayProfitTarget=0
 DayStopLoss=0
-MaximumOpenPositions=1
+MaximumOpenPositions=2
 BrokerageFile=07-inrfutbrokerage.txt
-TradeFile=NIFTYSWINGLONGTrades.json
-OrderFile=NIFTYSWINGLONGOrders.json
+TradeFile=NIFTYSWINGTrades.json
+OrderFile=NIFTYSWINGOrders.json
 StartingCapital=1000000
 Long=true
 Short=true
@@ -38,7 +38,7 @@ timeseries=open,high,low,settle,volume
 ParameterObjectPath=/home/psharma/strategies/swing
 #ParameterObjectPath=C:/Users/Pankaj/Documents/Seafile/ML-Coursera/R
 Portfolio=false
-MaxPositions=1
+MaxPositions=2
 OptimalThreshold=true
 ExitLaziness=0.2
 EntryLaziness=0.1
@@ -47,5 +47,5 @@ SpecificityThreshold=0.7
 SameDayReentry=true
 #not used at present
 UseCustomDateRangeForTraining=true 
-TestingTimer=1
+TestingTimer=0
 
