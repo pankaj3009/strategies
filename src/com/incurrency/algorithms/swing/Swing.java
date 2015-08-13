@@ -388,7 +388,7 @@ public class Swing extends Strategy implements TradeListener {
                             switch (type) {
                                 case STOPLOSS:
                                     stop.stopValue = Math.max(getTickSize(), Utilities.roundTo(0.5 * atr, getTickSize()));
-                                    double range = low - close;
+                                    double range = close-low;
                                     range = Math.max(getTickSize(), Utilities.roundTo(range, getTickSize()));
                                     stop.stopValue = Math.min(range, stop.stopValue);
                                     logger.log(Level.INFO, "501,UpdatedSLStop,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(referenceid).getDisplayname() + delimiter + atr + delimiter + 1 + delimiter + stop.stopValue});
@@ -751,7 +751,7 @@ public class Swing extends Strategy implements TradeListener {
                     sl.stopMode = EnumStopMode.POINT;
                     sl.stopValue = 0.5*lValue(datr);
                     sl.stopValue = Math.max(getTickSize(), Utilities.roundTo(sl.stopValue, getTickSize()));
-                    double range=sRef.getLowPrice()-sRef.getLastPrice();
+                    double range=sRef.getLastPrice()-sRef.getLowPrice();
                     range=Math.max(getTickSize(), Utilities.roundTo(range, getTickSize()));
                     sl.stopValue = Math.min(range,sl.stopValue);
                     sl.recalculate = true;
@@ -794,12 +794,11 @@ public class Swing extends Strategy implements TradeListener {
                     Stop sl = new Stop();
                     sl.stopType = EnumStopType.STOPLOSS;
                     sl.stopMode = EnumStopMode.POINT;
-//                    sl.stopValue = Parameters.symbol.get(referenceid).getHighPrice() - Parameters.symbol.get(referenceid).getLastPrice();
                     sl.stopValue = 0.5*lValue(datr);
-                    double range=sRef.getLowPrice()-sRef.getLastPrice();
+                    sl.stopValue = Math.max(getTickSize(), Utilities.roundTo(sl.stopValue, getTickSize()));
+                    double range=sRef.getHighPrice()-sRef.getLastPrice();
                     range=Math.max(getTickSize(), Utilities.roundTo(range, getTickSize()));
                     sl.stopValue = Math.min(range,sl.stopValue);
-                    sl.stopValue = Math.max(getTickSize(), Utilities.roundTo(sl.stopValue, getTickSize()));
                     sl.recalculate = true;
                     ArrayList<Stop> stops = new ArrayList<>();
                     stops.add(sl);
