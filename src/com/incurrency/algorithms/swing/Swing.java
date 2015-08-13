@@ -377,7 +377,7 @@ public class Swing extends Strategy implements TradeListener {
                 //check if dates match
                 String historicalDateString = DateUtil.getFormatedDate("yyyy-MM-dd", historicalTime, TimeZone.getTimeZone(Algorithm.timeZone));
                 tradeDateString = tradeDateString.substring(0, 10);//get the day part
-                if (tradeDateString.equals(historicalDateString)) {
+ //               if (tradeDateString.equals(historicalDateString)) {//only update stops if historical data exists for the trade date
                     double close = Parameters.symbol.get(referenceid).getTimeSeriesValue(EnumBarSize.DAILY, historicalTime, "settle");
                     double high = Parameters.symbol.get(referenceid).getTimeSeriesValue(EnumBarSize.DAILY, historicalTime, "high");
                     double low = Parameters.symbol.get(referenceid).getTimeSeriesValue(EnumBarSize.DAILY, historicalTime, "low");
@@ -423,7 +423,7 @@ public class Swing extends Strategy implements TradeListener {
                             break;
                     }
                     stop.recalculate = Boolean.FALSE;
-                }
+               // }
             }
         }
     }
