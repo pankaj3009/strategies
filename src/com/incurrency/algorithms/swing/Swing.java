@@ -74,15 +74,10 @@ public class Swing extends Strategy implements TradeListener {
     String cassandraMetric;
     String[] timeSeries;
     long openTime;
-    boolean customRange = false;
     Timer eodProcessing;
     int testingTimer = 0;
-    boolean portfolio = false;
-    boolean optimalThreshold = false;
     double sensitivityThreshold = 0.5;
     double specificityThreshold = 0.5;
-    double exitLaziness = 0;
-    double entryLaziness = 0;
     int maxPositions = 0;
     int longpositionCount = 0;
     int shortpositionCount = 0;
@@ -159,18 +154,13 @@ public class Swing extends Strategy implements TradeListener {
         logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Max Open Position" + delimiter + maxPositions});
         logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Current Long Open Position" + delimiter + longpositionCount});
         logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Current Short Open Position" + delimiter + shortpositionCount});
-        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Portfolio Mode" + delimiter + portfolio});
         logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Entry Scan Time" + delimiter + entryScanDate});
         logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Stop Loss %" + delimiter + stopLoss});
         logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Take Profit %" + delimiter + takeProfit});
         logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Time Series" + delimiter + timeSeries});
         logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Cassandra Metric" + delimiter + cassandraMetric});
         logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Testing Timer Duration" + delimiter + testingTimer});
-        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Optimal Threshold set" + delimiter + optimalThreshold});
-        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Sensitivity Threshold" + delimiter + sensitivityThreshold});
-        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Specificity Threshold" + delimiter + specificityThreshold});
-        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Exit Laziness" + delimiter + exitLaziness});
-
+        
         Timer bodProcessing = new Timer("Timer: " + this.getStrategy() + " BODProcessing");
         bodProcessing.schedule(runBOD, 1 * 60 * 1000);
     }
@@ -195,13 +185,7 @@ public class Swing extends Strategy implements TradeListener {
         timeSeries = p.getProperty("timeseries", "").toString().trim().split(",");
         cassandraMetric = p.getProperty("cassandrametric", "").toString().trim();
         testingTimer = Utilities.getInt(p.getProperty("TestingTimer"), 0);
-        portfolio = Boolean.parseBoolean(p.getProperty("Portfolio", "false").toString().trim());
         maxPositions = Integer.parseInt(p.getProperty("MaxPositions", "1").toString().trim());
-        optimalThreshold = Boolean.parseBoolean(p.getProperty("OptimalThreshold", "false").toString().trim());
-        sensitivityThreshold = Utilities.getDouble(p.getProperty("SensitivityThreshold"), 0.5);
-        specificityThreshold = Utilities.getDouble(p.getProperty("SpecificityThreshold"), 0.5);
-        exitLaziness = Utilities.getDouble(p.getProperty("ExitLaziness"), 0);
-        entryLaziness = Utilities.getDouble(p.getProperty("EntryLaziness"), 0);
         sameDayReentry = Boolean.parseBoolean(p.getProperty("SameDayReentry", "true").toString().trim());
     }
 
@@ -228,12 +212,12 @@ public class Swing extends Strategy implements TradeListener {
                                 case TAKEPROFIT:
                                     tpDistance = Parameters.symbol.get(id).getLastPrice() - tradePrice;
                                     tp = stop.stopValue;
-                                    tpTrigger = Parameters.symbol.get(id).getLastPrice() != 0 && tpDistance >= tp;
+                                    tpTrigger = tp!=0 && Parameters.symbol.get(id).getLastPrice() != 0 && tpDistance >= tp;
                                     break;
                                 case STOPLOSS:
                                     slDistance = tradePrice - Parameters.symbol.get(id).getLastPrice();
                                     sl = stop.stopValue;
-                                    slTrigger = Parameters.symbol.get(id).getLastPrice() != 0 && slDistance >= sl;
+                                    slTrigger = sl!=0 && Parameters.symbol.get(id).getLastPrice() != 0 && slDistance >= sl;
                                     break;
                                 default:
                                     break;
@@ -281,12 +265,12 @@ public class Swing extends Strategy implements TradeListener {
                                 case TAKEPROFIT:
                                     tpDistance = tradePrice - Parameters.symbol.get(id).getLastPrice();
                                     tp = stop.stopValue;
-                                    tpTrigger = Parameters.symbol.get(id).getLastPrice() != 0 && tpDistance >= tp;
+                                    tpTrigger = tp!=0 && Parameters.symbol.get(id).getLastPrice() != 0 && tpDistance >= tp;
                                     break;
                                 case STOPLOSS:
                                     slDistance = Parameters.symbol.get(id).getLastPrice() - tradePrice;
                                     sl = stop.stopValue;
-                                    slTrigger = Parameters.symbol.get(id).getLastPrice() != 0 && slDistance >= sl;
+                                    slTrigger = sl !=0 && Parameters.symbol.get(id).getLastPrice() != 0 && slDistance >= sl;
                                     break;
                                 default:
                                     break;
@@ -403,7 +387,10 @@ public class Swing extends Strategy implements TradeListener {
                             EnumStopType type = stop.stopType;
                             switch (type) {
                                 case STOPLOSS:
-                                    stop.stopValue = Math.max(getTickSize(), Utilities.roundTo(0.5*atr, getTickSize()));
+                                    stop.stopValue = Math.max(getTickSize(), Utilities.roundTo(0.5 * atr, getTickSize()));
+                                    double range = low - close;
+                                    range = Math.max(getTickSize(), Utilities.roundTo(range, getTickSize()));
+                                    stop.stopValue = Math.min(range, stop.stopValue);
                                     logger.log(Level.INFO, "501,UpdatedSLStop,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(referenceid).getDisplayname() + delimiter + atr + delimiter + 1 + delimiter + stop.stopValue});
                                     break;
                                 case TAKEPROFIT:
@@ -419,6 +406,9 @@ public class Swing extends Strategy implements TradeListener {
                             switch (type) {
                                 case STOPLOSS:
                                     stop.stopValue = Math.max(getTickSize(), Utilities.roundTo(0.5*atr, getTickSize()));
+                                    double range = high - close;
+                                    range = Math.max(getTickSize(), Utilities.roundTo(range, getTickSize()));
+                                    stop.stopValue = Math.min(range, stop.stopValue);
                                     logger.log(Level.INFO, "501,UpdatedSLStop,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(referenceid).getDisplayname() + delimiter + atr + delimiter + 1 + delimiter + stop.stopValue});
                                     break;
                                 case TAKEPROFIT:
@@ -755,12 +745,16 @@ public class Swing extends Strategy implements TradeListener {
                     tp.stopValue = lValue(datr);
                     logger.log(Level.INFO, "501,StopParameters,{0}", new Object[]{Parameters.symbol.get(referenceid).getHighPrice() + delimiter + Parameters.symbol.get(referenceid).getLowPrice() + delimiter + Parameters.symbol.get(referenceid).getLastPrice()});
                     tp.stopValue = Math.max(getTickSize(), Utilities.roundTo(tp.stopValue, getTickSize()));
-                    tp.recalculate = true;
+                    tp.stopValue=0;
+                    tp.recalculate = false;
                     Stop sl = new Stop();
                     sl.stopType = EnumStopType.STOPLOSS;
                     sl.stopMode = EnumStopMode.POINT;
                     sl.stopValue = 0.5*lValue(datr);
                     sl.stopValue = Math.max(getTickSize(), Utilities.roundTo(sl.stopValue, getTickSize()));
+                    double range=sRef.getLowPrice()-sRef.getLastPrice();
+                    range=Math.max(getTickSize(), Utilities.roundTo(range, getTickSize()));
+                    sl.stopValue = Math.min(range,sl.stopValue);
                     sl.recalculate = true;
                     ArrayList<Stop> stops = new ArrayList<>();
                     stops.add(sl);
@@ -796,12 +790,16 @@ public class Swing extends Strategy implements TradeListener {
                     logger.log(Level.INFO, "501,StopParameters,{0}", new Object[]{Parameters.symbol.get(id).getHighPrice() + delimiter + Parameters.symbol.get(id).getLowPrice() + delimiter + Parameters.symbol.get(id).getLastPrice()});
                     tp.stopValue = Parameters.symbol.get(referenceid).getHighPrice() - Parameters.symbol.get(referenceid).getLowPrice();
                     tp.stopValue = Math.max(getTickSize(), Utilities.roundTo(tp.stopValue, getTickSize()));
-                    tp.recalculate = true;
+                    tp.stopValue=0;
+                    tp.recalculate = false;
                     Stop sl = new Stop();
                     sl.stopType = EnumStopType.STOPLOSS;
                     sl.stopMode = EnumStopMode.POINT;
 //                    sl.stopValue = Parameters.symbol.get(referenceid).getHighPrice() - Parameters.symbol.get(referenceid).getLastPrice();
                     sl.stopValue = 0.5*lValue(datr);
+                    double range=sRef.getLowPrice()-sRef.getLastPrice();
+                    range=Math.max(getTickSize(), Utilities.roundTo(range, getTickSize()));
+                    sl.stopValue = Math.min(range,sl.stopValue);
                     sl.stopValue = Math.max(getTickSize(), Utilities.roundTo(sl.stopValue, getTickSize()));
                     sl.recalculate = true;
                     ArrayList<Stop> stops = new ArrayList<>();
