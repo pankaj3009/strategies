@@ -8,7 +8,7 @@ MaxOrderDuration=1
 DynamicOrderDuration=1
 StrategyLog=true
 TickSize=0.05
-NumberOfContracts=20
+NumberOfContracts=40
 #Exposure
 PointValue=1
 ClawProfitTarget=0
@@ -37,13 +37,7 @@ cassandrametric=india.nse.index.s4.daily
 timeseries=open,high,low,settle,volume
 ParameterObjectPath=/home/psharma/strategies/swing
 #ParameterObjectPath=C:/Users/Pankaj/Documents/Seafile/ML-Coursera/R
-Portfolio=false
 MaxPositions=2
-OptimalThreshold=true
-ExitLaziness=0.2
-EntryLaziness=0.1
-SensitivityThreshold=0.7
-SpecificityThreshold=0.7
 SameDayReentry=true
 #not used at present
 UseCustomDateRangeForTraining=true 
