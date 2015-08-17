@@ -7,6 +7,7 @@ package com.incurrency.algorithms.swing;
 import com.espertech.esper.client.util.DateTime;
 import com.incurrency.algorithms.pairs.Pairs;
 import com.incurrency.RatesClient.Subscribe;
+import com.incurrency.algorithms.adr.ADRValues;
 import com.incurrency.framework.Algorithm;
 import com.incurrency.framework.BeanConnection;
 import com.incurrency.framework.BeanSymbol;
@@ -51,6 +52,7 @@ import com.incurrency.framework.Trade;
 import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.TreeMap;
+import javax.swing.JFrame;
 import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.REngineException;
 
@@ -823,5 +825,10 @@ public class Swing extends Strategy implements TradeListener {
             logger.log(Level.INFO, null, e);
         }
         return rollover;
+    }
+    
+   public void displayStrategyValues() {
+            JFrame f = new SwingValues(this);
+        f.setVisible(true);
     }
 }
