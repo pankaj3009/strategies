@@ -29,12 +29,17 @@ ReferenceCashType=IND
 RServerIP=notanotherfund.com
 RWorkingDirectory=/home/psharma/strategies/swing
 EntryScanTime=15:26:00
+# Expressions
 StopLoss=Math.min(0.5*atr,barslpoints)
 TakeProfit=0
 BuyCondition=result==1 && prob>=0
 ShortCondition=result==0 && prob>=0
 SellCondition=result!=1 && prob>=0
 CoverCondition=result!=0 && prob>=0
+Ranking=1
+##############
+StopLossPercentage=1
+TakeProfitPercentage=5
 UpProbabilityThreshold=0.7
 DownProbabilityThreshold=0.3
 cassandrametric=india.nse.index.s4.daily
@@ -45,5 +50,5 @@ MaxPositions=2
 SameDayReentry=true
 #not used at present
 UseCustomDateRangeForTraining=true 
-TestingTimer=1
+TestingTimer=10000
 

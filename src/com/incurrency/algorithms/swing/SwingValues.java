@@ -17,13 +17,14 @@ public class SwingValues extends javax.swing.JFrame {
      * 
      */
     
-    String contracts;
+    String contractSize;
     Swing a;
     
     public SwingValues(Swing a) {
         this.a=a;
-        contracts=String.valueOf(a.getNumberOfContracts());
-        this.txtContractCount.setText(contracts);
+        initComponents();
+        contractSize=String.valueOf(a.getNumberOfContracts());
+        txtContractCount.setText(contractSize);
     }
     
     public SwingValues(){

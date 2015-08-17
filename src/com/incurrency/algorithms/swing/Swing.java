@@ -70,8 +70,10 @@ public class Swing extends Strategy implements TradeListener {
     String rServerIP;
     String parameterObjectPath;
     Date entryScanDate;
-    String stopLoss;
-    String takeProfit;
+    String stopLossExpression;
+    String takeProfitExpression;
+    double stopLossPercentage;
+    double takeProfitPercentage;
     double upProbabilityThreshold;
     double downProbabilityThreshold;
     String cassandraMetric;
@@ -87,7 +89,7 @@ public class Swing extends Strategy implements TradeListener {
     boolean sameDayReentry = true;
     TreeMap<Double, Integer> longPositionScore = new TreeMap<>();
     TreeMap<Double, Integer> shortPositionScore = new TreeMap<>();
-    HashMap<Integer, Double> thresholdDistance = new HashMap<>(); //holds the symbol id: probability-threshold
+    HashMap<Integer, HashMap<String,Double>> signalValues = new HashMap<>(); //holds the symbol id: stats
     ArrayList<Integer> longsExitedToday = new ArrayList<>();
     ArrayList<Integer> shortsExitedToday = new ArrayList<>();
     Thread historicalDataRetriever;
@@ -97,6 +99,7 @@ public class Swing extends Strategy implements TradeListener {
     String sellCondition;
     String shortCondition;
     String coverCondition;
+    String ranking;
 
     public Swing(MainAlgorithm m, Properties p, String parameterFile, ArrayList<String> accounts, Integer stratCount) {
         super(m, "swing", "FUT", p, parameterFile, accounts, stratCount);
@@ -161,8 +164,8 @@ public class Swing extends Strategy implements TradeListener {
         logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Current Long Open Position" + delimiter + longpositionCount});
         logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Current Short Open Position" + delimiter + shortpositionCount});
         logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Entry Scan Time" + delimiter + entryScanDate});
-        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Stop Loss %" + delimiter + stopLoss});
-        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Take Profit %" + delimiter + takeProfit});
+        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Stop Loss %" + delimiter + stopLossExpression});
+        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Take Profit %" + delimiter + takeProfitExpression});
         logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Time Series" + delimiter + timeSeries});
         logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Cassandra Metric" + delimiter + cassandraMetric});
         logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Testing Timer Duration" + delimiter + testingTimer});
@@ -184,8 +187,8 @@ public class Swing extends Strategy implements TradeListener {
         calToday.set(Calendar.MINUTE, Utilities.getInt(entryTimeComponents[1], 20));
         calToday.set(Calendar.SECOND, Utilities.getInt(entryTimeComponents[2], 0));
         entryScanDate = calToday.getTime();
-        stopLoss = p.getProperty("StopLoss", "0");
-        takeProfit = p.getProperty("TakeProfit", "0");
+        stopLossExpression = p.getProperty("StopLoss", "0");
+        takeProfitExpression = p.getProperty("TakeProfit", "0");
         upProbabilityThreshold = Utilities.getDouble(p.getProperty("UpProbabilityThreshold", "0.70"), 0.7);
         downProbabilityThreshold = Utilities.getDouble(p.getProperty("DownProbabilityThreshold", "0.3"), 0.3);
         timeSeries = p.getProperty("timeseries", "").toString().trim().split(",");
@@ -198,6 +201,9 @@ public class Swing extends Strategy implements TradeListener {
         sellCondition = p.getProperty("SellCondition", "false");
         coverCondition = p.getProperty("CoverCondition", "false");
         sameDayReentry = Boolean.parseBoolean(p.getProperty("SameDayReentry", "true").toString().trim());
+        stopLossPercentage=Utilities.getDouble(p.getProperty("StopLossPercentage"), 1);
+        ranking=p.getProperty("RankingRule","1");
+        takeProfitPercentage=Utilities.getDouble(p.getProperty("TakeProfitPercentage"), 5);
     }
 
     @Override
@@ -215,8 +221,8 @@ public class Swing extends Strategy implements TradeListener {
                     double sl = Double.MAX_VALUE;
                     double tp = Double.MAX_VALUE;
                     if (stops == null && Parameters.symbol.get(id).getLastPrice() != 0) {
-                        //slTrigger = Parameters.symbol.get(id).getLastPrice() != 0 && (Parameters.symbol.get(id).getLastPrice() <= tradePrice * (1 - stopLoss / 100));
-                        //tpTrigger = Parameters.symbol.get(id).getLastPrice() != 0 && (Parameters.symbol.get(id).getLastPrice() >= tradePrice * (1 + takeProfit / 100));
+                        slTrigger = Parameters.symbol.get(id).getLastPrice() != 0 && (Parameters.symbol.get(id).getLastPrice() <= tradePrice * (1 - stopLossPercentage / 100));
+                        tpTrigger = Parameters.symbol.get(id).getLastPrice() != 0 && (Parameters.symbol.get(id).getLastPrice() >= tradePrice * (1 + takeProfitPercentage / 100));
                     } else if (stops != null && Parameters.symbol.get(id).getLastPrice() != 0) {
                         for (Stop stop : stops) {
                             switch (stop.stopType) {
@@ -267,8 +273,8 @@ public class Swing extends Strategy implements TradeListener {
                     double sl = Double.MAX_VALUE;
                     double tp = Double.MAX_VALUE;
                     if (stops == null && Parameters.symbol.get(id).getLastPrice() != 0) {
-//                        slTrigger = Parameters.symbol.get(id).getLastPrice() != 0 && (Parameters.symbol.get(id).getLastPrice() >= tradePrice * (1 + stopLoss / 100));
-//                        tpTrigger = Parameters.symbol.get(id).getLastPrice() != 0 && (Parameters.symbol.get(id).getLastPrice() <= tradePrice * (1 - takeProfit / 100));
+                        slTrigger = Parameters.symbol.get(id).getLastPrice() != 0 && (Parameters.symbol.get(id).getLastPrice() >= tradePrice * (1 + stopLossPercentage / 100));
+                        tpTrigger = Parameters.symbol.get(id).getLastPrice() != 0 && (Parameters.symbol.get(id).getLastPrice() <= tradePrice * (1 - takeProfitPercentage / 100));
                     } else if (stops != null && Parameters.symbol.get(id).getLastPrice() != 0) {
                         for (Stop stop : stops) {
                             switch (stop.stopType) {
@@ -408,7 +414,7 @@ public class Swing extends Strategy implements TradeListener {
                             case STOPLOSS:
                                 try {
                                     interpreter.set("barslpoints", close - low);
-                                    interpreter.eval("stop=" + stopLoss);
+                                    interpreter.eval("stop=" + stopLossExpression);
                                     stop.stopValue = Utilities.getDouble(interpreter.get("stop"), 0);
                                 } catch (Exception e) {
                                     logger.log(Level.SEVERE, null, e);
@@ -419,7 +425,7 @@ public class Swing extends Strategy implements TradeListener {
                                 break;
                             case TAKEPROFIT:
                                 try {
-                                    interpreter.eval("stop=" + takeProfit);
+                                    interpreter.eval("stop=" + takeProfitExpression);
                                     stop.stopValue = Utilities.getDouble(interpreter.get("stop"), 0);
                                 } catch (Exception e) {
                                     logger.log(Level.SEVERE, null, e);
@@ -438,7 +444,7 @@ public class Swing extends Strategy implements TradeListener {
                             case STOPLOSS:
                                 try {
                                     interpreter.set("barslpoints", high - close);
-                                    interpreter.eval("stop=" + stopLoss);
+                                    interpreter.eval("stop=" + stopLossExpression);
                                     stop.stopValue = Utilities.getDouble(interpreter.get("stop"), 0);
                                 } catch (Exception e) {
                                     logger.log(Level.SEVERE, null, e);
@@ -449,7 +455,7 @@ public class Swing extends Strategy implements TradeListener {
                                 break;
                             case TAKEPROFIT:
                                 try {
-                                    interpreter.eval("stop=" + takeProfit);
+                                    interpreter.eval("stop=" + takeProfitExpression);
                                     stop.stopValue = Utilities.getDouble(interpreter.get("stop"), 0);
                                 } catch (Exception e) {
                                     logger.log(Level.SEVERE, null, e);
@@ -502,6 +508,7 @@ public class Swing extends Strategy implements TradeListener {
                     if (!stats.isEmpty()) {
                         double today_predict_prob = Utilities.getDouble(stats.get("probability"), -1);
                         double result = Utilities.getDouble(stats.get("result"), 2);
+                        double trend=Utilities.getDouble(stats.get("trend"), 0);
                         int size = this.getPosition().get(id).getPosition();
                         Trigger swingTrigger = Trigger.UNDEFINED;
                         Interpreter interpreter = new Interpreter();
@@ -512,6 +519,7 @@ public class Swing extends Strategy implements TradeListener {
                         try {
                             interpreter.set("result", Utilities.roundTo(result, 1));
                             interpreter.set("prob", today_predict_prob);
+                            interpreter.set("trend", trend);
                             interpreter.eval("cBuy="+buyCondition);//.getLastPrice() != 0 && this.getLongOnly() && size == 0");
                             interpreter.eval("cShort="+shortCondition);
                             interpreter.eval("cSell="+sellCondition);
@@ -600,8 +608,18 @@ public class Swing extends Strategy implements TradeListener {
                 }
                 if (sameDayReentry || (!sameDayReentry && !longsExitedToday.contains(Integer.valueOf(id)))) {
                     double score = 1;//specifiy rule for calculating the score
+                    try {
+                        Interpreter interpreter = new Interpreter();
+                        interpreter.set("prob", stats.get("probability"));
+                        interpreter.set("daysinswing", stats.get("daysinupswing")+stats.get("daysindownswing"));
+                        interpreter.eval("result=" + ranking);
+                        score = (double) interpreter.get("result");
+                    } catch (Exception e) {
+                        logger.log(Level.SEVERE, null, e);
+                    }
                     logger.log(Level.INFO, "501,Strategy BUYPORT,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(id).getDisplayname() + delimiter + score});
                     longPositionScore.put(score, id);
+                    signalValues.put(id, stats);
                 }
                 break;
             case SHORT:
@@ -609,9 +627,18 @@ public class Swing extends Strategy implements TradeListener {
                     id = Utilities.getNextExpiryID(Parameters.symbol, id, expiryFarMonth);
                 }
                 if (sameDayReentry || (!sameDayReentry && !shortsExitedToday.contains(Integer.valueOf(id)))) {
-                    double score = 1;
+                    double score = 1;//specifiy rule for calculating the score
+                    try {
+                        Interpreter interpreter = new Interpreter();
+                        interpreter.set("prob", stats.get("probability"));
+                        interpreter.eval("result=" + ranking);
+                        score = (double) interpreter.get("result");
+                    } catch (Exception e) {
+                        logger.log(Level.SEVERE, null, e);
+                    }
                     logger.log(Level.INFO, "501,Strategy SHORTPORT,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(id).getDisplayname() + delimiter + score});
                     shortPositionScore.put(score, id);
+                    signalValues.put(id, stats);
 
                 }
                 break;
@@ -758,6 +785,7 @@ public class Swing extends Strategy implements TradeListener {
                 out.put("trend", lValue(dtrend));
                 out.put("daysinupswing", lValue(ddaysinupswing));
                 out.put("daysindownswing", lValue(ddaysindownswing));
+                out.put("trend", lValue(dtrend));
 
             } catch (Exception e) {
                 logger.log(Level.SEVERE, null, e);
@@ -805,15 +833,18 @@ public class Swing extends Strategy implements TradeListener {
                 Double low = sRef.getLowPrice();
                 Double high = sRef.getHighPrice();
                 Double close = sRef.getLastPrice();
+                Double prob= Utilities.getDouble(signalValues.get(id).get("probability"),0.5);
                 Interpreter interpreter = new Interpreter();
                 try {
                     interpreter.set("atr", atr);
                     interpreter.set("high", high);
                     interpreter.set("low", low);
                     interpreter.set("close", close);
+                    interpreter.set("prob", prob);
                     interpreter.set("barslpoints", close - low);
-                    interpreter.eval("profit=" + takeProfit);
-                    interpreter.eval("stop=" + stopLoss);
+                    interpreter.set("bartppoints", high - close);
+                    interpreter.eval("profit=" + takeProfitExpression);
+                    interpreter.eval("stop=" + stopLossExpression);
                     sl.stopValue = Utilities.getDouble(interpreter.get("stop"), 0);
                     tp.stopValue = Utilities.getDouble(interpreter.get("profit"), 0);
                 } catch (Exception e) {
@@ -859,15 +890,18 @@ public class Swing extends Strategy implements TradeListener {
                 Double low = sRef.getLowPrice();
                 Double high = sRef.getHighPrice();
                 Double close = sRef.getLastPrice();
-                Interpreter interpreter = new Interpreter();
+                Double prob= Utilities.getDouble(signalValues.get(id).get("probability"),0.5);
+               Interpreter interpreter = new Interpreter();
                 try {
                     interpreter.set("atr", atr);
                     interpreter.set("high", high);
                     interpreter.set("low", low);
                     interpreter.set("close", close);
+                    interpreter.set("prob", prob);
                     interpreter.set("barslpoints", high - close);
-                    interpreter.eval("profit=" + takeProfit);
-                    interpreter.eval("stop=" + stopLoss);
+                    interpreter.set("bartppoints", close - low);
+                    interpreter.eval("profit=" + takeProfitExpression);
+                    interpreter.eval("stop=" + stopLossExpression);
                     sl.stopValue = Utilities.getDouble(interpreter.get("stop"), 0);
                     tp.stopValue = Utilities.getDouble(interpreter.get("profit"), 0);
                 } catch (Exception e) {
