@@ -421,7 +421,7 @@ public class Swing extends Strategy implements TradeListener {
                                     logger.log(Level.SEVERE, null, e);
                                 }
                                 stop.stopValue = Math.max(stop.stopValue, 0);
-                                stop.stopValue = Utilities.round(stop.stopValue, getTickSize());
+                                stop.stopValue = Utilities.round(stop.stopValue, getTickSize(),2);
                                 logger.log(Level.INFO, "501,UpdatedSLStop,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(referenceid).getDisplayname() + delimiter + atr + delimiter + 1 + delimiter + stop.stopValue});
                                 break;
                             case TAKEPROFIT:
@@ -432,7 +432,7 @@ public class Swing extends Strategy implements TradeListener {
                                     logger.log(Level.SEVERE, null, e);
                                 }
                                 stop.stopValue = Math.max(stop.stopValue, 0);
-                                stop.stopValue = Utilities.round(stop.stopValue, getTickSize());
+                                stop.stopValue = Utilities.round(stop.stopValue, getTickSize(),2);
                                 logger.log(Level.INFO, "501,UpdatedTPStop,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(referenceid).getDisplayname() + delimiter + atr + delimiter + 1 + delimiter + stop.stopValue});
                                 break;
                             default:
@@ -451,7 +451,7 @@ public class Swing extends Strategy implements TradeListener {
                                     logger.log(Level.SEVERE, null, e);
                                 }
                                 stop.stopValue = Math.max(stop.stopValue, 0);
-                                stop.stopValue = Utilities.round(stop.stopValue, getTickSize());
+                                stop.stopValue = Utilities.round(stop.stopValue, getTickSize(),2);
                                 logger.log(Level.INFO, "501,UpdatedSLStop,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(referenceid).getDisplayname() + delimiter + atr + delimiter + 1 + delimiter + stop.stopValue});
                                 break;
                             case TAKEPROFIT:
@@ -462,7 +462,7 @@ public class Swing extends Strategy implements TradeListener {
                                     logger.log(Level.SEVERE, null, e);
                                 }
                                 stop.stopValue = Math.max(stop.stopValue, 0);
-                                stop.stopValue = Utilities.round(stop.stopValue, getTickSize());
+                                stop.stopValue = Utilities.round(stop.stopValue, getTickSize(),2);
                                 logger.log(Level.INFO, "501,UpdatedTPStop,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(referenceid).getDisplayname() + delimiter + atr + delimiter + stop.stopValue});
                                 break;
                             default:
@@ -848,6 +848,8 @@ public class Swing extends Strategy implements TradeListener {
                     interpreter.eval("stop=" + stopLossExpression);
                     sl.stopValue = Utilities.getDouble(interpreter.get("stop"), 0);
                     tp.stopValue = Utilities.getDouble(interpreter.get("profit"), 0);
+                    sl.stopValue=Utilities.round(sl.stopValue, getTickSize(), 2);
+                    tp.stopValue=Utilities.round(tp.stopValue, getTickSize(), 2);
                 } catch (Exception e) {
                     logger.log(Level.SEVERE, null, e);
                 }
@@ -905,6 +907,8 @@ public class Swing extends Strategy implements TradeListener {
                     interpreter.eval("stop=" + stopLossExpression);
                     sl.stopValue = Utilities.getDouble(interpreter.get("stop"), 0);
                     tp.stopValue = Utilities.getDouble(interpreter.get("profit"), 0);
+                    sl.stopValue=Utilities.round(sl.stopValue, getTickSize(), 2);
+                    tp.stopValue=Utilities.round(tp.stopValue, getTickSize(), 2);
                 } catch (Exception e) {
                     logger.log(Level.SEVERE, null, e);
                 }
