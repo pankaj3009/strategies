@@ -1,0 +1,53 @@
+######## CORE VARIABLES##################
+TradeTimeZone=Asia/Kolkata
+StartTime=9:15:00
+EndTime=15:28:00
+MaxSlippageEntry=0.5
+MaxSlippageExit=0.5
+MaxOrderDuration=1
+DynamicOrderDuration=1
+StrategyLog=true
+TickSize=0.05
+NumberOfContracts=1
+#Exposure
+PointValue=1
+ClawProfitTarget=0
+DayProfitTarget=0
+DayStopLoss=0
+MaximumOpenPositions=10
+BrokerageFile=08-inrfutbrokerage.txt
+TradeFile=PORTSWINGTrades.json
+OrderFile=PORTSWINGOrders.json
+StartingCapital=1000000
+Long=true
+Short=true
+############## PER STRATEGY VARIABLES ##################
+#Traded Symbol Name
+NearMonthExpiry=20150827
+FarMonthExpiry=20150924
+ReferenceCashType=STK
+RServerIP=notanotherfund.com
+RWorkingDirectory=/home/psharma/strategies/swing
+EntryScanTime=15:26:00
+#### Expressions ########
+StopLoss=barslpoints*(1+prob-0.5)
+TakeProfit=2*bartppoints*(1+prob-0.5)
+BuyCondition=result==1 && prob>=0 && trend==1
+ShortCondition=result==0 && prob>=0 && trend==-1
+SellCondition=result==0 
+CoverCondition=result==1
+Ranking=100-daysinswing
+#### End of Expressions ################
+StopLossPercentage=1
+TakeProfitPercentage=5
+UpProbabilityThreshold=0.7
+DownProbabilityThreshold=0.3
+cassandrametric=india.nse.equity.s4.daily
+timeseries=open,high,low,settle,volume
+ParameterObjectPath=/home/psharma/strategies/swing
+#ParameterObjectPath=C:/Users/Pankaj/Documents/Seafile/ML-Coursera/R
+MaxPositions=5
+SameDayReentry=true
+#not used at present
+UseCustomDateRangeForTraining=true 
+TestingTimer=0
