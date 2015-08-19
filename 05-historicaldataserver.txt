@@ -18,5 +18,5 @@ rtfuturemetric=india.nse.future.s1.rt
 rtoptionmetric=india.nse.option.s1.rt
 savetocassandra=false
 #General
-publishport=5560
-responseport=5559
+responseport=5555
+publishport=5556

@@ -614,7 +614,7 @@ public class Swing extends Strategy implements TradeListener {
                         interpreter.set("prob", stats.get("probability"));
                         interpreter.set("daysinswing", stats.get("daysinupswing")+stats.get("daysindownswing"));
                         interpreter.eval("result=" + ranking);
-                        score = (double) interpreter.get("result");
+                        score = Double.valueOf(interpreter.get("result").toString());                        
                     } catch (Exception e) {
                         logger.log(Level.SEVERE, null, e);
                     }
@@ -633,7 +633,7 @@ public class Swing extends Strategy implements TradeListener {
                         Interpreter interpreter = new Interpreter();
                         interpreter.set("prob", stats.get("probability"));
                         interpreter.eval("result=" + ranking);
-                        score = (double) interpreter.get("result");
+                        score = Double.valueOf(interpreter.get("result").toString());
                     } catch (Exception e) {
                         logger.log(Level.SEVERE, null, e);
                     }
@@ -825,7 +825,7 @@ public class Swing extends Strategy implements TradeListener {
                 order.put("expiretime", this.getMaxOrderDuration());
                 order.put("dynamicorderduration", getDynamicOrderDuration());
                 order.put("maxslippage", this.getMaxSlippageEntry());
-                logger.log(Level.INFO, "501,Strategy BUY,{0}", new Object[]{getStrategy() + delimiter + "SHORT" + delimiter + Parameters.symbol.get(id).getDisplayname()});
+                logger.log(Level.INFO, "501,Strategy BUY,{0}", new Object[]{getStrategy() + delimiter + "BUY" + delimiter + Parameters.symbol.get(id).getDisplayname()});
                 int orderid = entry(order);
                 Stop tp = new Stop();
                 Stop sl = new Stop();
@@ -884,7 +884,7 @@ public class Swing extends Strategy implements TradeListener {
                 order.put("expiretime", this.getMaxOrderDuration());
                 order.put("dynamicorderduration", getDynamicOrderDuration());
                 order.put("maxslippage", this.getMaxSlippageExit());
-                logger.log(Level.INFO, "501,Strategy SHORT,{0}", new Object[]{getStrategy() + delimiter + "BUY" + delimiter + Parameters.symbol.get(id).getDisplayname()});
+                logger.log(Level.INFO, "501,Strategy SHORT,{0}", new Object[]{getStrategy() + delimiter + "SHORT" + delimiter + Parameters.symbol.get(id).getDisplayname()});
                 int orderid = entry(order);
                 Stop tp = new Stop();
                 Stop sl = new Stop();

@@ -8,13 +8,14 @@ symbolfileneeded=true
 symbolfile=03-symbols-inr.csv
 connectionfile=03-connections-inr.csv
 holidayfile=
-datasource=notanotherfund.com
+datasource=incurrency.com
 requestport=5555
 pubsubport=5556
 topic=INR
 getsnapshotfromallconnections=false
 headless=false
-trading=true
+trading=false
+simulation=true
 # backtest prices can be tick or bar. if tick, bars are created using these "ticks"
 backtestprices=tick
 # A backtest needs a set of parameters that will be iterated through.
@@ -25,13 +26,13 @@ bars=realtimebars
 barsize=1sec
 deemedcancellation=103,135,201,202,461
 #threadlimit=1
-historicaldataserver=notanotherfund.com:5559
+historicaldataserver=incurrency.com:5559
 ###########Simulation#########
-simulation=true
 simstk=india.nse.equity.s1.1sec
 simfut=india.nse.future.s1.1sec
+simind=india.nse.index.s1.1sec
 simtopic=INR
-BackTestStartDate=20150818 09:15:00
-BackTestEndDate=20150818 15:30:00
-PriorCloseDate=20150817 15:30:00
+BackTestStartDate=20150818091500
+BackTestEndDate=20150818153000
+PriorCloseDate=20150817153000
 
