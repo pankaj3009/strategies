@@ -384,7 +384,7 @@ public class Swing extends Strategy implements TradeListener {
         int referenceid = Utilities.getReferenceID(Parameters.symbol, childid, referenceCashType);
         if (!stats.isEmpty()) {
             double threshold = Utilities.getDouble(stats.get("threshold"), 0.5);
-            double today_predict_prob = Utilities.getDouble(stats.get("probability"), -1);
+            double prob = Utilities.getDouble(stats.get("probability"), 0.5);
             double atr = Utilities.getDouble(stats.get("atr"), 1);
             String tradeTimeFormat = "yyyy-MM-dd HH:mm:ss";
             String tradeDateString = Trade.getEntryTime(getTrades(), key);
@@ -404,6 +404,7 @@ public class Swing extends Strategy implements TradeListener {
                     interpreter.set("high", high);
                     interpreter.set("low", low);
                     interpreter.set("close", close);
+                    interpreter.set("prob", prob);
                 } catch (Exception e) {
                     logger.log(Level.SEVERE, null, e);
                 }
