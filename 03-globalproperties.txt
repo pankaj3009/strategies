@@ -14,7 +14,6 @@ pubsubport=5556
 topic=INR
 getsnapshotfromallconnections=false
 headless=false
-backtest=false
 trading=true
 # backtest prices can be tick or bar. if tick, bars are created using these "ticks"
 backtestprices=tick
@@ -27,4 +26,12 @@ barsize=1sec
 deemedcancellation=103,135,201,202,461
 #threadlimit=1
 historicaldataserver=notanotherfund.com:5559
+###########Simulation#########
+simulation=true
+simstk=india.nse.equity.s1.1sec
+simfut=india.nse.future.s1.1sec
+simtopic=INR
+BackTestStartDate=20150818 09:15:00
+BackTestEndDate=20150818 15:30:00
+PriorCloseDate=20150817 15:30:00
 
