@@ -119,7 +119,7 @@ public class Swing extends Strategy implements TradeListener {
         if (Subscribe.tes != null) {
             Subscribe.tes.addTradeListener(this);
         }
-        setStopOrders(true);
+        //setStopOrders(true);
         historicalDataRetriever = new Thread() {
             public void run() {
                 Calendar calToday = Calendar.getInstance(TimeZone.getTimeZone(Algorithm.timeZone));
