@@ -100,6 +100,7 @@ public class Swing extends Strategy implements TradeListener {
     String shortCondition;
     String coverCondition;
     String ranking;
+    
 
     public Swing(MainAlgorithm m, Properties p, String parameterFile, ArrayList<String> accounts, Integer stratCount) {
         super(m, "swing", "FUT", p, parameterFile, accounts, stratCount);
@@ -118,6 +119,7 @@ public class Swing extends Strategy implements TradeListener {
         if (Subscribe.tes != null) {
             Subscribe.tes.addTradeListener(this);
         }
+        setStopOrders(true);
         historicalDataRetriever = new Thread() {
             public void run() {
                 Calendar calToday = Calendar.getInstance(TimeZone.getTimeZone(Algorithm.timeZone));
@@ -146,7 +148,7 @@ public class Swing extends Strategy implements TradeListener {
             }
         };
         historicalDataRetriever.start();
-
+        
         if (testingTimer > 0) {
             Calendar tmpCalendar = Calendar.getInstance(TimeZone.getTimeZone(Algorithm.timeZone));
             tmpCalendar.add(Calendar.MINUTE, testingTimer);
@@ -213,6 +215,7 @@ public class Swing extends Strategy implements TradeListener {
             Integer id = event.getSymbolID();
             if (this.getStrategySymbols().contains(id) && !Parameters.symbol.get(id).getType().equals(referenceCashType)) {
                 if (this.getPosition().get(id).getPosition() > 0) {
+                    int referenceid=Utilities.getReferenceID(Parameters.symbol, id, referenceCashType);
                     Double tradePrice = this.getPosition().get(id).getPrice();
                     ArrayList<Stop> stops = Trade.getStop(getTrades(), this.getFirstInternalOpenOrder(id, EnumOrderSide.SELL, "Order") + "_Order");
                     boolean tpTrigger = false;
@@ -233,9 +236,9 @@ public class Swing extends Strategy implements TradeListener {
                                     tpTrigger = tp != 0 && Parameters.symbol.get(id).getLastPrice() != 0 && tpDistance >= tp;
                                     break;
                                 case STOPLOSS:
-                                    slDistance = tradePrice - Parameters.symbol.get(id).getLastPrice();
+                                    slDistance = stop.underlyingEntry- Parameters.symbol.get(referenceid).getLastPrice();
                                     sl = stop.stopValue;
-                                    slTrigger = sl != 0 && Parameters.symbol.get(id).getLastPrice() != 0 && slDistance >= sl;
+                                    slTrigger = sl != 0 && Parameters.symbol.get(id).getLastPrice() != 0 && Parameters.symbol.get(referenceid).getLastPrice()!=0 && slDistance >= sl;
                                     break;
                                 default:
                                     break;
@@ -265,6 +268,7 @@ public class Swing extends Strategy implements TradeListener {
                     }
                 } else if (this.getPosition().get(id).getPosition() < 0) {
                     Double tradePrice = this.getPosition().get(id).getPrice();
+                    int referenceid=Utilities.getReferenceID(Parameters.symbol, id, referenceCashType);
                     int internalorderid = this.getFirstInternalOpenOrder(id, EnumOrderSide.COVER, "Order");
                     ArrayList<Stop> stops = Trade.getStop(getTrades(), internalorderid + "_Order");
                     boolean tpTrigger = false;
@@ -285,9 +289,9 @@ public class Swing extends Strategy implements TradeListener {
                                     tpTrigger = tp != 0 && Parameters.symbol.get(id).getLastPrice() != 0 && tpDistance >= tp;
                                     break;
                                 case STOPLOSS:
-                                    slDistance = Parameters.symbol.get(id).getLastPrice() - tradePrice;
+                                    slDistance = Parameters.symbol.get(referenceid).getLastPrice() - stop.underlyingEntry;
                                     sl = stop.stopValue;
-                                    slTrigger = sl != 0 && Parameters.symbol.get(id).getLastPrice() != 0 && slDistance >= sl;
+                                    slTrigger = sl != 0 && Parameters.symbol.get(id).getLastPrice() != 0 && Parameters.symbol.get(referenceid).getLastPrice()!=0 && slDistance >= sl;
                                     break;
                                 default:
                                     break;
@@ -423,7 +427,8 @@ public class Swing extends Strategy implements TradeListener {
                                 }
                                 stop.stopValue = Math.max(stop.stopValue, 0);
                                 stop.stopValue = Utilities.round(stop.stopValue, getTickSize(),2);
-                                logger.log(Level.INFO, "501,UpdatedSLStop,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(referenceid).getDisplayname() + delimiter + atr + delimiter + 1 + delimiter + stop.stopValue});
+                                stop.underlyingEntry=close;
+                                logger.log(Level.INFO, "501,UpdatedSLStop,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(referenceid).getDisplayname() + delimiter + atr + delimiter + 1 + delimiter + stop.stopValue+delimiter+stop.underlyingEntry});
                                 break;
                             case TAKEPROFIT:
                                 try {
@@ -453,7 +458,8 @@ public class Swing extends Strategy implements TradeListener {
                                 }
                                 stop.stopValue = Math.max(stop.stopValue, 0);
                                 stop.stopValue = Utilities.round(stop.stopValue, getTickSize(),2);
-                                logger.log(Level.INFO, "501,UpdatedSLStop,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(referenceid).getDisplayname() + delimiter + atr + delimiter + 1 + delimiter + stop.stopValue});
+                                stop.underlyingEntry=close;
+                                logger.log(Level.INFO, "501,UpdatedSLStop,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(referenceid).getDisplayname() + delimiter + atr + delimiter + 1 + delimiter + stop.stopValue+delimiter+stop.underlyingEntry});
                                 break;
                             case TAKEPROFIT:
                                 try {
@@ -859,6 +865,7 @@ public class Swing extends Strategy implements TradeListener {
                 tp.recalculate = true;
                 sl.stopType = EnumStopType.STOPLOSS;
                 sl.stopMode = EnumStopMode.POINT;
+                sl.underlyingEntry=sRef.getLastPrice();
                 sl.recalculate = true;
                 logger.log(Level.INFO, "501,StopParameters,{0}", new Object[]{sRef.getHighPrice() + delimiter + sRef.getLowPrice() + delimiter + sRef.getLastPrice()});
                 ArrayList<Stop> stops = new ArrayList<>();
@@ -918,6 +925,7 @@ public class Swing extends Strategy implements TradeListener {
                 tp.recalculate = true;
                 sl.stopType = EnumStopType.STOPLOSS;
                 sl.stopMode = EnumStopMode.POINT;
+                sl.underlyingEntry=sRef.getLastPrice();
                 sl.recalculate = true;
                 logger.log(Level.INFO, "501,StopParameters,{0}", new Object[]{sRef.getHighPrice() + delimiter + sRef.getLowPrice() + delimiter + sRef.getLastPrice()});
                 ArrayList<Stop> stops = new ArrayList<>();
