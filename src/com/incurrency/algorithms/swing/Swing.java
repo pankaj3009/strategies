@@ -48,6 +48,7 @@ import org.jblas.DoubleMatrix;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.Rserve.RConnection;
 import static com.incurrency.framework.MatrixMethods.*;
+import com.incurrency.framework.SimulationTimer;
 import com.incurrency.framework.Stop;
 import com.incurrency.framework.Trade;
 import java.util.HashMap;
@@ -119,7 +120,7 @@ public class Swing extends Strategy implements TradeListener {
         if (Subscribe.tes != null) {
             Subscribe.tes.addTradeListener(this);
         }
-        //setStopOrders(true);
+       // setStopOrders(true);
         historicalDataRetriever = new Thread() {
             public void run() {
                 Calendar calToday = Calendar.getInstance(TimeZone.getTimeZone(Algorithm.timeZone));
@@ -154,9 +155,25 @@ public class Swing extends Strategy implements TradeListener {
             tmpCalendar.add(Calendar.MINUTE, testingTimer);
             entryScanDate = tmpCalendar.getTime();
         }
-
-        eodProcessing = new Timer("Timer: Close Positions");
-        eodProcessing.schedule(eodProcessingTask, entryScanDate);
+        
+        if(MainAlgorithm.isUseForSimulation()){
+            String entryScanTime = p.getProperty("EntryScanTime");
+            String algorithmEndDate = Algorithm.globalProperties.getProperty("BackTestEndDate");
+            Calendar c = Calendar.getInstance(TimeZone.getTimeZone(Algorithm.timeZone));
+            Date algoDate = DateUtil.getFormattedDate(algorithmEndDate, "yyyyMMddHHmmss", Algorithm.timeZone);
+            c.setTime(algoDate);
+            String[] entryTimeComponents = entryScanTime.split(":");
+            c.set(Calendar.HOUR_OF_DAY, Utilities.getInt(entryTimeComponents[0], 15));
+            c.set(Calendar.MINUTE, Utilities.getInt(entryTimeComponents[1], 20));
+            c.set(Calendar.SECOND, Utilities.getInt(entryTimeComponents[2], 0));
+            entryScanDate = c.getTime();
+            Thread s=new Thread(new SimulationTimer(entryScanDate, eodProcessingTask));
+            s.start();
+        } else {
+            eodProcessing = new Timer("Timer: Close Positions");
+            eodProcessing.schedule(eodProcessingTask, entryScanDate);
+        }
+        
         if (this.getLongOnly()) {
             longpositionCount = Utilities.openPositionCount(Parameters.symbol, this.getOrderFile(), this.getStrategy(), this.getPointValue(), true);
         }

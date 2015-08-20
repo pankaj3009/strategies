@@ -221,7 +221,7 @@ public class Pairs extends Strategy {
             logger.log(Level.SEVERE, null, ex);
         }
         System.setProperties(p);
-        String currDateStr = DateUtil.getFormatedDate("yyyyMMdd", Parameters.connection.get(0).getConnectionTime());
+        String currDateStr = DateUtil.getFormattedDate("yyyyMMdd", Parameters.connection.get(0).getConnectionTime());
         String lastOrderDateStr = currDateStr + " " + System.getProperty("LastOrderTime");
         lastOrderDate = DateUtil.parseDate("yyyyMMdd HH:mm:ss", lastOrderDateStr);
         if (lastOrderDate.compareTo(getStartDate()) < 0 && new Date().compareTo(lastOrderDate) > 0) {

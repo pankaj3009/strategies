@@ -81,7 +81,7 @@ public class BeanGuds implements Serializable, TradeListener {
             Logger.getLogger(IDT.class.getName()).log(Level.SEVERE, null, ex);
         }
         System.setProperties(p);
-        String currDateStr = DateUtil.getFormatedDate("yyyyMMdd", Parameters.connection.get(0).getConnectionTime());
+        String currDateStr = DateUtil.getFormattedDate("yyyyMMdd", Parameters.connection.get(0).getConnectionTime());
         String startDateStr = currDateStr + " " + System.getProperty("StartTime");
         String endDateStr = currDateStr + " " + System.getProperty("EndTime");
         String tickSize = System.getProperty("TickSize");
@@ -161,7 +161,7 @@ public class BeanGuds implements Serializable, TradeListener {
                     if (date.compareTo(priorDate) > 0 && date.compareTo(DateUtil.addDays(TradingUtil.getAlgoDate(), -150)) > 0) {
                         //new bar has started
                         priorDate = date;
-                        String formattedDate = DateUtil.getFormatedDate("yyyyMMdd hh:mm:ss", datetime.getTime());
+                        String formattedDate = DateUtil.getFormattedDate("yyyyMMdd hh:mm:ss", datetime.getTime());
                         histclose.add(close);
                         histlow.add(low);
                         histhigh.add(high);

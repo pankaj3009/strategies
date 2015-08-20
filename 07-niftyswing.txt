@@ -50,5 +50,5 @@ MaxPositions=2
 SameDayReentry=true
 #not used at present
 UseCustomDateRangeForTraining=true 
-TestingTimer=10000
+TestingTimer=100000
 

@@ -179,7 +179,7 @@ public class IDT extends Strategy implements Serializable, HistoricalBarListener
          int size = sdArray.size();
          double symbolSD = sdArray.get(size - 1);
          sd.set(i, symbolSD);
-         long today = Long.parseLong(DateUtil.getFormatedDate("yyyyMMdd", getStartDate().getTime()));
+         long today = Long.parseLong(DateUtil.getFormattedDate("yyyyMMdd", getStartDate().getTime()));
          long today_1 = Parameters.symbol.get(i).getDailyBar().getHistoricalBars().floorKey(today - 1);
          long today_2 = Parameters.symbol.get(i).getDailyBar().getHistoricalBars().floorKey(today_1 - 1);
          double close_1 = Parameters.symbol.get(i).getDailyBar().getHistoricalBars().get(today_1).getClose();
@@ -223,7 +223,7 @@ public class IDT extends Strategy implements Serializable, HistoricalBarListener
             logger.log(Level.INFO, "101", ex);
         }
         System.setProperties(p);
-        String currDateStr = DateUtil.getFormatedDate("yyyyMMdd", Parameters.connection.get(0).getConnectionTime());
+        String currDateStr = DateUtil.getFormattedDate("yyyyMMdd", Parameters.connection.get(0).getConnectionTime());
         String lastOrderDateStr = currDateStr + " " + System.getProperty("LastOrderTime");
         lastOrderDate = DateUtil.parseDate("yyyyMMdd HH:mm:ss", lastOrderDateStr,timeZone);
         if (lastOrderDate.compareTo(getStartDate()) < 0 && TradingUtil.getAlgoDate().compareTo(lastOrderDate) > 0) {
@@ -338,7 +338,7 @@ public class IDT extends Strategy implements Serializable, HistoricalBarListener
                     }
                     int barno = event.barNumber();
                     logger.log(Level.INFO, "502,BarsReceived,{0}",
-                            new Object[]{getStrategy()+delimiter+Parameters.symbol.get(id).getDisplayname()+delimiter+barno+delimiter+delimiter+ DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", ohlc.getOpenTime())+delimiter+ DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", event.list().firstKey())+delimiter+DateUtil.getFormatedDate("yyyyMMdd HH:mm:ss", event.list().lastKey())});
+                            new Object[]{getStrategy()+delimiter+Parameters.symbol.get(id).getDisplayname()+delimiter+barno+delimiter+delimiter+ DateUtil.getFormattedDate("yyyyMMdd HH:mm:ss", ohlc.getOpenTime())+delimiter+ DateUtil.getFormattedDate("yyyyMMdd HH:mm:ss", event.list().firstKey())+delimiter+DateUtil.getFormattedDate("yyyyMMdd HH:mm:ss", event.list().lastKey())});
                     SimpleDateFormat sdfDate = new SimpleDateFormat("HH:mm:ss");
                     sdfDate.setTimeZone(TimeZone.getTimeZone(getTimeZone()));
                     String firstBarTime = sdfDate.format(event.list().firstEntry().getKey());
@@ -444,7 +444,7 @@ public class IDT extends Strategy implements Serializable, HistoricalBarListener
                     if (getStrategySymbols().contains(id) && event.getSymbol().getDailyBar().isFinished()) {
                         BeanSymbol s = event.getSymbol();
                         if(event.list().size()>=3){
-                        if (Long.toString((long) event.list().lastKey()).equals(DateUtil.getFormatedDate("yyyyMMdd", System.currentTimeMillis()))) {
+                        if (Long.toString((long) event.list().lastKey()).equals(DateUtil.getFormattedDate("yyyyMMdd", System.currentTimeMillis()))) {
                             int key = event.list().size() - 3; //last value is today's date. I need day before yesterday. Therefore -3
                             s.setPriorDayVolume(String.valueOf(event.list().getValue(key).getVolume()));
                         } else {
@@ -468,7 +468,7 @@ public class IDT extends Strategy implements Serializable, HistoricalBarListener
                                 double symbolSD = sdArray.get(size - 1);
                                 sd.set(id, symbolSD);
                                 long today=getStartDate().getTime();
-                                //long today = Long.parseLong(DateUtil.getFormatedDate("yyyyMMdd", getStartDate().getTime()));
+                                //long today = Long.parseLong(DateUtil.getFormattedDate("yyyyMMdd", getStartDate().getTime()));
                                 //Daily bars start with a timestamp of 00:00:00 on the morning. So a Friday bar will start at 00:00:00 Friday AM
                                  long today_1 = s.getDailyBar().getHistoricalBars().floorKey(today-24*60*60*1000);
                                 long today_2 = s.getDailyBar().getHistoricalBars().floorKey(today_1-1);
