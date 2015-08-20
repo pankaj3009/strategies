@@ -18,13 +18,20 @@ public class SwingValues extends javax.swing.JFrame {
      */
     
     String contractSize;
+    boolean stopOrders;
     Swing a;
     
     public SwingValues(Swing a) {
         this.a=a;
+        this.stopOrders=a.isStopOrders();
         initComponents();
         contractSize=String.valueOf(a.getNumberOfContracts());
         txtContractCount.setText(contractSize);
+        if (stopOrders) {
+            this.btnStopOrdersTrue.setSelected(true);
+        } else {
+            this.btnStopOrdersFalse.setSelected(true);
+        }
     }
     
     public SwingValues(){
@@ -48,8 +55,8 @@ public class SwingValues extends javax.swing.JFrame {
         jLabel2 = new javax.swing.JLabel();
         txtTakeProfit = new javax.swing.JTextField();
         jLabel3 = new javax.swing.JLabel();
-        btnScalpingTrue = new javax.swing.JRadioButton();
-        btnScalpingFalse = new javax.swing.JRadioButton();
+        btnStopOrdersTrue = new javax.swing.JRadioButton();
+        btnStopOrdersFalse = new javax.swing.JRadioButton();
         jLabel4 = new javax.swing.JLabel();
         txtMinRentryMove = new javax.swing.JTextField();
         jLabel5 = new javax.swing.JLabel();
@@ -70,8 +77,9 @@ public class SwingValues extends javax.swing.JFrame {
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 0, 0);
+        gridBagConstraints.ipadx = 65;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(79, 180, 0, 0);
         getContentPane().add(jLabel1, gridBagConstraints);
 
         txtStopLoss.setText("jTextField2");
@@ -83,76 +91,95 @@ public class SwingValues extends javax.swing.JFrame {
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 0, 0);
+        gridBagConstraints.gridheight = 2;
+        gridBagConstraints.ipadx = 53;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(76, 5, 0, 0);
         getContentPane().add(txtStopLoss, gridBagConstraints);
 
         jLabel2.setText("TakeProfit");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 0, 0);
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.ipadx = 59;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(9, 180, 0, 0);
         getContentPane().add(jLabel2, gridBagConstraints);
 
         txtTakeProfit.setText("jTextField3");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 0, 0);
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridheight = 2;
+        gridBagConstraints.ipadx = 53;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(6, 5, 0, 0);
         getContentPane().add(txtTakeProfit, gridBagConstraints);
 
-        jLabel3.setText("ScalpingMode");
+        jLabel3.setText("Stop Orders");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 0, 0);
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.ipadx = 28;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(79, 5, 0, 0);
         getContentPane().add(jLabel3, gridBagConstraints);
 
-        buttonGroup1.add(btnScalpingTrue);
-        btnScalpingTrue.setText("True");
+        buttonGroup1.add(btnStopOrdersTrue);
+        btnStopOrdersTrue.setText("True");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 0, 0);
-        getContentPane().add(btnScalpingTrue, gridBagConstraints);
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridheight = 3;
+        gridBagConstraints.ipadx = 20;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(75, 5, 0, 0);
+        getContentPane().add(btnStopOrdersTrue, gridBagConstraints);
 
-        buttonGroup1.add(btnScalpingFalse);
-        btnScalpingFalse.setText("False");
+        buttonGroup1.add(btnStopOrdersFalse);
+        btnStopOrdersFalse.setText("False");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 0, 0);
-        getContentPane().add(btnScalpingFalse, gridBagConstraints);
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridheight = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(75, 5, 0, 175);
+        getContentPane().add(btnStopOrdersFalse, gridBagConstraints);
 
         jLabel4.setText("Min. Move for Reentry");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 0, 0);
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(8, 180, 0, 0);
         getContentPane().add(jLabel4, gridBagConstraints);
 
         txtMinRentryMove.setText("jTextField1");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridheight = 2;
+        gridBagConstraints.ipadx = 53;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 0, 0);
         getContentPane().add(txtMinRentryMove, gridBagConstraints);
 
         jLabel5.setText("Track Losing Zone");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 0, 0);
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(9, 5, 0, 0);
         getContentPane().add(jLabel5, gridBagConstraints);
 
         buttonGroup2.add(btnLosingZoneTrue);
         btnLosingZoneTrue.setText("True");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridheight = 3;
+        gridBagConstraints.ipadx = 20;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 0, 0);
         getContentPane().add(btnLosingZoneTrue, gridBagConstraints);
 
@@ -160,25 +187,29 @@ public class SwingValues extends javax.swing.JFrame {
         btnLosingZoneFalse.setText("False");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 0, 0);
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridheight = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(5, 5, 0, 175);
         getContentPane().add(btnLosingZoneFalse, gridBagConstraints);
 
         jLabel6.setText("Number of Contracts");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 0, 0);
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.ipadx = 8;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(9, 180, 0, 0);
         getContentPane().add(jLabel6, gridBagConstraints);
 
         txtContractCount.setText("jTextField1");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 0, 0);
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridheight = 2;
+        gridBagConstraints.ipadx = 53;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(6, 5, 0, 0);
         getContentPane().add(txtContractCount, gridBagConstraints);
 
         btnUpdate.setText("Update");
@@ -189,41 +220,48 @@ public class SwingValues extends javax.swing.JFrame {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridheight = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 0, 0);
         getContentPane().add(btnUpdate, gridBagConstraints);
 
         jLabel7.setText("TPTargets");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 0, 0);
+        gridBagConstraints.gridy = 11;
+        gridBagConstraints.ipadx = 59;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(8, 180, 0, 0);
         getContentPane().add(jLabel7, gridBagConstraints);
 
         txtScaleOutTargets.setText("jTextField1");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.gridy = 11;
+        gridBagConstraints.gridheight = 2;
+        gridBagConstraints.ipadx = 53;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 0, 0);
         getContentPane().add(txtScaleOutTargets, gridBagConstraints);
 
         jLabel8.setText("TPContracts");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 0, 0);
+        gridBagConstraints.gridy = 13;
+        gridBagConstraints.ipadx = 49;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(8, 180, 0, 0);
         getContentPane().add(jLabel8, gridBagConstraints);
 
         txtScaleOutSizes.setText("jTextField2");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 0, 0);
+        gridBagConstraints.gridy = 13;
+        gridBagConstraints.gridheight = 2;
+        gridBagConstraints.ipadx = 53;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(5, 5, 71, 0);
         getContentPane().add(txtScaleOutSizes, gridBagConstraints);
 
         pack();
@@ -235,6 +273,11 @@ public class SwingValues extends javax.swing.JFrame {
 
     private void btnUpdateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUpdateActionPerformed
         a.setNumberOfContracts(Integer.valueOf(this.txtContractCount.getText()));
+         if(btnStopOrdersTrue.isSelected()){
+            a.setStopOrders(true);
+        }else{
+            a.setStopOrders(false);
+        }
         
     }//GEN-LAST:event_btnUpdateActionPerformed
 
@@ -275,8 +318,8 @@ public class SwingValues extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JRadioButton btnLosingZoneFalse;
     private javax.swing.JRadioButton btnLosingZoneTrue;
-    private javax.swing.JRadioButton btnScalpingFalse;
-    private javax.swing.JRadioButton btnScalpingTrue;
+    private javax.swing.JRadioButton btnStopOrdersFalse;
+    private javax.swing.JRadioButton btnStopOrdersTrue;
     private javax.swing.JButton btnUpdate;
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.ButtonGroup buttonGroup2;

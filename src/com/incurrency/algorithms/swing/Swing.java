@@ -526,10 +526,10 @@ public class Swing extends Strategy implements TradeListener {
                             interpreter.eval("cShort="+shortCondition);
                             interpreter.eval("cSell="+sellCondition);
                             interpreter.eval("cCover="+coverCondition);
-                            cBuy=(boolean)interpreter.get("cBuy") && s.getLastPrice() != 0 && this.getLongOnly() && size == 0;
-                            cShort=(boolean)interpreter.get("cShort") && s.getLastPrice() != 0 && this.getShortOnly() && size == 0;
-                            cSell=(boolean)interpreter.get("cSell") && s.getLastPrice() != 0  && size > 0;
-                            cCover=(boolean)interpreter.get("cCover") && s.getLastPrice() != 0 && size < 0;
+                            cBuy=(boolean)interpreter.get("cBuy") && s.getLastPrice() != 0 && this.getLongOnly() && !this.isStopOrders() && size == 0;
+                            cShort=(boolean)interpreter.get("cShort") && s.getLastPrice() != 0 && this.getShortOnly()&& !this.isStopOrders()  && size == 0;
+                            cSell=(boolean)interpreter.get("cSell") && s.getLastPrice() != 0  && !this.isStopOrders() && size > 0;
+                            cCover=(boolean)interpreter.get("cCover") && s.getLastPrice() != 0 && !this.isStopOrders() && size < 0;
                         } catch (Exception e) {
                             logger.log(Level.SEVERE, null, e);
                         }
