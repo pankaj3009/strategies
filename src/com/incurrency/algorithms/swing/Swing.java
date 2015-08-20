@@ -236,9 +236,11 @@ public class Swing extends Strategy implements TradeListener {
                                     tpTrigger = tp != 0 && Parameters.symbol.get(id).getLastPrice() != 0 && tpDistance >= tp;
                                     break;
                                 case STOPLOSS:
+                                    if(stop.underlyingEntry!=0){
                                     slDistance = stop.underlyingEntry- Parameters.symbol.get(referenceid).getLastPrice();
                                     sl = stop.stopValue;
                                     slTrigger = sl != 0 && Parameters.symbol.get(id).getLastPrice() != 0 && Parameters.symbol.get(referenceid).getLastPrice()!=0 && slDistance >= sl;
+                                    }
                                     break;
                                 default:
                                     break;
@@ -289,9 +291,11 @@ public class Swing extends Strategy implements TradeListener {
                                     tpTrigger = tp != 0 && Parameters.symbol.get(id).getLastPrice() != 0 && tpDistance >= tp;
                                     break;
                                 case STOPLOSS:
+                                    if(stop.underlyingEntry!=0){
                                     slDistance = Parameters.symbol.get(referenceid).getLastPrice() - stop.underlyingEntry;
                                     sl = stop.stopValue;
                                     slTrigger = sl != 0 && Parameters.symbol.get(id).getLastPrice() != 0 && Parameters.symbol.get(referenceid).getLastPrice()!=0 && slDistance >= sl;
+                                    }
                                     break;
                                 default:
                                     break;
