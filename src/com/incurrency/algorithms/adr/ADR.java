@@ -117,11 +117,13 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
     private final Object lockFlush = new Object();
     private final Object lockBOD = new Object();
     DateTimeComparator comparator;
+    Properties p;
 
     public ADR(MainAlgorithm m, Properties prop, String parameterFile, ArrayList<String> accounts, Integer stratCount) throws ParseException {
         super(m, "adr", "FUT", prop, parameterFile, accounts, null);
         this.openDate = openingTimeFormat.parse("09:15:00");
         this.openDateBuffer = openingTimeFormat.parse("09:16:00");
+        this.p=prop;
         loadParameters(prop);
         getStrategySymbols().clear();
         for (BeanSymbol s : Parameters.symbol) {
@@ -162,7 +164,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                 cal_endDate.add(Calendar.YEAR, -5);
                 Date startDate = cal_endDate.getTime();
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd HH:mm:ss");
-                Utilities.requestHistoricalData(symb, new String[]{"open", "high", "low", "settle"}, "india.nse.index.s4.daily", sdf.format(startDate), sdf.format(endDate), EnumBarSize.DAILY, false);
+                Utilities.requestHistoricalData(symb, new String[]{"open", "high", "low", "settle"}, "india.nse.index.s4.daily", "yyyyMMdd HH:mm:ss",sdf.format(startDate), sdf.format(endDate), EnumBarSize.DAILY, false);
                 ind.swing(symb, EnumBarSize.DAILY);
                 int length = symb.getTimeSeriesLength(EnumBarSize.DAILY);
                 double[] trends =  symb.getTimeSeries(EnumBarSize.DAILY, "trend").data;
@@ -191,6 +193,10 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                         break;
                 }
             }
+        }
+        if(Boolean.parseBoolean(Algorithm.globalProperties.getProperty("backtest", "false"))){
+            Thread t=new Thread(new ADRManager(this));
+            t.run();
         }
     }
 

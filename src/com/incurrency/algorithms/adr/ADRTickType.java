@@ -28,6 +28,7 @@ public class ADRTickType {
     public static final int T_TICK          = 10003;
     public static final int T_TRIN          = 10004;
     public static final int INDEX           = 10005;
+    public static final int NOMFEMAE         = 10006;
 
 
     public static String getField( int adrType) {

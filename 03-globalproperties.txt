@@ -16,7 +16,8 @@ topic=INRSIM
 getsnapshotfromallconnections=false
 headless=false
 trading=false
-simulation=true
+simulation=false
+backtest=true
 # backtest prices can be tick or bar. if tick, bars are created using these "ticks"
 backtestprices=tick
 # A backtest needs a set of parameters that will be iterated through.
@@ -32,7 +33,10 @@ historicaldataserver=notanotherfund.com:5559
 simstk=india.nse.equity.s1.1sec
 simfut=india.nse.future.s1.1sec
 simind=india.nse.equity.s1.1sec
+SimulationStartDate=20150818091500
+SimulationEndDate=20150818153000
+SimulationPriorCloseDate=20150817153000
 BackTestStartDate=20150818091500
 BackTestEndDate=20150818153000
-PriorCloseDate=20150817153000
+BackTestPriorCloseDate=20150817153000
 

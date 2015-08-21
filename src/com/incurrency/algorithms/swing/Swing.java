@@ -135,7 +135,7 @@ public class Swing extends Strategy implements TradeListener {
                 for (BeanSymbol s : Parameters.symbol) {
 //                    if (s.getDataLength(EnumBarSize.DAILY, "settle") == 0 && (s.getType().equals("STK") || s.getType().equals("IND")) && s.getStrategy().toLowerCase().contains("swing")) {
                     if (s.getDataLength(EnumBarSize.DAILY, "settle") == 0 && s.getType().equals(referenceCashType) && s.getStrategy().toLowerCase().contains("swing")) {
-                        Thread t = new Thread(new HistoricalBars(s, EnumSource.CASSANDRA, timeSeries, cassandraMetric, hdStartDate, hdEndDate, EnumBarSize.DAILY, false));
+                        Thread t = new Thread(new HistoricalBars(s, EnumSource.CASSANDRA, timeSeries, cassandraMetric, "yyyyMMdd HH:mm:ss",hdStartDate, hdEndDate, EnumBarSize.DAILY, false));
                         t.start();
                         while (t.getState() != Thread.State.TERMINATED) {
                             try {
@@ -562,8 +562,8 @@ public class Swing extends Strategy implements TradeListener {
                             interpreter.eval("cShort="+shortCondition);
                             interpreter.eval("cSell="+sellCondition);
                             interpreter.eval("cCover="+coverCondition);
-                            cBuy=(boolean)interpreter.get("cBuy") && s.getLastPrice() != 0 && this.getLongOnly() && !this.isStopOrders() && size == 0;
-                            cShort=(boolean)interpreter.get("cShort") && s.getLastPrice() != 0 && this.getShortOnly()&& !this.isStopOrders()  && size == 0;
+                            cBuy=(boolean)interpreter.get("cBuy") && s.getLastPrice() != 0 && this.getLongOnly() && !this.isStopOrders() && size <= 0;
+                            cShort=(boolean)interpreter.get("cShort") && s.getLastPrice() != 0 && this.getShortOnly()&& !this.isStopOrders()  && size >= 0;
                             cSell=(boolean)interpreter.get("cSell") && s.getLastPrice() != 0  && !this.isStopOrders() && size > 0;
                             cCover=(boolean)interpreter.get("cCover") && s.getLastPrice() != 0 && !this.isStopOrders() && size < 0;
                         } catch (Exception e) {
