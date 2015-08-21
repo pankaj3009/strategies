@@ -189,6 +189,13 @@ public class Swing extends Strategy implements TradeListener {
         logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Time Series" + delimiter + timeSeries});
         logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Cassandra Metric" + delimiter + cassandraMetric});
         logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Testing Timer Duration" + delimiter + testingTimer});
+        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "StopLoss" + delimiter + stopLossExpression});
+        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "TakeProfit" + delimiter + takeProfitExpression});
+        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "BuyCondition" + delimiter + buyCondition});
+        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "SellCondition" + delimiter + sellCondition});
+        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "ShortCondition" + delimiter + shortCondition});
+        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "CoverCondition" + delimiter + coverCondition});
+        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "RankingRule" + delimiter + ranking});
 
         Timer bodProcessing = new Timer("Timer: " + this.getStrategy() + " BODProcessing");
         bodProcessing.schedule(runBOD, 1 * 60 * 1000);
@@ -453,6 +460,7 @@ public class Swing extends Strategy implements TradeListener {
                                 break;
                             case TAKEPROFIT:
                                 try {
+                                    interpreter.set("bartppoints", high - close);
                                     interpreter.eval("stop=" + takeProfitExpression);
                                     stop.stopValue = Utilities.getDouble(interpreter.get("stop"), 0);
                                 } catch (Exception e) {
@@ -484,6 +492,7 @@ public class Swing extends Strategy implements TradeListener {
                                 break;
                             case TAKEPROFIT:
                                 try {
+                                    interpreter.set("bartppoints", close-low);
                                     interpreter.eval("stop=" + takeProfitExpression);
                                     stop.stopValue = Utilities.getDouble(interpreter.get("stop"), 0);
                                 } catch (Exception e) {
