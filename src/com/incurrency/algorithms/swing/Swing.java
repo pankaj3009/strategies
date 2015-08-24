@@ -271,7 +271,7 @@ public class Swing extends Strategy implements TradeListener {
                             }
                         }
                     }
-                    if (slTrigger || tpTrigger) {
+                    if ( !this.isStopOrders()&& (slTrigger || tpTrigger)) {
                         logger.log(Level.INFO, "501,Long SLTP Exit,{0}", new Object[]{this.getStrategy() + delimiter + Parameters.symbol.get(id).getDisplayname() + delimiter + slTrigger + delimiter + tpTrigger + delimiter + Parameters.symbol.get(id).getLastPrice() + delimiter + slDistance + delimiter + tpDistance + delimiter + sl + delimiter + tp});
                         int size = this.getPosition().get(id).getPosition();
                         HashMap<String, Object> order = new HashMap<>();
@@ -326,7 +326,7 @@ public class Swing extends Strategy implements TradeListener {
                             }
                         }
                     }
-                    if (slTrigger || tpTrigger) {
+                    if (!this.isStopOrders()&& (slTrigger || tpTrigger)) {
                         logger.log(Level.INFO, "501,Short SLTP Exit,{0}", new Object[]{this.getStrategy() + delimiter + Parameters.symbol.get(id).getDisplayname() + delimiter + slTrigger + delimiter + tpTrigger + delimiter + Parameters.symbol.get(id).getLastPrice() + delimiter + slDistance + delimiter + tpDistance + delimiter + sl + delimiter + tp});
                         int size = this.getPosition().get(id).getPosition();
                         HashMap<String, Object> order = new HashMap<>();
