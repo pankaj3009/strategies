@@ -669,6 +669,7 @@ public class Swing extends Strategy implements TradeListener {
                     try {
                         Interpreter interpreter = new Interpreter();
                         interpreter.set("prob", stats.get("probability"));
+                        interpreter.set("daysinswing", stats.get("daysinupswing")+stats.get("daysindownswing"));
                         interpreter.eval("result=" + ranking);
                         score = Double.valueOf(interpreter.get("result").toString());
                     } catch (Exception e) {
@@ -835,10 +836,10 @@ public class Swing extends Strategy implements TradeListener {
     private void portfolioTrades() {
         //Recalculate open positions to handle changes during scan.    
         if (this.getLongOnly()) {
-            longpositionCount = Utilities.openPositionCount(Parameters.symbol, this.getOrderFile(), this.getStrategy(), this.getPointValue(), true);
+            longpositionCount = Utilities.openPositionCount(Parameters.symbol, this.getTrades(), this.getStrategy(), this.getPointValue(), true);
         }
         if (this.getShortOnly()) {
-            shortpositionCount = Utilities.openPositionCount(Parameters.symbol, this.getOrderFile(), this.getStrategy(), this.getPointValue(), false);
+            shortpositionCount = Utilities.openPositionCount(Parameters.symbol, this.getTrades(), this.getStrategy(), this.getPointValue(), false);
         }
         logger.log(Level.INFO, "501,LongPositionCount,{0}", new Object[]{getStrategy() + delimiter + longpositionCount});
         logger.log(Level.INFO, "501,ShortPositionCount,{0}", new Object[]{getStrategy() + delimiter + shortpositionCount});
