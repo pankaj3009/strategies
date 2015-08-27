@@ -669,6 +669,7 @@ public class Swing extends Strategy implements TradeListener {
                     try {
                         Interpreter interpreter = new Interpreter();
                         interpreter.set("prob", stats.get("probability"));
+                        interpreter.set("daysinswing",stats.get("daysinupswing")+stats.get("daysindownswing"));
                         interpreter.eval("result=" + ranking);
                         score = Double.valueOf(interpreter.get("result").toString());
                     } catch (Exception e) {
