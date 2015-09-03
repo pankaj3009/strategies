@@ -372,7 +372,7 @@ public class Swing extends Strategy implements TradeListener {
     };
 
     private void updateStops() {
-        logger.log(Level.INFO, "501,BOD Update Stop Process started");
+        logger.log(Level.INFO, "501,BODProcess_UpdateStop,{0}",new Object[]{this.getStrategy()});
         RConnection c = null;
         try {
             c = new RConnection(rServerIP);
@@ -515,7 +515,7 @@ public class Swing extends Strategy implements TradeListener {
     }
 
     private void scan() {
-        logger.log(Level.INFO, "501,Scan Started");
+        logger.log(Level.INFO, "501,Scan,{0}",new Object[]{this.getStrategy()});
         RConnection c = null;
         try {
             c = new RConnection(rServerIP);
@@ -697,7 +697,7 @@ public class Swing extends Strategy implements TradeListener {
             }
             DoubleMatrix dtrend = ind.swing(sRef, EnumBarSize.DAILY).getTimeSeries(EnumBarSize.DAILY, "trend");
             int[] indices = dtrend.ne(ReservedValues.EMPTY).findIndices();
-            logger.log(Level.INFO, "102,SymbolDataLength,{0}", new Object[]{sRef.getDisplayname() + delimiter + indices.length});
+            logger.log(Level.FINE, "502,SymbolDataLength,{0}", new Object[]{sRef.getDisplayname() + delimiter + indices.length});
             DoubleMatrix datr = ind.atr(sRef.getTimeSeries(EnumBarSize.DAILY, "high"), sRef.getTimeSeries(EnumBarSize.DAILY, "low"), sRef.getTimeSeries(EnumBarSize.DAILY, "settle"), 10);
             indices = Utilities.addArraysNoDuplicates(indices, datr.ne(ReservedValues.EMPTY).findIndices());
             DoubleMatrix dclose = sRef.getTimeSeries(EnumBarSize.DAILY, "settle");
