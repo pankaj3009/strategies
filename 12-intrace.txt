@@ -23,5 +23,4 @@ Long=true
 Short=true
 ############## PER STRATEGY VARIABLES ##################
 OrderFileName=orders.csv
-#Directory="C:\\Users\\Administrator\\OneDrive\\Software\\instrat"
-Directory="C:\\Users\\Pankaj\\OneDrive\\Software\\instrat"
+Directory="C:\\Users\\Pankaj\\Documents\\Seafile\\git\\strategies"

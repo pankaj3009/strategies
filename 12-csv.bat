@@ -1,0 +1,1 @@
+java -jar strategies.jar propertyfile=12-globalproperties.txt csv=12-intrace.txt

@@ -556,25 +556,26 @@ public class Swing extends Strategy implements TradeListener {
                         boolean cCover = false;
                         try {
                             interpreter.set("result", Utilities.roundTo(result, 1));
+                            interpreter.set("result", 1);
                             interpreter.set("prob", today_predict_prob);
                             interpreter.set("trend", trend);
                             interpreter.eval("cBuy="+buyCondition);//.getLastPrice() != 0 && this.getLongOnly() && size == 0");
                             interpreter.eval("cShort="+shortCondition);
                             interpreter.eval("cSell="+sellCondition);
                             interpreter.eval("cCover="+coverCondition);
+                            logger.log(Level.INFO,"Symbol:{0},Result:{1},Today Prob:{2},Trend:{3},Current Position:{4},BuyCondition:{5},ShortCondition:{6},SellCondition:{7},CoverCondition:{8}",
+                                    new Object[]{s.getDisplayname(),Utilities.roundTo(result, 1),today_predict_prob,trend,size,interpreter.get("cBuy").toString(),
+                                        interpreter.get("cShort").toString(),interpreter.get("cSell").toString(),interpreter.get("cCover").toString()});
                             cBuy=(boolean)interpreter.get("cBuy") && s.getLastPrice() != 0 && this.getLongOnly() && !this.isStopOrders() && size <= 0;
                             cShort=(boolean)interpreter.get("cShort") && s.getLastPrice() != 0 && this.getShortOnly()&& !this.isStopOrders()  && size >= 0;
                             cSell=(boolean)interpreter.get("cSell") && s.getLastPrice() != 0  && !this.isStopOrders() && size > 0;
                             cCover=(boolean)interpreter.get("cCover") && s.getLastPrice() != 0 && !this.isStopOrders() && size < 0;
+                            logger.log(Level.INFO,"Symbol:{0},Result:{1},Today Prob:{2},Trend:{3},Current Position:{4},BuySignal:{5},ShortSignal:{6},SellSignal:{7},CoverSignal:{8}",
+                                    new Object[]{s.getDisplayname(),Utilities.roundTo(result, 1),today_predict_prob,trend,size,cBuy,cShort,cSell,cCover});
                         } catch (Exception e) {
                             logger.log(Level.SEVERE, null, e);
                         }
-                        //boolean cBuy = Utilities.roundTo(result, 1) == 1 && today_predict_prob >= 0 && s.getLastPrice() != 0 && this.getLongOnly() && size == 0;
-                        //boolean cSell = Utilities.roundTo(result, 1) != 1 && today_predict_prob >= 0 && s.getLastPrice() != 0 && this.getLongOnly() && size > 0;
-                        //boolean cShort = Utilities.roundTo(result, 1) == 0 && today_predict_prob >= 0 && s.getLastPrice() != 0 && this.getShortOnly() && size == 0;
-                        //boolean cCover = Utilities.roundTo(result, 1) != 0 && today_predict_prob >= 0 && s.getLastPrice() != 0 && this.getShortOnly() && size < 0;
-                        //cSell = false;
-                        //cCover = false;
+
                         //First Handle Exits
                         if (cSell) {
                             swingTrigger = Trigger.SELL;

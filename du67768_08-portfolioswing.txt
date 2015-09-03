@@ -23,8 +23,8 @@ Long=true
 Short=true
 ############## PER STRATEGY VARIABLES ##################
 #Traded Symbol Name
-NearMonthExpiry=20150827
-FarMonthExpiry=20150924
+NearMonthExpiry=20150924
+FarMonthExpiry=20151029
 ReferenceCashType=STK
 RServerIP=notanotherfund.com
 RWorkingDirectory=/home/psharma/strategies/swing
@@ -36,7 +36,7 @@ BuyCondition=result==1 && prob>=0 && trend==1
 ShortCondition=result==0 && prob>=0 && trend==-1
 SellCondition=result==0 
 CoverCondition=result==1
-Ranking=100-daysinswing
+RankingRule=100-daysinswing+prob
 #### End of Expressions ################
 StopLossPercentage=1
 TakeProfitPercentage=5
