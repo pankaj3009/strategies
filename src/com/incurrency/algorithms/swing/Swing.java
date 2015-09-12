@@ -556,7 +556,6 @@ public class Swing extends Strategy implements TradeListener {
                         boolean cCover = false;
                         try {
                             interpreter.set("result", Utilities.roundTo(result, 1));
-                            interpreter.set("result", 1);
                             interpreter.set("prob", today_predict_prob);
                             interpreter.set("trend", trend);
                             interpreter.eval("cBuy="+buyCondition);//.getLastPrice() != 0 && this.getLongOnly() && size == 0");

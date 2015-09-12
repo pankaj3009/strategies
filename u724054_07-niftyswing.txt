@@ -43,8 +43,8 @@ ParameterObjectPath=/home/psharma/strategies/swing
 #ParameterObjectPath=C:/Users/Pankaj/Documents/Seafile/ML-Coursera/R
 MaxPositions=2
 SameDayReentry=true
-StopOrders=true
+StopOrders=false
 #not used at present
 UseCustomDateRangeForTraining=true 
-TestingTimer=1
+TestingTimer=0
 
