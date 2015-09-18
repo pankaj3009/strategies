@@ -8,7 +8,7 @@ package com.incurrency.algorithms.others;
 import com.incurrency.framework.Algorithm;
 import com.incurrency.framework.BeanConnection;
 import com.incurrency.framework.BeanSymbol;
-import com.incurrency.framework.fundamental.FundamentalData;
+import com.incurrency.framework.fundamental.FundamentalDataOld;
 import com.incurrency.framework.fundamental.FundamentalDataEvent;
 import com.incurrency.framework.fundamental.FundamentalDataListener;
 import com.incurrency.framework.Parameters;
@@ -65,7 +65,7 @@ public class FundamentalDataCollector extends Algorithm implements FundamentalDa
             }
         }
            
-                Thread f = new Thread(new FundamentalData());
+                Thread f = new Thread(new FundamentalDataOld());
                 f.start();
                     }
 

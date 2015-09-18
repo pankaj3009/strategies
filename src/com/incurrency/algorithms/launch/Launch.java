@@ -510,6 +510,10 @@ public class Launch extends javax.swing.JFrame {
          if(input.get("eodmaintenance")!=null){
             algo.registerStrategy("com.incurrency.eodmaintenance.EODMaintenance");
         }
+         
+         if(input.get("fundamental")!=null){
+             algo.registerStrategy("com.incurrency.algorithms.fundamental.Fundamental");
+         }
 
         algo.postInit();
     }
