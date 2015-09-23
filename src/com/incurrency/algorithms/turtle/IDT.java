@@ -603,7 +603,7 @@ public class IDT extends Strategy implements Serializable, HistoricalBarListener
                 //getPosition().put(j.getKey(), new BeanPosition(j.getKey(), getStrategy()));
                 int entryInternalOrderID = this.internalOpenOrders.get(id);
                 int internalorderid = getInternalOrderID();
-                Trade.updateExit(getTrades(),id, EnumOrderReason.REGULAREXIT, EnumOrderSide.SELL, Parameters.symbol.get(id).getLastPrice(), size, internalorderid, 0,internalorderid,entryInternalOrderID, getTimeZone(), "Order");
+//                Trade.updateExit(getTrades(),id, EnumOrderReason.REGULAREXIT, EnumOrderSide.SELL, Parameters.symbol.get(id).getLastPrice(), size, internalorderid, 0,internalorderid,entryInternalOrderID, getTimeZone(), "Order");
                 logger.log(Level.INFO, "501,StrategyExit,{0}", new Object[]{getStrategy() + delimiter + "SELL" + delimiter + Parameters.symbol.get(id).getDisplayname()});
                 double cushion = 0;
                 if (!expiry.equals("")) {
@@ -622,7 +622,7 @@ public class IDT extends Strategy implements Serializable, HistoricalBarListener
                 //getPosition().put(j.getKey(), new BeanPosition(j.getKey(), getStrategy()));
                 int entryInternalOrderID = this.internalOpenOrders.get(id);
                 int internalorderid = getInternalOrderID();
-                Trade.updateExit(getTrades(),id, EnumOrderReason.REGULAREXIT, EnumOrderSide.COVER, Parameters.symbol.get(id).getLastPrice(), size, internalorderid, 0,internalorderid, entryInternalOrderID,getTimeZone(), "Order");
+//                Trade.updateExit(getTrades(),id, EnumOrderReason.REGULAREXIT, EnumOrderSide.COVER, Parameters.symbol.get(id).getLastPrice(), size, internalorderid, 0,internalorderid, entryInternalOrderID,getTimeZone(), "Order");
                 logger.log(Level.INFO, "501,StrategyExit,{0}", new Object[]{getStrategy() + delimiter + "COVER" + delimiter + Parameters.symbol.get(id).getDisplayname()});
                 double cushion = 0;
                 if (!expiry.equals("")) {

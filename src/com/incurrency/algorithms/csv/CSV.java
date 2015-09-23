@@ -134,8 +134,8 @@ public class CSV extends Strategy {
                                 entryID = internalorderid;
                                 exitID = entryID;
                                 this.internalOpenOrders.put(id, internalorderid);
-                                int parentorderid=Trade.getParentExitOrderIDInternal(getTrades(), internalorderid);
-                                new Trade(getTrades(),id, id, sreason, sside, Parameters.symbol.get(id).getLastPrice(), ssize, internalorderid, 0, parentorderid,getTimeZone(), "Order");
+//                                int parentorderid=Trade.getParentExitOrderIDInternal(getTrades(), internalorderid);
+ //                               new Trade(getTrades(),id, id, sreason, sside, Parameters.symbol.get(id).getLastPrice(), ssize, internalorderid, 0, parentorderid,getTimeZone(), "Order");
                                 //this.entry(ord.getOrder());
                                 break;
                             case SELL:
@@ -144,8 +144,8 @@ public class CSV extends Strategy {
                                 int tempinternalOrderID = this.getFirstInternalOpenOrder(id, sside, "Order");
                                 entryID = tempinternalOrderID;
                                 exitID = internalorderid;
-                                parentorderid=Trade.getParentExitOrderIDInternal(getTrades(), tempinternalOrderID);
-                                Trade.updateExit(getTrades(), id, EnumOrderReason.SL, EnumOrderSide.BUY, i, i, internalorderid, id, parentorderid, entryID, timeZone, allAccounts);
+//                                parentorderid=Trade.getParentExitOrderIDInternal(getTrades(), tempinternalOrderID);
+//                                Trade.updateExit(getTrades(), id, EnumOrderReason.SL, EnumOrderSide.BUY, i, i, internalorderid, id, parentorderid, entryID, timeZone, allAccounts);
                                 //this.exit(ord.getOrder());
                                 break;
                             default:
@@ -171,9 +171,9 @@ public class CSV extends Strategy {
                             int internalorderid = getInternalOrderID();
                             entryID = internalorderid;
                             exitID = entryID;
-                            int parentorderid=Trade.getParentExitOrderIDInternal(getTrades(), internalorderid);
+//                            int parentorderid=Trade.getParentExitOrderIDInternal(getTrades(), internalorderid);
                             this.internalOpenOrders.put(id, internalorderid);
-                            new Trade(getTrades(),id, id, sreason, sside, Parameters.symbol.get(id).getLastPrice(), ssize, internalorderid, 0, parentorderid,getTimeZone(), "Order");
+                            //new Trade(getTrades(),id, id, sreason, sside, Parameters.symbol.get(id).getLastPrice(), ssize, internalorderid, 0, parentorderid,getTimeZone(), "Order");
                             //this.entry(ord.getOrder());
                             break;
                         case SELL:
@@ -182,8 +182,8 @@ public class CSV extends Strategy {
                             int tempinternalOrderID = this.getFirstInternalOpenOrder(id, sside, "Order");
                             entryID = tempinternalOrderID;
                             exitID = internalorderid;
-                            parentorderid=Trade.getParentExitOrderIDInternal(getTrades(), tempinternalOrderID);
-                            Trade.updateExit(getTrades(),id, sreason, sside,Parameters.symbol.get(id).getLastPrice(), ssize, internalorderid, 0, parentorderid,entryID,getTimeZone(), "Order");
+//                            parentorderid=Trade.getParentExitOrderIDInternal(getTrades(), tempinternalOrderID);
+                            //Trade.updateExit(getTrades(),id, sreason, sside,Parameters.symbol.get(id).getLastPrice(), ssize, internalorderid, 0, parentorderid,entryID,getTimeZone(), "Order");
                             //this.exit(ord.getOrder());
                             break;
                         default:

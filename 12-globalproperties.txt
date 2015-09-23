@@ -28,3 +28,4 @@ barsize=1sec
 deemedcancellation=103,135,201,202,461
 threadlimit=1
 historicaldataserver=notanotherfund.com:5559
+redisurl=notanotherfund.com:6379

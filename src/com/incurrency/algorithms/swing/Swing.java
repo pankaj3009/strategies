@@ -5,10 +5,8 @@
 package com.incurrency.algorithms.swing;
 
 import bsh.Interpreter;
-import com.espertech.esper.client.util.DateTime;
 import com.incurrency.algorithms.pairs.Pairs;
 import com.incurrency.RatesClient.Subscribe;
-import com.incurrency.algorithms.adr.ADRValues;
 import com.incurrency.framework.Algorithm;
 import com.incurrency.framework.BeanConnection;
 import com.incurrency.framework.BeanSymbol;
@@ -55,8 +53,6 @@ import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 import javax.swing.JFrame;
-import org.rosuda.REngine.REXPMismatchException;
-import org.rosuda.REngine.REngineException;
 
 /**
  *
@@ -175,10 +171,10 @@ public class Swing extends Strategy implements TradeListener {
         }
         
         if (this.getLongOnly()) {
-            longpositionCount = Utilities.openPositionCount(Parameters.symbol, this.getOrderFile(), this.getStrategy(), this.getPointValue(), true);
+            longpositionCount = Utilities.openPositionCount(db,Parameters.symbol, this.getStrategy(), this.getPointValue(), true);
         }
         if (this.getShortOnly()) {
-            shortpositionCount = Utilities.openPositionCount(Parameters.symbol, this.getOrderFile(), this.getStrategy(), this.getPointValue(), false);
+            shortpositionCount = Utilities.openPositionCount(db,Parameters.symbol, this.getStrategy(), this.getPointValue(), false);
         }
         logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Max Open Position" + delimiter + maxPositions});
         logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Current Long Open Position" + delimiter + longpositionCount});
@@ -241,7 +237,7 @@ public class Swing extends Strategy implements TradeListener {
                 if (this.getPosition().get(id).getPosition() > 0) {
                     int referenceid=Utilities.getReferenceID(Parameters.symbol, id, referenceCashType);
                     Double tradePrice = this.getPosition().get(id).getPrice();
-                    ArrayList<Stop> stops = Trade.getStop(getTrades(), this.getFirstInternalOpenOrder(id, EnumOrderSide.SELL, "Order") + "_Order");
+                    ArrayList<Stop> stops = Trade.getStop(db, this.getStrategy()+"_"+this.getFirstInternalOpenOrder(id, EnumOrderSide.SELL, "Order") + "_Order");
                     boolean tpTrigger = false;
                     boolean slTrigger = false;
                     double tpDistance = 0D;
@@ -296,7 +292,7 @@ public class Swing extends Strategy implements TradeListener {
                     Double tradePrice = this.getPosition().get(id).getPrice();
                     int referenceid=Utilities.getReferenceID(Parameters.symbol, id, referenceCashType);
                     int internalorderid = this.getFirstInternalOpenOrder(id, EnumOrderSide.COVER, "Order");
-                    ArrayList<Stop> stops = Trade.getStop(getTrades(), internalorderid + "_Order");
+                    ArrayList<Stop> stops = Trade.getStop(db, this.getStrategy()+"_"+internalorderid + "_Order");
                     boolean tpTrigger = false;
                     boolean slTrigger = false;
                     double tpDistance = 0D;
@@ -388,11 +384,10 @@ public class Swing extends Strategy implements TradeListener {
         } catch (Exception e) {
             logger.log(Level.SEVERE, null, e);
         }
-        for (Entry entry : getTrades().store.entrySet()) {
-            String key = (String) entry.getKey();
-            ArrayList<Stop> stops = Trade.getStop(getTrades(), key);
+        for (String key : db.getKeys("opentrades")) {
+            ArrayList<Stop> stops = Trade.getStop(db, key);
             if (stops != null) {
-                String childsymboldisplayname = Trade.getEntrySymbol(getTrades(), key);
+                String childsymboldisplayname = Trade.getEntrySymbol(db, key);
                 int childid = Utilities.getIDFromDisplayName(Parameters.symbol, childsymboldisplayname);
                 int referenceid = Utilities.getReferenceID(Parameters.symbol, childid, referenceCashType);
                 HashMap<String, Double> stats = getStats(c, referenceid, false);
@@ -404,6 +399,7 @@ public class Swing extends Strategy implements TradeListener {
                             }
                         }
                     }
+                    Trade.setStop(db, key, "opentrades", stops);
                 }
             }
         }
@@ -419,7 +415,7 @@ public class Swing extends Strategy implements TradeListener {
             double prob = Utilities.getDouble(stats.get("probability"), 0.5);
             double atr = Utilities.getDouble(stats.get("atr"), 1);
             String tradeTimeFormat = "yyyy-MM-dd HH:mm:ss";
-            String tradeDateString = Trade.getEntryTime(getTrades(), key);
+            String tradeDateString = Trade.getEntryTime(db, key);
             Date tradeDate = DateUtil.parseDate(tradeTimeFormat, tradeDateString, Algorithm.timeZone);
             long historicalTime = Parameters.symbol.get(referenceid).getTimeFloor(EnumBarSize.DAILY, tradeDate.getTime(), "settle");
             if (historicalTime != ReservedValues.EMPTY) {
@@ -440,7 +436,7 @@ public class Swing extends Strategy implements TradeListener {
                 } catch (Exception e) {
                     logger.log(Level.SEVERE, null, e);
                 }
-                EnumOrderSide side = Trade.getEntrySide(getTrades(), key);
+                EnumOrderSide side = Trade.getEntrySide(db, key);
                 switch (side) {
                     case BUY:
                         EnumStopType type = stop.stopType;
@@ -836,10 +832,10 @@ public class Swing extends Strategy implements TradeListener {
     private void portfolioTrades() {
         //Recalculate open positions to handle changes during scan.    
         if (this.getLongOnly()) {
-            longpositionCount = Utilities.openPositionCount(Parameters.symbol, this.getTrades(), this.getStrategy(), this.getPointValue(), true);
+            longpositionCount = Utilities.openPositionCount(db,Parameters.symbol, this.getStrategy(), this.getPointValue(), true);
         }
         if (this.getShortOnly()) {
-            shortpositionCount = Utilities.openPositionCount(Parameters.symbol, this.getTrades(), this.getStrategy(), this.getPointValue(), false);
+            shortpositionCount = Utilities.openPositionCount(db,Parameters.symbol,this.getStrategy(), this.getPointValue(), false);
         }
         logger.log(Level.INFO, "501,LongPositionCount,{0}", new Object[]{getStrategy() + delimiter + longpositionCount});
         logger.log(Level.INFO, "501,ShortPositionCount,{0}", new Object[]{getStrategy() + delimiter + shortpositionCount});
@@ -902,7 +898,7 @@ public class Swing extends Strategy implements TradeListener {
                 ArrayList<Stop> stops = new ArrayList<>();
                 stops.add(sl);
                 stops.add(tp);
-                Trade.setStop(getTrades(), orderid + "_" + "Order", stops);
+                Trade.setStop(db, this.getStrategy()+"_"+orderid + "_" + "Order","opentrades", stops);
             }
         }
 
@@ -962,7 +958,7 @@ public class Swing extends Strategy implements TradeListener {
                 ArrayList<Stop> stops = new ArrayList<>();
                 stops.add(sl);
                 stops.add(tp);
-                Trade.setStop(getTrades(), orderid + "_" + "Order", stops);
+                Trade.setStop(db, this.getStrategy()+"_"+orderid + "_" + "Order","opentrades", stops);
             }
         }
     }
