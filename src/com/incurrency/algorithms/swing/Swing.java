@@ -237,7 +237,7 @@ public class Swing extends Strategy implements TradeListener {
                 if (this.getPosition().get(id).getPosition() > 0) {
                     int referenceid=Utilities.getReferenceID(Parameters.symbol, id, referenceCashType);
                     Double tradePrice = this.getPosition().get(id).getPrice();
-                    ArrayList<Stop> stops = Trade.getStop(db, this.getStrategy()+"_"+this.getFirstInternalOpenOrder(id, EnumOrderSide.SELL, "Order") + "_Order");
+                    ArrayList<Stop> stops = Trade.getStop(db, this.getStrategy()+":"+this.getFirstInternalOpenOrder(id, EnumOrderSide.SELL, "Order") + ":Order");
                     boolean tpTrigger = false;
                     boolean slTrigger = false;
                     double tpDistance = 0D;
@@ -292,7 +292,7 @@ public class Swing extends Strategy implements TradeListener {
                     Double tradePrice = this.getPosition().get(id).getPrice();
                     int referenceid=Utilities.getReferenceID(Parameters.symbol, id, referenceCashType);
                     int internalorderid = this.getFirstInternalOpenOrder(id, EnumOrderSide.COVER, "Order");
-                    ArrayList<Stop> stops = Trade.getStop(db, this.getStrategy()+"_"+internalorderid + "_Order");
+                    ArrayList<Stop> stops = Trade.getStop(db, this.getStrategy()+":"+internalorderid + ":Order");
                     boolean tpTrigger = false;
                     boolean slTrigger = false;
                     double tpDistance = 0D;
