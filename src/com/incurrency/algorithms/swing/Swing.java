@@ -898,7 +898,7 @@ public class Swing extends Strategy implements TradeListener {
                 ArrayList<Stop> stops = new ArrayList<>();
                 stops.add(sl);
                 stops.add(tp);
-                Trade.setStop(db, this.getStrategy()+"_"+orderid + "_" + "Order","opentrades", stops);
+                Trade.setStop(db, this.getStrategy()+":"+orderid + ":" + "Order","opentrades", stops);
             }
         }
 
@@ -958,7 +958,7 @@ public class Swing extends Strategy implements TradeListener {
                 ArrayList<Stop> stops = new ArrayList<>();
                 stops.add(sl);
                 stops.add(tp);
-                Trade.setStop(db, this.getStrategy()+"_"+orderid + "_" + "Order","opentrades", stops);
+                Trade.setStop(db, this.getStrategy()+":"+orderid + ":" + "Order","opentrades", stops);
             }
         }
     }
