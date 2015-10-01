@@ -390,6 +390,7 @@ public class Swing extends Strategy implements TradeListener {
                 String childsymboldisplayname = Trade.getEntrySymbol(db, key);
                 int childid = Utilities.getIDFromDisplayName(Parameters.symbol, childsymboldisplayname);
                 int referenceid = Utilities.getReferenceID(Parameters.symbol, childid, referenceCashType);
+                if(referenceid>=0){
                 HashMap<String, Double> stats = getStats(c, referenceid, false);
                 if (!stats.isEmpty()) {
                     for (Stop stop : stops) {
@@ -400,6 +401,7 @@ public class Swing extends Strategy implements TradeListener {
                         }
                     }
                     Trade.setStop(db, key, "opentrades", stops);
+                }
                 }
             }
         }
@@ -684,6 +686,7 @@ public class Swing extends Strategy implements TradeListener {
 
     private HashMap<String, Double> getStats(RConnection c, int referenceid, boolean today) {
         HashMap<String, Double> out = new HashMap<>();
+            try {        
         BeanSymbol sRef = Parameters.symbol.get(referenceid);
         if (sRef.getDataLength(EnumBarSize.DAILY, "settle") > 100) {
             if (today) {
@@ -747,7 +750,6 @@ public class Swing extends Strategy implements TradeListener {
             DoubleMatrix dma = ind.ma(dclose, 10);
             DoubleMatrix dmazscore = ind.zscore(dma, 10);
             DoubleMatrix dy = MatrixMethods.ref(dupdownbar, 1).eq(1);
-            try {
                 c.assign("tradedate", Utilities.convertLongListToArray(dT));
                 c.assign("trend", dtrend.data);
                 c.assign("daysinupswing", ddaysinupswing.data);
@@ -822,10 +824,10 @@ public class Swing extends Strategy implements TradeListener {
                 out.put("daysindownswing", lValue(ddaysindownswing));
                 out.put("trend", lValue(dtrend));
 
-            } catch (Exception e) {
+            }
+            }catch (Exception e) {
                 logger.log(Level.SEVERE, null, e);
             }
-        }
         return out;
     }
 
