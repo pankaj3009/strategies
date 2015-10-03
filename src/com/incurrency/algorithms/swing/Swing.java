@@ -406,7 +406,10 @@ public class Swing extends Strategy implements TradeListener {
             if (stops != null) {
                 String childsymboldisplayname = Trade.getEntrySymbol(db, key);
                 int childid = Utilities.getIDFromDisplayName(Parameters.symbol, childsymboldisplayname);
-                int referenceid = Utilities.getReferenceID(Parameters.symbol, childid, referenceCashType);
+                int referenceid=-1;
+                if(childid>=0){
+                referenceid = Utilities.getReferenceID(Parameters.symbol, childid, referenceCashType);
+                }
                 if (referenceid >= 0) {
                     HashMap<String, Double> stats = getStats(c, referenceid, false);
                     if (!stats.isEmpty()) {
@@ -463,6 +466,7 @@ public class Swing extends Strategy implements TradeListener {
                             case STOPLOSS:
                                 try {
                                     interpreter.set("barslpoints", close - low);
+                                    interpreter.set("bartppoints", high - close);
                                     interpreter.eval("stop=" + stopLossExpression);
                                     stop.stopValue = Utilities.getDouble(interpreter.get("stop"), 0);
                                 } catch (Exception e) {
@@ -475,6 +479,7 @@ public class Swing extends Strategy implements TradeListener {
                                 break;
                             case TAKEPROFIT:
                                 try {
+                                    interpreter.set("barslpoints", close - low);                                    
                                     interpreter.set("bartppoints", high - close);
                                     interpreter.eval("stop=" + takeProfitExpression);
                                     stop.stopValue = Utilities.getDouble(interpreter.get("stop"), 0);
@@ -495,6 +500,7 @@ public class Swing extends Strategy implements TradeListener {
                             case STOPLOSS:
                                 try {
                                     interpreter.set("barslpoints", high - close);
+                                    interpreter.set("bartppoints", close - low);
                                     interpreter.eval("stop=" + stopLossExpression);
                                     stop.stopValue = Utilities.getDouble(interpreter.get("stop"), 0);
                                 } catch (Exception e) {
@@ -507,6 +513,7 @@ public class Swing extends Strategy implements TradeListener {
                                 break;
                             case TAKEPROFIT:
                                 try {
+                                    interpreter.set("barslpoints", high - close);
                                     interpreter.set("bartppoints", close - low);
                                     interpreter.eval("stop=" + takeProfitExpression);
                                     stop.stopValue = Utilities.getDouble(interpreter.get("stop"), 0);

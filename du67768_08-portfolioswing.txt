@@ -31,7 +31,7 @@ RWorkingDirectory=/home/psharma/strategies/swing
 EntryScanTime=15:26:00
 #### Expressions ########
 StopLoss=barslpoints*(1+prob-0.5)
-TakeProfit=2*bartppoints*(1+prob-0.5)
+TakeProfit=2*barslpoints*(1+prob-0.5)*(1+prob-0.5)
 BuyCondition=result==1 && prob>=0 && trend==1
 ShortCondition=result==0 && prob>=0 && trend==-1
 SellCondition=result==0 
@@ -44,13 +44,13 @@ UpProbabilityThreshold=0.7
 DownProbabilityThreshold=0.3
 cassandrametric=india.nse.equity.s4.daily
 timeseries=open,high,low,settle,volume
-ParameterObjectPath=/home/psharma/strategies/swing
-#ParameterObjectPath=C:/Users/Pankaj/Documents/Seafile/ML-Coursera/R
+#ParameterObjectPath=/home/psharma/strategies/swing
+ParameterObjectPath=C:/Users/Pankaj/Documents/Seafile/ML-Coursera/R
 MaxPositions=5
 SameDayReentry=true
-#redisurl=notanotherfund.com:6380
+redisurl=notanotherfund.com:6380
 #not used at present
 UseCustomDateRangeForTraining=true 
-TestingTimer=1
+TestingTimer=1000
 longsymbols=acc,axisbank,bankbaroda,grasim,hcltech,hindalco,hindunilvr,idea,indusindbk,kotakbank,lt,maruti,pnb,sbin,tatamotors,tatasteel,tcs,techm,ultracemco,yesbank,zeel
 shortsymbols=acc,axisbank,bankbaroda,cairn,cipla,grasim,hcltech,hindalco,hindunilvr,icicibank,idea,indusindbk,itc,kotakbank,lt,lupin,m&m,maruti,ntpc,pnb,powergrid,reliance,sbin,tatamotors,tatapower,tatasteel,tcs,techm,ultracemco,yesbank,zeel
