@@ -293,7 +293,11 @@ public class Swing extends Strategy implements TradeListener {
                         order.put("size", size);
                         order.put("type", EnumOrderType.LMT);
                         order.put("limitprice", Parameters.symbol.get(id).getLastPrice());
-                        order.put("reason", EnumOrderReason.REGULAREXIT);
+                        if(slTrigger){
+                            order.put("reason", EnumOrderReason.SL);
+                        }else{
+                            order.put("reason", EnumOrderReason.TP);
+                        }
                         order.put("orderstage", EnumOrderStage.INIT);
                         order.put("expiretime", this.getMaxOrderDuration());
                         order.put("dynamicorderduration", getDynamicOrderDuration());
@@ -348,7 +352,11 @@ public class Swing extends Strategy implements TradeListener {
                         order.put("size", size);
                         order.put("type", EnumOrderType.LMT);
                         order.put("limitprice", Parameters.symbol.get(id).getLastPrice());
-                        order.put("reason", EnumOrderReason.REGULAREXIT);
+                        if(slTrigger){
+                            order.put("reason", EnumOrderReason.SL);
+                        }else{
+                            order.put("reason", EnumOrderReason.TP);
+                        }
                         order.put("orderstage", EnumOrderStage.INIT);
                         order.put("expiretime", this.getMaxOrderDuration());
                         order.put("dynamicorderduration", getDynamicOrderDuration());
