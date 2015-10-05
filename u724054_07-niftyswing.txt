@@ -44,8 +44,11 @@ ParameterObjectPath=/home/psharma/strategies/swing/models
 MaxPositions=2
 SameDayReentry=true
 StopOrders=false
+redisurl=notanotherfund.com:6380
+longsymbols=nsenifty
+shortsymbols=nsenifty
 #not used at present
 UseCustomDateRangeForTraining=true 
-TestingTimer=1000
-redisurl=notanotherfund.com:6380
+TestingTimer=0
+
 

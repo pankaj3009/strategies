@@ -251,7 +251,7 @@ public class Swing extends Strategy implements TradeListener {
         synchronized (lockTradeReceived_1) {
             Integer id = event.getSymbolID();
             if (this.getStrategySymbols().contains(id) && !Parameters.symbol.get(id).getType().equals(referenceCashType)) {
-                if (this.getPosition().get(id).getPosition() > 0) {
+                if (this.getPosition().get(id).getPosition() > 0 && this.getPosition().get(id).getStrategy().equalsIgnoreCase(this.getStrategy())) {
                     int referenceid = Utilities.getReferenceID(Parameters.symbol, id, referenceCashType);
                     Double tradePrice = this.getPosition().get(id).getPrice();
                     ArrayList<Stop> stops = Trade.getStop(db, this.getStrategy() + ":" + this.getFirstInternalOpenOrder(id, EnumOrderSide.SELL, "Order") + ":Order");
@@ -309,7 +309,7 @@ public class Swing extends Strategy implements TradeListener {
                         }
                         longsExitedToday.add(id);
                     }
-                } else if (this.getPosition().get(id).getPosition() < 0) {
+                } else if (this.getPosition().get(id).getPosition() < 0 && this.getPosition().get(id).getStrategy().equalsIgnoreCase(this.getStrategy())) {
                     Double tradePrice = this.getPosition().get(id).getPrice();
                     int referenceid = Utilities.getReferenceID(Parameters.symbol, id, referenceCashType);
                     int internalorderid = this.getFirstInternalOpenOrder(id, EnumOrderSide.COVER, "Order");
@@ -361,6 +361,7 @@ public class Swing extends Strategy implements TradeListener {
                         order.put("expiretime", this.getMaxOrderDuration());
                         order.put("dynamicorderduration", getDynamicOrderDuration());
                         order.put("maxslippage", this.getMaxSlippageExit());
+                        order.put("orderref", this.getStrategy());
                         this.exit(order);
 
                         //this.exit(id, EnumOrderSide.COVER, Math.abs(size), EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
