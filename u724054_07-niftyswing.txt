@@ -49,6 +49,4 @@ longsymbols=nsenifty
 shortsymbols=nsenifty
 #not used at present
 UseCustomDateRangeForTraining=true 
-TestingTimer=0
-
-
+TestingTimer=1000

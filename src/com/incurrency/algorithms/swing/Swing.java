@@ -874,6 +874,8 @@ public class Swing extends Strategy implements TradeListener {
         }
         logger.log(Level.INFO, "501,LongPositionCount,{0}", new Object[]{getStrategy() + delimiter + longpositionCount});
         logger.log(Level.INFO, "501,ShortPositionCount,{0}", new Object[]{getStrategy() + delimiter + shortpositionCount});
+        logger.log(Level.INFO, "501,LongCandidatesCount,{0}", new Object[]{getStrategy() + delimiter + longPositionScore.size()});
+        logger.log(Level.INFO, "501,ShortCandidatesCount,{0}", new Object[]{getStrategy() + delimiter + shortPositionScore.size()});
         
         int longgap = maxPositions - longpositionCount;
         int shortgap = maxPositions - shortpositionCount;

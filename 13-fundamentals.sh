@@ -1,0 +1,1 @@
+java -jar strategies.jar propertyfile=13-globalproperties.txt fundamental=13-fundamental.txt

@@ -44,13 +44,13 @@ UpProbabilityThreshold=0.7
 DownProbabilityThreshold=0.3
 cassandrametric=india.nse.equity.s4.daily
 timeseries=open,high,low,settle,volume
-#ParameterObjectPath=/home/psharma/strategies/swing
-ParameterObjectPath=C:/Users/Pankaj/Documents/Seafile/ML-Coursera/R
+ParameterObjectPath=/home/psharma/strategies/swing
+#ParameterObjectPath=C:/Users/Pankaj/Documents/Seafile/ML-Coursera/R
 MaxPositions=5
 SameDayReentry=true
 redisurl=notanotherfund.com:6380
 #not used at present
 UseCustomDateRangeForTraining=true 
-TestingTimer=1000
+TestingTimer=0
 longsymbols=acc,axisbank,bankbaroda,grasim,hcltech,hindalco,hindunilvr,idea,indusindbk,kotakbank,lt,maruti,pnb,sbin,tatamotors,tatasteel,tcs,techm,ultracemco,yesbank,zeel
 shortsymbols=acc,axisbank,bankbaroda,cairn,cipla,grasim,hcltech,hindalco,hindunilvr,icicibank,idea,indusindbk,itc,kotakbank,lt,lupin,m&m,maruti,ntpc,pnb,powergrid,reliance,sbin,tatamotors,tatapower,tatasteel,tcs,techm,ultracemco,yesbank,zeel
