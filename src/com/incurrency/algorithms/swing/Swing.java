@@ -1080,13 +1080,15 @@ public class Swing extends Strategy implements TradeListener {
 
         //enter new position
         int orderid = -1;
+        int newSize= size/Parameters.symbol.get(targetID).getMinsize() + ((size % Parameters.symbol.get(targetID).getMinsize() == 0) ? 0 : 1); 
+        newSize=newSize*Parameters.symbol.get(targetID).getMinsize();
         switch (origSide) {
             case BUY:
-                logger.log(Level.INFO, "501,Strategy Rollover ENTER BUY,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(initID)});
+                logger.log(Level.INFO, "501,Strategy Rollover ENTER BUY,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(targetID)+delimiter+newSize});
                 HashMap<String, Object> order = new HashMap<>();
-                order.put("id", initID);
+                order.put("id", targetID);
                 order.put("side", EnumOrderSide.BUY);
-                order.put("size", size);
+                order.put("size", newSize);
                 order.put("type", EnumOrderType.LMT);
                 order.put("limitprice", Parameters.symbol.get(initID).getLastPrice());
                 order.put("reason", EnumOrderReason.REGULAREXIT);
@@ -1098,11 +1100,11 @@ public class Swing extends Strategy implements TradeListener {
                 orderid = this.getFirstInternalOpenOrder(initID, EnumOrderSide.SELL, "Order");
                 break;
             case SHORT:
-                logger.log(Level.INFO, "501,Strategy Rollover ENTER SHORT,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(initID)});
+                logger.log(Level.INFO, "501,Strategy Rollover ENTER SHORT,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(targetID)});
                 order = new HashMap<>();
-                order.put("id", initID);
+                order.put("id", targetID);
                 order.put("side", EnumOrderSide.SHORT);
-                order.put("size", size);
+                order.put("size", newSize);
                 order.put("type", EnumOrderType.LMT);
                 order.put("limitprice", Parameters.symbol.get(initID).getLastPrice());
                 order.put("reason", EnumOrderReason.REGULAREXIT);
