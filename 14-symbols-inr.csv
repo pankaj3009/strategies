@@ -1,0 +1,3 @@
+serialno,brokersymbol,exchangesymbol,displayname,type,exchange,primaryexchange,currency,expiry,option,right,minsize,barstarttime,streaming,strategy
+1,TATACOMM,TATACOMM,TATACOMM,STK,NSE,,INR,,,,1,,4,DATA
+2,END,END,END,END,END,END,,,,,1,,4,DATA

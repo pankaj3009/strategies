@@ -308,104 +308,6 @@ public class Launch extends javax.swing.JFrame {
         //</editor-fold>
         launch = new Launch();
         launch.init(args);
-/*
-        for (int i = 0; i < args.length; i++) {
-            input.put(args[i].split("=")[0].toLowerCase(), args[i].split("=")[1].toLowerCase());
-        }
-        headless = (input.get("headless") == null || input.get("headless").compareTo("false") == 0) ? false : true;
-        FileInputStream configFile;
-        if (new File("logging.properties").exists()) {
-            configFile = new FileInputStream("logging.properties");
-            LogManager.getLogManager().readConfiguration(configFile);
-            Logger incurrency = Logger.getLogger("com.incurrency");
-            Level loggingLevel = incurrency.getLevel();
-            level = loggingLevel.intValue();
-        }
-     */
-        /* Create and display the form */
-       /*
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                if (!headless) {
-                    JFrame f = new Launch();
-                    f.pack();
-                    switch (level) {
-                        case 1000:
-                            radioError.setSelected(true);
-                            break;
-                        case 800:
-                            radioInfo.setSelected(true);
-                            break;
-                        case 500:
-                            radioFine.setSelected(true);
-                            break;
-                        case 400:
-                            radioFiner.setSelected(true);
-                            break;
-                        default:
-                            break;
-
-                    }
-                    f.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-                    GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-                    GraphicsDevice defaultScreen = ge.getDefaultScreenDevice();
-                    Rectangle rect = defaultScreen.getDefaultConfiguration().getBounds();
-                    //int x = (int) rect.getMaxX() - f.getWidth();
-                    int x = 0;
-                    int y = (int) rect.getMaxY() - f.getHeight() - 50;
-                    f.setLocation(x, y);
-                    f.setVisible(true);
-                    f.setVisible(true);
-                }
-            }
-        });
-
-        printStream = new PrintStream(new CustomOutputStream());
-        System.setOut(printStream);
-        System.setErr(printStream);
-
-        Thread.sleep(3000);
-        boolean trading = false;
-        if (input.containsKey("backtest")) {
-            trading = false;
-        } else {
-            trading = true;
-        }
-        String title = "Running Strategies";
-        for (int i = 1; i < args.length; i++) {
-            title = title + ":" + args[i];
-        }
-        Launch.getFrames()[0].setTitle(title);
-        algo = MainAlgorithm.getInstance(input);
-        //register strategy
-        while (MainAlgorithm.getInstance() == null) {
-            Thread.yield();
-        }
-        algo = MainAlgorithm.getInstance();
-
-        if (input.get("adr") != null) {
-            algo.registerStrategy("com.incurrency.algorithms.adr.ADR");
-        }
-        if (input.get("adrpublisher") != null) {
-            algo.registerStrategy("com.incurrency.adrpublisher.ADRPublisher");
-        }
-        if (input.get("csv") != null) {
-            algo.registerStrategy("com.incurrency.algorithms.csv.CSV");//
-        }
-        if (input.get("idt") != null) {
-            algo.registerStrategy("com.incurrency.algorithms.turtle.IDT");
-        }
-        if (input.get("historical") != null) {
-            algo.registerStrategy("com.incurrency.algorithms.historical.Historical");
-        }
-        if (input.get("dataserver") != null) {
-            algo.registerStrategy("com.incurrency.dataserver.DataServer");
-        }
-
-        algo.postInit();
-        //JFrame d=new com.incurrency.framework.display.DashBoardNew();
-*/
     }
 
     public void init(String[] args) throws FileNotFoundException, IOException, InterruptedException, Exception {
@@ -514,7 +416,9 @@ public class Launch extends javax.swing.JFrame {
          if(input.get("fundamental")!=null){
              algo.registerStrategy("com.incurrency.algorithms.fundamental.Fundamental");
          }
-
+         if(input.get("valuation")!=null){
+             algo.registerStrategy("com.incurrency.algorithms.valuation.Valuation");
+         }
         algo.postInit();
     }
 

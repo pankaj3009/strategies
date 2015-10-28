@@ -1,0 +1,1 @@
+java -jar strategies.jar propertyfile=14-globalproperties.txt valuation=14-valuation.txt

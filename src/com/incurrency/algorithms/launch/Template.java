@@ -4,7 +4,6 @@
  */
 package com.incurrency.algorithms.launch;
 
-import com.incurrency.algorithms.pairs.Pairs;
 import com.incurrency.RatesClient.Subscribe;
 import com.incurrency.framework.BeanConnection;
 import com.incurrency.framework.BeanPosition;
@@ -26,12 +25,11 @@ import java.util.logging.Logger;
  * @author pankaj
  */
 public class Template extends Strategy implements TradeListener {
-
-    private static final Logger logger = Logger.getLogger(Pairs.class.getName());
+    private static final Logger logger = Logger.getLogger(Template.class.getName());
 
     public Template(MainAlgorithm m,Properties p, String parameterFile, ArrayList<String> accounts, Integer stratCount) {
         super(m, "pair", "FUT", p,parameterFile, accounts,stratCount);
-        loadParameters("pair", parameterFile);
+        loadParameters(p);
         for (BeanSymbol s : Parameters.symbol) {
             getPosition().put(s.getSerialno() - 1, new BeanPosition(s.getSerialno()-1,getStrategy()));
         }
@@ -47,20 +45,8 @@ public class Template extends Strategy implements TradeListener {
         }
     }
 
-    private void loadParameters(String strategy, String parameterFile) {
-        Properties p = new Properties(System.getProperties());
-        FileInputStream propFile;
-        try {
-            propFile = new FileInputStream(parameterFile);
-            try {
-                p.load(propFile);
-            } catch (Exception ex) {
-                logger.log(Level.SEVERE, null, ex);
-            }
-        } catch (Exception ex) {
-            logger.log(Level.SEVERE, null, ex);
-        }
-        System.setProperties(p);
+    private void loadParameters(Properties p) {
+
     }
 
     @Override

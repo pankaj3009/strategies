@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.Properties;
 import java.util.TimeZone;
 import org.jsoup.Jsoup;
@@ -48,7 +49,7 @@ public class EODMaintenance {
         String currentDay = properties.getProperty("currentday", sdf_yyyyMMdd.format(Calendar.getInstance(TimeZone.getTimeZone(Algorithm.timeZone)).getTime()));
         String historicalfutures = properties.getProperty("historicalfutures");
         String historicalstocks = properties.getProperty("historicalstocks");
-        String adrinrstocks = properties.getProperty("adrinrstocks");
+        String swinginr = properties.getProperty("swinginr");
         String rateserverinrmarket = properties.getProperty("rateserverinrmarket");
         String ibsymbolfile = properties.getProperty("ibsymbolfile");
         String ibsymbolurl = properties.getProperty("ibsymbolurl");
@@ -60,8 +61,8 @@ public class EODMaintenance {
         if (historicalstocks != null) {
             rateServerStocks(cnx500url, 1, historicalstocks);
         }
-        if (adrinrstocks != null) {
-            inradr(cnx500url, nextExpiry, 1, adrinrstocks);
+        if (swinginr != null) {
+            inrswing(fnolotsizeurl, nextExpiry, 1, swinginr);
         }
         if (rateserverinrmarket != null) {
             inrmarket(fnolotsizeurl, 11,cnx500url,1,niftyurl,1,nextExpiry, rateserverinrmarket);
@@ -280,11 +281,74 @@ public class EODMaintenance {
         }
     }
 
+    public HashMap<String,Integer> getContractSizes(String expiry,String url,int rowsToSkip) throws ParseException, MalformedURLException, IOException{
+        HashMap<String,Integer> out=new HashMap<>();
+        ArrayList<BeanSymbol> fnoSymbols = new ArrayList<>();
+        SimpleDateFormat formatInFile = new SimpleDateFormat("MMM-yy");
+        SimpleDateFormat sdf_yyyyMMdd = new SimpleDateFormat("yyyyMMdd");
+        String expiryFormattedAsInput = formatInFile.format(sdf_yyyyMMdd.parse(expiry));
+        int columnNumber = -1;
+        URL fnoURL = new URL(url);
+        if (getResponseCode(url) != 404) {
+            BufferedReader in = new BufferedReader(new InputStreamReader(fnoURL.openStream()));
+            int j = 0;
+            int i = 0;
+            String line;
+            while ((line = in.readLine()) != null) {
+                j = j + 1;
+                if (j > rowsToSkip) {
+                    String[] input = line.split(",");
+                    if (j == rowsToSkip + 1) {//we are on the first row containing expiration information
+                        for (String inp : input) {
+                            if (Utilities.isDate(inp, formatInFile)) {
+                                String expiration = inp.trim().toUpperCase();
+                                if (expiration.equalsIgnoreCase(expiryFormattedAsInput)) {
+                                    columnNumber = i;
+                                    break;
+                                }
+                            }
+                            i = i + 1;
+                        }
+                    } else if (columnNumber >= 0) {
+                        if (input[1].trim().length() > 0) {//not an empty row
+                            String exchangesymbol = input[1].trim().toUpperCase();
+                            String displayName = input[1].trim().toUpperCase().replaceAll("[^A-Za-z0-9]", "");
+                            int minsize = Utilities.getInt(input[columnNumber], 0);
+                            if (minsize > 0) {
+                                int id = Utilities.getIDFromExchangeSymbol(symbols, exchangesymbol, "STK", "", "", "");
+                                BeanSymbol s = symbols.get(id);
+                                BeanSymbol s1 = s.clone(s);
+                                s1.setType("FUT");
+                                s1.setExpiry(expiry);
+                                s1.setMinsize(minsize);
+                                s1.setStrategy("DATA");
+                                s1.setDisplayname(displayName);
+                                s1.setStreamingpriority(4);
+                                fnoSymbols.add(s1);
+                            } else {
+                                //do not add row as minsize was not available
+                            }
+                        } else {
+                            //do nothing. Empty row
+                        }
+                    } else {
+                        //do nothing
+                    }
+                }
+            
+    }
+        }
+    for(BeanSymbol s:fnoSymbols){
+        out.put(s.getExchangeSymbol(), s.getMinsize());
+    }
+    return out;
+    }
+    
     public void extractSymbolsFromIB(String urlName, String fileName, ArrayList<BeanSymbol> symbols) throws IOException {
         String constant = "&sequence_idx=";
         if (urlName != null) {
-            String exchange = urlName.split("&")[0].split("=")[1].toUpperCase();
-            String type = urlName.split("&")[1].split("=")[1].toUpperCase();
+            String exchange = urlName.split("&")[1].split("=")[1].toUpperCase();
+            String type = urlName.split("&")[2].split("=")[1].toUpperCase();
             for (int pageno = 100; pageno < 10000; pageno = pageno + 100) {
                 String url = urlName + constant + pageno;
                 System.out.println("Parsing :" + pageno);
@@ -320,6 +384,7 @@ public class EODMaintenance {
                             tempContract.setExchange(exchange);
                             tempContract.setType(type);
                             symbols.add(tempContract);
+                            System.out.println(tempContract.getExchangeSymbol());
                         }
                         i++;
                     }
@@ -630,6 +695,141 @@ public class EODMaintenance {
         }
     }
 
+        /**
+     * Generates symbol file for swing
+     * @param url
+     * @param expiry
+     * @param rowsToSkip
+     * @param outputfilename
+     * @throws MalformedURLException
+     * @throws IOException
+     * @throws ParseException 
+     */
+    public void inrswing(String url, String expiry, int rowsToSkip, String outputfilename) throws MalformedURLException, IOException, ParseException {
+        ArrayList<BeanSymbol> swingSymbols = new ArrayList<>();
+        
+        //update index
+            BeanSymbol s = new BeanSymbol("NIFTY50", "NSENIFTY", "IND", "", "", "");
+            s.setCurrency("INR");
+            s.setExchange("NSE");
+            s.setStreamingpriority(1);
+            s.setStrategy("SWING");
+            s.setMinsize(75);
+            swingSymbols.add(s);
+            s = new BeanSymbol("NIFTY50", "NSENIFTY", "FUT", expiry, "", "");
+            s.setCurrency("INR");
+            s.setExchange("NSE");
+            s.setStreamingpriority(1);
+            s.setStrategy("SWING");
+            s.setMinsize(75);
+            swingSymbols.add(s);
+            s = new BeanSymbol("NIFTY50", "NSENIFTY", "FUT", this.getNextExpiry(expiry), "", "");
+            s.setCurrency("INR");
+            s.setExchange("NSE");
+            s.setStreamingpriority(1);
+            s.setStrategy("SWING");
+            s.setMinsize(75);
+            swingSymbols.add(s);
+            
+        String strategySymbols[]=new String[]{"ACC","AMBUJACEM","ASIANPAINT","AXISBANK","BANKBARODA","BHARTIARTL","BHEL","BPCL","CAIRN","CIPLA","DRREDDY","GAIL","GRASIM","HCLTECH","HDFC","HDFCBANK","HINDALCO","HINDUNILVR","ICICIBANK","IDEA","INDUSINDBK","ITC","KOTAKBANK","LT","LUPIN","MARUTI","M&M","NTPC","ONGC","PNB","POWERGRID","RELIANCE","SBIN","SUNPHARMA","TATAMOTORS","TATAPOWER","TATASTEEL","TCS","TECHM","ULTRACEMCO","WIPRO","YESBANK","ZEEL"};
+        SimpleDateFormat formatInFile = new SimpleDateFormat("MMM-yy");
+        SimpleDateFormat sdf_yyyyMMdd = new SimpleDateFormat("yyyyMMdd");
+        int columnNumber = -1;
+                for(String sym:strategySymbols){
+                        String exchangesymbol = sym;
+                        String displayName = sym.trim().toUpperCase().replaceAll("[^A-Za-z0-9]", "");
+                        int minsize = 1;
+                        int id = Utilities.getIDFromExchangeSymbol(symbols, exchangesymbol, "STK", "", "", "");
+                        if (id >= 0) {//symbol not in existing file
+                            s = symbols.get(id);
+                            BeanSymbol s1 = s.clone(s);
+                            s1.setType("FUT");
+                            s1.setExpiry("");
+                            s1.setMinsize(minsize);
+                            s1.setStrategy("SWING");
+                            s1.setStreamingpriority(2);
+                            swingSymbols.add(s1);
+            } else {
+                System.out.println("Exchange Symbol " + exchangesymbol + " not found in IB data");
+            }
+        }
+        HashMap<String, Integer> nearExpiry = getContractSizes(expiry, url, 11);
+        String nextExpiry = getNextExpiry(expiry);
+        HashMap<String, Integer> farExpiry = getContractSizes(nextExpiry, url, 11);
+
+
+        //now write data to file
+        File outputFile = new File(outputfilename);
+        if (swingSymbols.size() > 0) {
+            Utilities.deleteFile(outputFile);
+
+       
+            //update future expiry 1
+            for(BeanSymbol s1:swingSymbols){
+                if(s1.getType()!="IND"){
+                Integer size=nearExpiry.get(s1.getExchangeSymbol());
+                if(size!=null){
+                s1.setMinsize(size);
+                s1.setExpiry(expiry);
+                }
+                }
+            }
+            //create next month expiry
+            ArrayList<BeanSymbol>second=new ArrayList<BeanSymbol>();
+            String nextExipiry=getNextExpiry(expiry);
+            for(BeanSymbol s1:swingSymbols){
+                if(s1.getType()!="IND" && !s1.getExchangeSymbol().equals("NSENIFTY")){
+                int size=farExpiry.get(s1.getExchangeSymbol());
+                BeanSymbol s2=s1.clone(s1);
+                s2.setMinsize(size);
+                s2.setExpiry(nextExpiry);
+                second.add(s2);
+                }
+            }
+            
+            swingSymbols.addAll(second);
+            ArrayList<BeanSymbol>third=new ArrayList<BeanSymbol>();
+            
+            for(BeanSymbol s1:second){
+                 if(s1.getType()!="IND" && !s1.getExchangeSymbol().equals("NSENIFTY")){
+                     BeanSymbol s2=s1.clone(s1);
+                     s2.setType("STK");
+                     s2.setExpiry("");
+                     third.add(s2);
+                 }
+            }
+            swingSymbols.addAll(third);
+            //update serial nos
+            for (int k = 0; k < swingSymbols.size(); k++) {
+                swingSymbols.get(k).setSerialno(k+1);
+            }
+
+            String header = "serialno,brokersymbol,exchangesymbol,displayname,type,exchange,primaryexchange,currency,expiry,option,right,minsize,barstarttime,streaming,strategy";
+            Utilities.writeToFile(outputFile, header);
+            //Write Index row
+
+            String content = 1 + "," + "NIFTY50" + "," + "NSENIFTY" + "," + "" + "," + "FUT" + "," + "NSE" + "," + "" + "," + "INR" + "," + expiry + "," + "" + "," + "" + "," + 25 + "," + "" + "," + 0 + "," + "ADR";
+
+            for (BeanSymbol s1 : swingSymbols) {
+                content = s1.getSerialno() + "," + s1.getBrokerSymbol() + "," + (s1.getExchangeSymbol() == null ? "" : s1.getExchangeSymbol())
+                        + "," + (s1.getDisplayname() == null ? "" : s1.getDisplayname())
+                        + "," + (s1.getType() == null ? "" : s1.getType())
+                        + "," + (s1.getExchange() == null ? "" : s1.getExchange())
+                        + "," + (s1.getPrimaryexchange() == null ? "" : s1.getPrimaryexchange())
+                        + "," + (s1.getCurrency() == null ? "" : s1.getCurrency())
+                        + "," + (s1.getExpiry() == null ? "" : s1.getExpiry())
+                        + "," + (s1.getOption() == null ? "" : s1.getOption())
+                        + "," + (s1.getRight() == null ? "" : s1.getRight())
+                        + "," + (s1.getMinsize() == 0 ? 1 : s1.getMinsize())
+                        + "," + (s1.getBarsstarttime() == null ? "" : s1.getBarsstarttime())
+                        + "," + (s1.getStreamingpriority() == 0 ? "1" : s1.getStreamingpriority())
+                        + "," + (s1.getStrategy() == null ? "SWING" : s1.getStrategy());
+                Utilities.writeToFile(outputFile, content);
+            }
+        }
+    }
+
+    
     public int getResponseCode(String urlString) throws MalformedURLException, IOException {
         URL u = new URL(urlString);
         HttpURLConnection huc = (HttpURLConnection) u.openConnection();

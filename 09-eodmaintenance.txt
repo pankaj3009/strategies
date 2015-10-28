@@ -1,7 +1,9 @@
 #currentday=20150730
 historicalfutures=02-futures-inr.csv
 historicalstocks=01-symbols-inr.csv
-adrinrstocks=03-symbols-inr.csv
+swinginr=03-symbols-inr.csv
 rateserverinrmarket=06-symbols-inr.csv
-ibsymbolurl=https://www.interactivebrokers.com/en/trading/exchanges.php?exch=nse&showcategories=STK
+ibsymbolurl=https://www.interactivebrokers.com/en/index.php?f=2222&exch=nse&showcategories=STK&showproducts=
+#ibsymbolurl=https://www.interactivebrokers.com/en/index.php?f=2222&exch=nse&showcategories=STK&showproducts=&sortproducts=&ib_entity=new
+#ibsymbolurl=https://www.interactivebrokers.com/en/trading/exchanges.php?exch=nse&showcategories=STK
 ibsymbolfile=ibsymbols.csv

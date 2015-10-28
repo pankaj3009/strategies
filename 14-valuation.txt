@@ -1,0 +1,3 @@
+path=C:\\Users\\Pankaj\\Documents\\Seafile\\Trading\\FundamentalData
+estimateyear=2016
+outputfile=logs\\output.csv
