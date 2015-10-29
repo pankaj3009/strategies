@@ -1081,7 +1081,7 @@ public class Swing extends Strategy implements TradeListener {
         //enter new position
         int orderid = -1;
         double targetContracts=size/Parameters.symbol.get(targetID).getMinsize();
-        int newSize= Math.min((int)Math.round(targetContracts),1);//size/Parameters.symbol.get(targetID).getMinsize() + ((size % Parameters.symbol.get(targetID).getMinsize() == 0) ? 0 : 1); 
+        int newSize= Math.max((int)Math.round(targetContracts),1);//size/Parameters.symbol.get(targetID).getMinsize() + ((size % Parameters.symbol.get(targetID).getMinsize() == 0) ? 0 : 1); 
         newSize=newSize*Parameters.symbol.get(targetID).getMinsize();
         switch (origSide) {
             case BUY:
