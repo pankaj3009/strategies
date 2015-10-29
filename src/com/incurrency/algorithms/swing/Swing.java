@@ -1011,9 +1011,11 @@ public class Swing extends Strategy implements TradeListener {
         boolean rollover = rolloverDay();
         if (rollover) {
             for (int id : this.getPosition().keySet()) {
-                int nextid = Utilities.getNextExpiryID(Parameters.symbol, id, expiryFarMonth);
-                if (nextid >= 0 && nextid != id) {//we have a rollover
-                    positionRollover(id, nextid);
+                if (this.getStrategySymbols().contains(id)) {
+                    int nextid = Utilities.getNextExpiryID(Parameters.symbol, id, expiryFarMonth);
+                    if (nextid >= 0 && nextid != id) {//we have a rollover
+                        positionRollover(id, nextid);
+                    }
                 }
             }
         }
@@ -1037,13 +1039,13 @@ public class Swing extends Strategy implements TradeListener {
 
     public void positionRollover(int initID, int targetID) {
         //get side, size of position
-        EnumOrderSide origSide = this.getPosition().get(initID).getPosition() > 0 ? EnumOrderSide.BUY : EnumOrderSide.SHORT;
+        EnumOrderSide origSide = this.getPosition().get(initID).getPosition() > 0 ? EnumOrderSide.BUY : this.getPosition().get(initID).getPosition() <0?EnumOrderSide.SHORT:EnumOrderSide.UNDEFINED;
         int size = Math.abs(this.getPosition().get(initID).getPosition());
         ArrayList<Stop> stops = null;
         //square off position        
         switch (origSide) {
             case BUY:
-                logger.log(Level.INFO, "501,Strategy Rollover EXIT BUY,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(initID)});
+                logger.log(Level.INFO, "501,Strategy Rollover EXIT BUY,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(initID).getExchangeSymbol()});
                 stops = Trade.getStop(db, this.getStrategy() + ":" + this.getFirstInternalOpenOrder(initID, EnumOrderSide.SELL, "Order") + ":Order");
                 HashMap<String, Object> order = new HashMap<>();
                 order.put("id", initID);
@@ -1059,7 +1061,7 @@ public class Swing extends Strategy implements TradeListener {
                 this.exit(order);
                 break;
             case SHORT:
-                logger.log(Level.INFO, "501,Strategy Rollover EXIT SHORT,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(initID)});
+                logger.log(Level.INFO, "501,Strategy Rollover EXIT SHORT,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(initID).getExchangeSymbol()});
                 stops = Trade.getStop(db, this.getStrategy() + ":" + this.getFirstInternalOpenOrder(initID, EnumOrderSide.COVER, "Order") + ":Order");
                 order = new HashMap<>();
                 order.put("id", initID);
@@ -1085,7 +1087,7 @@ public class Swing extends Strategy implements TradeListener {
         newSize=newSize*Parameters.symbol.get(targetID).getMinsize();
         switch (origSide) {
             case BUY:
-                logger.log(Level.INFO, "501,Strategy Rollover ENTER BUY,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(targetID)+delimiter+newSize});
+                logger.log(Level.INFO, "501,Strategy Rollover ENTER BUY,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(targetID).getExchangeSymbol()+delimiter+newSize});
                 HashMap<String, Object> order = new HashMap<>();
                 order.put("id", targetID);
                 order.put("side", EnumOrderSide.BUY);
@@ -1101,7 +1103,7 @@ public class Swing extends Strategy implements TradeListener {
                 orderid = this.getFirstInternalOpenOrder(initID, EnumOrderSide.SELL, "Order");
                 break;
             case SHORT:
-                logger.log(Level.INFO, "501,Strategy Rollover ENTER SHORT,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(targetID)});
+                logger.log(Level.INFO, "501,Strategy Rollover ENTER SHORT,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(targetID).getExchangeSymbol()+delimiter+newSize});
                 order = new HashMap<>();
                 order.put("id", targetID);
                 order.put("side", EnumOrderSide.SHORT);
