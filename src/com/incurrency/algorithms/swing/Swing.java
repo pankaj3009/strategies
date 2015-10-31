@@ -1094,7 +1094,7 @@ public class Swing extends Strategy implements TradeListener {
                 order.put("size", newSize);
                 order.put("type", EnumOrderType.LMT);
                 order.put("limitprice", Parameters.symbol.get(initID).getLastPrice());
-                order.put("reason", EnumOrderReason.REGULAREXIT);
+                order.put("reason", EnumOrderReason.REGULARENTRY);
                 order.put("orderstage", EnumOrderStage.INIT);
                 order.put("expiretime", this.getMaxOrderDuration());
                 order.put("dynamicorderduration", getDynamicOrderDuration());
@@ -1110,7 +1110,7 @@ public class Swing extends Strategy implements TradeListener {
                 order.put("size", newSize);
                 order.put("type", EnumOrderType.LMT);
                 order.put("limitprice", Parameters.symbol.get(initID).getLastPrice());
-                order.put("reason", EnumOrderReason.REGULAREXIT);
+                order.put("reason", EnumOrderReason.REGULARENTRY);
                 order.put("orderstage", EnumOrderStage.INIT);
                 order.put("expiretime", this.getMaxOrderDuration());
                 order.put("dynamicorderduration", getDynamicOrderDuration());
