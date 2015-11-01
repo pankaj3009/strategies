@@ -243,10 +243,10 @@ public class Reval {
                         BeanSymbol s = new BeanSymbol(symbolFullName);
                         double mtmToday = this.getSettlePrice(s, DateUtil.parseDate("yyyyMMdd", d));
                         String tradeStatus=key.contains("closedtrades")?"closedtrades":"opentrades";
-                        Trade.setMtmToday(db, key, tradeStatus, mtmToday);
                         if(!entryTime.equals(d)){
                             entryPrice=Trade.getMtmToday(db, key);
                         }
+                        Trade.setMtmToday(db, key, tradeStatus, mtmToday);
                         double buypnl = entrySize * (mtmToday - entryPrice) ;
                         double tradePNL = entrySide == EnumOrderSide.BUY ? buypnl : -buypnl;
                         ytdPNL = ytdPNL + tradePNL - entryBrokerage;
