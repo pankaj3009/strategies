@@ -1,0 +1,3 @@
+redisurl=notanotherfund.com:6379:0
+startdate=20150921
+enddate=20151031

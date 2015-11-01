@@ -419,6 +419,9 @@ public class Launch extends javax.swing.JFrame {
          if(input.get("valuation")!=null){
              algo.registerStrategy("com.incurrency.algorithms.valuation.Valuation");
          }
+          if(input.get("reval")!=null){
+             algo.registerStrategy("com.incurrency.reval.Reval");
+         }
         algo.postInit();
     }
 

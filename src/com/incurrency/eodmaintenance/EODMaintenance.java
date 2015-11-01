@@ -207,7 +207,6 @@ public class EODMaintenance {
                             s1.setStreamingpriority(5);
                             s1.setSerialno(stockSymbols.size()+1);
                             stockSymbols.add(s1);
-                            
                         }
                     }
                 }
