@@ -154,7 +154,9 @@ public class Reval {
                 String entryTime = Trade.getEntryTime(db, key);
                 String exitTime = Trade.getExitTime(db, key);
                 entryTime = new SimpleDateFormat("yyyyMMdd").format(DateUtil.parseDate("yyyy-MM-dd", entryTime.substring(0, 10)));
-                exitTime = new SimpleDateFormat("yyyyMMdd").format(DateUtil.parseDate("yyyy-MM-dd", exitTime.substring(0, 10)));
+                if(!exitTime.equals("")){
+                    exitTime = new SimpleDateFormat("yyyyMMdd").format(DateUtil.parseDate("yyyy-MM-dd", exitTime.substring(0, 10)));
+                }
                 double exitPrice = Trade.getExitPrice(db, key);
                 double entryPrice = Trade.getEntryPrice(db, key);
                 int exitSize = Trade.getExitSize(db, key);
@@ -162,7 +164,7 @@ public class Reval {
                 double exitBrokerage = Trade.getExitBrokerage(db, key);
                 EnumOrderSide entrySide = Trade.getEntrySide(db, key);
                 if (firstCalc) {
-                    while (entryTime.compareTo(d) <= 0 && exitTime.compareTo(d) <= 0) {//trades that are completed before the startdate
+                    while (entryTime.compareTo(d) <= 0 && !exitTime.equals("")&& exitTime.compareTo(d) <= 0) {//trades that are completed before the startdate
                         if (key.contains("closedtrades")) {//no mtm needed
                             double buypnl = (exitSize) * (exitPrice - entryPrice);
                             double tradePNL = entrySide == EnumOrderSide.BUY ? buypnl : -buypnl;
