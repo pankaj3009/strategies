@@ -205,7 +205,7 @@ public class Reval {
                     firstCalc = false;
                 }
 
-                if (entryTime.compareTo(d) <= 0 && exitTime.compareTo(d) >= 0) {
+                if (entryTime.compareTo(d) <= 0 && (exitTime.equals("")||exitTime.compareTo(d) >= 0)) {
                     if (exitTime.compareTo(d)==0 ) {//no mtm needed
                         if(entryTime.compareTo(d)!=0){
                             entryPrice=Trade.getMtmToday(db, key);

@@ -17,6 +17,9 @@ rtequitymetric=india.nse.equity.s1.rt
 rtfuturemetric=india.nse.future.s1.rt
 rtoptionmetric=india.nse.option.s1.rt
 savetocassandra=false
-#General
-responseport=5555
-publishport=5556
+#General. 
+#Historical Data Server listens on responseport for historical requests. Publish port is currently not used
+#MarketData Server listens for contractinfo and simulation data requests on response port. Publication of market data on publish port.
+#For individual strategies, three ports need to be specified. MDS -request and pubsub port, HDS: request port.
+responseport=5557
+publishport=5558
