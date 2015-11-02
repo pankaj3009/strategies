@@ -107,7 +107,7 @@ public class Reval {
             }
         }
         if (!yesterday.equals("")) {
-            yesterday = new SimpleDateFormat("yyyyMMdd").format(DateUtil.parseDate("yyyy-MM-dd", yesterday));
+            yesterday = new SimpleDateFormat("yyyyMMdd").format(DateUtil.parseDate("yyyyMMdd", yesterday));
         } else {
             yesterday = sStartDate;
         }
@@ -164,7 +164,7 @@ public class Reval {
                 double exitBrokerage = Trade.getExitBrokerage(db, key);
                 EnumOrderSide entrySide = Trade.getEntrySide(db, key);
                 if (firstCalc) {
-                    while (entryTime.compareTo(d) <= 0 && !exitTime.equals("")&& exitTime.compareTo(d) <= 0) {//trades that are completed before the startdate
+                    if (entryTime.compareTo(d) <= 0 && !exitTime.equals("")&& exitTime.compareTo(d) <= 0) {//trades that are completed before the startdate
                         if (key.contains("closedtrades")) {//no mtm needed
                             double buypnl = (exitSize) * (exitPrice - entryPrice);
                             double tradePNL = entrySide == EnumOrderSide.BUY ? buypnl : -buypnl;
@@ -201,11 +201,12 @@ public class Reval {
                             double tradePNL = entrySide == EnumOrderSide.BUY ? buypnl : -buypnl;
                             ytdPNL = ytdPNL + tradePNL - entryBrokerage - exitBrokerage;
                         }
-                    }
+                    }else{
                     firstCalc = false;
+                    }
                 }
 
-                if (entryTime.compareTo(d) <= 0 && (exitTime.equals("")||exitTime.compareTo(d) >= 0)) {
+                if (!firstCalc && entryTime.compareTo(d) <= 0 && (exitTime.equals("")||exitTime.compareTo(d) >= 0)) {
                     if (exitTime.compareTo(d)==0 ) {//no mtm needed
                         if(entryTime.compareTo(d)!=0){
                             entryPrice=Trade.getMtmToday(db, key);
