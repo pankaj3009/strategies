@@ -51,6 +51,6 @@ SameDayReentry=true
 redisurl=notanotherfund.com:6379:1
 #not used at present
 UseCustomDateRangeForTraining=true 
-TestingTimer=0
+TestingTimer=1000
 longsymbols=acc,axisbank,bankbaroda,grasim,hcltech,hindalco,hindunilvr,idea,indusindbk,kotakbank,lt,maruti,pnb,sbin,tatamotors,tatasteel,tcs,techm,ultracemco,yesbank,zeel
 shortsymbols=acc,axisbank,bankbaroda,cairn,cipla,grasim,hcltech,hindalco,hindunilvr,icicibank,idea,indusindbk,itc,kotakbank,lt,lupin,m&m,maruti,ntpc,pnb,powergrid,reliance,sbin,tatamotors,tatapower,tatasteel,tcs,techm,ultracemco,yesbank,zeel
