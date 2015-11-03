@@ -48,7 +48,7 @@ ParameterObjectPath=/home/psharma/strategies/swing
 #ParameterObjectPath=C:/Users/Pankaj/Documents/Seafile/ML-Coursera/R
 MaxPositions=5
 SameDayReentry=true
-redisurl=notanotherfund.com:6380
+redisurl=notanotherfund.com:6379:1
 #not used at present
 UseCustomDateRangeForTraining=true 
 TestingTimer=0
