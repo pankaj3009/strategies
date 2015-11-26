@@ -53,7 +53,7 @@ public class EODMaintenance {
         String rateserverinrmarket = properties.getProperty("rateserverinrmarket");
         String ibsymbolfile = properties.getProperty("ibsymbolfile");
         String ibsymbolurl = properties.getProperty("ibsymbolurl");
-        extractSymbolsFromIB(ibsymbolurl, ibsymbolfile, symbols);
+        extractSymbolsFromIB(ibsymbolurl, ibsymbolfile, symbols);       
         String nextExpiry = getNextExpiry(currentDay);
         if (historicalfutures != null) {
             rateServerFutures(fnolotsizeurl, nextExpiry, 11, historicalfutures);
@@ -859,8 +859,14 @@ public class EODMaintenance {
         if (cal_expiry.get(Calendar.DAY_OF_MONTH) > cal_today.get(Calendar.DAY_OF_MONTH)) {
             return sdf_yyyMMdd.format(expiry);
         } else {
-            if (cal_today.get(Calendar.MONTH) == 11) {//we are in decemeber
-                expiry = getLastThursday(month, year + 1);
+            if (month == 11) {//we are in decemeber
+                //expiry will be at BOD, so we get the next month, till new month==0
+                while(month!=0){
+                expiry = Utilities.nextGoodDay(expiry, 24*60, Algorithm.timeZone, Algorithm.openHour, Algorithm.openMinute, Algorithm.closeHour, Algorithm.closeMinute, null, true);
+                year = Utilities.getInt(sdf_yyyMMdd.format(expiry).substring(0, 4), 0);
+                month = Utilities.getInt(sdf_yyyMMdd.format(expiry).substring(4, 6), 0) - 1;//calendar month starts at 0
+                }
+                expiry = getLastThursday(month, year);
                 expiry = Utilities.nextGoodDay(expiry, 0, Algorithm.timeZone, Algorithm.openHour, Algorithm.openMinute, Algorithm.closeHour, Algorithm.closeMinute, null, true);
                 return sdf_yyyMMdd.format(expiry);
             } else {
