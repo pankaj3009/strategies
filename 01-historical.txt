@@ -26,7 +26,8 @@ sql1sec=india_nse_equity_s1_1sec
 sqldaily=india_nse_equity_s1_daily
 
 #cassandra properties
-cassandraconnection=192.187.112.162
+#cassandraconnection=192.187.112.162
+cassandraconnection=91.121.168.138
 cassandraport=4242
 cassandrabarsize=1sec
 cassandra1min=india.nse.equity.s1.1min
