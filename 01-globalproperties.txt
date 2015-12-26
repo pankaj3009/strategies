@@ -7,7 +7,7 @@ connectionfileneeded=true
 symbolfileneeded=true
 symbolfile=01-symbols-inr.csv
 connectionfile=01-connections-inr.csv
-holidayfile=
+holidayfile=holidays.csv
 datasource=notanotherfund.com
 requestport=5555
 pubsubport=5556
@@ -36,7 +36,8 @@ closehour=15
 closeminute=30
 
 # Historical Data
-cassandraconnection=192.187.112.162
+#cassandraconnection=192.187.112.162
+cassandraconnection=91.121.168.138
 cassandraport=4242
 barsize=1sec
 1min=india.nse.equity.s1.1min
@@ -44,3 +45,5 @@ barsize=1sec
 daily=india.nse.equity.s1.daily
 
 #Market Data Publisher
+#cassandraconnection=192.187.112.162
+cassandraconnection=91.121.168.138
