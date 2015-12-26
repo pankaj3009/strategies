@@ -90,7 +90,7 @@ public class Historical {
 
         if (getsymbols) {
             String metric = properties.getProperty("metric", "").toString().trim();
-            getSymbols(metric);
+            getSymbols(Algorithm.cassandraIP,metric);
         } else if (historical) {
             boolean done = false;
             boolean target_mysql = Boolean.parseBoolean(properties.getProperty("mysql", "false").toString().trim());
@@ -595,11 +595,11 @@ public class Historical {
                 Date endPeriod = sdfExpiry.parse(expiry.get(i + 1));
                 endPeriod = new Date(endPeriod.getTime() + 24 * 60 * 60 * 1000 - 1);//move time to 23:59:00
                 if (start.before(startPeriod) || end.after(startPeriod)) {
-                    t.putAll(exportAsCSVSubFunction(symbol, startPeriod, endPeriod, metric, expiry.get(i + 1)));
+                    t.putAll(exportAsCSVSubFunction(Algorithm.cassandraIP,symbol, startPeriod, endPeriod, metric, expiry.get(i + 1)));
                 }
             }
         } else {
-            t.putAll(exportAsCSVSubFunction(symbol, start, end, metric, null));
+            t.putAll(exportAsCSVSubFunction(Algorithm.cassandraIP,symbol, start, end, metric, null));
 
         }
 
@@ -683,8 +683,8 @@ public class Historical {
         }
     }
 
-    private static TreeMap<Long, OHLCV> exportAsCSVSubFunction(String symbol, Date startDate, Date endDate, String metric, String expiry) throws URISyntaxException, IOException {
-        HttpClient client = new HttpClient("http://192.187.112.162:8085");
+    private static TreeMap<Long, OHLCV> exportAsCSVSubFunction(String url,String symbol, Date startDate, Date endDate, String metric, String expiry) throws URISyntaxException, IOException {
+        HttpClient client = new HttpClient("http://"+url+":8085");
         TreeMap<Long, OHLCV> t = new TreeMap<>();
         String metricnew = null;
         int startCounter = 0;
@@ -799,9 +799,9 @@ public class Historical {
         return t;
     }
 
-    private void getSymbols(String metric) {
+    private void getSymbols(String url,String metric) {
         try {
-            HttpClient client = new HttpClient("http://192.187.112.162:8085");
+            HttpClient client = new HttpClient("http://"+url+":8085");
             GetResponse response = client.getTagValues();
 
 
@@ -894,7 +894,7 @@ public class Historical {
     }
 
     private static Date getLastTime(String url, String metric, BeanSymbol s) throws MalformedURLException, ParseException, IOException, URISyntaxException {
-        HttpClient client = new HttpClient("http://192.187.112.162:8085");
+        HttpClient client = new HttpClient("http://"+url+":8085");
         String symbol = s.getDisplayname();
         String expiry = s.getExpiry();
 
