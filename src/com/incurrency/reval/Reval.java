@@ -194,7 +194,7 @@ public class Reval {
                             int entrySize = Trade.getEntrySize(db, key);
                             String symbolFullName = Trade.getEntrySymbol(db, key);
                             BeanSymbol s = new BeanSymbol(symbolFullName);
-                            double mtmToday = this.getSettlePrice(s, DateUtil.parseDate("yyyyMMdd", startDate));
+                            double mtmToday = this.getSettlePrice(Algorithm.cassandraIP,s, DateUtil.parseDate("yyyyMMdd", startDate));
 //                    Utilities.requestHistoricalData(s, new String[]{"settle"}, "india.nse.fut.s4.daily", "yyyyMMdd", startDate, startDate, EnumBarSize.DAILY, false);
                             //                  double mtmToday = s.getTimeSeriesValue(EnumBarSize.DAILY, 0, "settle");
                             double buypnl = exitSize * (exitPrice - entryPrice) + (entrySize - exitSize) * (mtmToday - entryPrice);
@@ -242,7 +242,7 @@ public class Reval {
                         int entrySize = Trade.getEntrySize(db, key);
                         String symbolFullName = Trade.getEntrySymbol(db, key);
                         BeanSymbol s = new BeanSymbol(symbolFullName);
-                        double mtmToday = this.getSettlePrice(s, DateUtil.parseDate("yyyyMMdd", d));
+                        double mtmToday = this.getSettlePrice(Algorithm.cassandraIP,s, DateUtil.parseDate("yyyyMMdd", d));
                         String tradeStatus=key.contains("closedtrades")?"closedtrades":"opentrades";
                         if(!entryTime.equals(d)){
                             entryPrice=Trade.getMtmToday(db, key);
@@ -282,10 +282,10 @@ public class Reval {
         }
     }
 
-    public double getSettlePrice(BeanSymbol s, Date d) {
+    public double getSettlePrice(String url,BeanSymbol s, Date d) {
         double settlePrice = -1;
         try {
-            HttpClient client = new HttpClient("http://192.187.112.162:8085");
+            HttpClient client = new HttpClient("http://"+url+":8085");
             String metric;
             switch (s.getType()) {
                 case "STK":
