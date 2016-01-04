@@ -38,6 +38,9 @@ public class ADRListener implements UpdateListener{
         Long pVolume = newEvents[0].get("pVolume")==null? 0:Math.round((double)newEvents[0].get("pVolume"));
         Long nVolume = newEvents[0].get("nVolume")==null? 0:Math.round((double)newEvents[0].get("nVolume"));
         Long tVolume = newEvents[0].get("volume")==null? 0:Math.round((double)newEvents[0].get("volume"));
+        Long pValue = newEvents[0].get("pValue")==null? 0:Math.round((double)newEvents[0].get("pValue"));
+        Long nValue = newEvents[0].get("nValue")==null? 0:Math.round((double)newEvents[0].get("nValue"));
+        Long tValue = newEvents[0].get("tradedValue")==null? 0:Math.round((double)newEvents[0].get("tradedValue"));
         
         Long uChg = tTicks - (pTicks + nTicks);
         String message = "ADR: TotalMoves: " + tTicks + " (+)Advances: " + pTicks + " (-)Declines: " + nTicks + " Unchanged: " + uChg +" Advancing Volume: "+pVolume +" Declining Volume: "+nVolume+ " Total Volume: "+tVolume;
@@ -50,15 +53,18 @@ public class ADRListener implements UpdateListener{
         ADR.adrServer.send("IND-CUS-ALL",4+","+now+","+nVolume+","+"ADR" );
         ADR.adrServer.send("IND-CUS-ALL",5+","+now+","+tVolume+","+"ADR" );
         */
-        double adr=pTicks+nTicks>0?pTicks*100/(pTicks+nTicks):0;
-        double adrTRIN=pVolume+nVolume>0?adr*100/(pVolume*100/(pVolume+nVolume)):0;
+        double adr=pTicks+nTicks>0?(double)pTicks*100/(pTicks+nTicks):0;
+        double adrTRINVolume=pVolume+nVolume>0?(double)adr*100/(double)(pVolume*100D/(pVolume+nVolume)):0;
+        double adrTRINValue=pValue+nValue>0?(double)adr*100/(double)(pValue*100D/(pValue+nValue)):0;
         if(tTicks>this.adrStrategy.threshold){
           adrStrategy.adr=adr;
-          adrStrategy.adrTRIN=adrTRIN;
+          adrStrategy.adrTRINVolume=adrTRINVolume;
+          adrStrategy.adrTRINValue=adrTRINValue;
           adrStrategy.adrDayHigh=adr>adrStrategy.adrDayHigh?adr:adrStrategy.adrDayHigh;
           adrStrategy.adrDayLow=adr<adrStrategy.adrDayLow?adr:adrStrategy.adrDayLow;
           adrStrategy.mEsperEvtProcessor.sendEvent(new ADREvent(ADRTickType.D_ADR,adr));
-          adrStrategy.mEsperEvtProcessor.sendEvent(new ADREvent(ADRTickType.D_TRIN,adrTRIN));
+          adrStrategy.mEsperEvtProcessor.sendEvent(new ADREvent(ADRTickType.D_TRIN_VOLUME,adrTRINVolume));
+          adrStrategy.mEsperEvtProcessor.sendEvent(new ADREvent(ADRTickType.D_TRIN_VALUE,adrTRINValue));
         }
     }
     

@@ -74,42 +74,49 @@ public class EventProcessor implements ActionListener {
         esperEngine.getEPAdministrator().createEPL(stmt);
         stmt = "create variable int VOLUME = " + com.ib.client.TickType.VOLUME;
         esperEngine.getEPAdministrator().createEPL(stmt);
+        stmt = "create variable int TRADEDVALUE = " + com.ib.client.TickType.TRADEDVALUE;
+        esperEngine.getEPAdministrator().createEPL(stmt);
 
         // Create a named window to get the last and close price for a ticker
         stmt = "create window PriceWin.std:unique(tickerID) as ";
-        stmt += "(tickerID int, lastPrice double, closePrice double, lastSize double, volume double)";
+        stmt += "(tickerID int, lastPrice double, closePrice double, lastSize double, volume double, tradedvalue double)";
 
         statement = esperEngine.getEPAdministrator().createEPL(stmt);
 
         stmt = "insert into PriceWin  ";
-        stmt += "select  a.tickerID as tickerID, a.price as lastPrice, b.price as closePrice, c.price as lastSize, d.price as volume ";
-        stmt += "from TickPrice(field = LASTPRICE, price > 0).std:unique(tickerID) as a, ";
+        stmt += "select  a.tickerID as tickerID, a.price as lastPrice, b.price as closePrice, c.price as lastSize, d.price as volume,e.price as tradedvalue ";
+        stmt += "from TickPrice(field=TRADEDVALUE, price> 0).std:unique(tickerID) as e, ";
+        stmt += "TickPrice(field = LASTPRICE, price > 0).std:unique(tickerID) as a, ";
         stmt += "TickPrice(field = CLOSEPRICE, price > 0).std:unique(tickerID) as b, ";
         stmt += "TickPrice(field = LASTSIZE, price > 0).std:unique(tickerID) as c, ";
         stmt += "TickPrice(field = VOLUME, price > 0).std:unique(tickerID) as d ";
         stmt += "where a.tickerID = b.tickerID ";
         stmt += "and b.tickerID = c.tickerID ";
-        stmt += "and c.tickerID = d.tickerID";
+        stmt += "and c.tickerID = d.tickerID ";
+        stmt += "and d.tickerID = e.tickerID";
 
 
         statement = esperEngine.getEPAdministrator().createEPL(stmt);
         // Create the statement to calculate adrStrategy as count(+symbs)/count(-symbs) since prv day close
         stmt = "select count(*, lastPrice > closePrice) as pTicks, ";
+        stmt += "sum(tradedvalue, lastPrice > closePrice) as pValue, ";
         stmt += "sum(volume, lastPrice > closePrice) as pVolume, ";
         stmt += "count(*, lastPrice < closePrice) as nTicks, ";
+        stmt += "sum(tradedvalue, lastPrice < closePrice) as nValue, ";
         stmt += "sum(volume, lastPrice < closePrice) as nVolume, ";
         stmt += "count(*) as tTicks, ";
+        stmt += "sum(tradedvalue) as tradedValue, ";
         stmt += "sum(volume) as volume from PriceWin";
         statement = esperEngine.getEPAdministrator().createEPL(stmt);
         statement.addListener(adrListener);
 
         // Create a named window to get the last and previous last for each ticker
         stmt = "create window LastPriceWin.std:unique(tickerID) as ";
-        stmt += "(tickerID int, price double, lPrice double, lastSize double, lLastSize double)";
+        stmt += "(tickerID int, price double, lPrice double, lastSize double, lLastSize double, lastvalue double)";
         statement = esperEngine.getEPAdministrator().createEPL(stmt);
 
         stmt = "insert into LastPriceWin  ";
-        stmt += "select a.tickerID as tickerID, last(a.price,0) as price, last(a.price,1) as lPrice, last(b.price,0) as lastSize, last(b.price,1) as lLastSize ";
+        stmt += "select a.tickerID as tickerID, last(a.price,0) as price, last(a.price,1) as lPrice, last(b.price,0) as lastSize, last(b.price,1) as lLastSize,last(a.price,0)*last(b.price,0) as lastvalue ";
         stmt += "from TickPrice(field = LASTPRICE, price > 0).std:groupwin(tickerID).win:length(2) as a, ";
         stmt += "TickPrice(field = LASTSIZE, price > 0).std:groupwin(tickerID).win:length(2) as b ";
         stmt += " where a.tickerID = b.tickerID ";
@@ -117,8 +124,8 @@ public class EventProcessor implements ActionListener {
         statement = esperEngine.getEPAdministrator().createEPL(stmt);
 
         // Create the statement to calculate tick as count(+symbs)/count(-symbs) since last price for each ticker
-        stmt = "select count(*, price > lPrice) as pTicks,sum(lastSize, price > lPrice) as pLastSize, count(*, price < lPrice) as nTicks,sum(lastSize, price < lPrice) as nLastSize, ";
-        stmt += "count(*,price=lPrice) as uTicks, sum(lastSize,price=lPrice) as uLastSize, count(*) as tTicks, sum(lastSize) as tLastSize from LastPriceWin ";
+        stmt = "select count(*, price > lPrice) as pTicks,sum(lastvalue, price > lPrice) as pLastSize, count(*, price < lPrice) as nTicks,sum(lastvalue, price < lPrice) as nLastSize, ";
+        stmt += "count(*,price=lPrice) as uTicks, sum(lastvalue,price=lPrice) as uLastSize, count(*) as tTicks, sum(lastvalue) as tLastSize from LastPriceWin ";
         statement = esperEngine.getEPAdministrator().createEPL(stmt);
         statement.addListener(tickListener);
         
@@ -126,7 +133,7 @@ public class EventProcessor implements ActionListener {
         //Once ADR volume, count data is available, we move to ADR processing
         stmt = "create variable int adr  = " + com.incurrency.algorithms.adr.ADRTickType.D_ADR;
         esperEngine.getEPAdministrator().createEPL(stmt);
-        stmt = "create variable int adrTRIN= " + com.incurrency.algorithms.adr.ADRTickType.D_TRIN;
+        stmt = "create variable int adrTRINVOLUME= " + com.incurrency.algorithms.adr.ADRTickType.D_TRIN_VOLUME;
         esperEngine.getEPAdministrator().createEPL(stmt);
         stmt = "create variable int tick  = " + com.incurrency.algorithms.adr.ADRTickType.T_TICK;
         esperEngine.getEPAdministrator().createEPL(stmt);
