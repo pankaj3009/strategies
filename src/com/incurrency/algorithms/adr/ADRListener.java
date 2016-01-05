@@ -59,6 +59,7 @@ public class ADRListener implements UpdateListener{
         adrStrategy.db.setHash("indicators", "nifty", "adr", String.valueOf(adr));
         adrStrategy.db.setHash("indicators", "nifty", "adrtrinvolume", String.valueOf(adrTRINVolume));
         adrStrategy.db.setHash("indicators", "nifty", "adrtrinvalue", String.valueOf(adrTRINValue));
+        adrStrategy.db.setHash("indicators", "nifty", "tticks", String.valueOf(tTicks));
         if(tTicks>this.adrStrategy.threshold){
           adrStrategy.adr=adr;
           adrStrategy.adrTRINVolume=adrTRINVolume;
