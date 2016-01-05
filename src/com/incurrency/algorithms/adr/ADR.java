@@ -336,8 +336,8 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                 //Buy = ADR IS UPWARD SLOPING ((adrHigh - adrLow > 5 && adr > adrLow + 0.75 * (adrHigh - adrLow) 
                         // VAL = adr/adrTRIN  IS UPWARD SLOPING
                 
-                boolean buyZone1=adrHigh-adrLow>5 && adr>adrAvg && adrTRINVolume<100 && adrTRINValue<100;
-                boolean shortZone1=adrHigh-adrLow>5 && adr<adrAvg && adrTRINVolume>100 && adrTRINValue>100;
+                boolean buyZone1=adrHigh-adrLow>5 && adr > adrLow + 0.5 * (adrHigh - adrLow) && adrTRINVolume<100 && adrTRINValue<100;
+                boolean shortZone1= adrHigh-adrLow>5 && adr < adrHigh - 0.5 * (adrHigh - adrLow)  && adrTRINVolume>100 && adrTRINValue>100;
                 
                 /*
                 boolean buyZone1 = ((adrHigh - adrLow > 5 && adr > adrLow + 0.75 * (adrHigh - adrLow) && adr > adrAvg)
