@@ -708,16 +708,26 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                     adrHigh = high;
                     adrLow = low;
                     adrAvg = average;
+                    db.setHash("indicators", "nifty", "adrhigh", String.valueOf(adrHigh));
+                    db.setHash("indicators", "nifty", "adrlow", String.valueOf(adrLow));
+                    db.setHash("indicators", "nifty", "adravg", String.valueOf(adrAvg));
+
                     break;
                 case ADRTickType.D_TRIN_VOLUME:
                     adrTRINVOLUMEHigh = high;
                     adrTRINVOLUMELow = low;
                     adrTRINVOLUMEAvg = average;
+                    db.setHash("indicators", "nifty", "adrtrinvolumehigh", String.valueOf(adrTRINVOLUMEHigh));
+                    db.setHash("indicators", "nifty", "adrtrinvolumelow", String.valueOf(adrTRINVOLUMELow));
+                    db.setHash("indicators", "nifty", "adrtrinvolumeavg", String.valueOf(adrTRINVOLUMEAvg));
                     break;
                 case ADRTickType.D_TRIN_VALUE:
                     adrTRINVALUEHigh = high;
                     adrTRINVALUELow = low;
                     adrTRINVALUEAvg = average;
+                    db.setHash("indicators", "nifty", "adrtrinvaluehigh", String.valueOf(adrTRINVALUEHigh));
+                    db.setHash("indicators", "nifty", "adrtrinvaluelow", String.valueOf(adrTRINVALUELow));
+                    db.setHash("indicators", "nifty", "adrtrinvalueavg", String.valueOf(adrTRINVALUEAvg));
                     break;
                 case ADRTickType.T_TICK:
                     tickHigh = high;
