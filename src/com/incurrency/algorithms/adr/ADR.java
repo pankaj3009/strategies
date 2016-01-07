@@ -336,8 +336,8 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                 //Buy = ADR IS UPWARD SLOPING ((adrHigh - adrLow > 5 && adr > adrLow + 0.75 * (adrHigh - adrLow) 
                         // VAL = adr/adrTRIN  IS UPWARD SLOPING
                 
-                boolean buyZone1=adrHigh-adrLow>5 && adr > adrLow + 0.5 * (adrHigh - adrLow) && adrTRINVolume<100 && adrTRINValue<100;
-                boolean shortZone1= adrHigh-adrLow>5 && adr < adrHigh - 0.5 * (adrHigh - adrLow)  && adrTRINVolume>100 && adrTRINValue>100;
+                boolean buyZone1=adrHigh-adrLow>5 && adr > adrLow + 0.5 * (adrHigh - adrLow)  && adrTRINValue<95;//&& adrTRINVolume<100
+                boolean shortZone1= adrHigh-adrLow>5 && adr < adrHigh - 0.5 * (adrHigh - adrLow)   && adrTRINValue>105;//&& adrTRINVolume>100
                 
                 /*
                 boolean buyZone1 = ((adrHigh - adrLow > 5 && adr > adrLow + 0.75 * (adrHigh - adrLow) && adr > adrAvg)
@@ -527,7 +527,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                                 setEntryPrice(price);
                                 setHighRange(Double.MIN_VALUE);
                                 setLowRange(Double.MAX_VALUE);
-                                logger.log(Level.INFO, "501,Strategy SHORT,{0}", new Object[]{getStrategy() + delimiter + "BUY" + delimiter + adrHigh + delimiter + adrLow + delimiter + adrAvg + delimiter + adrTRINVOLUMEHigh + delimiter + adrTRINVOLUMELow + delimiter + adrTRINVOLUMEAvg + delimiter + indexHigh + delimiter + indexLow + delimiter + indexAvg + delimiter + buyZone1 + delimiter + shortZone1 + delimiter + adr + delimiter +adrTRINValue+delimiter+ adrTRINVolume + delimiter + tick + delimiter + tickTRIN + delimiter + adrDayHigh + delimiter + adrDayLow + delimiter + indexDayHigh + delimiter + indexDayLow + delimiter + price});
+                                logger.log(Level.INFO, "501,Strategy SHORT,{0}", new Object[]{getStrategy() + delimiter + "SHORT" + delimiter + adrHigh + delimiter + adrLow + delimiter + adrAvg + delimiter + adrTRINVOLUMEHigh + delimiter + adrTRINVOLUMELow + delimiter + adrTRINVOLUMEAvg + delimiter + indexHigh + delimiter + indexLow + delimiter + indexAvg + delimiter + buyZone1 + delimiter + shortZone1 + delimiter + adr + delimiter +adrTRINValue+delimiter+ adrTRINVolume + delimiter + tick + delimiter + tickTRIN + delimiter + adrDayHigh + delimiter + adrDayLow + delimiter + indexDayHigh + delimiter + indexDayLow + delimiter + price});
                                 order.put("id", id);
                                 order.put("side", EnumOrderSide.SHORT);
                                 order.put("size", 0);
