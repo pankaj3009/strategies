@@ -336,8 +336,10 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                 //Buy = ADR IS UPWARD SLOPING ((adrHigh - adrLow > 5 && adr > adrLow + 0.75 * (adrHigh - adrLow) 
                         // VAL = adr/adrTRIN  IS UPWARD SLOPING
                 
-                boolean buyZone1=adrHigh-adrLow>5 && adr > adrLow + 0.5 * (adrHigh - adrLow)  && adrTRINValue<95;//&& adrTRINVolume<100
-                boolean shortZone1= adrHigh-adrLow>5 && adr < adrHigh - 0.5 * (adrHigh - adrLow)   && adrTRINValue>105;//&& adrTRINVolume>100
+                boolean buyZone1=adrHigh-adrLow>5 && adr > adrLow + 0.75 * (adrHigh - adrLow)  && adrTRINValue<95;//&& adrTRINVolume<100
+                boolean shortZone1= adrHigh-adrLow>5 && adr < adrHigh - 0.75 * (adrHigh - adrLow)   && adrTRINValue>105;//&& adrTRINVolume>100
+                boolean sellZone1=adr < adrLow + 0.5 * (adrHigh - adrLow)  && adrTRINValue>100;//&& adrTRINVolume<100
+                boolean coverZone1= adr > adrHigh - 0.5 * (adrHigh - adrLow)   && adrTRINValue<100;//&& adrTRINVolume>100
                 
                 /*
                 boolean buyZone1 = ((adrHigh - adrLow > 5 && adr > adrLow + 0.75 * (adrHigh - adrLow) && adr > adrAvg)
@@ -378,14 +380,14 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                     boolean cShort = tradingSide == 0 && shortZone && getShortOnly();
                     boolean cScalpingShort = tradingSide == -1 && price > this.getLastShortExit() + this.reentryMinimumMove && scalpingMode && this.getLastShortExit() > 0;
                     boolean cCover = getPosition().get(id).getPosition() < 0;
-                    boolean cSLCover = buyZone || comparator.compare(TradingUtil.getAlgoDate(), getEndDate()) > 0;
+                    boolean cSLCover = coverZone1 || comparator.compare(TradingUtil.getAlgoDate(), getEndDate()) > 0;
 //                    boolean cSLCover = buyZone || ((price > indexLow + getStopLoss() && !shortZone) || (price > getEntryPrice() + getStopLoss())) || comparator.compare(TradingUtil.getAlgoDate(), getEndDate()) > 0;
                     boolean cTPCover = (!shortZone) && (price <= getEntryPrice() - trailingTP);
                     boolean cTPScalpingCover = (scalpingMode) && (price <= getEntryPrice() - trailingTP);
                     boolean cScaleOutCover = getScaleOutSizes() != null && scaleoutCount - 1 < getScaleOutSizes().length && price <= getEntryPrice() - getScaleoutTargets()[scaleoutCount - 1];
                     boolean cSell = getPosition().get(id).getPosition() > 0;
                     //boolean cSLSell = shortZone || ((price < indexHigh - getStopLoss() && !buyZone) || (price < getEntryPrice() - getStopLoss())) || comparator.compare(TradingUtil.getAlgoDate(), getEndDate()) > 0;
-                    boolean cSLSell = shortZone ||price < getEntryPrice() - getStopLoss() || comparator.compare(TradingUtil.getAlgoDate(), getEndDate()) > 0;
+                    boolean cSLSell = sellZone1 ||price < getEntryPrice() - getStopLoss() || comparator.compare(TradingUtil.getAlgoDate(), getEndDate()) > 0;
                     boolean cTPSell = (!buyZone) && (price >= getEntryPrice() + trailingTP);
                     boolean cTPScalpingSell = ((scalpingMode) && (price >= getEntryPrice() + trailingTP));
                     boolean cScaleOutSell = getScaleOutSizes() != null && scaleoutCount - 1 < getScaleOutSizes().length && price >= getEntryPrice() + getScaleoutTargets()[scaleoutCount - 1];
