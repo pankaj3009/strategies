@@ -364,11 +364,11 @@ public class Launch extends javax.swing.JFrame {
                 }
             }
         });
-
+        if(!headless){
         printStream = new PrintStream(new LogWorker());
-        System.setOut(printStream);
+        System.setOut(printStream); 
         System.setErr(printStream);
-
+        }
         Thread.sleep(3000);
         boolean trading = false;
         if (input.containsKey("backtest")) {
