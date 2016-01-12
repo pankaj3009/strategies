@@ -450,7 +450,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                                if(adrTrigger.equals(Trigger.TPSELL)){
                                logger.log(Level.INFO, "501,Strategy TPSELL,{0}", new Object[]{getStrategy() + delimiter + "BUY" + delimiter + adrHigh + delimiter + adrLow + delimiter + adrAvg + delimiter + adrTRINVOLUMEHigh + delimiter + adrTRINVOLUMELow + delimiter + adrTRINVOLUMEAvg + delimiter + indexHigh + delimiter + indexLow + delimiter + indexAvg + delimiter + buyZone1 + delimiter + shortZone1 + delimiter + adr + delimiter +adrTRINValue+delimiter+ adrTRINVolume + delimiter + tick + delimiter + tickTRIN + delimiter + adrDayHigh + delimiter + adrDayLow + delimiter + indexDayHigh + delimiter + indexDayLow + delimiter + price});
                                }else{
-                               size = getScaleOutSizes()[scaleoutCount - 1] * Parameters.symbol.get(id).getMinsize();
+                               //size = getScaleOutSizes()[scaleoutCount - 1] * Parameters.symbol.get(id).getMinsize();
                                scaleoutCount = scaleoutCount + 1;
                                logger.log(Level.INFO, "501,Strategy TPSCALPINGSELL,{0}", new Object[]{getStrategy() + delimiter + "BUY" + delimiter + adrHigh + delimiter + adrLow + delimiter + adrAvg + delimiter + adrTRINVOLUMEHigh + delimiter + adrTRINVOLUMELow + delimiter + adrTRINVOLUMEAvg + delimiter + indexHigh + delimiter + indexLow + delimiter + indexAvg + delimiter + buyZone1 + delimiter + shortZone1 + delimiter + adr + delimiter +adrTRINValue+delimiter+ adrTRINVolume + delimiter + tick + delimiter + tickTRIN + delimiter + adrDayHigh + delimiter + adrDayLow + delimiter + indexDayHigh + delimiter + indexDayLow + delimiter + price+delimiter+size});
                                }
@@ -552,8 +552,8 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                                if(adrTrigger.equals(Trigger.TPCOVER)){
                                 logger.log(Level.INFO, "501,Strategy TPCOVER,{0}", new Object[]{getStrategy() + delimiter + "BUY" + delimiter + adrHigh + delimiter + adrLow + delimiter + adrAvg + delimiter + adrTRINVOLUMEHigh + delimiter + adrTRINVOLUMELow + delimiter + adrTRINVOLUMEAvg + delimiter + indexHigh + delimiter + indexLow + delimiter + indexAvg + delimiter + buyZone1 + delimiter + shortZone1 + delimiter + adr + delimiter +adrTRINValue+delimiter+ adrTRINVolume + delimiter + tick + delimiter + tickTRIN + delimiter + adrDayHigh + delimiter + adrDayLow + delimiter + indexDayHigh + delimiter + indexDayLow + delimiter + price});                               
                                }else{
-                               size = getScaleOutSizes()[scaleoutCount - 1] * Parameters.symbol.get(id).getMinsize();
-                               scaleoutCount = scaleoutCount + 1;
+                               //size = getScaleOutSizes()[scaleoutCount - 1] * Parameters.symbol.get(id).getMinsize();
+                               //scaleoutCount = scaleoutCount + 1;
                                logger.log(Level.INFO, "501,Strategy TPSCALINGCOVER,{0}", new Object[]{getStrategy() + delimiter + "BUY" + delimiter + adrHigh + delimiter + adrLow + delimiter + adrAvg + delimiter + adrTRINVOLUMEHigh + delimiter + adrTRINVOLUMELow + delimiter + adrTRINVOLUMEAvg + delimiter + indexHigh + delimiter + indexLow + delimiter + indexAvg + delimiter + buyZone1 + delimiter + shortZone1 + delimiter + adr + delimiter +adrTRINValue+delimiter+ adrTRINVolume + delimiter + tick + delimiter + tickTRIN + delimiter + adrDayHigh + delimiter + adrDayLow + delimiter + indexDayHigh + delimiter + indexDayLow + delimiter + price+delimiter+size});                               
                                }
                                 order.put("id", id);
