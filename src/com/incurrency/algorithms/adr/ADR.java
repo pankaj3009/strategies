@@ -478,6 +478,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                                 order.put("expiretime", this.getMaxOrderDuration());
                                 order.put("dynamicorderduration", getDynamicOrderDuration());
                                 order.put("maxslippage", this.getMaxSlippageEntry());
+                                order.put("log", "BUY"+delimiter+adrHigh + delimiter + adrLow+delimiter+adr+delimiter+adrTRINValue+delimiter+0);
                                 entry(order);
 //                              entry(id, EnumOrderSide.BUY, 0, EnumOrderType.LMT, getEntryPrice(), 0, EnumOrderReason.REGULARENTRY, EnumOrderStage.INIT, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit(), "", "DAY", "", false, true);
                                 tradingSide = 1;
@@ -519,6 +520,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                             order.put("expiretime", this.getMaxOrderDuration());
                             order.put("dynamicorderduration", getDynamicOrderDuration());
                             order.put("maxslippage", this.getMaxSlippageExit());
+                            order.put("log", "TPSELL_TPSCALPINGSELL"+delimiter+adrHigh + delimiter + adrLow+delimiter+adr+delimiter+adrTRINValue+delimiter+size);
                             exit(order);
                             //exit(id, EnumOrderSide.SELL, 0, EnumOrderType.LMT, price, 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit(), "", "DAY", "", false, true);
                             setLastLongExit(price);
@@ -550,6 +552,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                             order.put("expiretime", this.getMaxOrderDuration());
                             order.put("dynamicorderduration", getDynamicOrderDuration());
                             order.put("maxslippage", this.getMaxSlippageExit());
+                            order.put("log", "SLSELL"+delimiter+adrHigh + delimiter + adrLow+delimiter+adr+delimiter+adrTRINValue+delimiter+0);
                             exit(order);
                             //exit(id, EnumOrderSide.SELL, 0, EnumOrderType.LMT, price, 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit(), "", "DAY", "", false, true);
                             setLastLongExit(price);
@@ -581,7 +584,8 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                             order.put("dynamicorderduration", getDynamicOrderDuration());
                             order.put("maxslippage", this.getMaxSlippageExit());
                             order.put("scale", "true");
-                            exit(order);
+                             order.put("log", "SCALEOUTSELL"+delimiter+adrHigh + delimiter + adrLow+delimiter+adr+delimiter+adrTRINValue+delimiter+size);
+                           exit(order);
                             //exit(id, EnumOrderSide.SELL, size, EnumOrderType.LMT, price, 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit(), "", "DAY", "", true, true);
                             scaleoutCount = scaleoutCount + 1;
                             TradingUtil.writeToFile(getStrategy() + ".csv", buyZone + "," + shortZone + "," + tradingSide + "," + adr + "," + adrHigh + "," + adrLow + "," + adrDayHigh + "," + adrDayLow + "," + adrAvg + "," + buyZone1 + "," + shortZone1 + "," + price + "," + indexHigh + "," + indexLow + "," + indexDayHigh + "," + indexDayLow + "," + indexAvg + "," + adrTRINValue + "," + adrTRINVolume + "," + adrTRINVOLUMEAvg + "," + tick + "," + tickTRIN + "," + adrTRINVOLUMEHigh + "," + adrTRINVOLUMELow + "," + getHighRange() + "," + getLowRange() + "," + "SCALEOUTSELL", Parameters.symbol.get(id).getLastPriceTime());
@@ -618,6 +622,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                                 order.put("expiretime", this.getMaxOrderDuration());
                                 order.put("dynamicorderduration", getDynamicOrderDuration());
                                 order.put("maxslippage", this.getMaxSlippageEntry());
+                                order.put("log", "SHORT"+delimiter+adrHigh + delimiter + adrLow+delimiter+adr+delimiter+adrTRINValue+delimiter+0);
                                 entry(order);
                                 //entry(id, EnumOrderSide.SHORT, 0, EnumOrderType.LMT, getEntryPrice(), 0, EnumOrderReason.REGULARENTRY, EnumOrderStage.INIT, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit(), "", "DAY", "", false, true);
                                 tradingSide = -1;
@@ -657,6 +662,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                             order.put("expiretime", this.getMaxOrderDuration());
                             order.put("dynamicorderduration", getDynamicOrderDuration());
                             order.put("maxslippage", this.getMaxSlippageExit());
+                            order.put("log", "TPCOVER_TPSCALPINGCOVER"+delimiter+adrHigh + delimiter + adrLow+delimiter+adr+delimiter+adrTRINValue+delimiter+size);
                             exit(order);
                             //exit(id, EnumOrderSide.COVER, 0, EnumOrderType.LMT, price, 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit(), "", "DAY", "", false, true);
                             setLastShortExit(price);
@@ -687,6 +693,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                             order.put("expiretime", this.getMaxOrderDuration());
                             order.put("dynamicorderduration", getDynamicOrderDuration());
                             order.put("maxslippage", this.getMaxSlippageExit());
+                            order.put("log", "SLCOVER"+delimiter+adrHigh + delimiter + adrLow+delimiter+adr+delimiter+adrTRINValue+delimiter+0);
                             exit(order);
 //                            exit(id, EnumOrderSide.COVER, 0, EnumOrderType.LMT, price, 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit(), "", "DAY", "", false, true);
                             setLastShortExit(price);
@@ -720,6 +727,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                             order.put("dynamicorderduration", getDynamicOrderDuration());
                             order.put("maxslippage", this.getMaxSlippageExit());
                             order.put("scale", "true");
+                            order.put("log", "SCALEOUTCOVER"+delimiter+adrHigh + delimiter + adrLow+delimiter+adr+delimiter+adrTRINValue+delimiter+size);
                             exit(order);
                             //exit(id, EnumOrderSide.COVER, size, EnumOrderType.LMT, price, 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit(), "", "DAY", "", true, true);
                             scaleoutCount = scaleoutCount + 1;

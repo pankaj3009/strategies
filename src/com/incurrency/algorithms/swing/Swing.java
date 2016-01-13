@@ -302,6 +302,7 @@ public class Swing extends Strategy implements TradeListener {
                         order.put("expiretime", this.getMaxOrderDuration());
                         order.put("dynamicorderduration", getDynamicOrderDuration());
                         order.put("maxslippage", this.getMaxSlippageExit());
+                        order.put("log","SLTPExit"+delimiter+ slTrigger + delimiter + tpTrigger + delimiter + Parameters.symbol.get(id).getLastPrice() + delimiter + slDistance + delimiter + sl + delimiter + tpDistance + delimiter + tp);
                         this.exit(order);
 //                    this.exit(id, EnumOrderSide.SELL, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
                         if (rolloverDay()) {
@@ -362,6 +363,7 @@ public class Swing extends Strategy implements TradeListener {
                         order.put("dynamicorderduration", getDynamicOrderDuration());
                         order.put("maxslippage", this.getMaxSlippageExit());
                         order.put("orderref", this.getStrategy());
+                        order.put("log","SLTPExit"+delimiter+ slTrigger + delimiter + tpTrigger + delimiter + Parameters.symbol.get(id).getLastPrice() + delimiter + slDistance + delimiter + sl + delimiter + tpDistance + delimiter + tp);
                         this.exit(order);
 
                         //this.exit(id, EnumOrderSide.COVER, Math.abs(size), EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
@@ -647,6 +649,7 @@ public class Swing extends Strategy implements TradeListener {
                 order.put("expiretime", this.getMaxOrderDuration());
                 order.put("dynamicorderduration", getDynamicOrderDuration());
                 order.put("maxslippage", this.getMaxSlippageExit());
+                order.put("log","SELL"+delimiter+ stats.get("trend") + delimiter + stats.get("probability"));
                 this.exit(order);
                 //  this.exit(id, EnumOrderSide.SELL, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
                 longsExitedToday.add(id);
@@ -664,6 +667,7 @@ public class Swing extends Strategy implements TradeListener {
                 order.put("expiretime", this.getMaxOrderDuration());
                 order.put("dynamicorderduration", getDynamicOrderDuration());
                 order.put("maxslippage", this.getMaxSlippageExit());
+                order.put("log","COVER"+delimiter+ stats.get("trend") + delimiter + stats.get("probability"));
                 this.exit(order);
                 //this.exit(id, EnumOrderSide.COVER, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
                 if (rollover) {
@@ -898,6 +902,7 @@ public class Swing extends Strategy implements TradeListener {
                     order.put("expiretime", this.getMaxOrderDuration());
                     order.put("dynamicorderduration", getDynamicOrderDuration());
                     order.put("maxslippage", this.getMaxSlippageEntry());
+                    order.put("log","BUY"+delimiter+ signalValues.get(id).get("trend") + delimiter + signalValues.get(id).get("probability"));
                     logger.log(Level.INFO, "501,Strategy BUY,{0}", new Object[]{getStrategy() + delimiter + "BUY" + delimiter + Parameters.symbol.get(id).getDisplayname()});
                     int orderid = entry(order);
                     Stop tp = new Stop();
@@ -963,6 +968,7 @@ public class Swing extends Strategy implements TradeListener {
                     order.put("expiretime", this.getMaxOrderDuration());
                     order.put("dynamicorderduration", getDynamicOrderDuration());
                     order.put("maxslippage", this.getMaxSlippageExit());
+                    order.put("log","SHORT"+delimiter+ signalValues.get(id).get("trend") + delimiter + signalValues.get(id).get("probability"));
                     logger.log(Level.INFO, "501,Strategy SHORT,{0}", new Object[]{getStrategy() + delimiter + "SHORT" + delimiter + Parameters.symbol.get(id).getDisplayname()});
                     int orderid = entry(order);
                     Stop tp = new Stop();
@@ -1058,6 +1064,7 @@ public class Swing extends Strategy implements TradeListener {
                 order.put("expiretime", this.getMaxOrderDuration());
                 order.put("dynamicorderduration", getDynamicOrderDuration());
                 order.put("maxslippage", this.getMaxSlippageExit());
+                order.put("log", "ROLLOVERSQUAREOFF");
                 this.exit(order);
                 break;
             case SHORT:
@@ -1074,6 +1081,7 @@ public class Swing extends Strategy implements TradeListener {
                 order.put("expiretime", this.getMaxOrderDuration());
                 order.put("dynamicorderduration", getDynamicOrderDuration());
                 order.put("maxslippage", this.getMaxSlippageExit());
+                order.put("log", "ROLLOVERSQUAREOFF");
                 this.exit(order);
                 break;
             default:
@@ -1099,6 +1107,7 @@ public class Swing extends Strategy implements TradeListener {
                 order.put("expiretime", this.getMaxOrderDuration());
                 order.put("dynamicorderduration", getDynamicOrderDuration());
                 order.put("maxslippage", this.getMaxSlippageExit());
+                order.put("log", "ROLLOVERENTRY");
                 this.entry(order);
                 orderid = this.getFirstInternalOpenOrder(initID, EnumOrderSide.SELL, "Order");
                 break;
@@ -1115,6 +1124,7 @@ public class Swing extends Strategy implements TradeListener {
                 order.put("expiretime", this.getMaxOrderDuration());
                 order.put("dynamicorderduration", getDynamicOrderDuration());
                 order.put("maxslippage", this.getMaxSlippageExit());
+                order.put("log", "ROLLOVERENTRY");
                 this.entry(order);
                 orderid = this.getFirstInternalOpenOrder(initID, EnumOrderSide.COVER, "Order");
                 break;
