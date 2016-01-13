@@ -101,6 +101,12 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
     double trailingTP;
     boolean scalpingMode;
     double reentryMinimumMove;
+    double adrPercentileEntry;
+    double adrPercentileExit;
+    double trinValueThresholdLongEntry;
+    double trinValueThresholdLongExit;
+    double trinValueThresholdShortEntry;
+    double trinValueThresholdShortExit;
     private double entryPrice;
     private double lastLongExit;
     private double lastShortExit;
@@ -231,6 +237,13 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
         setScaleoutTargets(p.getProperty("ScaleOutTargets") != null ? TradingUtil.convertArrayToDouble(p.getProperty("ScaleOutTargets").split(",")) : null);
         setScaleOutSizes(p.getProperty("ScaleOutSizes") != null ? TradingUtil.convertArrayToInteger(p.getProperty("ScaleOutSizes").split(",")) : null);
         swingSymbol = p.getProperty("swingsymbol");
+        adrPercentileEntry = Utilities.getDouble(p.getProperty("ADRPercentileEntry"), 0.5);
+        adrPercentileExit = Utilities.getDouble(p.getProperty("ADRPercentileExit"), 0.5);
+        trinValueThresholdLongEntry= Utilities.getDouble(p.getProperty("TRINValueThresholdLongEntry"),95 );
+        trinValueThresholdLongExit= Utilities.getDouble(p.getProperty("TRINValueThresholdLongExit"),105 );
+        trinValueThresholdShortEntry= Utilities.getDouble(p.getProperty("TRINValueThresholdShortEntry"),105 );
+        trinValueThresholdShortExit= Utilities.getDouble(p.getProperty("TRINValueThresholdShortExit"),95 );
+        
         logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Use for Trading" + delimiter + MainAlgorithm.isUseForTrading()});
         logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "TradingAllowed" + delimiter + getTrading()});
         logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Index" + delimiter + getIndex()});
@@ -248,6 +261,12 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
         logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "LosingZoneNoTrade" + delimiter + isTrackLosingZone()});
         logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "ScaleOutTargets" + delimiter + Arrays.toString(getScaleoutTargets())});
         logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "ScaleOutRatios" + delimiter + Arrays.toString(getScaleOutSizes())});
+        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "TRINValueThresholdLongEntry" + delimiter + trinValueThresholdLongEntry});
+        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "TRINValueThresholdLongExit" + delimiter + trinValueThresholdLongExit});
+        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "TRINValueThresholdShortEntry" + delimiter + trinValueThresholdShortEntry});
+        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "TRINValueThresholdShortExit" + delimiter + trinValueThresholdShortExit});
+        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "ADRPercentileEntry" + delimiter + adrPercentileEntry});
+        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "ADRPercentileExit" + delimiter + adrPercentileExit});
 
 
     }
@@ -336,10 +355,10 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                 //Buy = ADR IS UPWARD SLOPING ((adrHigh - adrLow > 5 && adr > adrLow + 0.75 * (adrHigh - adrLow) 
                         // VAL = adr/adrTRIN  IS UPWARD SLOPING
                 
-                boolean buyZone1=adrHigh-adrLow>5 && adr > adrLow + 0.75 * (adrHigh - adrLow)  && adrTRINValue<95;//&& adrTRINVolume<100
-                boolean shortZone1= adrHigh-adrLow>5 && adr < adrHigh - 0.75 * (adrHigh - adrLow)   && adrTRINValue>105;//&& adrTRINVolume>100
-                boolean sellZone1=adr < adrLow + 0.5 * (adrHigh - adrLow)  && adrTRINValue>100;//&& adrTRINVolume<100
-                boolean coverZone1= adr > adrHigh - 0.5 * (adrHigh - adrLow)   && adrTRINValue<100;//&& adrTRINVolume>100
+                boolean buyZone1=adrHigh-adrLow>5 && adr > adrLow + adrPercentileEntry* (adrHigh - adrLow)/100  && adrTRINValue<this.trinValueThresholdLongEntry;//&& adrTRINVolume<100
+                boolean shortZone1= adrHigh-adrLow>5 && adr < adrHigh - adrPercentileEntry* (adrHigh - adrLow)/100   && adrTRINValue>this.trinValueThresholdShortEntry;//&& adrTRINVolume>100
+                boolean sellZone1=adr < adrLow + adrPercentileExit* (adrHigh - adrLow)/100  && adrTRINValue>this.trinValueThresholdLongExit;//&& adrTRINVolume<100
+                boolean coverZone1= adr > adrHigh - adrPercentileExit* (adrHigh - adrLow)/100   && adrTRINValue<this.trinValueThresholdShortExit;//&& adrTRINVolume>100
                 
                 /*
                 boolean buyZone1 = ((adrHigh - adrLow > 5 && adr > adrLow + 0.75 * (adrHigh - adrLow) && adr > adrAvg)
