@@ -312,16 +312,19 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                     case com.ib.client.TickType.LAST:
                         mEsperEvtProcessor.sendEvent(timeEvent);
                         mEsperEvtProcessor.sendEvent(new TickPriceEvent(id, com.ib.client.TickType.LAST, Parameters.symbol.get(id).getLastPrice()));
-                        if (Parameters.symbol.get(id).getClosePrice() == 0 && !this.closePriceReceived.get(id)) {
+                        if (Parameters.symbol.get(id).getOpenPrice()== 0) {
                             mEsperEvtProcessor.sendEvent(timeEvent);
-                            mEsperEvtProcessor.sendEvent(new TickPriceEvent(id, com.ib.client.TickType.CLOSE, Parameters.symbol.get(id).getClosePrice()));
+                            mEsperEvtProcessor.sendEvent(new TickPriceEvent(id, com.ib.client.TickType.OPEN, Parameters.symbol.get(id).getLastPrice()));
                             this.closePriceReceived.put(id, Boolean.TRUE);
 
+                        }else if(Algorithm.useForSimulation){
+                            mEsperEvtProcessor.sendEvent(timeEvent);
+                            mEsperEvtProcessor.sendEvent(new TickPriceEvent(id, com.ib.client.TickType.OPEN, Parameters.symbol.get(id).getOpenPrice()));
                         }
                         break;
-                    case com.ib.client.TickType.CLOSE:
+                    case com.ib.client.TickType.OPEN:
                         mEsperEvtProcessor.sendEvent(timeEvent);
-                        mEsperEvtProcessor.sendEvent(new TickPriceEvent(id, com.ib.client.TickType.CLOSE, Parameters.symbol.get(id).getClosePrice()));
+                        mEsperEvtProcessor.sendEvent(new TickPriceEvent(id, com.ib.client.TickType.OPEN, Parameters.symbol.get(id).getOpenPrice()));
                         break;
                     case 99:
                         //historical data. Data finished

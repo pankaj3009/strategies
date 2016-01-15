@@ -422,6 +422,9 @@ public class Launch extends javax.swing.JFrame {
           if(input.get("reval")!=null){
              algo.registerStrategy("com.incurrency.reval.Reval");
          }
+          if(input.get("scanneradr")!=null){
+             algo.registerStrategy("com.incurrency.scanneradr.ScannerAdr");
+         } 
         algo.postInit();
     }
 

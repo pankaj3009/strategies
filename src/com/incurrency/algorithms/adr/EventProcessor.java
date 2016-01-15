@@ -68,7 +68,7 @@ public class EventProcessor implements ActionListener {
        
         stmt = "create variable int LASTPRICE  = " + com.ib.client.TickType.LAST;
         esperEngine.getEPAdministrator().createEPL(stmt);
-        stmt = "create variable int CLOSEPRICE  = " + com.ib.client.TickType.CLOSE;
+        stmt = "create variable int OPENPRICE  = " + com.ib.client.TickType.OPEN;
         esperEngine.getEPAdministrator().createEPL(stmt);
         stmt = "create variable int LASTSIZE  = " + com.ib.client.TickType.LAST_SIZE;
         esperEngine.getEPAdministrator().createEPL(stmt);
@@ -79,15 +79,15 @@ public class EventProcessor implements ActionListener {
 
         // Create a named window to get the last and close price for a ticker
         stmt = "create window PriceWin.std:unique(tickerID) as ";
-        stmt += "(tickerID int, lastPrice double, closePrice double, lastSize double, volume double, tradedvalue double)";
+        stmt += "(tickerID int, lastPrice double, openPrice double, lastSize double, volume double, tradedvalue double)";
 
         statement = esperEngine.getEPAdministrator().createEPL(stmt);
 
         stmt = "insert into PriceWin  ";
-        stmt += "select  a.tickerID as tickerID, a.price as lastPrice, b.price as closePrice, c.price as lastSize, d.price as volume,e.price as tradedvalue ";
+        stmt += "select  a.tickerID as tickerID, a.price as lastPrice, b.price as openPrice, c.price as lastSize, d.price as volume,e.price as tradedvalue ";
         stmt += "from TickPrice(field=TRADEDVALUE, price> 0).std:unique(tickerID) as e, ";
         stmt += "TickPrice(field = LASTPRICE, price > 0).std:unique(tickerID) as a, ";
-        stmt += "TickPrice(field = CLOSEPRICE, price > 0).std:unique(tickerID) as b, ";
+        stmt += "TickPrice(field = OPENPRICE, price > 0).std:unique(tickerID) as b, ";
         stmt += "TickPrice(field = LASTSIZE, price > 0).std:unique(tickerID) as c, ";
         stmt += "TickPrice(field = VOLUME, price > 0).std:unique(tickerID) as d ";
         stmt += "where a.tickerID = b.tickerID ";
@@ -98,12 +98,12 @@ public class EventProcessor implements ActionListener {
 
         statement = esperEngine.getEPAdministrator().createEPL(stmt);
         // Create the statement to calculate adrStrategy as count(+symbs)/count(-symbs) since prv day close
-        stmt = "select count(*, lastPrice > closePrice) as pTicks, ";
-        stmt += "sum(tradedvalue, lastPrice > closePrice) as pValue, ";
-        stmt += "sum(volume, lastPrice > closePrice) as pVolume, ";
-        stmt += "count(*, lastPrice < closePrice) as nTicks, ";
-        stmt += "sum(tradedvalue, lastPrice < closePrice) as nValue, ";
-        stmt += "sum(volume, lastPrice < closePrice) as nVolume, ";
+        stmt = "select count(*, lastPrice > openPrice) as pTicks, ";
+        stmt += "sum(tradedvalue, lastPrice > openPrice) as pValue, ";
+        stmt += "sum(volume, lastPrice > openPrice) as pVolume, ";
+        stmt += "count(*, lastPrice < openPrice) as nTicks, ";
+        stmt += "sum(tradedvalue, lastPrice < openPrice) as nValue, ";
+        stmt += "sum(volume, lastPrice < openPrice) as nVolume, ";
         stmt += "count(*) as tTicks, ";
         stmt += "sum(tradedvalue) as tradedValue, ";
         stmt += "sum(volume) as volume from PriceWin";
@@ -205,14 +205,14 @@ public class EventProcessor implements ActionListener {
         //write ADR
             query="select * from PriceWin";
             EPOnDemandQueryResult result2 = epRuntime.executeQuery(query);
-             TradingUtil.writeToFile("DebugADR.csv", "tickerID,lastPrice,closePrice,lastSize,volume");
+             TradingUtil.writeToFile("DebugADR.csv", "tickerID,lastPrice,openPrice,lastSize,volume");
              for (EventBean ADRrow : result2.getArray()) {
             String tickerID=ADRrow.get("tickerID")!=null?ADRrow.get("tickerID").toString():"";
             String lastPrice=ADRrow.get("lastPrice")!=null?ADRrow.get("lastPrice").toString():"";
-            String closePrice=ADRrow.get("closePrice")!=null?ADRrow.get("closePrice").toString():"";
+            String openPrice=ADRrow.get("openPrice")!=null?ADRrow.get("openPrice").toString():"";
             String lastSize=ADRrow.get("lastSize")!=null?ADRrow.get("lastSize").toString():"";
             String volume=ADRrow.get("volume")!=null?ADRrow.get("volume").toString():"";
-            TradingUtil.writeToFile("DebugADR.csv", tickerID+","+lastPrice+","+closePrice+","+lastSize+","+volume);
+            TradingUtil.writeToFile("DebugADR.csv", tickerID+","+lastPrice+","+openPrice+","+lastSize+","+volume);
                     
              }
        }
@@ -231,10 +231,10 @@ public class EventProcessor implements ActionListener {
             //write ADR
             query="select * from LastPrice";
             result = epRuntime.executeQuery(query);
-             TradingUtil.writeToFile("ADR.csv", "tickerID,lastPrice,closePrice,lastSize,volume\n");
+             TradingUtil.writeToFile("ADR.csv", "tickerID,lastPrice,openPrice,lastSize,volume\n");
              for (EventBean ADRrow : result.getArray()) {
                   TradingUtil.writeToFile("Tick.csv", ADRrow.get("tickerID").toString()+","+ADRrow.get("lastPrice").toString()+","+
-                    ADRrow.get("closePrice").toString()+","+ADRrow.get("lastSize").toString()+","+ADRrow.get("volume").toString()+"\n");
+                    ADRrow.get("openPrice").toString()+","+ADRrow.get("lastSize").toString()+","+ADRrow.get("volume").toString()+"\n");
 
              }
             /*            
@@ -256,7 +256,7 @@ public class EventProcessor implements ActionListener {
             System.out.println("tickerID=" + row.get("tickerID"));
             //System.out.println("field=" + row.get("field"));
             System.out.println("lastPrice=" + row.get("lastPrice"));
-            System.out.println("closePrice=" + row.get("closePrice"));
+            System.out.println("openPrice=" + row.get("openPrice"));
             System.out.println("lastSize=" + row.get("lastSize"));
             System.out.println("Volume=" + row.get("volume"));
 	}
