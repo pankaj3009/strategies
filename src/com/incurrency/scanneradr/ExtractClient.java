@@ -71,7 +71,8 @@ public class ExtractClient extends Extract {
                                                                                         }, ADRManager.startTime+15*60000, ADRManager.endTime-15*60000, "adr.csv", "yyyyMMdd HH:mm:ss", false);
                 }
                 Scanner.dateProcessing.take();
-                break;
+                System.exit(0);
+               break;
             default:
                 break;
         }
