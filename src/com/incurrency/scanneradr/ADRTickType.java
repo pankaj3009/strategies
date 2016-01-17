@@ -9,6 +9,7 @@ import java.util.logging.Logger;
 
 public class ADRTickType {
 
+
     private static final Logger logger = Logger.getLogger(ADRTickType.class.getName());
     // constants - tick types
     public static final int D_ADVANCE       = 0;
@@ -23,16 +24,14 @@ public class ADRTickType {
     public static final int T_ADVANCE_VOL   = 9;
     public static final int T_DECLINE_VOL   = 10;
     public static final int T_TOTAL_VOL     = 11;
-    public static final int LASTPRICE       = 21;
-    public static final int OPENPRICE      = 22;
-    public static final int  LASTSIZE       = 23;
-    public static final int VOLUME          = 24;
     public static final int D_ADR           = 10001;
-    public static final int D_TRIN          = 10002;
-    public static final int T_TICK          = 10003;
-    public static final int T_TRIN          = 10004;
-    public static final int INDEX      = 10005;
-    public static final int NOMFEMAE = 1000000;
+    public static final int D_TRIN_VOLUME   = 10002;
+    public static final int T_MOVE          = 10003;
+    public static final int T_TIME          = 10004;
+    public static final int INDEX           = 10005;
+    public static final int NOMFEMAE         = 10006;
+    public static final int D_TRIN_VALUE   = 10007;
+    
 
 
     public static String getField( int adrType) {

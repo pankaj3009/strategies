@@ -48,8 +48,8 @@ public class TickListener implements UpdateListener{
         double tickTRIN=pVolume+nVolume>0?tick*100/volume:0;
 
         if(tTicks>ADRManager.threshold){
-          adrManager.mEsperEvtProcessor.sendEvent(new TickPriceEvent(ADRTickType.T_TICK,ADRTickType.T_TICK,tick));
-          adrManager.mEsperEvtProcessor.sendEvent(new TickPriceEvent(ADRTickType.T_TRIN,ADRTickType.T_TRIN,tickTRIN));         
+          //adrManager.mEsperEvtProcessor.sendEvent(new TickPriceEvent(ADRTickType.T_TICK,ADRTickType.T_TICK,tick));
+          //adrManager.mEsperEvtProcessor.sendEvent(new TickPriceEvent(ADRTickType.T_TRIN,ADRTickType.T_TRIN,tickTRIN));         
           }
     }
 }

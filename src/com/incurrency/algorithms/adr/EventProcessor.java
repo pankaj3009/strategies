@@ -139,7 +139,9 @@ public class EventProcessor implements ActionListener {
         esperEngine.getEPAdministrator().createEPL(stmt);
         stmt = "create variable int tickTRIN = " + com.incurrency.algorithms.adr.ADRTickType.T_TRIN;
         esperEngine.getEPAdministrator().createEPL(stmt);
-        
+        stmt = "create variable int adrTRINVALUE= " + com.incurrency.algorithms.adr.ADRTickType.D_TRIN_VALUE;
+        esperEngine.getEPAdministrator().createEPL(stmt);
+                
         
         stmt = "select field,max(price) as high ,min(price) as low, avg(price) as average "
                 + "from ADRPrice.win:time("

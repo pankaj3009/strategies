@@ -9,6 +9,8 @@ import com.espertech.esper.client.EventBean;
 import com.incurrency.framework.BeanSymbol;
 import com.incurrency.framework.EnumBarSize;
 import com.incurrency.framework.Parameters;
+import static com.incurrency.scanneradr.ADRManager.tradingStarted;
+import static com.incurrency.scanneradr.ADRManager.tradingEnded;
 import java.text.DecimalFormat;
 import java.util.logging.Logger;
 
@@ -39,16 +41,23 @@ public class ADRListener implements UpdateListener{
         Long pVolume = newEvents[0].get("pVolume")==null? 0:Math.round((double)newEvents[0].get("pVolume"));
         Long nVolume = newEvents[0].get("nVolume")==null? 0:Math.round((double)newEvents[0].get("nVolume"));
         Long tVolume = newEvents[0].get("volume")==null? 0:Math.round((double)newEvents[0].get("volume"));
+        Long pValue = newEvents[0].get("pValue")==null? 0:Math.round((double)newEvents[0].get("pValue"));
+        Long nValue = newEvents[0].get("nValue")==null? 0:Math.round((double)newEvents[0].get("nValue"));
+        Long tValue = newEvents[0].get("tradedValue")==null? 0:Math.round((double)newEvents[0].get("tradedValue"));
+        
         Long uChg = tTicks - (pTicks + nTicks);
+        double adr=pTicks+nTicks>0?(double)pTicks*100/(pTicks+nTicks):0;
+        double adrTRINVolume=pVolume+nVolume>0?(double)adr*100/(double)(pVolume*100D/(pVolume+nVolume)):0;
+        double adrTRINValue=pValue+nValue>0?(double)adr*100/(double)(pValue*100D/(pValue+nValue)):0;        
         long time =(long)newEvents[0].get("ts");
-        double adr=pTicks+nTicks>0?pTicks*100/(pTicks+nTicks):0;
-        double daily_volume=pVolume+nVolume>0?pVolume*100/(pVolume+nVolume):0;
-        double TRIN=daily_volume>0?adr*100/daily_volume:0;
+        if(tTicks>=ADRManager.threshold){
           BeanSymbol s=Parameters.symbol.get(ADRManager.compositeID);
-          s.setTimeSeries(EnumBarSize.ONESECOND, time, new String[]{"adratio","advolumeratio","trin","pticks","nticks","tticks","pvolume","nvolume"}, new double[]{adr,daily_volume,TRIN,pTicks,nTicks,tTicks,pVolume,nVolume});
+          if(tradingStarted && !tradingEnded){
+          s.setTimeSeries(EnumBarSize.ONESECOND, time, new String[]{"adr","adrtrinvolume","adrtrinvalue"}, new double[]{adr,adrTRINVolume,adrTRINValue});
+          }
           adrManager.mEsperEvtProcessor.sendEvent(new ADREvent(ADRTickType.D_ADR,adr));
-          adrManager.mEsperEvtProcessor.sendEvent(new ADREvent(ADRTickType.D_TRIN,TRIN));
-          
+          adrManager.mEsperEvtProcessor.sendEvent(new ADREvent(ADRTickType.D_TRIN_VOLUME,adrTRINVolume));
+          adrManager.mEsperEvtProcessor.sendEvent(new ADREvent(ADRTickType.D_TRIN_VALUE,adrTRINValue));        }
     }
     
 }

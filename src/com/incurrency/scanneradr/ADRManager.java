@@ -22,6 +22,7 @@ import java.util.logging.Logger;
 import org.jblas.DoubleMatrix;
 import org.jblas.ranges.IntervalRange;
 import com.incurrency.framework.Parameters;
+import org.jblas.ranges.Range;
 
 /**
  *
@@ -29,10 +30,13 @@ import com.incurrency.framework.Parameters;
  */
 public class ADRManager implements Runnable {
 
-    public static int threshold = 450;
+    public static int threshold = 2;
     public static int window = 30;
-    public static int forwardLookingReturn = 30;
     public String outFileName = "adr";
+    static boolean tradingStarted = Boolean.FALSE;
+    static boolean tradingEnded = Boolean.FALSE;
+    int startMinute = 30;
+    int endMinute = 15;
     public EventProcessor mEsperEvtProcessor;
     boolean openTimeSet = false;
     boolean bod = true;
@@ -45,8 +49,8 @@ public class ADRManager implements Runnable {
     int volumeIndex = Parameters.symbol.get(0).getRowLabels().get(EnumBarSize.ONESECOND).indexOf("volume");
     int iADR;
     String dateString = null;
-    long startTime;
-    long endTime;
+    static long startTime;
+    static long endTime;
     static int compositeID = -1;
 
     public ADRManager() {
@@ -65,7 +69,7 @@ public class ADRManager implements Runnable {
         //mEsperBarProcessor = new OHLCBarProcessor();
 
         //create new timeseries, if does not exist
-        if (Utilities.getIDFromDisplayName(Parameters.symbol,"Composite") == -1) {
+        if (Utilities.getIDFromDisplayName(Parameters.symbol, "Composite") == -1) {
             BeanSymbol s = new BeanSymbol("Composite", "Composite", "CUS", "CUS", "INR", "", "", "", 0);
             int serialno = Parameters.symbol.size();
             ADRManager.compositeID = serialno;
@@ -89,7 +93,11 @@ public class ADRManager implements Runnable {
          * Update BeanSymbol ClosePrice
          * Clear BeanSymbol dailyBars. 
          */
-
+        int indexFuture = -1;
+        DoubleMatrix moveForward = new DoubleMatrix();
+        DoubleMatrix moveBackward = new DoubleMatrix();
+        DoubleMatrix moveForwardTime = new DoubleMatrix();
+        DoubleMatrix moveBackwardTime = new DoubleMatrix();
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
         SimpleDateFormat datetimeFormat = new SimpleDateFormat("yyyyMMddHHmmss");
         SimpleDateFormat datetimeCleanFormat = new SimpleDateFormat("yyyyMMdd HH:mm:ss");
@@ -98,7 +106,7 @@ public class ADRManager implements Runnable {
         /*
          * IDNETIFY THE PROCESSING DATE
          */
-        long adrNextTime=0L;
+        long adrNextTime = 0L;
         for (BeanSymbol s : Parameters.symbol) {
             Preconditions.checkArgument(s.getRowLabels().get(EnumBarSize.ONESECOND).indexOf("close") >= 0, "Bar for index: %s, Barsize: %s is null", s.getDisplayname(), EnumBarSize.ONESECOND.toString());
             if (s.getColumnLabels().get(EnumBarSize.ONESECOND).size() > 0) {
@@ -110,34 +118,53 @@ public class ADRManager implements Runnable {
                     startTime = adrNextTime;
                     Calendar endTimeCal = Calendar.getInstance(TimeZone.getTimeZone(Algorithm.timeZone));
                     Calendar now = Calendar.getInstance(TimeZone.getTimeZone(Algorithm.timeZone));
-                now.set(Calendar.HOUR_OF_DAY, Algorithm.closeHour);
-                now.set(Calendar.MINUTE, Algorithm.closeMinute);
-                now.set(Calendar.SECOND, 0);
-                now.set(Calendar.MILLISECOND, 0);
-                now.add(Calendar.SECOND, -1);
-                endTimeCal.setTime(new Date(startTime));
-                endTimeCal.set(Calendar.MILLISECOND, 0);
-                endTimeCal.set(Calendar.SECOND, now.get(Calendar.SECOND));
-                endTimeCal.set(Calendar.MINUTE, now.get(Calendar.MINUTE));
-                endTimeCal.set(Calendar.HOUR_OF_DAY, now.get(Calendar.HOUR_OF_DAY));
-                endTime = endTimeCal.getTimeInMillis();
+                    now.set(Calendar.HOUR_OF_DAY, Algorithm.closeHour);
+                    now.set(Calendar.MINUTE, Algorithm.closeMinute);
+                    now.set(Calendar.SECOND, 0);
+                    now.set(Calendar.MILLISECOND, 0);
+                    now.add(Calendar.SECOND, -1);
+                    endTimeCal.setTime(new Date(startTime));
+                    endTimeCal.set(Calendar.MILLISECOND, 0);
+                    endTimeCal.set(Calendar.SECOND, now.get(Calendar.SECOND));
+                    endTimeCal.set(Calendar.MINUTE, now.get(Calendar.MINUTE));
+                    endTimeCal.set(Calendar.HOUR_OF_DAY, now.get(Calendar.HOUR_OF_DAY));
+                    endTime = endTimeCal.getTimeInMillis();
                 }
             }
             if (dateString != null) {
+                endIndex=s.getTimeStampSeries(EnumBarSize.ONESECOND).size();
+                break;
+            }
+        }
+        for (BeanSymbol s : Parameters.symbol) {
+            if (s.getDisplayname().contains("NIFTY")) {
+                indexFuture = s.getSerialno() - 1;
                 break;
             }
         }
 
+        if (indexFuture >= 0) {
+            moveForward = calculateMoveForward(startIndex, endIndex, Parameters.symbol.get(0), EnumBarSize.ONESECOND, 10);
+            moveBackward = calculateMoveBackward(startIndex, endIndex, Parameters.symbol.get(0), EnumBarSize.ONESECOND, 10);
+            moveForwardTime = calculateMoveForwardTime(startIndex, endIndex, Parameters.symbol.get(0), EnumBarSize.ONESECOND, 10);
+            moveBackwardTime = calculateMoveBackwardTime(startIndex, endIndex, Parameters.symbol.get(0), EnumBarSize.ONESECOND, 10);
+        }
 
         for (BeanSymbol s : Parameters.symbol) {
             //BOD. Send open price
             if (!s.getDisplayname().contains("Composite")) {
-                mEsperEvtProcessor.sendEvent(new TickPriceEvent(s.getSerialno(), ADRTickType.OPENPRICE, s.getTimeSeriesValueCeil(EnumBarSize.ONESECOND, adrNextTime, "close")));
+                mEsperEvtProcessor.sendEvent(new TickPriceEvent(s.getSerialno(), com.ib.client.TickType.OPEN, s.getTimeSeriesValueCeil(EnumBarSize.ONESECOND, adrNextTime, "close")));
             }
         }
-        calculateMFEMAE(0, Parameters.symbol.get(0));
+
         for (int hour = Algorithm.openHour; hour <= Algorithm.closeHour; hour++) {
             for (int minute = 0; minute <= 59; minute++) {
+                if (tradingStarted || minute >= 30) {
+                    tradingStarted = Boolean.TRUE;
+                }
+                if (hour == 15 && minute >= 15) {
+                    tradingEnded = Boolean.TRUE;
+                }
                 for (int second = 0; second <= 59; second++) {
                     //For each symbol
                     String timeString = String.format("%02d", hour) + String.format("%02d", minute) + String.format("%02d", second);
@@ -154,43 +181,227 @@ public class ADRManager implements Runnable {
                     if (bod) {
                         bod = false;
                     }
-                    System.out.print("\r" + "Processing for : " + datetimeCleanFormat.format(new Date(currentDateTime.getTime())));
+                    System.out.println("\r" + "Processing for : " + datetimeCleanFormat.format(new Date(currentDateTime.getTime())));
                     for (BeanSymbol s : Parameters.symbol) {
-                        if (!s.getDisplayname().contains("NIFTY")) {//send to esper for non index stocks
-                            int index = s.getColumnLabels().get(EnumBarSize.ONESECOND).indexOf(currentDateTime.getTime());
-                            if (index >= 0) {//only publish data if there is value for the timestamp
+                        int index = s.getColumnLabels().get(EnumBarSize.ONESECOND).indexOf(currentDateTime.getTime());
+                        if (index >= 0) {
+                            if (!s.getDisplayname().contains("NIFTY")) {//send to esper for non index stocks
+                                //only publish data if there is value for the timestamp
                                 double lastPrice = s.getTimeSeries().get(EnumBarSize.ONESECOND).getRow(closeIndex).get(index);
                                 if (lastPrice > 0) {
-                                    mEsperEvtProcessor.sendEvent(new TickPriceEvent(s.getSerialno(), ADRTickType.LASTSIZE, s.getTimeSeries().get(EnumBarSize.ONESECOND).getRow(volumeIndex).get(index)));
+                                    double lastSize=s.getTimeSeries().get(EnumBarSize.ONESECOND).getRow(volumeIndex).get(index);
+                                    mEsperEvtProcessor.sendEvent(new TickPriceEvent(s.getSerialno(), com.ib.client.TickType.LAST_SIZE, lastSize));
                                     IntervalRange range = new IntervalRange(startIndex, index + 1);
                                     int[] indexesOfTrades = s.getTimeSeries().get(EnumBarSize.ONESECOND).get(volumeIndex, range).ne(ReservedValues.EMPTY).findIndices();
-                                    mEsperEvtProcessor.sendEvent(new TickPriceEvent(s.getSerialno(), ADRTickType.VOLUME, s.getTimeSeries().get(EnumBarSize.ONESECOND).get(volumeIndex, indexesOfTrades).sum()));
-                                    mEsperEvtProcessor.sendEvent(new TickPriceEvent(s.getSerialno(), ADRTickType.LASTPRICE, lastPrice));
-
+                                    mEsperEvtProcessor.sendEvent(new TickPriceEvent(s.getSerialno(), com.ib.client.TickType.VOLUME, s.getTimeSeries().get(EnumBarSize.ONESECOND).get(volumeIndex, indexesOfTrades).sum()));
+                                    mEsperEvtProcessor.sendEvent(new TickPriceEvent(s.getSerialno(), com.ib.client.TickType.LAST, lastPrice));
+                                    mEsperEvtProcessor.sendEvent(new TickPriceEvent(s.getSerialno(), com.ib.client.TickType.TRADEDVALUE, lastPrice*lastSize));
                                 }
-                            }
-                        } else {
-                            int index = s.getColumnLabels().get(EnumBarSize.ONESECOND).indexOf(currentDateTime.getTime());
-                            if (index >= 0) {
-                                //ADRData.index = s.getTimeSeries().get(EnumBarSize.ONESECOND).get(closeIndex, index);
-                                // if (ADRData.daily_adr_ratio > 0) {
+                            } else {
                                 mEsperEvtProcessor.sendEvent(new ADREvent(ADRTickType.INDEX, s.getTimeSeries().get(EnumBarSize.ONESECOND).get(closeIndex, index)));
-                                //this.mEsperBarProcessor.sendEvent(new TickPriceEvent(s.getSerialno(), ADRTickType.LASTPRICE, ADRData.index));
-                                //        }
-
-                                //calculate y
-                                DoubleMatrix tempMFEMAE = calculateMFEMAE(index, s, true);
-                                double tempmfemae = calculateY(tempMFEMAE);
-                                Parameters.symbol.get(ADRManager.compositeID).setTimeSeries(EnumBarSize.ONESECOND, currentDateTime.getTime(), new String[]{"mfemae"}, new double[]{tempmfemae});
-
+                                if (tradingStarted && !tradingEnded) {
+                                    Parameters.symbol.get(ADRManager.compositeID).setTimeSeries(EnumBarSize.ONESECOND, currentDateTime.getTime(), new String[]{"movebackward"}, new double[]{moveBackward.get(index)});
+                                    Parameters.symbol.get(ADRManager.compositeID).setTimeSeries(EnumBarSize.ONESECOND, currentDateTime.getTime(), new String[]{"movebackwardtime"}, new double[]{moveBackwardTime.get(index)});
+                                    Parameters.symbol.get(ADRManager.compositeID).setTimeSeries(EnumBarSize.ONESECOND, currentDateTime.getTime(), new String[]{"moveforward"}, new double[]{moveForward.get(index)});
+                                    Parameters.symbol.get(ADRManager.compositeID).setTimeSeries(EnumBarSize.ONESECOND, currentDateTime.getTime(), new String[]{"moveforwardtime"}, new double[]{moveForwardTime.get(index)});
+                                }
                             }
                         }
                     }
-
                 }
             }
         }
+        tradingStarted=Boolean.FALSE;
+        tradingEnded=Boolean.FALSE;
         mEsperEvtProcessor.destroy();
+    }
+
+    /**
+     * Calculates direction of forwarding looking move
+     *
+     * @param startIndex
+     * @param endIndex
+     * @param s
+     * @param barSize
+     * @param move
+     * @return
+     */
+    public DoubleMatrix calculateMoveForward(int startIndex, int endIndex, BeanSymbol s, EnumBarSize barSize, double move) {
+        DoubleMatrix out = DoubleMatrix.ones(1, endIndex - startIndex);
+        for (int i = startIndex; i < endIndex; i++) {
+            double entryPrice = s.getTimeSeries().get(barSize).get(closeIndex, i);
+            double upTarget = entryPrice + move;
+            double downTarget = entryPrice - move;
+            Range r = new IntervalRange(i, endIndex);
+            DoubleMatrix m = s.getTimeSeries().get(barSize).get(closeIndex, r);
+            int[] upTargetIndices = m.ge(upTarget).findIndices();
+            int[] downTargetIndices = m.le(downTarget).findIndices();
+            if (upTargetIndices.length != 0 && downTargetIndices.length != 0) {
+                if (upTargetIndices[0] > downTargetIndices[0]) {
+                    //downmove happened first. Set matrix
+                    out.put(i, 0);
+                } else {
+                    out.put(i, 1);
+                }
+            } else if (upTargetIndices.length != 0) {
+                out.put(i, 1);
+            } else if (downTargetIndices.length != 0) {
+                out.put(i, 0);
+            } else { //find the max move size
+                DoubleMatrix temp = s.getTimeSeries().get(barSize).get(closeIndex, r);
+                double upMove = temp.max() - entryPrice;
+                double downMove = entryPrice - temp.min();
+                if (upMove > downMove) {
+                    out.put(i, 1);
+                } else {
+                    out.put(i, 0);
+                }
+            }
+        }
+        return out;
+    }
+
+    /**
+     * Calculates time for forwarding looking move
+     *
+     * @param startIndex
+     * @param endIndex
+     * @param s
+     * @param barSize
+     * @param move
+     * @return
+     */
+    public DoubleMatrix calculateMoveForwardTime(int startIndex, int endIndex, BeanSymbol s, EnumBarSize barSize, double move) {
+        DoubleMatrix out = DoubleMatrix.ones(1, endIndex - startIndex);
+        for (int i = startIndex; i < endIndex; i++) {
+            double entryPrice = s.getTimeSeries().get(barSize).get(closeIndex, i);
+            double upTarget = entryPrice + move;
+            double downTarget = entryPrice - move;
+            Range r = new IntervalRange(i, endIndex);
+            DoubleMatrix m = s.getTimeSeries().get(barSize).get(closeIndex, r);
+            int[] upTargetIndices = m.ge(upTarget).findIndices();
+            int[] downTargetIndices = m.le(downTarget).findIndices();
+            if (upTargetIndices.length != 0 && downTargetIndices.length != 0) {
+                if (upTargetIndices[0] > downTargetIndices[0]) {
+                    //downmove happened first. Set matrix
+                    out.put(i, downTargetIndices[0]);
+                } else {
+                    out.put(i, upTargetIndices[0]);
+                }
+            } else if (upTargetIndices.length != 0) {
+                out.put(i, upTargetIndices[0]);
+            } else if (downTargetIndices.length != 0) {
+                out.put(i, downTargetIndices[0]);
+            } else { //find the max move size
+                DoubleMatrix temp = s.getTimeSeries().get(barSize).get(closeIndex, r);
+                double upMove = temp.max() - entryPrice;
+                double downMove = entryPrice - temp.min();
+                if (upMove > downMove) {
+                    out.put(i, endIndex - i);
+                } else {
+                    out.put(i, endIndex - i);
+                }
+            }
+        }
+        return out;
+    }
+
+    /**
+     * Calculates the direction of the historical move
+     *
+     * @param startIndex
+     * @param endIndex
+     * @param s
+     * @param barSize
+     * @param move
+     * @return
+     */
+    public DoubleMatrix calculateMoveBackward(int startIndex, int endIndex, BeanSymbol s, EnumBarSize barSize, double move) {
+        DoubleMatrix out = DoubleMatrix.ones(1, endIndex - startIndex);
+        for (int i = startIndex; i < endIndex; i++) {
+            double entryPrice = s.getTimeSeries().get(barSize).get(closeIndex, i);
+            double upTarget = entryPrice - move;
+            double downTarget = entryPrice + move;
+            Range r = new IntervalRange(startIndex, i);
+            DoubleMatrix m = s.getTimeSeries().get(barSize).get(closeIndex, r);
+            int[] upTargetIndices = m.le(upTarget).findIndices();
+            int[] downTargetIndices = m.ge(downTarget).findIndices();
+            if (upTargetIndices.length != 0 && downTargetIndices.length != 0) {
+                if (upTargetIndices[0] > downTargetIndices[0]) {
+                    //upmove happened first. Set matrix
+                    out.put(i, 1);
+                } else {
+                    out.put(i, 0);
+                }
+            } else if (upTargetIndices.length != 0) {
+                out.put(i, 1);
+            } else if (downTargetIndices.length != 0) {
+                out.put(i, 0);
+            } else { //find the max move size
+                DoubleMatrix temp = s.getTimeSeries().get(barSize).get(closeIndex, r);
+                if (temp.isEmpty()) {
+                    out.put(i, 1);
+                } else {
+                    double upMove = temp.max() - entryPrice;
+                    double downMove = entryPrice - temp.min();
+                    if (upMove > downMove) {
+                        out.put(i, 1);
+                    } else {
+                        out.put(i, 0);
+                    }
+                }
+            }
+        }
+        return out;
+    }
+
+    /**
+     * Calculates the time for the historical move
+     *
+     * @param startIndex
+     * @param endIndex
+     * @param s
+     * @param barSize
+     * @param move
+     * @return
+     */
+    public DoubleMatrix calculateMoveBackwardTime(int startIndex, int endIndex, BeanSymbol s, EnumBarSize barSize, double move) {
+        DoubleMatrix out = DoubleMatrix.ones(1, endIndex - startIndex);
+        for (int i = startIndex; i < endIndex; i++) {
+            double entryPrice = s.getTimeSeries().get(barSize).get(closeIndex, i);
+            double upTarget = entryPrice - move;
+            double downTarget = entryPrice + move;
+            Range r = new IntervalRange(startIndex, i);
+            DoubleMatrix m = s.getTimeSeries().get(barSize).get(closeIndex, r);
+            int[] upTargetIndices = m.le(upTarget).findIndices();
+            int[] downTargetIndices = m.ge(downTarget).findIndices();
+            if (upTargetIndices.length != 0 && downTargetIndices.length != 0) {
+                if (upTargetIndices[0] > downTargetIndices[0]) {
+                    //upmove happened first. Set matrix
+                    out.put(i, i - upTargetIndices[0]);
+                } else {
+                    out.put(i, i - downTargetIndices[0]);
+                }
+            } else if (upTargetIndices.length != 0) {
+                out.put(i, i - upTargetIndices[0]);
+            } else if (downTargetIndices.length != 0) {
+                out.put(i, i - downTargetIndices[0]);
+            } else { //find the max move size
+                DoubleMatrix temp = s.getTimeSeries().get(barSize).get(closeIndex, r);
+                if (temp.isEmpty()) {
+                    out.put(i, 1);
+                } else {
+                    double upMove = temp.max() - entryPrice;
+                    double downMove = entryPrice - temp.min();
+                    if (upMove > downMove) {
+                        out.put(i, i - startIndex);
+                    } else {
+                        out.put(i, i - startIndex);
+                    }
+                }
+            }
+        }
+        return out;
     }
 
     /**
