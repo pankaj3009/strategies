@@ -55,6 +55,7 @@ public class ExtractClient extends Extract {
                                                                                         arrintRangeWindows[1]+"trinvolumehigh",arrintRangeWindows[1]+"trinvolumelow",arrintRangeWindows[1]+"trinvolumeavg",
                                                                                         arrintRangeWindows[1]+"moveavg",
                                                                                         arrintRangeWindows[1]+"timehigh",arrintRangeWindows[1]+"timelow",arrintRangeWindows[1]+"timeavg",
+                                                                                        "moveforward",
                                                                                         }, ADRManager.startTime+15*60000, ADRManager.endTime-15*60000, "adr.csv", "yyyyMMdd HH:mm:ss", true);
                 } else {
                     composite.saveToExternalFile(EnumBarSize.ONESECOND, new String[]{"adr", "adrtrinvolume","adrtrinvalue","movebackward","movebackwardtime",
@@ -68,6 +69,7 @@ public class ExtractClient extends Extract {
                                                                                         arrintRangeWindows[1]+"trinvolumehigh",arrintRangeWindows[1]+"trinvolumelow",arrintRangeWindows[1]+"trinvolumeavg",
                                                                                         arrintRangeWindows[1]+"moveavg",
                                                                                         arrintRangeWindows[1]+"timehigh",arrintRangeWindows[1]+"timelow",arrintRangeWindows[1]+"timeavg",
+                                                                                        "moveforward",
                                                                                         }, ADRManager.startTime+15*60000, ADRManager.endTime-15*60000, "adr.csv", "yyyyMMdd HH:mm:ss", false);
                 }
                 Scanner.dateProcessing.take();
