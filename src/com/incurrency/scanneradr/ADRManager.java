@@ -11,7 +11,6 @@ import com.incurrency.framework.BeanSymbol;
 import com.incurrency.framework.EnumBarSize;
 import com.incurrency.framework.ReservedValues;
 import com.incurrency.framework.Utilities;
-import com.incurrency.scan.Scanner;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -187,6 +186,7 @@ public class ADRManager implements Runnable {
                         if (index >= 0) {
                             if (!s.getDisplayname().contains("NIFTY")) {//send to esper for non index stocks
                                 //only publish data if there is value for the timestamp
+                                if (!s.getDisplayname().contains("Composite")){
                                 double lastPrice = s.getTimeSeries().get(EnumBarSize.ONESECOND).getRow(closeIndex).get(index);
                                 if (lastPrice > 0) {
                                     double lastSize=s.getTimeSeries().get(EnumBarSize.ONESECOND).getRow(volumeIndex).get(index);
@@ -196,6 +196,7 @@ public class ADRManager implements Runnable {
                                     mEsperEvtProcessor.sendEvent(new TickPriceEvent(s.getSerialno(), com.ib.client.TickType.VOLUME, s.getTimeSeries().get(EnumBarSize.ONESECOND).get(volumeIndex, indexesOfTrades).sum()));
                                     mEsperEvtProcessor.sendEvent(new TickPriceEvent(s.getSerialno(), com.ib.client.TickType.LAST, lastPrice));
                                     mEsperEvtProcessor.sendEvent(new TickPriceEvent(s.getSerialno(), com.ib.client.TickType.TRADEDVALUE, lastPrice*lastSize));
+                                }
                                 }
                             } else {
                                 mEsperEvtProcessor.sendEvent(new ADREvent(ADRTickType.INDEX, s.getTimeSeries().get(EnumBarSize.ONESECOND).get(closeIndex, index)));
