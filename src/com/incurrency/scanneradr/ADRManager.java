@@ -29,7 +29,7 @@ import org.jblas.ranges.Range;
  */
 public class ADRManager implements Runnable {
 
-    public static int threshold = 2;
+    public static int threshold;
     public static int window = 30;
     public String outFileName = "adr";
     static boolean tradingStarted = Boolean.FALSE;
@@ -93,6 +93,7 @@ public class ADRManager implements Runnable {
          * Clear BeanSymbol dailyBars. 
          */
         int indexFuture = -1;
+        threshold= Utilities.getInt(com.incurrency.scan.Scanner.args.get("threshold"),49);
         DoubleMatrix moveForward = new DoubleMatrix();
         DoubleMatrix moveBackward = new DoubleMatrix();
         DoubleMatrix moveForwardTime = new DoubleMatrix();
