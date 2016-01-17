@@ -47,8 +47,8 @@ public class ADRListener implements UpdateListener{
         
         Long uChg = tTicks - (pTicks + nTicks);
         double adr=pTicks+nTicks>0?(double)pTicks*100/(pTicks+nTicks):0;
-        double adrTRINVolume=pVolume+nVolume>0?(double)adr*100/(double)(pVolume*100D/(pVolume+nVolume)):0;
-        double adrTRINValue=pValue+nValue>0?(double)adr*100/(double)(pValue*100D/(pValue+nValue)):0;        
+        double adrTRINVolume=pVolume+nVolume>0 && pVolume>0?(double)adr*100/(double)(pVolume*100D/(pVolume+nVolume)):0;
+        double adrTRINValue=pValue+nValue>0 && pValue>0?(double)adr*100/(double)(pValue*100D/(pValue+nValue)):0;        
         long time =(long)newEvents[0].get("ts");
         if(tTicks>=ADRManager.threshold){
           BeanSymbol s=Parameters.symbol.get(ADRManager.compositeID);

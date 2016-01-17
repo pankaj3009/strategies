@@ -10,8 +10,6 @@ import com.google.common.base.Preconditions;
 import com.incurrency.framework.Algorithm;
 import com.incurrency.framework.BeanSymbol;
 import com.incurrency.framework.EnumBarSize;
-import com.incurrency.framework.EnumSource;
-import com.incurrency.framework.HistoricalBars;
 import com.incurrency.framework.Parameters;
 import com.incurrency.framework.ReservedValues;
 import com.incurrency.framework.Utilities;
