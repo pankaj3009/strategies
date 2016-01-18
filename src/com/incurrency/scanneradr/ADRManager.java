@@ -206,6 +206,7 @@ public class ADRManager implements Runnable {
                                     Parameters.symbol.get(ADRManager.compositeID).setTimeSeries(EnumBarSize.ONESECOND, currentDateTime.getTime(), new String[]{"movebackwardtime"}, new double[]{moveBackwardTime.get(index)});
                                     Parameters.symbol.get(ADRManager.compositeID).setTimeSeries(EnumBarSize.ONESECOND, currentDateTime.getTime(), new String[]{"moveforward"}, new double[]{moveForward.get(index)});
                                     Parameters.symbol.get(ADRManager.compositeID).setTimeSeries(EnumBarSize.ONESECOND, currentDateTime.getTime(), new String[]{"moveforwardtime"}, new double[]{moveForwardTime.get(index)});
+                                    Parameters.symbol.get(ADRManager.compositeID).setTimeSeries(EnumBarSize.ONESECOND, currentDateTime.getTime(), new String[]{"index"}, new double[]{s.getTimeSeries().get(EnumBarSize.ONESECOND).get(closeIndex, index)});
                                     mEsperEvtProcessor.sendEvent(new ADREvent(ADRTickType.T_MOVE, moveBackward.get(index)));
                                     mEsperEvtProcessor.sendEvent(new ADREvent(ADRTickType.T_TIME, moveBackwardTime.get(index)));
                                 }
