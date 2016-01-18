@@ -299,12 +299,16 @@ public class ADRManager implements Runnable {
                 out.put(i, downTargetIndices[0]);
             } else { //find the max move size
                 DoubleMatrix temp = s.getTimeSeries().get(barSize).get(closeIndex, r);
-                double upMove = temp.max() - entryPrice;
-                double downMove = entryPrice - temp.min();
+                double tempMax=temp.max();
+                double tempMin=temp.min();
+                double upMove = tempMax - entryPrice;
+                double downMove = entryPrice - tempMin;
                 if (upMove > downMove) {
-                    out.put(i, endIndex - i);
+                    int index=temp.eq(tempMax).findIndices()[0];
+                    out.put(i, index);
                 } else {
-                    out.put(i, endIndex - i);
+                    int index=temp.eq(tempMin).findIndices()[0];
+                    out.put(i, index);
                 }
             }
         }
@@ -349,7 +353,7 @@ public class ADRManager implements Runnable {
                 } else {
                     double upMove = temp.max() - entryPrice;
                     double downMove = entryPrice - temp.min();
-                    if (upMove > downMove) {
+                    if (upMove < downMove) {
                         out.put(i, 1);
                     } else {
                         out.put(i, 0);
@@ -396,12 +400,16 @@ public class ADRManager implements Runnable {
                 if (temp.isEmpty()) {
                     out.put(i, 1);
                 } else {
-                    double upMove = temp.max() - entryPrice;
-                    double downMove = entryPrice - temp.min();
-                    if (upMove > downMove) {
-                        out.put(i, i - startIndex);
+                    double tempMax=temp.max();
+                    double tempMin=temp.min();
+                    double upMove = tempMax- entryPrice;
+                    double downMove = entryPrice - tempMin;
+                    if (upMove < downMove) {
+                        int index=temp.eq(tempMin).findIndices()[0];
+                        out.put(i, i-index);
                     } else {
-                        out.put(i, i - startIndex);
+                        int index=temp.eq(tempMax).findIndices()[0];
+                        out.put(i, i-index);
                     }
                 }
             }
