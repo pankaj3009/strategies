@@ -112,7 +112,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
     private double lastLongExit;
     private double lastShortExit;
     private String adrRuleName;
-    HashMap<Integer, Boolean> closePriceReceived = new HashMap<>();
+    HashMap<Integer, Boolean> openPriceReceived = new HashMap<>();
     ArrayList<TradeRestriction> noTradeZone = new ArrayList<>();
     private double highRange;
     private double lowRange;
@@ -140,7 +140,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
         for (BeanSymbol s : Parameters.symbol) {
             if (Pattern.compile(Pattern.quote(adrRuleName), Pattern.CASE_INSENSITIVE).matcher(s.getStrategy()).find()) {
                 getStrategySymbols().add(s.getSerialno() - 1);
-                closePriceReceived.put(s.getSerialno() - 1, Boolean.FALSE);
+                openPriceReceived.put(s.getSerialno() - 1, Boolean.FALSE);
             }
             /*
              if (Pattern.compile(Pattern.quote("adr"), Pattern.CASE_INSENSITIVE).matcher(s.getStrategy()).find() && s.getType().equals("FUT")) {
@@ -312,19 +312,21 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                     case com.ib.client.TickType.LAST:
                         mEsperEvtProcessor.sendEvent(timeEvent);
                         mEsperEvtProcessor.sendEvent(new TickPriceEvent(id, com.ib.client.TickType.LAST, Parameters.symbol.get(id).getLastPrice()));
-                        if (Parameters.symbol.get(id).getOpenPrice()== 0) {
+                        if (Parameters.symbol.get(id).getOpenPrice()!= 0 && openPriceReceived.get(id)) {
                             mEsperEvtProcessor.sendEvent(timeEvent);
                             mEsperEvtProcessor.sendEvent(new TickPriceEvent(id, com.ib.client.TickType.OPEN, Parameters.symbol.get(id).getLastPrice()));
-                            this.closePriceReceived.put(id, Boolean.TRUE);
-
-                        }else if(Algorithm.useForSimulation){
+                            this.openPriceReceived.put(id, Boolean.TRUE);
+                        }else if(Algorithm.useForSimulation && openPriceReceived.get(id)){
                             mEsperEvtProcessor.sendEvent(timeEvent);
                             mEsperEvtProcessor.sendEvent(new TickPriceEvent(id, com.ib.client.TickType.OPEN, Parameters.symbol.get(id).getOpenPrice()));
+                            this.openPriceReceived.put(id, Boolean.TRUE);
                         }
                         break;
                     case com.ib.client.TickType.OPEN:
                         mEsperEvtProcessor.sendEvent(timeEvent);
+                        logger.log(Level.INFO,"Symbol:{0},id:{1}",new Object[]{Parameters.symbol.get(id).getBrokerSymbol(),id});
                         mEsperEvtProcessor.sendEvent(new TickPriceEvent(id, com.ib.client.TickType.OPEN, Parameters.symbol.get(id).getOpenPrice()));
+                        this.openPriceReceived.put(id, Boolean.TRUE);
                         break;
                     case 99:
                         //historical data. Data finished
@@ -750,7 +752,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
         logger.log(Level.INFO, "100,EODClear,{0}", new Object[]{TradingUtil.getAlgoDate()});
         for (BeanSymbol s : Parameters.symbol) {
             s.clear();
-            closePriceReceived.put(s.getSerialno() - 1, Boolean.FALSE);
+            openPriceReceived.put(s.getSerialno() - 1, Boolean.FALSE);
         }
         mEsperEvtProcessor.destroy();
         mEsperEvtProcessor = new EventProcessor(this);
