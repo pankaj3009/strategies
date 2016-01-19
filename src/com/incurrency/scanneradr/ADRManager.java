@@ -336,7 +336,9 @@ public class ADRManager implements Runnable {
             int[] upTargetIndices = m.le(upTarget).findIndices();
             int[] downTargetIndices = m.ge(downTarget).findIndices();
             if (upTargetIndices.length != 0 && downTargetIndices.length != 0) {
-                if (upTargetIndices[0] > downTargetIndices[0]) {
+                int upTargetLength=upTargetIndices.length;
+                int downTargetLength=downTargetIndices.length;
+                if (upTargetIndices[upTargetLength-1] > downTargetIndices[downTargetLength-1]) {
                     //upmove happened first. Set matrix
                     out.put(i, 1);
                 } else {
@@ -385,16 +387,20 @@ public class ADRManager implements Runnable {
             int[] upTargetIndices = m.le(upTarget).findIndices();
             int[] downTargetIndices = m.ge(downTarget).findIndices();
             if (upTargetIndices.length != 0 && downTargetIndices.length != 0) {
-                if (upTargetIndices[0] > downTargetIndices[0]) {
+                int upTargetLength=upTargetIndices.length;
+                int downTargetLength=downTargetIndices.length;
+                if (upTargetIndices[upTargetLength-1] > downTargetIndices[downTargetLength-1]) {
                     //upmove happened first. Set matrix
-                    out.put(i, i - upTargetIndices[0]);
+                    out.put(i, i - upTargetIndices[upTargetLength-1]);
                 } else {
-                    out.put(i, i - downTargetIndices[0]);
+                    out.put(i, i - downTargetIndices[downTargetLength-1]);
                 }
             } else if (upTargetIndices.length != 0) {
-                out.put(i, i - upTargetIndices[0]);
+                int upTargetLength=upTargetIndices.length;
+                out.put(i, i - upTargetIndices[upTargetLength-1]);
             } else if (downTargetIndices.length != 0) {
-                out.put(i, i - downTargetIndices[0]);
+                int downTargetLength=downTargetIndices.length;
+                out.put(i, i - downTargetIndices[downTargetLength-1]);
             } else { //find the max move size
                 DoubleMatrix temp = s.getTimeSeries().get(barSize).get(closeIndex, r);
                 if (temp.isEmpty()) {
@@ -405,11 +411,13 @@ public class ADRManager implements Runnable {
                     double upMove = tempMax- entryPrice;
                     double downMove = entryPrice - tempMin;
                     if (upMove < downMove) {
-                        int index=temp.eq(tempMin).findIndices()[0];
-                        out.put(i, i-index);
+                        int[] indices=temp.eq(tempMin).findIndices();
+                        int indicesLength=indices.length;
+                        out.put(i, i-indices[indicesLength-1]);
                     } else {
-                        int index=temp.eq(tempMax).findIndices()[0];
-                        out.put(i, i-index);
+                        int[] indices=temp.eq(tempMax).findIndices();
+                        int indicesLength=indices.length;
+                        out.put(i, i-indices[indicesLength-1]);
                     }
                 }
             }
