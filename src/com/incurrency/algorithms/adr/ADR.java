@@ -324,7 +324,6 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                         break;
                     case com.ib.client.TickType.OPEN:
                         mEsperEvtProcessor.sendEvent(timeEvent);
-                        logger.log(Level.INFO,"Symbol:{0},id:{1}",new Object[]{Parameters.symbol.get(id).getBrokerSymbol(),id});
                         mEsperEvtProcessor.sendEvent(new TickPriceEvent(id, com.ib.client.TickType.OPEN, Parameters.symbol.get(id).getOpenPrice()));
                         this.openPriceReceived.put(id, Boolean.TRUE);
                         break;
@@ -411,7 +410,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                     } else {
                         cCover = getPosition().get(id).getPosition() > 0;
                     }
-                    boolean cSLCover = coverZone1 || comparator.compare(TradingUtil.getAlgoDate(), getEndDate()) > 0;
+                    boolean cSLCover = coverZone1 || price>getEntryPrice()+getStopLoss()||comparator.compare(TradingUtil.getAlgoDate(), getEndDate()) > 0;
 //                    boolean cSLCover = buyZone || ((price > indexLow + getStopLoss() && !shortZone) || (price > getEntryPrice() + getStopLoss())) || comparator.compare(TradingUtil.getAlgoDate(), getEndDate()) > 0;
                     boolean cTPCover = (!shortZone) && (price <= getEntryPrice() - trailingTP);
                     boolean cTPScalpingCover = (scalpingMode) && (price <= getEntryPrice() - trailingTP);
