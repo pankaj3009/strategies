@@ -77,6 +77,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
     double adrTRINVALUEHigh;
     double adrTRINVALUELow;
     public double adrTRINVALUEAvg;
+    public double adrTRINVALUE1MinAvg;
     double tickHigh;
     double tickLow;
     double tickAvg;
@@ -361,8 +362,8 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                 //Buy = ADR IS UPWARD SLOPING ((adrHigh - adrLow > 5 && adr > adrLow + 0.75 * (adrHigh - adrLow) 
                 // VAL = adr/adrTRIN  IS UPWARD SLOPING
 
-                boolean buyZone1 = adrHigh - adrLow > 5 && adr > adrLow + adrPercentileEntry * (adrHigh - adrLow) / 100 && adrTRINValue < this.trinValueThresholdLongEntry;//&& adrTRINVolume<100
-                boolean shortZone1 = adrHigh - adrLow > 5 && adr < adrHigh - adrPercentileEntry * (adrHigh - adrLow) / 100 && adrTRINValue > this.trinValueThresholdShortEntry;//&& adrTRINVolume>100
+                boolean buyZone1 = adrHigh - adrLow > 5 && adr > adrLow + adrPercentileEntry * (adrHigh - adrLow) / 100 && adrTRINVALUE1MinAvg < this.trinValueThresholdLongEntry && adrTRINVALUE1MinAvg!=0;//&& adrTRINVolume<100
+                boolean shortZone1 = adrHigh - adrLow > 5 && adr < adrHigh - adrPercentileEntry * (adrHigh - adrLow) / 100 && adrTRINVALUE1MinAvg > this.trinValueThresholdShortEntry ;//&& adrTRINVolume>100
                 boolean sellZone1 = adr < adrLow + adrPercentileExit * (adrHigh - adrLow) / 100 && adrTRINValue > this.trinValueThresholdLongExit;//&& adrTRINVolume<100
                 boolean coverZone1 = adr > adrHigh - adrPercentileExit * (adrHigh - adrLow) / 100 && adrTRINValue < this.trinValueThresholdShortExit;//&& adrTRINVolume>100
 
@@ -482,7 +483,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                                 order.put("expiretime", this.getMaxOrderDuration());
                                 order.put("dynamicorderduration", getDynamicOrderDuration());
                                 order.put("maxslippage", this.getMaxSlippageEntry());
-                                order.put("log", "BUY"+delimiter+adrHigh + delimiter + adrLow+delimiter+adr+delimiter+adrTRINValue+delimiter+0);
+                                order.put("log", "BUY"+delimiter+adrHigh + delimiter + adrLow+delimiter+adr+delimiter+adrTRINValue+delimiter+adrTRINVALUE1MinAvg+delimiter+0);
                                 entry(order);
 //                              entry(id, EnumOrderSide.BUY, 0, EnumOrderType.LMT, getEntryPrice(), 0, EnumOrderReason.REGULARENTRY, EnumOrderStage.INIT, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit(), "", "DAY", "", false, true);
                                 tradingSide = 1;
@@ -626,7 +627,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                                 order.put("expiretime", this.getMaxOrderDuration());
                                 order.put("dynamicorderduration", getDynamicOrderDuration());
                                 order.put("maxslippage", this.getMaxSlippageEntry());
-                                order.put("log", "SHORT"+delimiter+adrHigh + delimiter + adrLow+delimiter+adr+delimiter+adrTRINValue+delimiter+0);
+                                order.put("log", "SHORT"+delimiter+adrHigh + delimiter + adrLow+delimiter+adr+delimiter+adrTRINValue+delimiter+adrTRINVALUE1MinAvg+delimiter+0);
                                 entry(order);
                                 //entry(id, EnumOrderSide.SHORT, 0, EnumOrderType.LMT, getEntryPrice(), 0, EnumOrderReason.REGULARENTRY, EnumOrderStage.INIT, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit(), "", "DAY", "", false, true);
                                 tradingSide = -1;
@@ -828,8 +829,6 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
 
     private void clearVariablesBOD() {
         logger.log(Level.INFO, "100,BODClear,{0}", new Object[]{TradingUtil.getAlgoDate()});
-
-
     }
 
     @Override
@@ -837,6 +836,8 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
         double high = newEvents[0].get("high") == null ? Double.MIN_VALUE : (Double) newEvents[0].get("high");
         double low = newEvents[0].get("low") == null ? Double.MAX_VALUE : (Double) newEvents[0].get("low");
         double average = newEvents[0].get("average") == null ? adrAvg : (Double) newEvents[0].get("average");
+        String period = newEvents[0].get("period").toString();
+
         if (adr > 0) {
             switch ((Integer) newEvents[0].get("field")) {
                 case ADRTickType.D_ADR:
@@ -857,12 +858,17 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                     db.setHash("indicators", "nifty", "adrtrinvolumeavg", String.valueOf(adrTRINVOLUMEAvg));
                     break;
                 case ADRTickType.D_TRIN_VALUE:
-                    adrTRINVALUEHigh = high;
-                    adrTRINVALUELow = low;
-                    adrTRINVALUEAvg = average;
-                    db.setHash("indicators", "nifty", "adrtrinvaluehigh", String.valueOf(adrTRINVALUEHigh));
-                    db.setHash("indicators", "nifty", "adrtrinvaluelow", String.valueOf(adrTRINVALUELow));
-                    db.setHash("indicators", "nifty", "adrtrinvalueavg", String.valueOf(adrTRINVALUEAvg));
+                    if (period.equals("0")) {
+                        adrTRINVALUEHigh = high;
+                        adrTRINVALUELow = low;
+                        adrTRINVALUEAvg = average;
+                        db.setHash("indicators", "nifty", "adrtrinvaluehigh", String.valueOf(adrTRINVALUEHigh));
+                        db.setHash("indicators", "nifty", "adrtrinvaluelow", String.valueOf(adrTRINVALUELow));
+                        db.setHash("indicators", "nifty", "adrtrinvalueavg", String.valueOf(adrTRINVALUEAvg));
+                    } else if (period.equals("1")) {
+                        adrTRINVALUE1MinAvg = average;
+                        db.setHash("indicators", "nifty", "adrtrinvalueavg1min", String.valueOf(adrTRINVALUE1MinAvg));
+                    }
                     break;
                 case ADRTickType.T_TICK:
                     tickHigh = high;
@@ -884,6 +890,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
             }
         }
     }
+    
 
     boolean atLeastTwo(boolean a, boolean b, boolean c) {
         return a && (b || c) || (b && c);

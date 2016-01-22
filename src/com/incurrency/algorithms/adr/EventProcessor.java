@@ -143,15 +143,22 @@ public class EventProcessor implements ActionListener {
         esperEngine.getEPAdministrator().createEPL(stmt);
                 
         
-        stmt = "select field,max(price) as high ,min(price) as low, avg(price) as average "
+        stmt = "select field,+ 0 as period,max(price) as high ,min(price) as low, avg(price) as average "
                 + "from ADRPrice.win:time("
                 +adrStrategy.window
                 +" minutes) "
                 + "group by field";
         
         ADRStatement = esperEngine.getEPAdministrator().createEPL(stmt);
-        //statement.addListener(TurtleMainUI.algo.getParamADR());
 
+        //1 minute averaging window
+          stmt = "select field,1 as period,max(price) as high ,min(price) as low, avg(price) as average "
+                + "from ADRPrice.win:time("
+                +"1 minutes) "
+                + "group by field";
+        
+        ADRStatement = esperEngine.getEPAdministrator().createEPL(stmt);
+        
        stmt= "on Flush "+
              "delete from "+
               "LastPriceWin" ;
