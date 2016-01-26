@@ -25,6 +25,7 @@ import com.incurrency.framework.TradeListener;
 import com.incurrency.framework.TradingUtil;
 import com.incurrency.framework.Utilities;
 import com.incurrency.indicators.Indicators;
+import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -130,6 +131,8 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
     private final Object lockBOD = new Object();
     DateTimeComparator comparator;
     Properties p;
+    private DecimalFormat df = new DecimalFormat("#.00");
+    private int noisefilterPeriod=60;
 
     public ADR(MainAlgorithm m, Properties prop, String parameterFile, ArrayList<String> accounts, Integer stratCount) throws ParseException {
         super(m, "adr", "FUT", prop, parameterFile, accounts, null);
@@ -245,6 +248,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
         trinValueThresholdLongExit = Utilities.getDouble(p.getProperty("TRINValueThresholdLongExit"), 105);
         trinValueThresholdShortEntry = Utilities.getDouble(p.getProperty("TRINValueThresholdShortEntry"), 105);
         trinValueThresholdShortExit = Utilities.getDouble(p.getProperty("TRINValueThresholdShortExit"), 95);
+        setNoisefilterPeriod(Utilities.getInt(p.getProperty("NoiseFilterPeriodSeconds"), 60));
         flip = Boolean.valueOf(p.getProperty("Flip", "false"));
         logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Use for Trading" + delimiter + MainAlgorithm.isUseForTrading()});
         logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "TradingAllowed" + delimiter + getTrading()});
@@ -364,8 +368,8 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
 
                 boolean buyZone1 = adrHigh - adrLow > 5 && adr > adrLow + adrPercentileEntry * (adrHigh - adrLow) / 100 && adrTRINVALUE1MinAvg < this.trinValueThresholdLongEntry && adrTRINVALUE1MinAvg!=0;//&& adrTRINVolume<100
                 boolean shortZone1 = adrHigh - adrLow > 5 && adr < adrHigh - adrPercentileEntry * (adrHigh - adrLow) / 100 && adrTRINVALUE1MinAvg > this.trinValueThresholdShortEntry ;//&& adrTRINVolume>100
-                boolean sellZone1 = adr < adrLow + adrPercentileExit * (adrHigh - adrLow) / 100 && adrTRINValue > this.trinValueThresholdLongExit;//&& adrTRINVolume<100
-                boolean coverZone1 = adr > adrHigh - adrPercentileExit * (adrHigh - adrLow) / 100 && adrTRINValue < this.trinValueThresholdShortExit;//&& adrTRINVolume>100
+                boolean sellZone1 = adr < adrLow + adrPercentileExit * (adrHigh - adrLow) / 100 && adrTRINVALUE1MinAvg > this.trinValueThresholdLongExit;//&& adrTRINVolume<100
+                boolean coverZone1 = adr > adrHigh - adrPercentileExit * (adrHigh - adrLow) / 100 && adrTRINVALUE1MinAvg < this.trinValueThresholdShortExit;//&& adrTRINVolume>100
 
                 /*
                  boolean buyZone1 = ((adrHigh - adrLow > 5 && adr > adrLow + 0.75 * (adrHigh - adrLow) && adr > adrAvg)
@@ -483,7 +487,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                                 order.put("expiretime", this.getMaxOrderDuration());
                                 order.put("dynamicorderduration", getDynamicOrderDuration());
                                 order.put("maxslippage", this.getMaxSlippageEntry());
-                                order.put("log", "BUY"+delimiter+adrHigh + delimiter + adrLow+delimiter+adr+delimiter+adrTRINValue+delimiter+adrTRINVALUE1MinAvg+delimiter+0);
+                                order.put("log", "BUY"+delimiter+df.format(adrHigh) + delimiter + df.format(adrLow)+delimiter+df.format(adr)+delimiter+df.format(adrTRINValue)+delimiter+df.format(adrTRINVALUE1MinAvg)+delimiter+0);
                                 entry(order);
 //                              entry(id, EnumOrderSide.BUY, 0, EnumOrderType.LMT, getEntryPrice(), 0, EnumOrderReason.REGULARENTRY, EnumOrderStage.INIT, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit(), "", "DAY", "", false, true);
                                 tradingSide = 1;
@@ -525,7 +529,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                             order.put("expiretime", this.getMaxOrderDuration());
                             order.put("dynamicorderduration", getDynamicOrderDuration());
                             order.put("maxslippage", this.getMaxSlippageExit());
-                            order.put("log", "TPSELL_TPSCALPINGSELL"+delimiter+adrHigh + delimiter + adrLow+delimiter+adr+delimiter+adrTRINValue+delimiter+size);
+                            order.put("log", "TPSELL_TPSCALPINGSELL"+delimiter+df.format(adrHigh) + delimiter + df.format(adrLow)+delimiter+df.format(adr)+delimiter+df.format(adrTRINValue)+delimiter+df.format(adrTRINVALUE1MinAvg)+delimiter+size);
                             exit(order);
                             //exit(id, EnumOrderSide.SELL, 0, EnumOrderType.LMT, price, 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit(), "", "DAY", "", false, true);
                             setLastLongExit(price);
@@ -557,7 +561,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                             order.put("expiretime", this.getMaxOrderDuration());
                             order.put("dynamicorderduration", getDynamicOrderDuration());
                             order.put("maxslippage", this.getMaxSlippageExit());
-                            order.put("log", "SLSELL"+delimiter+adrHigh + delimiter + adrLow+delimiter+adr+delimiter+adrTRINValue+delimiter+0);
+                            order.put("log", "SLSELL"+delimiter+df.format(adrHigh) + delimiter + df.format(adrLow)+delimiter+df.format(adr)+delimiter+df.format(adrTRINValue)+delimiter+df.format(adrTRINVALUE1MinAvg)+delimiter+0);
                             exit(order);
                             //exit(id, EnumOrderSide.SELL, 0, EnumOrderType.LMT, price, 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit(), "", "DAY", "", false, true);
                             setLastLongExit(price);
@@ -589,7 +593,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                             order.put("dynamicorderduration", getDynamicOrderDuration());
                             order.put("maxslippage", this.getMaxSlippageExit());
                             order.put("scale", "true");
-                             order.put("log", "SCALEOUTSELL"+delimiter+adrHigh + delimiter + adrLow+delimiter+adr+delimiter+adrTRINValue+delimiter+size);
+                            order.put("log", "SCALEOUTSELL"+delimiter+df.format(adrHigh) + delimiter + df.format(adrLow)+delimiter+df.format(adr)+delimiter+df.format(adrTRINValue)+delimiter+df.format(adrTRINVALUE1MinAvg)+delimiter+size);
                            exit(order);
                             //exit(id, EnumOrderSide.SELL, size, EnumOrderType.LMT, price, 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit(), "", "DAY", "", true, true);
                             scaleoutCount = scaleoutCount + 1;
@@ -627,7 +631,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                                 order.put("expiretime", this.getMaxOrderDuration());
                                 order.put("dynamicorderduration", getDynamicOrderDuration());
                                 order.put("maxslippage", this.getMaxSlippageEntry());
-                                order.put("log", "SHORT"+delimiter+adrHigh + delimiter + adrLow+delimiter+adr+delimiter+adrTRINValue+delimiter+adrTRINVALUE1MinAvg+delimiter+0);
+                                order.put("log", "SHORT"+delimiter+df.format(adrHigh) + delimiter + df.format(adrLow)+delimiter+df.format(adr)+delimiter+df.format(adrTRINValue)+delimiter+df.format(adrTRINVALUE1MinAvg)+delimiter+0);
                                 entry(order);
                                 //entry(id, EnumOrderSide.SHORT, 0, EnumOrderType.LMT, getEntryPrice(), 0, EnumOrderReason.REGULARENTRY, EnumOrderStage.INIT, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit(), "", "DAY", "", false, true);
                                 tradingSide = -1;
@@ -667,7 +671,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                             order.put("expiretime", this.getMaxOrderDuration());
                             order.put("dynamicorderduration", getDynamicOrderDuration());
                             order.put("maxslippage", this.getMaxSlippageExit());
-                            order.put("log", "TPCOVER_TPSCALPINGCOVER"+delimiter+adrHigh + delimiter + adrLow+delimiter+adr+delimiter+adrTRINValue+delimiter+size);
+                            order.put("log", "TPCOVER_TPSCALPINGCOVER"+delimiter+df.format(adrHigh) + delimiter + df.format(adrLow)+delimiter+df.format(adr)+delimiter+df.format(adrTRINValue)+delimiter+df.format(adrTRINVALUE1MinAvg)+delimiter+size);
                             exit(order);
                             //exit(id, EnumOrderSide.COVER, 0, EnumOrderType.LMT, price, 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit(), "", "DAY", "", false, true);
                             setLastShortExit(price);
@@ -698,7 +702,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                             order.put("expiretime", this.getMaxOrderDuration());
                             order.put("dynamicorderduration", getDynamicOrderDuration());
                             order.put("maxslippage", this.getMaxSlippageExit());
-                            order.put("log", "SLCOVER"+delimiter+adrHigh + delimiter + adrLow+delimiter+adr+delimiter+adrTRINValue+delimiter+0);
+                            order.put("log", "SLCOVER"+delimiter+df.format(adrHigh) + delimiter + df.format(adrLow)+delimiter+df.format(adr)+delimiter+df.format(adrTRINValue)+delimiter+df.format(adrTRINVALUE1MinAvg)+delimiter+0);
                             exit(order);
 //                            exit(id, EnumOrderSide.COVER, 0, EnumOrderType.LMT, price, 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit(), "", "DAY", "", false, true);
                             setLastShortExit(price);
@@ -732,7 +736,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                             order.put("dynamicorderduration", getDynamicOrderDuration());
                             order.put("maxslippage", this.getMaxSlippageExit());
                             order.put("scale", "true");
-                            order.put("log", "SCALEOUTCOVER"+delimiter+adrHigh + delimiter + adrLow+delimiter+adr+delimiter+adrTRINValue+delimiter+size);
+                            order.put("log", "SCALEOUTCOVER"+delimiter+df.format(adrHigh) + delimiter + df.format(adrLow)+delimiter+df.format(adr)+delimiter+df.format(adrTRINValue)+delimiter+df.format(adrTRINVALUE1MinAvg)+delimiter+size);
                             exit(order);
                             //exit(id, EnumOrderSide.COVER, size, EnumOrderType.LMT, price, 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, getMaxOrderDuration(), getDynamicOrderDuration(), getMaxSlippageExit(), "", "DAY", "", true, true);
                             scaleoutCount = scaleoutCount + 1;
@@ -1112,5 +1116,19 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
      */
     public void setScaleOutSizes(Integer[] scaleOutSizes) {
         this.scaleOutSizes = scaleOutSizes;
+    }
+
+    /**
+     * @return the noisefilterPeriod
+     */
+    public int getNoisefilterPeriod() {
+        return noisefilterPeriod;
+    }
+
+    /**
+     * @param noisefilterPeriod the noisefilterPeriod to set
+     */
+    public void setNoisefilterPeriod(int noisefilterPeriod) {
+        this.noisefilterPeriod = noisefilterPeriod;
     }
 }

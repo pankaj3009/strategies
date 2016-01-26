@@ -154,7 +154,7 @@ public class EventProcessor implements ActionListener {
         //1 minute averaging window
           stmt = "select field,1 as period,max(price) as high ,min(price) as low, avg(price) as average "
                 + "from ADRPrice.win:time("
-                +"1 minutes) "
+                +adrStrategy.getNoisefilterPeriod()+" sec) "
                 + "group by field";
         
         ADRStatement = esperEngine.getEPAdministrator().createEPL(stmt);
