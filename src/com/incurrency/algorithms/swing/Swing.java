@@ -49,6 +49,7 @@ import static com.incurrency.framework.MatrixMethods.*;
 import com.incurrency.framework.SimulationTimer;
 import com.incurrency.framework.Stop;
 import com.incurrency.framework.Trade;
+import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map.Entry;
@@ -101,7 +102,9 @@ public class Swing extends Strategy implements TradeListener {
     String ranking;
     HashSet<Integer> longIDs = new HashSet<>();
     HashSet<Integer> shortIDs = new HashSet<>();
-
+    private DecimalFormat df = new DecimalFormat("#.00");
+    
+    
     public Swing(MainAlgorithm m, Properties p, String parameterFile, ArrayList<String> accounts, Integer stratCount) {
         super(m, "swing", "FUT", p, parameterFile, accounts, stratCount);
         loadParameters(p);
@@ -649,7 +652,7 @@ public class Swing extends Strategy implements TradeListener {
                 order.put("expiretime", this.getMaxOrderDuration());
                 order.put("dynamicorderduration", getDynamicOrderDuration());
                 order.put("maxslippage", this.getMaxSlippageExit());
-                order.put("log","SELL"+delimiter+ stats.get("trend") + delimiter + stats.get("probability"));
+                order.put("log","SELL"+delimiter+ stats.get("trend") + delimiter + df.format(stats.get("probability")));
                 this.exit(order);
                 //  this.exit(id, EnumOrderSide.SELL, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
                 longsExitedToday.add(id);
@@ -667,7 +670,7 @@ public class Swing extends Strategy implements TradeListener {
                 order.put("expiretime", this.getMaxOrderDuration());
                 order.put("dynamicorderduration", getDynamicOrderDuration());
                 order.put("maxslippage", this.getMaxSlippageExit());
-                order.put("log","COVER"+delimiter+ stats.get("trend") + delimiter + stats.get("probability"));
+                order.put("log","COVER"+delimiter+ stats.get("trend") + delimiter + df.format(stats.get("probability")));
                 this.exit(order);
                 //this.exit(id, EnumOrderSide.COVER, size, EnumOrderType.LMT, Parameters.symbol.get(id).getLastPrice(), 0, EnumOrderReason.REGULAREXIT, EnumOrderStage.INIT, this.getMaxOrderDuration(), this.getDynamicOrderDuration(), this.getMaxSlippageExit(), "", "GTC", "", false, true);
                 if (rollover) {
@@ -902,7 +905,7 @@ public class Swing extends Strategy implements TradeListener {
                     order.put("expiretime", this.getMaxOrderDuration());
                     order.put("dynamicorderduration", getDynamicOrderDuration());
                     order.put("maxslippage", this.getMaxSlippageEntry());
-                    order.put("log","BUY"+delimiter+ signalValues.get(id).get("trend") + delimiter + signalValues.get(id).get("probability"));
+                    order.put("log","BUY"+delimiter+ signalValues.get(id).get("trend") + delimiter + df.format(signalValues.get(id).get("probability")));
                     logger.log(Level.INFO, "501,Strategy BUY,{0}", new Object[]{getStrategy() + delimiter + "BUY" + delimiter + Parameters.symbol.get(id).getDisplayname()});
                     int orderid = entry(order);
                     Stop tp = new Stop();
@@ -968,7 +971,7 @@ public class Swing extends Strategy implements TradeListener {
                     order.put("expiretime", this.getMaxOrderDuration());
                     order.put("dynamicorderduration", getDynamicOrderDuration());
                     order.put("maxslippage", this.getMaxSlippageExit());
-                    order.put("log","SHORT"+delimiter+ signalValues.get(id).get("trend") + delimiter + signalValues.get(id).get("probability"));
+                    order.put("log","SHORT"+delimiter+ signalValues.get(id).get("trend") + delimiter + df.format(signalValues.get(id).get("probability")));
                     logger.log(Level.INFO, "501,Strategy SHORT,{0}", new Object[]{getStrategy() + delimiter + "SHORT" + delimiter + Parameters.symbol.get(id).getDisplayname()});
                     int orderid = entry(order);
                     Stop tp = new Stop();
