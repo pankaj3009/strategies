@@ -254,7 +254,7 @@ public class EODMaintenance {
             stockSymbols.get(k).setSerialno(k + 1);
         }
         //now write data to file
-        File outputFile = new File(outputfilename);
+        File outputFile = new File("logs",outputfilename);
         if (stockSymbols.size() > 0) {
             //write header
             Utilities.deleteFile(outputFile);
@@ -469,7 +469,7 @@ public class EODMaintenance {
                 fnoSymbols.get(k).setSerialno(k + 2);//as the first row NIFTY50 is already K+1
             }
             //now write data to file
-            File outputFile = new File(outputfilename);
+            File outputFile = new File("logs",outputfilename);
             if (fnoSymbols.size() > 0) {
                 //write header
                 Utilities.deleteFile(outputFile);
@@ -515,7 +515,7 @@ public class EODMaintenance {
     public void rateServerStocks(String url, int rowsToSkip, String outputfilename) throws MalformedURLException, IOException, ParseException {
         ArrayList<BeanSymbol> stockSymbols = new ArrayList<>();
         //load existing file, if exists
-        File f = new File(outputfilename);
+        File f = new File("logs",outputfilename);
         if (f.exists() && !f.isDirectory()) {
             new BeanSymbol().reader(outputfilename, stockSymbols);
         }
@@ -566,7 +566,7 @@ public class EODMaintenance {
         }
 
         //now write data to file
-        File outputFile = new File(outputfilename);
+        File outputFile = new File("logs",outputfilename);
         if (stockSymbols.size() > 0) {
             if (outputFile.exists()) {
                 stockSymbols.remove(0);//remove NIFTY
@@ -659,7 +659,7 @@ public class EODMaintenance {
         }
 
         //now write data to file
-        File outputFile = new File(outputfilename);
+        File outputFile = new File("logs",outputfilename);
         if (adrSymbols.size() > 0) {
             Utilities.deleteFile(outputFile);
 
@@ -758,7 +758,7 @@ public class EODMaintenance {
 
 
         //now write data to file
-        File outputFile = new File(outputfilename);
+        File outputFile = new File("logs",outputfilename);
         if (swingSymbols.size() > 0) {
             Utilities.deleteFile(outputFile);
 
