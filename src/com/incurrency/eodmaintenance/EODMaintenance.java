@@ -92,14 +92,14 @@ public class EODMaintenance {
         s.setExchange("NSE");
         s.setStreamingpriority(1);
         s.setStrategy("DATA");
-        s.setMinsize(25);
+        s.setMinsize(75);
         stockSymbols.add(s);
         s = new BeanSymbol("NIFTY50", "NSENIFTY", "FUT", this.getNextExpiry(expiry), "", "");
         s.setCurrency("INR");
         s.setExchange("NSE");
         s.setStreamingpriority(1);
         s.setStrategy("DATA");
-        s.setMinsize(25);
+        s.setMinsize(75);
         stockSymbols.add(s);
         s = new BeanSymbol("NIFTY50", "NSENIFTY", "IND", "", "", "");
         s.setCurrency("INR");
@@ -476,7 +476,7 @@ public class EODMaintenance {
                 String header = "serialno,brokersymbol,exchangesymbol,displayname,type,exchange,primaryexchange,currency,expiry,option,right,minsize,barstarttime,streaming,strategy";
                 Utilities.writeToFile(outputFile, header);
                 //Write Index row
-                String content = 1 + "," + "NIFTY50" + "," + "NSENIFTY" + "," + "NSENIFTY" + "," + "FUT" + "," + "NSE" + "," + "" + "," + "INR" + "," + expiry + "," + "" + "," + "" + "," + 25 + "," + "" + "," + 4 + "," + "DATA";
+                String content = 1 + "," + "NIFTY50" + "," + "NSENIFTY" + "," + "NSENIFTY" + "," + "FUT" + "," + "NSE" + "," + "" + "," + "INR" + "," + expiry + "," + "" + "," + "" + "," + 75 + "," + "" + "," + 4 + "," + "DATA";
                 Utilities.writeToFile(outputFile, content);
 
                 for (BeanSymbol s : fnoSymbols) {
@@ -672,7 +672,7 @@ public class EODMaintenance {
             Utilities.writeToFile(outputFile, header);
             //Write Index row
 
-            String content = 1 + "," + "NIFTY50" + "," + "NSENIFTY" + "," + "" + "," + "FUT" + "," + "NSE" + "," + "" + "," + "INR" + "," + expiry + "," + "" + "," + "" + "," + 25 + "," + "" + "," + 0 + "," + "ADR";
+            String content = 1 + "," + "NIFTY50" + "," + "NSENIFTY" + "," + "" + "," + "FUT" + "," + "NSE" + "," + "" + "," + "INR" + "," + expiry + "," + "" + "," + "" + "," + 75 + "," + "" + "," + 0 + "," + "ADR";
             Utilities.writeToFile(outputFile, content);
 
             for (BeanSymbol s : adrSymbols) {
@@ -807,7 +807,7 @@ public class EODMaintenance {
             Utilities.writeToFile(outputFile, header);
             //Write Index row
 
-            String content = 1 + "," + "NIFTY50" + "," + "NSENIFTY" + "," + "" + "," + "FUT" + "," + "NSE" + "," + "" + "," + "INR" + "," + expiry + "," + "" + "," + "" + "," + 25 + "," + "" + "," + 0 + "," + "ADR";
+            String content = 1 + "," + "NIFTY50" + "," + "NSENIFTY" + "," + "" + "," + "FUT" + "," + "NSE" + "," + "" + "," + "INR" + "," + expiry + "," + "" + "," + "" + "," + 75 + "," + "" + "," + 0 + "," + "ADR";
 
             for (BeanSymbol s1 : swingSymbols) {
                 content = s1.getSerialno() + "," + s1.getBrokerSymbol() + "," + (s1.getExchangeSymbol() == null ? "" : s1.getExchangeSymbol())
