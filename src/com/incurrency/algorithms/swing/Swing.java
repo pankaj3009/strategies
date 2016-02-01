@@ -640,7 +640,7 @@ public class Swing extends Strategy implements TradeListener {
 
         switch (swingTrigger) {
             case SELL:
-                logger.log(Level.INFO, "501,Strategy SELL,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(id)});
+                logger.log(Level.INFO, "501,Strategy SELL,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(id).getDisplayname()});
                 HashMap<String, Object> order = new HashMap<>();
                 order.put("id", id);
                 order.put("side", EnumOrderSide.SELL);
@@ -658,7 +658,7 @@ public class Swing extends Strategy implements TradeListener {
                 longsExitedToday.add(id);
                 break;
             case COVER:
-                logger.log(Level.INFO, "501,Strategy COVER,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(id)});
+                logger.log(Level.INFO, "501,Strategy COVER,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(id).getDisplayname()});
                 order = new HashMap<>();
                 order.put("id", id);
                 order.put("side", EnumOrderSide.COVER);
