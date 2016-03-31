@@ -103,6 +103,9 @@ public class Swing extends Strategy implements TradeListener {
     HashSet<Integer> longIDs = new HashSet<>();
     HashSet<Integer> shortIDs = new HashSet<>();
     private DecimalFormat df = new DecimalFormat("#.00");
+    private HashMap<Integer,CustomOrder> longOrders;
+    private HashMap<Integer,CustomOrder> shortOrders;
+    
     
     
     public Swing(MainAlgorithm m, Properties p, String parameterFile, ArrayList<String> accounts, Integer stratCount) {
@@ -394,7 +397,7 @@ public class Swing extends Strategy implements TradeListener {
     TimerTask eodProcessingTask = new TimerTask() {
         @Override
         public void run() {
-            scan();
+            scan(true);
         }
     };
 
@@ -444,6 +447,43 @@ public class Swing extends Strategy implements TradeListener {
         }
     }
 
+    private void reconTrades(){
+        //calculate expected positions for each symbol
+        //check if position exists. 
+        //If exists on correct side, do nothigh
+        //if exists on wrong side, exit position. 
+        //if does not exist and current price is within threshold, reenter position.
+        
+        scan(false);
+        Set<Integer>longPositionsAtRisk=new HashSet<Integer>();
+        Set<Integer>shortPositionsAtRisk=new HashSet<Integer>();
+        for (String key : db.getKeys("opentrades")) {
+            ArrayList<Stop> stops = Trade.getStop(db, key);
+            String entryTime=Trade.getEntryTime(db, key);
+            entryTime=entryTime.substring(0, 10);
+            entryTime=entryTime.replaceAll("-", "");
+            if (stops != null) {
+                String childsymboldisplayname = Trade.getEntrySymbol(db, key);
+                int childid = Utilities.getIDFromDisplayName(Parameters.symbol, childsymboldisplayname);
+                int referenceid = -1;
+                if (childid >= 0) {
+                    referenceid = Utilities.getReferenceID(Parameters.symbol, childid, referenceCashType);
+                }
+                if (referenceid >= 0 && Trade.getEntrySide(db, key).equals(EnumOrderSide.BUY) && entryTime.equals(Algorithm.instratInfo.getProperty("prd"))) {
+                    longPositionsAtRisk.add(referenceid);
+                } else if (referenceid >= 0 && Trade.getEntrySide(db, key).equals(EnumOrderSide.SHORT) && entryTime.equals(Algorithm.instratInfo.getProperty("prd"))) {
+                    shortPositionsAtRisk.add(referenceid);
+                }
+            }
+        }
+        
+        //add positions taken on on the prior working day
+        
+        //update mising long orders
+        
+        
+    }
+    
     private void updateStop(HashMap<String, Double> stats, String key, int childid, Stop stop) {
         int referenceid = Utilities.getReferenceID(Parameters.symbol, childid, referenceCashType);
         if (!stats.isEmpty()) {
@@ -550,7 +590,7 @@ public class Swing extends Strategy implements TradeListener {
         }
     }
 
-    private void scan() {
+    private void scan(boolean today) {
         logger.log(Level.INFO, "501,Scan,{0}", new Object[]{this.getStrategy()});
         RConnection c = null;
         try {
@@ -578,7 +618,7 @@ public class Swing extends Strategy implements TradeListener {
                 int referenceid = Utilities.getReferenceID(Parameters.symbol, id, referenceCashType);
                 if (referenceid >= 0) {
                     BeanSymbol sRef = Parameters.symbol.get(referenceid);
-                    HashMap<String, Double> stats = getStats(c, referenceid, true);
+                    HashMap<String, Double> stats = getStats(c, referenceid, today);
                     if (!stats.isEmpty()) {
                         double today_predict_prob = Utilities.getDouble(stats.get("probability"), -1);
                         double result = Utilities.getDouble(stats.get("result"), 2);
@@ -627,12 +667,12 @@ public class Swing extends Strategy implements TradeListener {
                             swingTrigger = Trigger.SHORT;
                         }
                         processSignal(id, swingTrigger, stats);
+                        }
                     }
                 }
             }
-        }
         portfolioTrades();
-    }
+        }
 
     private void processSignal(int id, Trigger swingTrigger, HashMap<String, Double> stats) {
         int size = 0;
@@ -875,9 +915,13 @@ public class Swing extends Strategy implements TradeListener {
         //Recalculate open positions to handle changes during scan.    
         if (this.getLongOnly()) {
             longpositionCount = Utilities.openPositionCount(db, Parameters.symbol, this.getStrategy(), this.getPointValue(), true);
+        }else{
+            longpositionCount=maxPositions;
         }
         if (this.getShortOnly()) {
             shortpositionCount = Utilities.openPositionCount(db, Parameters.symbol, this.getStrategy(), this.getPointValue(), false);
+        }else{
+            shortpositionCount=maxPositions;
         }
         logger.log(Level.INFO, "501,LongPositionCount,{0}", new Object[]{getStrategy() + delimiter + longpositionCount});
         logger.log(Level.INFO, "501,ShortPositionCount,{0}", new Object[]{getStrategy() + delimiter + shortpositionCount});
@@ -1098,6 +1142,7 @@ public class Swing extends Strategy implements TradeListener {
         newSize=newSize*Parameters.symbol.get(targetID).getMinsize();
         switch (origSide) {
             case BUY:
+                if(this.getLongOnly()){
                 logger.log(Level.INFO, "501,Strategy Rollover ENTER BUY,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(targetID).getExchangeSymbol()+delimiter+newSize});
                 HashMap<String, Object> order = new HashMap<>();
                 order.put("id", targetID);
@@ -1113,9 +1158,12 @@ public class Swing extends Strategy implements TradeListener {
                 order.put("log", "ROLLOVERENTRY");
                 this.entry(order);
                 orderid = this.getFirstInternalOpenOrder(initID, EnumOrderSide.SELL, "Order");
+                }
                 break;
             case SHORT:
+                if(this.getShortOnly()){
                 logger.log(Level.INFO, "501,Strategy Rollover ENTER SHORT,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(targetID).getExchangeSymbol()+delimiter+newSize});
+                HashMap<String, Object> order = new HashMap<>();
                 order = new HashMap<>();
                 order.put("id", targetID);
                 order.put("side", EnumOrderSide.SHORT);
@@ -1130,6 +1178,7 @@ public class Swing extends Strategy implements TradeListener {
                 order.put("log", "ROLLOVERENTRY");
                 this.entry(order);
                 orderid = this.getFirstInternalOpenOrder(initID, EnumOrderSide.COVER, "Order");
+                }
                 break;
             default:
                 break;
