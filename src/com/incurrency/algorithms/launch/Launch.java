@@ -213,7 +213,6 @@ public class Launch extends javax.swing.JFrame {
     private void cmdTerminateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdTerminateActionPerformed
 
         if (input.containsKey("datasource")) { //use jeromq connector
-
             MainAlgorithm.socketListener.getSubs().getSubscriber().disconnect("tcp://" + input.get("datasource") + ":" + "5556");
             MainAlgorithm.socketListener.getSubs().close();
         }
@@ -222,7 +221,7 @@ public class Launch extends javax.swing.JFrame {
         if (dialogResult == JOptionPane.YES_OPTION) {
             if (algo != null && !algo.getStrategies().contains("nostrategy")) {
                 for (Strategy s : algo.getStrategyInstances()) {
-                    s.printOrders("", s);
+//                    s.printOrders("", s);
                     //logger.log(Level.INFO,"101",s.getClass().getName());
                 }
             }
@@ -236,7 +235,7 @@ public class Launch extends javax.swing.JFrame {
 
         if (algo != null) {
             for (Strategy s : algo.getStrategyInstances()) {
-                s.printOrders("tmp", s);
+                s.printOrders("", s); //replaced "tmp" with ""
             }
         }
         /* commented out after reflection change     
