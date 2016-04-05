@@ -117,7 +117,7 @@ public class Swing extends Strategy implements TradeListener {
             TradingUtil.writeToFile(getStrategy() + ".csv", "symbol,scan,high,low,close,trend,daysinupswing,daysindownswing,daysoutsidetrend,daysintrend,closezscore,highzscore,lowzscore,mazscore,result,nextdayprob,atr,y");
         }
 
-        String[] tempStrategyArray = parameterFile.split("\\.")[0].split("-");
+        String[] tempStrategyArray = parameterFile.split("\\.")[0].split("-|_");
         for (BeanConnection c : Parameters.connection) {
             c.getWrapper().addTradeListener(this);
             c.initializeConnection(tempStrategyArray[tempStrategyArray.length - 1]);
