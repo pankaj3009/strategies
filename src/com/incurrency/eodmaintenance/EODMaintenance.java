@@ -44,8 +44,8 @@ public class EODMaintenance {
         properties = Utilities.loadParameters(propertyFileName);
         SimpleDateFormat sdf_yyyyMMdd = new SimpleDateFormat("yyyyMMdd");
         String fnolotsizeurl = properties.getProperty("fnolotsizeurl", "http://www.nseindia.com/content/fo/fo_mktlots.csv").toString().trim();
-        String cnx500url = properties.getProperty("fnolotsizeurl", "http://www.nseindia.com/content/indices/ind_cnx500list.csv").toString().trim();
-        String niftyurl=properties.getProperty("fnolotsizeurl", "http://www.nseindia.com/content/indices/ind_niftylist.csv").toString().trim();
+        String cnx500url = properties.getProperty("cnx500url", "http://www.nseindia.com/content/indices/ind_cnx500list.csv").toString().trim();
+        String niftyurl=properties.getProperty("niftyurl", "http://www.nseindia.com/content/indices/ind_niftylist.csv").toString().trim();
         String currentDay = properties.getProperty("currentday", sdf_yyyyMMdd.format(Calendar.getInstance(TimeZone.getTimeZone(Algorithm.timeZone)).getTime()));
         String historicalfutures = properties.getProperty("historicalfutures");
         String historicalstocks = properties.getProperty("historicalstocks");
