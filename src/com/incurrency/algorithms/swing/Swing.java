@@ -1185,7 +1185,9 @@ public class Swing extends Strategy implements TradeListener {
         }
         //update stop information
         logger.log(Level.INFO, "501,Strategy Rollover Stop Update,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(targetID).getExchangeSymbol()+delimiter+newSize+delimiter+orderid+delimiter+stops});
-        Trade.setStop(db, this.getStrategy() + ":" + orderid + ":" + "Order", "opentrades", stops);
+        if (orderid >= 0) {
+            Trade.setStop(db, this.getStrategy() + ":" + orderid + ":" + "Order", "opentrades", stops);
+        }
     }
 
     public void displayStrategyValues() {
