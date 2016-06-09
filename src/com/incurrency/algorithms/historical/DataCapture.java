@@ -114,7 +114,7 @@ public class DataCapture implements HistoricalBarListener {
     }
     
     public void insertIntoCassandra(BeanOHLC ohlc, String metric,String symbol,String expiry) throws IOException{
-        if((ohlc.getVolume()>0 ||symbol.equals("NSENIFTY"))&&(Historical.lastUpdateDate.get(symbol).before(new Date(ohlc.getOpenTime())))){
+        if((ohlc.getVolume()>0 ||Historical.zerovolumeSymbols.contains(symbol))&&(Historical.lastUpdateDate.get(symbol).before(new Date(ohlc.getOpenTime())))){
         PrintStream output= new PrintStream(cassandraConnection.getOutputStream());
         if(expiry==null){
         output.print("put "+metric+".open "+ohlc.getOpenTime()+ " "+ohlc.getOpen()+" "+"symbol="+symbol.toLowerCase()+newline);
