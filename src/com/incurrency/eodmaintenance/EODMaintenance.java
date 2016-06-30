@@ -24,6 +24,8 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Properties;
 import java.util.TimeZone;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -36,6 +38,7 @@ public class EODMaintenance {
 
     private Properties properties;
     private ArrayList<BeanSymbol> symbols = new ArrayList<>();
+    private static final Logger logger = Logger.getLogger(EODMaintenance.class.getName());
 
     /**
      * @param args the command line arguments
@@ -142,6 +145,7 @@ public class EODMaintenance {
                             int minsize = Utilities.getInt(input[columnNumber], 0);
                             if (minsize > 0) {
                                 int id = Utilities.getIDFromExchangeSymbol(symbols, exchangesymbol, "STK", "", "", "");
+                                if(id>=0){
                                 s = symbols.get(id);
                                 BeanSymbol s1 = s.clone(s);
                                 s1.setType("STK");
@@ -151,6 +155,10 @@ public class EODMaintenance {
                                 s1.setStreamingpriority(3);
                                 s1.setSerialno(stockSymbols.size()+1);
                                 stockSymbols.add(s1);
+                                }else{
+                                    logger.log(Level.SEVERE,"Symbol not found in IB database corresponding to NSE Symbol {0}",new Object[]{exchangesymbol});
+        
+                                }
                             }
                         }
                     }
@@ -315,6 +323,7 @@ public class EODMaintenance {
                             int minsize = Utilities.getInt(input[columnNumber], 0);
                             if (minsize > 0) {
                                 int id = Utilities.getIDFromExchangeSymbol(symbols, exchangesymbol, "STK", "", "", "");
+                                if(id>=0){
                                 BeanSymbol s = symbols.get(id);
                                 BeanSymbol s1 = s.clone(s);
                                 s1.setType("FUT");
@@ -324,6 +333,9 @@ public class EODMaintenance {
                                 s1.setDisplayname(displayName);
                                 s1.setStreamingpriority(4);
                                 fnoSymbols.add(s1);
+                                }else{
+                                    logger.log(Level.SEVERE,"Symbol not found in IB database corresponding to NSE Symbol {0}",new Object[]{exchangesymbol});
+                                }
                             } else {
                                 //do not add row as minsize was not available
                             }
@@ -444,6 +456,7 @@ public class EODMaintenance {
                             int minsize = Utilities.getInt(input[columnNumber], 0);
                             if (minsize > 0) {
                                 int id = Utilities.getIDFromExchangeSymbol(symbols, exchangesymbol, "STK", "", "", "");
+                                if(id>=0){
                                 BeanSymbol s = symbols.get(id);
                                 BeanSymbol s1 = s.clone(s);
                                 s1.setType("FUT");
@@ -453,6 +466,10 @@ public class EODMaintenance {
                                 s1.setDisplayname(displayName);
                                 s1.setStreamingpriority(4);
                                 fnoSymbols.add(s1);
+                                }else{
+                                    //System.out.println("Incorrect id for "+exchangesymbol);
+                                   logger.log(Level.SEVERE,"Futures symbol not found in IB for exchange name {0}",new Object[]{exchangesymbol});
+                                }
                             } else {
                                 //do not add row as minsize was not available
                             }
