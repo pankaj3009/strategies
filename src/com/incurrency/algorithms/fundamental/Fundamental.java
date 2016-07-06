@@ -37,6 +37,7 @@ public class Fundamental implements TradeListener {
         }
         EnumRequestType[]request=new EnumRequestType[]{EnumRequestType.ESTIMATES,EnumRequestType.SNAPSHOT,EnumRequestType.FINSTAT};
         Thread t=new Thread(new FundamentalData(request) );
+        t.setName("Strategy: FundamentalData");
         t.start();
     }
 
