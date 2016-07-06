@@ -392,7 +392,7 @@ public class EODMaintenance {
                             tempContract.setBrokerSymbol(tempIBSymbol);
                             tempContract.setLongName(tempLongName);
                             int index=tempExchangeSymbol.indexOf("_");
-                            tempExchangeSymbol=index>0?tempExchangeSymbol.substring(0, index+1):tempExchangeSymbol;
+                            tempExchangeSymbol=index>0?tempExchangeSymbol.substring(0, index):tempExchangeSymbol;
                             tempContract.setExchangeSymbol(tempExchangeSymbol);
                             tempContract.setExchange(exchange);
                             tempContract.setType(type);
