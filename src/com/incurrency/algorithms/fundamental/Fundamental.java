@@ -4,23 +4,15 @@
  */
 package com.incurrency.algorithms.fundamental;
 
-import com.incurrency.algorithms.launch.*;
 import com.incurrency.algorithms.pairs.Pairs;
 import com.incurrency.RatesClient.Subscribe;
 import com.incurrency.framework.BeanConnection;
-import com.incurrency.framework.BeanPosition;
-import com.incurrency.framework.BeanSymbol;
 import com.incurrency.framework.EnumRequestType;
-import com.incurrency.framework.MainAlgorithm;
 import com.incurrency.framework.Parameters;
-import com.incurrency.framework.Strategy;
 import com.incurrency.framework.TradeEvent;
 import com.incurrency.framework.TradeListener;
-import com.incurrency.framework.TradingUtil;
 import com.incurrency.framework.fundamental.FundamentalData;
-import com.incurrency.framework.fundamental.FundamentalDataOld;
 import java.io.FileInputStream;
-import java.util.ArrayList;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
