@@ -98,7 +98,6 @@ public class Swing extends Strategy implements TradeListener {
     HashSet<Integer> longIDs = new HashSet<>();
     HashSet<Integer> shortIDs = new HashSet<>();
     private DecimalFormat df = new DecimalFormat("#.00");
-    private int redisDatabase;
     private String RStrategyFile;
     SimpleDateFormat sdf_default = new SimpleDateFormat("yyyy-MM-dd");
     private boolean rollover;
@@ -175,9 +174,9 @@ public class Swing extends Strategy implements TradeListener {
             eodProcessing.schedule(eodProcessingTask, entryScanDate);
         }
         Timer bodProcessing = new Timer("Timer: " + this.getStrategy() + " BODProcessing");
-        bodProcessing.schedule(runBOD, 1 * 60 * 1000);
+        bodProcessing.schedule(runBOD, 1 * 1000);
         Timer signals = new Timer("Timer: " + this.getStrategy() + " signalmonitor");
-        signals.schedule(readTrades, 1 * 60 * 1000);
+        signals.schedule(readTrades, 1 * 1000);
         //signals.schedule(readTrades, getStartDate(), tradeReadingFrequency * 1000);
         if(rollover){
             Timer rollProcessing = new Timer("Timer: Roll Positions");
@@ -215,6 +214,7 @@ public class Swing extends Strategy implements TradeListener {
         stopLossPercentage = Utilities.getDouble(p.getProperty("StopLossPercentage"), 1);
         ranking = p.getProperty("RankingRule", "1");
         takeProfitPercentage = Utilities.getDouble(p.getProperty("TakeProfitPercentage"), 5);
+        RStrategyFile=p.getProperty("RStrategyFile", "");
         String[] symbolNames = p.getProperty("longsymbols", "").split(",");
         for (String s : symbolNames) {
             int id = Utilities.getIDFromDisplaySubString(Parameters.symbol, s, referenceCashType);
@@ -375,11 +375,11 @@ public class Swing extends Strategy implements TradeListener {
 
     private void bodtasks() {
         logger.log(Level.INFO, "501,BODProcess,{0}", new Object[]{this.getStrategy()});
-        List<String> tradetuple = db.brpop("recontrades", "", 1); //pick trades for prior trading day
+        List<String> tradetuple = db.brpop("recontrades:"+this.getStrategy(), "", 1); //pick trades for prior trading day
         List<String> expectedTrades = new ArrayList<>();
         while (tradetuple != null) {
             expectedTrades.add(tradetuple.get(1));
-            tradetuple = db.brpop("recontrades", "", 1);
+            tradetuple = db.brpop("recontrades:"+this.getStrategy(), "", 1);
         }
         for (String key : db.getKeys("opentrades")) {
             ArrayList<Stop> tradestops = Trade.getStop(db, key);
@@ -442,6 +442,7 @@ public class Swing extends Strategy implements TradeListener {
         try {
             c = new RConnection(rServerIP);
             REXP x = c.eval("R.version.string");
+            c.eval("setwd("+"\"/home/psharma/Seafile/ML-Coursera/R/"+"\")");
             REXP wd = c.eval("getwd()");
             System.out.println(wd.asString());
             c.eval("options(encoding = \"UTF-8\")");
@@ -453,14 +454,15 @@ public class Swing extends Strategy implements TradeListener {
                 String close = String.valueOf(Parameters.symbol.get(symbolid).getClosePrice());
                 String volume = String.valueOf(Parameters.symbol.get(symbolid).getVolume());
                 String date = sdf_default.format(new Date());
-                args = new String[]{"1", this.getStrategy(), String.valueOf(this.getRedisDatabase()),
-                    Parameters.symbol.get(symbolid).getBrokerSymbol(), date, open, high, low, close, volume};
+                args = new String[]{"1", this.getStrategy(), this.getRedisDatabaseID(),
+                    Parameters.symbol.get(symbolid).getDisplayname(), date, open, high, low, close, volume};
             } else {
-                args = new String[]{"1", this.getStrategy(), String.valueOf(this.getRedisDatabase())};
+                args = new String[]{"1", this.getStrategy(), this.getRedisDatabaseID(),Parameters.symbol.get(symbolid).getDisplayname()};
             }
             c.assign("args", args);
-            c.eval("commandArgs <- function() {args}");
-            c.eval("source(" + this.getRStrategyFile() + ")");
+//            c.assign("commandArgs", "function() {"+args+"}");
+//           c.eval("commandArgs<-function(){"+args+"}");
+            c.eval("source(\"" + this.getRStrategyFile() + "\")");
         } catch (Exception e) {
             logger.log(Level.SEVERE, null, e);
         }
@@ -480,7 +482,7 @@ public class Swing extends Strategy implements TradeListener {
      * Blocks on Redis and waits for trades to be reported.
      */
     void waitForTrades() {
-        List<String> tradetuple = db.brpop("trades", "", 60);
+        List<String> tradetuple = db.blpop("trades:"+this.getStrategy(), "", 60);
         if (tradetuple != null) {
             //tradetuple as symbol:size:side:sl
             String symbol = tradetuple.get(1).split(":")[0];
@@ -489,6 +491,9 @@ public class Swing extends Strategy implements TradeListener {
             if (rollover) {
                 id = Utilities.getFutureIDFromSymbol(Parameters.symbol, symbolid, expiry);
                 nearid = Utilities.getFutureIDFromSymbol(Parameters.symbol, symbolid, this.expiryNearMonth);
+            }else{
+                id= Utilities.getFutureIDFromSymbol(Parameters.symbol, symbolid, this.expiryNearMonth);
+                nearid=id;
             }
             //TODO: add logic to pick either expiryNearMonth or expiryFarMonth, based on expiration day
             int size = Integer.valueOf(tradetuple.get(1).split(":")[1]);
@@ -701,19 +706,6 @@ public class Swing extends Strategy implements TradeListener {
     public void displayStrategyValues() {
     }
 
-    /**
-     * @return the redisDatabase
-     */
-    public int getRedisDatabase() {
-        return redisDatabase;
-    }
-
-    /**
-     * @param redisDatabase the redisDatabase to set
-     */
-    public void setRedisDatabase(int redisDatabase) {
-        this.redisDatabase = redisDatabase;
-    }
 
     /**
      * @return the RStrategyFile
