@@ -4,7 +4,7 @@ StartTime=9:15:00
 EndTime=15:28:00
 MaxSlippageEntry=0.5
 MaxSlippageExit=0.5
-MaxOrderDuration=1
+MaxOrderDuration=2
 DynamicOrderDuration=1
 StrategyLog=true
 TickSize=0.05
@@ -15,19 +15,19 @@ ClawProfitTarget=0
 DayProfitTarget=0
 DayStopLoss=0
 MaximumOpenPositions=10
-BrokerageFile=08-inrfutbrokerage.txt
+BrokerageFile=03-inrfutbrokerage.txt
 TradeFile=PORTSWINGTrades.json
 OrderFile=PORTSWINGOrders.json
-StartingCapital=1000000
+StartingCapital=5000000
 Long=true
 Short=true
 ############## PER STRATEGY VARIABLES ##################
 #Traded Symbol Name
-NearMonthExpiry=20151029
-FarMonthExpiry=20151126
+NearMonthExpiry=20151231
+FarMonthExpiry=20160128
 ReferenceCashType=STK
 RServerIP=notanotherfund.com
-RWorkingDirectory=/home/psharma/strategies/swing
+RWorkingDirectory=/home/psharma/strategies/swing/models
 EntryScanTime=15:26:00
 #### Expressions ########
 StopLoss=barslpoints*(1+prob-0.5)
@@ -44,13 +44,14 @@ UpProbabilityThreshold=0.7
 DownProbabilityThreshold=0.3
 cassandrametric=india.nse.equity.s4.daily
 timeseries=open,high,low,settle,volume
-ParameterObjectPath=/home/psharma/strategies/swing
+ParameterObjectPath=/home/psharma/strategies/swing/models
 #ParameterObjectPath=C:/Users/Pankaj/Documents/Seafile/ML-Coursera/R
 MaxPositions=5
 SameDayReentry=true
-redisurl=notanotherfund.com:6379:1
-#not used at present
-UseCustomDateRangeForTraining=true 
-TestingTimer=1000
+StopOrders=false
+redisurl=127.0.0.1:6379:1
 longsymbols=acc,axisbank,bankbaroda,grasim,hcltech,hindalco,hindunilvr,idea,indusindbk,kotakbank,lt,maruti,pnb,sbin,tatamotors,tatasteel,tcs,techm,ultracemco,yesbank,zeel
 shortsymbols=acc,axisbank,bankbaroda,cairn,cipla,grasim,hcltech,hindalco,hindunilvr,icicibank,idea,indusindbk,itc,kotakbank,lt,lupin,m&m,maruti,ntpc,pnb,powergrid,reliance,sbin,tatamotors,tatapower,tatasteel,tcs,techm,ultracemco,yesbank,zeel
+#not used at present
+UseCustomDateRangeForTraining=true 
+TestingTimer=0

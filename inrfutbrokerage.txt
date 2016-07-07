@@ -1,5 +1,0 @@
-Brokerage=0.01,Value,12.36,ExcludeIntraDayReversal
-AddOn1=0.01,Value,0,ExcludeBuy
-AddOn2=0.0019,Value,12.36
-AddOn3=0.0001,Value,12.36
-AddOn4=50,Distribute,0

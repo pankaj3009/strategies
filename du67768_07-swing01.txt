@@ -23,8 +23,8 @@ Long=true
 Short=true
 ############## PER STRATEGY VARIABLES ##################
 #Traded Symbol Name
-NearMonthExpiry=20160526
-FarMonthExpiry=20160630
+NearMonthExpiry=20160728
+FarMonthExpiry=20160825
 ReferenceCashType=IND
 RServerIP=notanotherfund.com
 RWorkingDirectory=/home/psharma/strategies/swing/models
@@ -44,9 +44,10 @@ ParameterObjectPath=/home/psharma/strategies/swing/models
 MaxPositions=2
 SameDayReentry=true
 StopOrders=false
-redisurl=127.0.0.1:6379:1
+redisurl=127.0.0.1:6379:3
 longsymbols=nsenifty
 shortsymbols=nsenifty
+RStrategyFile=swing/swing_v0.9.R
 #not used at present
 UseCustomDateRangeForTraining=true 
 TestingTimer=0

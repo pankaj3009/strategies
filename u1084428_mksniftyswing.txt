@@ -8,7 +8,7 @@ MaxOrderDuration=2
 DynamicOrderDuration=1
 StrategyLog=true
 TickSize=0.05
-NumberOfContracts=7
+NumberOfContracts=2
 #Exposure
 PointValue=1
 ClawProfitTarget=0
@@ -23,8 +23,8 @@ Long=true
 Short=true
 ############## PER STRATEGY VARIABLES ##################
 #Traded Symbol Name
-NearMonthExpiry=20160526
-FarMonthExpiry=20160630
+NearMonthExpiry=20160428
+FarMonthExpiry=20160526
 ReferenceCashType=IND
 RServerIP=notanotherfund.com
 RWorkingDirectory=/home/psharma/strategies/swing/models

@@ -3,36 +3,19 @@ openhour=9
 openminute=15
 closehour=15
 closeminute=30
-#Connection files specifies TWS connection settings. connectionfileneeded flag tells the program whether it should connect to TWS. If connectionfileneeded is set to true, connection file needs to be specified.
 connectionfileneeded=true
-connectionfile=03-connections-inr.csv
-#Symbol file holds the symbols/contracts that will be traded/tracked. symbolfileneeded flag tells the program whether it should load the symbol file. If symbolfileneeded is set to true, symbol file needs to be specified.
 symbolfileneeded=true
 symbolfile=03-symbols-inr.csv
-#holidayfile holds holiday information.
+connectionfile=03-connections-inr.csv
 holidayfile=holidays.csv
-#if datasource is specified, the program connects to the datasource for market data. In this case, TWS is not used for market data. This property needs to be set for simulation. It may or may not be required for trading.
-datasource=notanotherfund.com
+datasource=127.0.0.1
 requestport=5555
 pubsubport=5556
-topic=SIM
-#if you are looking at many lines of market data that are not supported by a single TWS account, consider if getting snapshots will be of use. Generally useful if your requirement is 2 times the streaming eligibility.
+topic=INR
 getsnapshotfromallconnections=false
-#set headless to true, if you are running on a shell prompt.
 headless=false
-#Set simulation to true and trading to false, if you are running a backtest. If you are running on paper or real account, set simulation to false and trading to true. Under no scenario, should both simulation and trading be true. Simulation and trading can both be false if you are running the program as a source of market data only. 
-simulation=true
-trading=false
-#these settings are required if simulation is set to true.
-simulationstartdate=20160105091500
-simulationenddate=20160105153000
-simulationpriorclosedate=20160104152959
-simulationbarsize=1sec
-simstk=india.nse.equity.s1.1sec
-simfut=india.nse.future.s1.1sec
-simopt=india.nse.future.s1.1sec
-simind=india.nse.equity.s1.1sec
-
+backtest=false
+trading=true
 # backtest prices can be tick or bar. if tick, bars are created using these "ticks"
 backtestprices=tick
 # A backtest needs a set of parameters that will be iterated through.
@@ -45,8 +28,5 @@ deemedcancellation=103,135,201,202,461
 threadlimit=1
 historicaldataserver=127.0.0.1:5559
 redisurl=127.0.0.1:6379:0
-savetofile=true
-#If collect ticks is set to true, all tick data is collected in logs folder. Each symbol generates its own csv file.
+cassandraconnection=incurrency.com
 collectticks=false
-#cassandra host
-cassandraconnection=91.121.168.138

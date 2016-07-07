@@ -7,3 +7,6 @@ ibsymbolurl=https://www.interactivebrokers.com/en/index.php?f=2222&exch=nse&show
 #ibsymbolurl=https://www.interactivebrokers.com/en/index.php?f=2222&exch=nse&showcategories=STK&showproducts=&sortproducts=&ib_entity=new
 #ibsymbolurl=https://www.interactivebrokers.com/en/trading/exchanges.php?exch=nse&showcategories=STK
 ibsymbolfile=ibsymbols.csv
+fnolotsizeurl=https://www.nseindia.com/content/fo/fo_mktlots.csv
+cnx500url=https://nseindia.com/content/indices/ind_nifty500list.csv
+niftyurl=https://www.nseindia.com/content/indices/ind_niftylist.csv
