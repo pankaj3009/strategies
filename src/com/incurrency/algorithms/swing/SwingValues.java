@@ -19,9 +19,9 @@ public class SwingValues extends javax.swing.JFrame {
     
     String contractSize;
     boolean stopOrders;
-    Swing a;
+    SwingOld a;
     
-    public SwingValues(Swing a) {
+    public SwingValues(SwingOld a) {
         this.a=a;
         this.stopOrders=a.isStopOrders();
         initComponents();
