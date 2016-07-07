@@ -4,14 +4,12 @@
  */
 package com.incurrency.algorithms.swing;
 
-import bsh.Interpreter;
 import com.incurrency.RatesClient.Subscribe;
 import com.incurrency.framework.Algorithm;
 import com.incurrency.framework.BeanConnection;
 import com.incurrency.framework.BeanPosition;
 import com.incurrency.framework.BeanSymbol;
 import com.incurrency.framework.DateUtil;
-import com.incurrency.framework.EnumBarSize;
 import com.incurrency.framework.EnumOrderReason;
 import com.incurrency.framework.EnumOrderSide;
 import com.incurrency.framework.EnumOrderStage;
@@ -39,10 +37,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jblas.DoubleMatrix;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.Rserve.RConnection;
-import static com.incurrency.framework.MatrixMethods.*;
 import com.incurrency.framework.SimulationTimer;
 import com.incurrency.framework.Stop;
 import com.incurrency.framework.Trade;
@@ -102,6 +98,7 @@ public class Swing extends Strategy implements TradeListener {
     SimpleDateFormat sdf_default = new SimpleDateFormat("yyyy-MM-dd");
     private boolean rollover;
     private String expiry;
+    private String wd;
 
     public Swing(MainAlgorithm m, Properties p, String parameterFile, ArrayList<String> accounts, Integer stratCount) {
         super(m, "swing", "FUT", p, parameterFile, accounts, stratCount);
@@ -178,9 +175,9 @@ public class Swing extends Strategy implements TradeListener {
         Timer signals = new Timer("Timer: " + this.getStrategy() + " signalmonitor");
         signals.schedule(readTrades, 1 * 1000);
         //signals.schedule(readTrades, getStartDate(), tradeReadingFrequency * 1000);
-        if(rollover){
+        if (rollover) {
             Timer rollProcessing = new Timer("Timer: Roll Positions");
-            rollProcessing.schedule(processRolls, DateUtil.addSeconds(entryScanDate, 60));            
+            rollProcessing.schedule(processRolls, DateUtil.addSeconds(entryScanDate, 60));
         }
     }
 
@@ -214,7 +211,8 @@ public class Swing extends Strategy implements TradeListener {
         stopLossPercentage = Utilities.getDouble(p.getProperty("StopLossPercentage"), 1);
         ranking = p.getProperty("RankingRule", "1");
         takeProfitPercentage = Utilities.getDouble(p.getProperty("TakeProfitPercentage"), 5);
-        RStrategyFile=p.getProperty("RStrategyFile", "");
+        RStrategyFile = p.getProperty("RStrategyFile", "");
+        wd = p.getProperty("wd", "/home/psharma/Seafile/R");
         String[] symbolNames = p.getProperty("longsymbols", "").split(",");
         for (String s : symbolNames) {
             int id = Utilities.getIDFromDisplaySubString(Parameters.symbol, s, referenceCashType);
@@ -375,11 +373,11 @@ public class Swing extends Strategy implements TradeListener {
 
     private void bodtasks() {
         logger.log(Level.INFO, "501,BODProcess,{0}", new Object[]{this.getStrategy()});
-        List<String> tradetuple = db.brpop("recontrades:"+this.getStrategy(), "", 1); //pick trades for prior trading day
+        List<String> tradetuple = db.brpop("recontrades:" + this.getStrategy(), "", 1); //pick trades for prior trading day
         List<String> expectedTrades = new ArrayList<>();
         while (tradetuple != null) {
             expectedTrades.add(tradetuple.get(1));
-            tradetuple = db.brpop("recontrades:"+this.getStrategy(), "", 1);
+            tradetuple = db.brpop("recontrades:" + this.getStrategy(), "", 1);
         }
         for (String key : db.getKeys("opentrades")) {
             ArrayList<Stop> tradestops = Trade.getStop(db, key);
@@ -435,14 +433,13 @@ public class Swing extends Strategy implements TradeListener {
             }
         }
     };
-    
+
     private void scan(int symbolid, boolean today) {
         logger.log(Level.INFO, "501,Scan,{0}", new Object[]{this.getStrategy()});
         RConnection c = null;
         try {
             c = new RConnection(rServerIP);
-            REXP x = c.eval("R.version.string");
-            c.eval("setwd("+"\"/home/psharma/Seafile/ML-Coursera/R/"+"\")");
+            c.eval("setwd(\"" + wd + "\")");
             REXP wd = c.eval("getwd()");
             System.out.println(wd.asString());
             c.eval("options(encoding = \"UTF-8\")");
@@ -457,18 +454,15 @@ public class Swing extends Strategy implements TradeListener {
                 args = new String[]{"1", this.getStrategy(), this.getRedisDatabaseID(),
                     Parameters.symbol.get(symbolid).getDisplayname(), date, open, high, low, close, volume};
             } else {
-                args = new String[]{"1", this.getStrategy(), this.getRedisDatabaseID(),Parameters.symbol.get(symbolid).getDisplayname()};
+                args = new String[]{"1", this.getStrategy(), this.getRedisDatabaseID(), Parameters.symbol.get(symbolid).getDisplayname()};
             }
             c.assign("args", args);
-//            c.assign("commandArgs", "function() {"+args+"}");
-//           c.eval("commandArgs<-function(){"+args+"}");
             c.eval("source(\"" + this.getRStrategyFile() + "\")");
         } catch (Exception e) {
             logger.log(Level.SEVERE, null, e);
         }
 
     }
-
     TimerTask readTrades = new TimerTask() {
         @Override
         public void run() {
@@ -482,7 +476,7 @@ public class Swing extends Strategy implements TradeListener {
      * Blocks on Redis and waits for trades to be reported.
      */
     void waitForTrades() {
-        List<String> tradetuple = db.blpop("trades:"+this.getStrategy(), "", 60);
+        List<String> tradetuple = db.blpop("trades:" + this.getStrategy(), "", 60);
         if (tradetuple != null) {
             //tradetuple as symbol:size:side:sl
             String symbol = tradetuple.get(1).split(":")[0];
@@ -491,9 +485,9 @@ public class Swing extends Strategy implements TradeListener {
             if (rollover) {
                 id = Utilities.getFutureIDFromSymbol(Parameters.symbol, symbolid, expiry);
                 nearid = Utilities.getFutureIDFromSymbol(Parameters.symbol, symbolid, this.expiryNearMonth);
-            }else{
-                id= Utilities.getFutureIDFromSymbol(Parameters.symbol, symbolid, this.expiryNearMonth);
-                nearid=id;
+            } else {
+                id = Utilities.getFutureIDFromSymbol(Parameters.symbol, symbolid, this.expiryNearMonth);
+                nearid = id;
             }
             //TODO: add logic to pick either expiryNearMonth or expiryFarMonth, based on expiration day
             int size = Integer.valueOf(tradetuple.get(1).split(":")[1]);
@@ -568,27 +562,24 @@ public class Swing extends Strategy implements TradeListener {
             }
         }
     }
-
-    TimerTask processRolls=new TimerTask(){
-
+    TimerTask processRolls = new TimerTask() {
         @Override
         public void run() {
-            for(Map.Entry<Integer, BeanPosition> entry : getPosition().entrySet()){
-                if(entry.getValue().getPosition()!=0){
-                    String expiry=Parameters.symbol.get(entry.getKey()).getExpiry();
-                    if(expiry.equals(expiryNearMonth)){
-                        int initID=entry.getKey();
-                        int targetID=Utilities.getFutureIDFromSymbol(Parameters.symbol, initID, expiryFarMonth);
-                        positionRollover(initID,targetID);
+            for (Map.Entry<Integer, BeanPosition> entry : getPosition().entrySet()) {
+                if (entry.getValue().getPosition() != 0) {
+                    String expiry = Parameters.symbol.get(entry.getKey()).getExpiry();
+                    if (expiry.equals(expiryNearMonth)) {
+                        int initID = entry.getKey();
+                        int targetID = Utilities.getFutureIDFromSymbol(Parameters.symbol, initID, expiryFarMonth);
+                        positionRollover(initID, targetID);
                     }
                 }
             }
         }
-        
-    };  
-     
+    };
+
     private boolean rolloverDay() {
-        boolean rollover = false;
+        rollover = false;
         try {
             SimpleDateFormat sdf_yyyyMMdd = new SimpleDateFormat("yyyyMMdd");
             String currentDay = sdf_yyyyMMdd.format(getStartDate());
@@ -705,7 +696,6 @@ public class Swing extends Strategy implements TradeListener {
 
     public void displayStrategyValues() {
     }
-
 
     /**
      * @return the RStrategyFile

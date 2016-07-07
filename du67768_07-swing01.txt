@@ -48,6 +48,7 @@ redisurl=127.0.0.1:6379:3
 longsymbols=nsenifty
 shortsymbols=nsenifty
 RStrategyFile=swing/swing_v0.9.R
+wd=/home/psharma/Seafile/R/
 #not used at present
 UseCustomDateRangeForTraining=true 
 TestingTimer=0
