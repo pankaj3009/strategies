@@ -102,7 +102,8 @@ public class Swing extends Strategy implements TradeListener {
     SimpleDateFormat sdf_default = new SimpleDateFormat("yyyy-MM-dd");
     private boolean rollover;
     private String expiry;
-
+    boolean optionTrades=false;
+    
     public Swing(MainAlgorithm m, Properties p, String parameterFile, ArrayList<String> accounts, Integer stratCount) {
         super(m, "swing", "FUT", p, parameterFile, accounts, stratCount);
         loadParameters(p);
@@ -215,6 +216,7 @@ public class Swing extends Strategy implements TradeListener {
         ranking = p.getProperty("RankingRule", "1");
         takeProfitPercentage = Utilities.getDouble(p.getProperty("TakeProfitPercentage"), 5);
         RStrategyFile=p.getProperty("RStrategyFile", "");
+        optionTrades=Boolean.parseBoolean(p.getProperty("Options", "FALSE"));
         String[] symbolNames = p.getProperty("longsymbols", "").split(",");
         for (String s : symbolNames) {
             int id = Utilities.getIDFromDisplaySubString(Parameters.symbol, s, referenceCashType);
@@ -488,19 +490,25 @@ public class Swing extends Strategy implements TradeListener {
             String symbol = tradetuple.get(1).split(":")[0];
             int symbolid = Utilities.getIDFromDisplayName(Parameters.symbol, symbol);
             int id = -1, nearid = -1;
-            if (rollover) {
-                id = Utilities.getFutureIDFromSymbol(Parameters.symbol, symbolid, expiry);
-                nearid = Utilities.getFutureIDFromSymbol(Parameters.symbol, symbolid, this.expiryNearMonth);
-            }else{
-                id= Utilities.getFutureIDFromSymbol(Parameters.symbol, symbolid, this.expiryNearMonth);
-                nearid=id;
-            }
-            //TODO: add logic to pick either expiryNearMonth or expiryFarMonth, based on expiration day
             int size = Integer.valueOf(tradetuple.get(1).split(":")[1]);
             EnumOrderSide side = EnumOrderSide.valueOf(tradetuple.get(1).split(":")[2]);
             double sl = Double.valueOf(tradetuple.get(1).split(":")[3]);
             sl = Utilities.round(sl, getTickSize(), 2);
             HashMap<String, Object> order = new HashMap<>();
+            
+            if (this.optionTrades) {
+                id = Utilities.getOptionIDForLongSystem(Parameters.symbol, this.getPosition(), symbolid, side, expiry);
+                nearid=id;
+                if (rollover) {
+                    nearid = Utilities.getOptionIDForLongSystem(Parameters.symbol, this.getPosition(), symbolid, side, this.expiryNearMonth);
+                }
+            } else {
+                id = Utilities.getFutureIDFromSymbol(Parameters.symbol, symbolid, expiry);
+                nearid=id;
+                if (rollover) {
+                    nearid = Utilities.getFutureIDFromSymbol(Parameters.symbol, symbolid, this.expiryNearMonth);
+                }
+            }
             order.put("type", EnumOrderType.LMT);
             order.put("limitprice", Parameters.symbol.get(id).getLastPrice());
             order.put("expiretime", getMaxOrderDuration());
@@ -568,7 +576,7 @@ public class Swing extends Strategy implements TradeListener {
             }
         }
     }
-
+        
     TimerTask processRolls=new TimerTask(){
 
         @Override
