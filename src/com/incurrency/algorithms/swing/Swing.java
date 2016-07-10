@@ -100,6 +100,7 @@ public class Swing extends Strategy implements TradeListener {
     private String expiry;
     private String wd;
     private Boolean optionTrades=Boolean.FALSE;
+    private EnumOrderType ordType=EnumOrderType.LMT;
     
     public Swing(MainAlgorithm m, Properties p, String parameterFile, ArrayList<String> accounts, Integer stratCount) {
         super(m, "swing", "FUT", p, parameterFile, accounts, stratCount);
@@ -215,6 +216,7 @@ public class Swing extends Strategy implements TradeListener {
         RStrategyFile = p.getProperty("RStrategyFile", "");
         wd = p.getProperty("wd", "/home/psharma/Seafile/R");
         optionTrades=Boolean.parseBoolean(p.getProperty("UseOptions","FALSE"));
+        ordType=EnumOrderType.valueOf(p.getProperty("OrderType", "LMT"));
         String[] symbolNames = p.getProperty("longsymbols", "").split(",");
         for (String s : symbolNames) {
             int id = Utilities.getIDFromDisplaySubString(Parameters.symbol, s, referenceCashType);
@@ -503,7 +505,7 @@ public class Swing extends Strategy implements TradeListener {
                     nearid = Utilities.getFutureIDFromSymbol(Parameters.symbol, symbolid, this.expiryNearMonth);
                 }
             }
-            order.put("type", EnumOrderType.LMT);
+            order.put("type", ordType);
             order.put("limitprice", Parameters.symbol.get(id).getLastPrice());
             order.put("expiretime", getMaxOrderDuration());
             order.put("dynamicorderduration", getDynamicOrderDuration());
