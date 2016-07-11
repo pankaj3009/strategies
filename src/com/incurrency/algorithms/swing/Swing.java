@@ -19,18 +19,20 @@ import com.incurrency.framework.EnumStopType;
 import com.incurrency.framework.Mail;
 import com.incurrency.framework.MainAlgorithm;
 import com.incurrency.framework.Parameters;
+import com.incurrency.framework.SimulationTimer;
+import com.incurrency.framework.Stop;
 import com.incurrency.framework.Strategy;
+import com.incurrency.framework.Trade;
 import com.incurrency.framework.TradeEvent;
 import com.incurrency.framework.TradeListener;
-import com.incurrency.framework.TradingUtil;
 import com.incurrency.framework.Utilities;
-import com.incurrency.indicators.Indicators;
-import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.TimeZone;
 import java.util.Timer;
@@ -39,14 +41,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.Rserve.RConnection;
-import com.incurrency.framework.SimulationTimer;
-import com.incurrency.framework.Stop;
-import com.incurrency.framework.Trade;
-import java.text.DecimalFormat;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.TreeMap;
 
 /**
  *
