@@ -59,6 +59,8 @@ public class Swing extends Strategy implements TradeListener {
     private final Object lockTradeReceived_1 = new Object();
     private String RStrategyFile;
     SimpleDateFormat sdf_default = new SimpleDateFormat("yyyy-MM-dd");
+    SimpleDateFormat sdtf_default = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    
     private boolean rollover;
     private String expiry;
     private String wd;
@@ -115,8 +117,11 @@ public class Swing extends Strategy implements TradeListener {
             s.start();
             //*************************************************************
         } else {
+            if(new Date().before(this.getEndDate()) && new Date().after(this.getStartDate())){
+            logger.log(Level.INFO,"Set EODProcessing Task at {0}",new Object[]{sdtf_default.format(entryScanDate)});
             eodProcessing = new Timer("Timer: " + this.getStrategy() + " EODProcessing");
             eodProcessing.schedule(eodProcessingTask, entryScanDate);
+            }
         }
         Timer bodProcessing = new Timer("Timer: " + this.getStrategy() + " BODProcessing");
         bodProcessing.schedule(bodProcessingTask, 1 * 1000);
@@ -244,7 +249,7 @@ public class Swing extends Strategy implements TradeListener {
             expectedTrades.add(tradetuple.get(1));
             tradetuple = db.brpop("recontrades:" + this.getStrategy(), "", 1);
         }
-        for (String key : db.getKeys("opentrades")) {
+        for (String key : db.getKeys("opentrades_"+this.getStrategy())) {
             ArrayList<Stop> tradestops = Trade.getStop(db, key);
             String entrysymbol = db.getValue("opentrades", key, "entrysymbol");
             String entryside = db.getValue("opentrades", key, "entryside");
@@ -264,6 +269,7 @@ public class Swing extends Strategy implements TradeListener {
                         if (side.equals(entryside)) {
                             //update stop
                             stop.stopValue = Double.valueOf(expectedTrades.get(stopindex).split(":")[3]);
+                            stop.stopValue=Utilities.roundTo(stop.stopValue, getTickSize());
                             stop.recalculate = false;
                             stop.underlyingEntry=Double.valueOf(expectedTrades.get(stopindex).split(":")[4]);
                             Trade.setStop(db, key, "opentrades", tradestops);
