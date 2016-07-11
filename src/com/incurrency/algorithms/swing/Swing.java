@@ -261,7 +261,13 @@ public class Swing extends Strategy implements TradeListener {
                                     break;
                                 case STOPLOSS:
                                     if (stop.underlyingEntry != 0) {
+                                        if(Parameters.symbol.get(id).getDisplayname().contains("PUT")){
+                                        slDistance = Parameters.symbol.get(referenceid).getLastPrice()-stop.underlyingEntry;
+                                            
+                                        }else{
                                         slDistance = stop.underlyingEntry - Parameters.symbol.get(referenceid).getLastPrice();
+                                            
+                                        }
                                         sl = stop.stopValue;
                                         slTrigger = sl != 0 && Parameters.symbol.get(id).getLastPrice() != 0 && Parameters.symbol.get(referenceid).getLastPrice() != 0 && slDistance >= sl;
                                     }
