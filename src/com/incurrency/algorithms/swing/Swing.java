@@ -263,9 +263,11 @@ public class Swing extends Strategy implements TradeListener {
                         String side = expectedTrades.get(stopindex).split(":")[2];
                         if (side.equals(entryside)) {
                             //update stop
-                            stop.stopValue = Double.valueOf(expectedTrades.get(stopindex).split(":")[1]);
+                            stop.stopValue = Double.valueOf(expectedTrades.get(stopindex).split(":")[3]);
                             stop.recalculate = false;
+                            stop.underlyingEntry=Double.valueOf(expectedTrades.get(stopindex).split(":")[4]);
                             Trade.setStop(db, key, "opentrades", tradestops);
+                            logger.log(Level.INFO,"Updated Trade Stop. Symbol:{0}, Underlying value:{1},StopPoints:{2}",new Object[]{symbol,stop.underlyingEntry,stop.stopValue});
                         } else {
                             //alert we have an incorrect side
                             Thread t = new Thread(new Mail("psharma@incurrency.com","Symbol has incorrect side: " + entrysymbol + " for strategy: " + this.getStrategy() + ".Expected trade direction: " + side + " Actual side in trade:" + entryside, "Algorithm ALERT"));
@@ -336,6 +338,7 @@ public class Swing extends Strategy implements TradeListener {
     void waitForTrades() {
         List<String> tradetuple = db.blpop("trades:" + this.getStrategy(), "", 60);
        if (tradetuple != null) {
+           logger.log(Level.INFO,"Received Trade:{0} for strategy {1}",new Object[]{tradetuple.get(1),tradetuple.get(0)});
             //tradetuple as symbol:size:side:sl
             String symbol = tradetuple.get(1).split(":")[0];
             int symbolid = Utilities.getIDFromDisplayName(Parameters.symbol, symbol);
