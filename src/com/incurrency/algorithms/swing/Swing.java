@@ -399,14 +399,7 @@ public class Swing extends Strategy implements TradeListener {
                         }
                     }
                     if (stopindex >= 0) {
-                        String side = expectedTrades.get(stopindex).split(":")[1];
-                        if (side.equals("0")) {
-                            side = "SHORT";
-                        } else if (side.equals("1")) {
-                            side = "BUY";
-                        } else if (side.equals("2")) {
-                            side = "AVOID";
-                        }
+                        String side = expectedTrades.get(stopindex).split(":")[2];
                         if (side.equals(entryside)) {
                             //update stop
                             stop.stopValue = Double.valueOf(expectedTrades.get(stopindex).split(":")[1]);
@@ -414,12 +407,12 @@ public class Swing extends Strategy implements TradeListener {
                             Trade.setStop(db, key, "opentrades", tradestops);
                         } else {
                             //alert we have an incorrect side
-                            Thread t = new Thread(new Mail("Symbol has incorrect side: " + entrysymbol + " for strategy: " + this.getStrategy() + ".Expected trade direction: " + side + " Actual side in trade:" + entryside, "Algorithm ALERT"));
+                            Thread t = new Thread(new Mail("psharma@incurrency.com","Symbol has incorrect side: " + entrysymbol + " for strategy: " + this.getStrategy() + ".Expected trade direction: " + side + " Actual side in trade:" + entryside, "Algorithm ALERT"));
                             t.start();
                         }
                     } else {
                         //alert dont have trades in strategy
-                        Thread t = new Thread(new Mail("Opening position where none expected for: " + entrysymbol + " for strategy: " + this.getStrategy() + ".Please review strategy results", "Algorithm ALERT"));
+                        Thread t = new Thread(new Mail("psharma@incurrency.com","Opening position where none expected for: " + entrysymbol + " for strategy: " + this.getStrategy() + ".Please review strategy results", "Algorithm ALERT"));
                         t.start();
                     }
                 }
@@ -506,7 +499,6 @@ public class Swing extends Strategy implements TradeListener {
                 }
             }
             order.put("type", ordType);
-            order.put("limitprice", Parameters.symbol.get(id).getLastPrice());
             order.put("expiretime", getMaxOrderDuration());
             order.put("dynamicorderduration", getDynamicOrderDuration());
             order.put("maxslippage", this.getMaxSlippageEntry());
@@ -516,6 +508,8 @@ public class Swing extends Strategy implements TradeListener {
             switch (side) {
                 case BUY:
                     order.put("id", id);
+                    double limitprice=this.getOptionLimitPriceForRel(id, symbolid, side,"CALL");
+                    order.put("limitprice", limitprice);
                     order.put("side", EnumOrderSide.BUY);
                     order.put("size", size);
                     order.put("reason", EnumOrderReason.REGULARENTRY);
@@ -532,6 +526,8 @@ public class Swing extends Strategy implements TradeListener {
                     break;
                 case SELL:
                     order.put("id", nearid);
+                    limitprice=this.getOptionLimitPriceForRel(nearid, symbolid, side,"CALL");
+                    order.put("limitprice", limitprice);
                     order.put("side", EnumOrderSide.SELL);
                     order.put("size", size);
                     order.put("reason", EnumOrderReason.REGULAREXIT);
@@ -542,6 +538,8 @@ public class Swing extends Strategy implements TradeListener {
                     break;
                 case SHORT:
                     order.put("id", id);
+                    limitprice=this.getOptionLimitPriceForRel(id, symbolid, side,"CALL");
+                    order.put("limitprice", limitprice);
                     order.put("side", EnumOrderSide.SHORT);
                     order.put("size", size);
                     order.put("reason", EnumOrderReason.REGULARENTRY);
@@ -559,6 +557,8 @@ public class Swing extends Strategy implements TradeListener {
                     break;
                 case COVER:
                     order.put("id", nearid);
+                    limitprice=this.getOptionLimitPriceForRel(nearid, symbolid, side,"CALL");
+                    order.put("limitprice", limitprice);
                     order.put("side", EnumOrderSide.COVER);
                     order.put("size", size);
                     order.put("reason", EnumOrderReason.REGULAREXIT);
@@ -571,6 +571,56 @@ public class Swing extends Strategy implements TradeListener {
                     break;
             }
         }
+    }
+    
+    double getOptionLimitPriceForRel(int id,int underlyingid,EnumOrderSide side,String right){
+        double price=Parameters.symbol.get(id).getLastPrice();
+        if(price==0){
+            double underlyingprice=Parameters.symbol.get(underlyingid).getLastPrice();
+            double underlyingpriorclose=Parameters.symbol.get(underlyingid).getClosePrice();
+            double underlyingchange=underlyingprice-underlyingpriorclose;//+ve if up
+            double optionlastprice=Parameters.symbol.get(id).getClosePrice();
+            switch(right){
+                case "CALL":
+                    price=optionlastprice+0.5*underlyingchange;
+                    break;
+                case "PUT":
+                    price=optionlastprice-0.5*underlyingchange;
+                    break;
+            }            
+            
+        }
+        double bidprice=Parameters.symbol.get(id).getBidPrice();
+        double askprice=Parameters.symbol.get(id).getAskPrice();
+        switch(side){
+            case BUY:
+            case COVER:
+                if(bidprice>0){
+                    price=bidprice;
+                    
+                }else if(askprice>0){
+                    price=0.80*askprice;
+                }else{
+                    price=0.80*price;
+                }
+                break;
+            case SHORT:
+            case SELL:
+               if(askprice>0){
+                    price=askprice;
+                    
+                }else if(bidprice>0){
+                    price=1.2*askprice;
+                }else{
+                    price=1.2*price;
+                }
+                break;
+            default:
+                break;
+                        
+        }
+        price=Utilities.roundTo(price, this.getTickSize());
+        return price;
     }
         
     TimerTask processRolls=new TimerTask(){
