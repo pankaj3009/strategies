@@ -267,7 +267,8 @@ public class Swing extends Strategy implements TradeListener {
                     }
                     if (stopindex >= 0) {
                         String side = expectedTrades.get(stopindex).split(":")[2];
-                        if (side.equals(entryside)) {
+                        if ((side.equals("BUY") && entryside.equals("BUY") && entrysymbol.contains("CALL"))
+                                ||(side.equals("SHORT") && entryside.equals("BUY") && entrysymbol.contains("PUT"))) {
                             //update stop
                             stop.stopValue = Double.valueOf(expectedTrades.get(stopindex).split(":")[3]);
                             stop.stopValue=Utilities.roundTo(stop.stopValue, getTickSize());
