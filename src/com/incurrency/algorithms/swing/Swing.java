@@ -317,7 +317,7 @@ public class Swing extends Strategy implements TradeListener {
                 String open = String.valueOf(Parameters.symbol.get(symbolid).getOpenPrice());
                 String high = String.valueOf(Parameters.symbol.get(symbolid).getHighPrice());
                 String low = String.valueOf(Parameters.symbol.get(symbolid).getLowPrice());
-                String close = String.valueOf(Parameters.symbol.get(symbolid).getClosePrice());
+                String close = String.valueOf(Parameters.symbol.get(symbolid).getLastPrice());
                 String volume = String.valueOf(Parameters.symbol.get(symbolid).getVolume());
                 String date = sdf_default.format(new Date());
                 args = new String[]{"1", this.getStrategy(), this.getRedisDatabaseID(),
