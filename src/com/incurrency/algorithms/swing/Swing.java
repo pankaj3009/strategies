@@ -382,7 +382,7 @@ public class Swing extends Strategy implements TradeListener {
             switch (side) {
                 case BUY:
                     order.put("id", id);
-                    double limitprice=this.getOptionLimitPriceForRel(id, symbolid, side,"CALL");
+                    double limitprice=this.getOptionLimitPriceForRel(id, symbolid, EnumOrderSide.BUY,"CALL");
                     order.put("limitprice", limitprice);
                     order.put("side", EnumOrderSide.BUY);
                     order.put("size", size);
@@ -401,7 +401,7 @@ public class Swing extends Strategy implements TradeListener {
                     break;
                 case SELL:
                     order.put("id", nearid);
-                    limitprice=this.getOptionLimitPriceForRel(nearid, symbolid, side,"CALL");
+                    limitprice=this.getOptionLimitPriceForRel(nearid, symbolid, EnumOrderSide.SELL,"CALL");
                     order.put("limitprice", limitprice);
                     order.put("side", EnumOrderSide.SELL);
                     order.put("size", size);
@@ -413,7 +413,7 @@ public class Swing extends Strategy implements TradeListener {
                     break;
                 case SHORT:
                     order.put("id", id);
-                    limitprice=this.getOptionLimitPriceForRel(id, symbolid, side,"PUT");
+                    limitprice=this.getOptionLimitPriceForRel(id, symbolid, EnumOrderSide.BUY,"PUT");
                     order.put("limitprice", limitprice);
                     order.put("side", EnumOrderSide.BUY);
                     order.put("size", size);
@@ -433,7 +433,7 @@ public class Swing extends Strategy implements TradeListener {
                     break;
                 case COVER:
                     order.put("id", nearid);
-                    limitprice=this.getOptionLimitPriceForRel(nearid, symbolid, side,"PUT");
+                    limitprice=this.getOptionLimitPriceForRel(nearid, symbolid, EnumOrderSide.SELL,"PUT");
                     order.put("limitprice", limitprice);
                     order.put("side", EnumOrderSide.SELL);
                     order.put("size", size);
