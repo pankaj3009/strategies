@@ -28,6 +28,7 @@ import com.incurrency.framework.TradeListener;
 import com.incurrency.framework.Utilities;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -322,6 +323,7 @@ public class Swing extends Strategy implements TradeListener {
             } else {
                 args = new String[]{"1", this.getStrategy(), this.getRedisDatabaseID(), Parameters.symbol.get(symbolid).getDisplayname()};
             }
+            logger.log(Level.INFO,"Invoking R. args: {0}",new Object[]{Arrays.toString(args)});
             c.assign("args", args);
             c.eval("source(\"" + this.getRStrategyFile() + "\")");
         } catch (Exception e) {
