@@ -118,10 +118,15 @@ public class Swing extends Strategy implements TradeListener {
             s.start();
             //*************************************************************
         } else {
-            if(new Date().before(this.getEndDate()) && new Date().after(this.getStartDate())){
-            logger.log(Level.INFO,"Set EODProcessing Task at {0}",new Object[]{sdtf_default.format(entryScanDate)});
-            eodProcessing = new Timer("Timer: " + this.getStrategy() + " EODProcessing");
-            eodProcessing.schedule(eodProcessingTask, entryScanDate);
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(new Date());
+            cal.setTimeZone(TimeZone.getTimeZone(Algorithm.timeZone));
+            cal.add(Calendar.DATE, -1);
+            Date priorEndDate = cal.getTime();
+            if (new Date().before(this.getEndDate()) && new Date().after(priorEndDate)) {
+                logger.log(Level.INFO, "Set EODProcessing Task at {0}", new Object[]{sdtf_default.format(entryScanDate)});
+                eodProcessing = new Timer("Timer: " + this.getStrategy() + " EODProcessing");
+                eodProcessing.schedule(eodProcessingTask, entryScanDate);
             }
         }
         Timer bodProcessing = new Timer("Timer: " + this.getStrategy() + " BODProcessing");
