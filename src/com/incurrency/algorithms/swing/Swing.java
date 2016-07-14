@@ -174,9 +174,9 @@ public class Swing extends Strategy implements TradeListener {
                     double slDistance = 0D;
                     double sl = Double.MIN_VALUE;
                     double tp = Double.MAX_VALUE;
-                    if (stops == null && Parameters.symbol.get(id).getLastPrice() != 0) { //Set SL and TP at 5%
-                        slTrigger = Parameters.symbol.get(id).getLastPrice() != 0 && (Parameters.symbol.get(id).getLastPrice() <= tradePrice * (1 - 5 / 100));
-                        tpTrigger = Parameters.symbol.get(id).getLastPrice() != 0 && (Parameters.symbol.get(id).getLastPrice() >= tradePrice * (1 + 5 / 100));
+                    if (!optionTrades && stops == null && Parameters.symbol.get(id).getLastPrice() != 0) { //Set SL and TP at 5%
+                        slTrigger = tradePrice >0 && Parameters.symbol.get(id).getLastPrice() != 0 && (Parameters.symbol.get(id).getLastPrice() <= tradePrice * (1 - 5 / 100));
+                        tpTrigger = tradePrice >0 && Parameters.symbol.get(id).getLastPrice() != 0 && (Parameters.symbol.get(id).getLastPrice() >= tradePrice * (1 + 5 / 100));
                     } else if (stops != null && Parameters.symbol.get(id).getLastPrice() != 0) {
                         for (Stop stop : stops) {
                             switch (stop.stopType) {
