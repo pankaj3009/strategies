@@ -386,8 +386,9 @@ public class Swing extends Strategy implements TradeListener {
             Stop stp = new Stop();
             switch (side) {
                 case BUY:
+                    if(id>=0){
                     order.put("id", id);
-                    double limitprice=this.getOptionLimitPriceForRel(id, symbolid, EnumOrderSide.BUY,"CALL");
+                    double limitprice=getOptionLimitPriceForRel(id, symbolid, EnumOrderSide.BUY,"CALL");
                     order.put("limitprice", limitprice);
                     order.put("side", EnumOrderSide.BUY);
                     order.put("size", size);
@@ -403,10 +404,12 @@ public class Swing extends Strategy implements TradeListener {
                     stp.recalculate = true;
                     stops.add(stp);
                     Trade.setStop(db, this.getStrategy() + ":" + orderid + ":" + "Order", "opentrades", stops);
+                    }
                     break;
                 case SELL:
+                    if(nearid>=0){
                     order.put("id", nearid);
-                    limitprice=this.getOptionLimitPriceForRel(nearid, symbolid, EnumOrderSide.SELL,"CALL");
+                    double limitprice=getOptionLimitPriceForRel(nearid, symbolid, EnumOrderSide.SELL,"CALL");
                     order.put("limitprice", limitprice);
                     order.put("side", EnumOrderSide.SELL);
                     order.put("size", size);
@@ -415,10 +418,12 @@ public class Swing extends Strategy implements TradeListener {
                     order.put("log", "SELL" + delimiter + tradetuple.get(1));
                     logger.log(Level.INFO, "501,Strategy SELL,{0}", new Object[]{getStrategy() + delimiter + "SELL" + delimiter + Parameters.symbol.get(id).getDisplayname()});
                     orderid = exit(order);
+                    }
                     break;
                 case SHORT:
+                    if(id>=0){
                     order.put("id", id);
-                    limitprice=this.getOptionLimitPriceForRel(id, symbolid, EnumOrderSide.BUY,"PUT");
+                    double limitprice=this.getOptionLimitPriceForRel(id, symbolid, EnumOrderSide.BUY,"PUT");
                     order.put("limitprice", limitprice);
                     order.put("side", EnumOrderSide.BUY);
                     order.put("size", size);
@@ -435,10 +440,12 @@ public class Swing extends Strategy implements TradeListener {
                     stp.recalculate = true;
                     stops.add(stp);
                     Trade.setStop(db, this.getStrategy() + ":" + orderid + ":" + "Order", "opentrades", stops);
+                    }
                     break;
                 case COVER:
+                    if(nearid>=0){
                     order.put("id", nearid);
-                    limitprice=this.getOptionLimitPriceForRel(nearid, symbolid, EnumOrderSide.SELL,"PUT");
+                    double limitprice=this.getOptionLimitPriceForRel(nearid, symbolid, EnumOrderSide.SELL,"PUT");
                     order.put("limitprice", limitprice);
                     order.put("side", EnumOrderSide.SELL);
                     order.put("size", size);
@@ -447,6 +454,7 @@ public class Swing extends Strategy implements TradeListener {
                     order.put("log", "COVER" + delimiter + tradetuple.get(1));
                     logger.log(Level.INFO, "501,Strategy COVER,{0}", new Object[]{getStrategy() + delimiter + "COVER" + delimiter + Parameters.symbol.get(id).getDisplayname()});
                     orderid = exit(order);
+                    }
                     break;
                 default:
                     break;
