@@ -5,6 +5,7 @@
 package com.incurrency.eodmaintenance;
 
 
+import com.incurrency.framework.BeanSymbol;
 import com.incurrency.framework.ReaderWriterInterface;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -68,7 +69,13 @@ public class Symbol implements ReaderWriterInterface {
             List<String> existingContractLoad=Files.readAllLines(Paths.get(inputfile), StandardCharsets.UTF_8);
             for(String Contractline: existingContractLoad){
                 String[] input=Contractline.split(",");
-                target.add(new Symbol(input));
+                target.add(new BeanSymbol(input,7));
+            }
+            int i=0;
+            for(Object s:target){
+                BeanSymbol bs=(BeanSymbol)s;
+                bs.setSerialno(i+1);
+                i++;
             }
         } catch (IOException ex) {
            logger.log(Level.SEVERE, null, ex);
