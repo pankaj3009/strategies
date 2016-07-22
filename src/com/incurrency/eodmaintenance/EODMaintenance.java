@@ -280,6 +280,7 @@ public class EODMaintenance {
         s.setStreamingpriority(1);
         s.setStrategy("DATA");
         s.setMinsize(75);
+        s.setStrikeDistance(100);
         out.add(s);
         s = new BeanSymbol("NIFTY50", "NSENIFTY", "FUT", this.getNextExpiry(expiry), "", "");
         s.setCurrency("INR");
@@ -287,6 +288,7 @@ public class EODMaintenance {
         s.setStreamingpriority(1);
         s.setStrategy("DATA");
         s.setMinsize(75);
+        s.setStrikeDistance(100);
         out.add(s);
 
         //Add nifty stocks. Priority =1
@@ -341,6 +343,7 @@ public class EODMaintenance {
         s.setExchange("NSE");
         s.setStreamingpriority(1);
         s.setStrategy("DATA");
+        s.setStrikeDistance(100);
         out.add(s);
         out.addAll(fno);
         printToFile(out, this.f_HistoricalFutures, true);
@@ -355,6 +358,7 @@ public class EODMaintenance {
         s.setExchange("NSE");
         s.setStreamingpriority(1);
         s.setStrategy("DATA");
+        s.setStrikeDistance(100);
         out.add(s);
         ArrayList<BeanSymbol> fwdout = loadFutures(this.fnolotsizeurl, this.f_Strikes, expiry);
         out.addAll(fwdout);
@@ -368,21 +372,23 @@ public class EODMaintenance {
         s.setCurrency("INR");
         s.setExchange("NSE");
         s.setStreamingpriority(1);
-        s.setStrategy("DATA");
+        s.setStrategy("SWING");
         out.add(s);
         s = new BeanSymbol("NIFTY50", "NSENIFTY", "FUT", expiry, "", "");
         s.setCurrency("INR");
         s.setExchange("NSE");
         s.setStreamingpriority(1);
-        s.setStrategy("DATA");
+        s.setStrategy("SWING");
         s.setMinsize(75);
+        s.setStrikeDistance(100);
         out.add(s);
         s = new BeanSymbol("NIFTY50", "NSENIFTY", "FUT", this.getNextExpiry(expiry), "", "");
         s.setCurrency("INR");
         s.setExchange("NSE");
         s.setStreamingpriority(1);
-        s.setStrategy("DATA");
+        s.setStrategy("SWING");
         s.setMinsize(75);
+        s.setStrikeDistance(100);
         out.add(s);
         printToFile(out, this.f_Swing, false);
     }

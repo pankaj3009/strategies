@@ -84,7 +84,7 @@ public class CSVOrder implements ReaderWriterInterface {
     
     
     @Override
-    public void reader(String inputfile, ArrayList target) {
+    public void reader(String inputfile, List target) {
         File inputFile = new File(inputfile);
         if (inputFile.exists() && !inputFile.isDirectory()) {
             try {
