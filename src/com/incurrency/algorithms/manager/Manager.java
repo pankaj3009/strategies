@@ -129,7 +129,7 @@ public class Manager extends Strategy {
             if(Parameters.symbol.get(id).isAddedToSymbols()){
                 //do housekeeping
                 //1. ensure it exists in positions for strategy and oms
-                if(this.getStrategySymbols().get(Integer.valueOf(id))==null){
+                if(!this.getStrategySymbols().contains(Integer.valueOf(id))){
                    this.getStrategySymbols().add(id);
                     this.getPosition().put(id, new BeanPosition(id, getStrategy()));
                     Index ind=new Index(this.getStrategy(),id);

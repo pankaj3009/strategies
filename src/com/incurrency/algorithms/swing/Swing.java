@@ -16,6 +16,7 @@ import com.incurrency.framework.EnumOrderStage;
 import com.incurrency.framework.EnumOrderType;
 import com.incurrency.framework.EnumStopMode;
 import com.incurrency.framework.EnumStopType;
+import com.incurrency.framework.Index;
 import com.incurrency.framework.Mail;
 import com.incurrency.framework.MainAlgorithm;
 import com.incurrency.framework.Parameters;
@@ -237,13 +238,13 @@ public class Swing extends Strategy implements TradeListener {
         
     TimerTask bodProcessingTask = new TimerTask() {
         public void run() {
-            for (BeanSymbol s : Parameters.symbol) {
-                if (s.getType().equals(referenceCashType) && s.getStrategy().toLowerCase().contains("swing")) {
-                    int symbolid = s.getSerialno() - 1;
-                    scan(symbolid, false);
-                    bodtasks();
-                }
-            }
+                for (BeanSymbol s : Parameters.symbol) {
+                    if (s.getType().equals(referenceCashType) && s.getStrategy().toLowerCase().contains("swing")) {
+                        int symbolid = s.getSerialno() - 1;
+                        scan(symbolid, false);
+                        bodtasks();
+                    }
+                }            
         }
     };
 
@@ -262,7 +263,7 @@ public class Swing extends Strategy implements TradeListener {
             String entryside = db.getValue("opentrades", key, "entryside");
             String symbol = entrysymbol.split("_")[0];
             int stopindex = -1;
-            if (tradestops.size() == 1) {
+            if (tradestops!=null && tradestops.size() == 1) {
                 Stop stop = tradestops.get(0);
                 if (stop.recalculate == Boolean.TRUE) {
                     for (int i = 0; i < expectedTrades.size(); i++) {
@@ -377,6 +378,29 @@ public class Swing extends Strategy implements TradeListener {
                     nearid = Utilities.getFutureIDFromSymbol(Parameters.symbol, symbolid, this.expiryNearMonth);
                 }
             }
+           if (Parameters.symbol.get(id).isAddedToSymbols()) {
+               //do housekeeping
+               //1. ensure it exists in positions for strategy and oms
+               if (!this.getStrategySymbols().contains(Integer.valueOf(id))) {
+                   this.getPosition().putIfAbsent(id, new BeanPosition(id, getStrategy()));
+                   this.getStrategySymbols().add(id);
+                   //request market data
+                   if(Parameters.symbol.get(id).getClosePrice()==0){// request md if there is none
+                       Parameters.connection.get(0).getWrapper().getMktData(Parameters.symbol.get(id), false);                       
+                   }
+               }
+           }
+           if (Parameters.symbol.get(nearid).isAddedToSymbols()) {
+               //do housekeeping
+               //1. ensure it exists in positions for strategy and oms
+               if (this.getStrategySymbols().get(Integer.valueOf(id)) == null) {
+                   this.getStrategySymbols().add(id);
+                   this.getPosition().put(id, new BeanPosition(id, getStrategy()));
+                   Index ind = new Index(this.getStrategy(), id);
+                   //request market data
+                   Parameters.connection.get(0).getWrapper().getMktData(Parameters.symbol.get(id), false);
+               }
+           }
             order.put("type", ordType);
             order.put("expiretime", getMaxOrderDuration());
             order.put("dynamicorderduration", getDynamicOrderDuration());
