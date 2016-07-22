@@ -38,7 +38,7 @@ public class Template extends Strategy implements TradeListener {
         String[] tempStrategyArray = parameterFile.split("\\.")[0].split("-");
         for (BeanConnection c : Parameters.connection) {
             c.getWrapper().addTradeListener(this);
-            c.initializeConnection(tempStrategyArray[tempStrategyArray.length - 1]);
+            c.initializeConnection(tempStrategyArray[tempStrategyArray.length - 1],-1);
         }
         if (Subscribe.tes != null) {
             Subscribe.tes.addTradeListener(this);

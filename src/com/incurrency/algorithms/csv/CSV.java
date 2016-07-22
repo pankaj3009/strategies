@@ -46,7 +46,7 @@ public class CSV extends Strategy {
             loadParameters("CSV", parameterFile);
             String[] tempStrategyArray = parameterFile.split("\\.")[0].split("-");
             for (BeanConnection c : Parameters.connection) {
-                c.initializeConnection(tempStrategyArray[tempStrategyArray.length - 1]);
+                c.initializeConnection(tempStrategyArray[tempStrategyArray.length - 1],-1);
             }
             Path dir = Paths.get(directory.trim());
             File folder = new File(dir.toString());

@@ -83,7 +83,7 @@ public class BeanDNO implements TradeListener, BidAskListener, HistoricalBarList
         for (BeanConnection c : Parameters.connection) {
             c.getWrapper().addTradeListener(this);
             c.getWrapper().addBidAskListener(this);
-            c.initializeConnection("dno");
+            c.initializeConnection("dno",-1);
         }
         int i=0;
         for (BeanSymbol s : Parameters.symbol) {

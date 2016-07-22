@@ -55,7 +55,7 @@ public class Manager extends Strategy {
         loadParameters(p);
         String[] tempStrategyArray = parameterFile.split("\\.")[0].split("-|_");
         for (BeanConnection c : Parameters.connection) {
-            c.initializeConnection(tempStrategyArray[tempStrategyArray.length - 1]);
+            c.initializeConnection(tempStrategyArray[tempStrategyArray.length - 1],-1);
         }
         rollover = rolloverDay(rolloverDays);
         if (rollover) {

@@ -75,7 +75,7 @@ public class Swing extends Strategy implements TradeListener {
         String[] tempStrategyArray = parameterFile.split("\\.")[0].split("-|_");
         for (BeanConnection c : Parameters.connection) {
             c.getWrapper().addTradeListener(this);
-            c.initializeConnection(tempStrategyArray[tempStrategyArray.length - 1]);
+            c.initializeConnection(tempStrategyArray[tempStrategyArray.length - 1],-1);
         }
         if (Subscribe.tes != null) {
             Subscribe.tes.addTradeListener(this);
@@ -378,29 +378,10 @@ public class Swing extends Strategy implements TradeListener {
                     nearid = Utilities.getFutureIDFromSymbol(Parameters.symbol, symbolid, this.expiryNearMonth);
                 }
             }
-           if (Parameters.symbol.get(id).isAddedToSymbols()) {
-               //do housekeeping
-               //1. ensure it exists in positions for strategy and oms
-               if (!this.getStrategySymbols().contains(Integer.valueOf(id))) {
-                   this.getPosition().putIfAbsent(id, new BeanPosition(id, getStrategy()));
-                   this.getStrategySymbols().add(id);
-                   //request market data
-                   if(Parameters.symbol.get(id).getClosePrice()==0){// request md if there is none
-                       Parameters.connection.get(0).getWrapper().getMktData(Parameters.symbol.get(id), false);                       
-                   }
-               }
-           }
-           if (Parameters.symbol.get(nearid).isAddedToSymbols()) {
-               //do housekeeping
-               //1. ensure it exists in positions for strategy and oms
-               if (this.getStrategySymbols().get(Integer.valueOf(id)) == null) {
-                   this.getStrategySymbols().add(id);
-                   this.getPosition().put(id, new BeanPosition(id, getStrategy()));
-                   Index ind = new Index(this.getStrategy(), id);
-                   //request market data
-                   Parameters.connection.get(0).getWrapper().getMktData(Parameters.symbol.get(id), false);
-               }
-           }
+            
+           this.initSymbol(id);
+           this.initSymbol(nearid);
+
             order.put("type", ordType);
             order.put("expiretime", getMaxOrderDuration());
             order.put("dynamicorderduration", getDynamicOrderDuration());

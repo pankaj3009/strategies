@@ -162,7 +162,7 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
         if (MainAlgorithm.isUseForTrading()) {
             for (BeanConnection c : Parameters.connection) {
                 c.getWrapper().addTradeListener(this);
-                c.initializeConnection(tempStrategyArray[tempStrategyArray.length - 1]);
+                c.initializeConnection(tempStrategyArray[tempStrategyArray.length - 1],-1);
             }
         }
         if (Subscribe.tes != null) {

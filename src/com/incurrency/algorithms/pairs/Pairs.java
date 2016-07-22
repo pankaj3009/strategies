@@ -60,7 +60,7 @@ public class Pairs extends Strategy {
         String[] tempStrategyArray = parameterFile.split("\\.")[0].split("-");
         for (BeanConnection c : Parameters.connection) {
 //            c.getWrapper().addBidAskListener(this);
-            c.initializeConnection(tempStrategyArray[tempStrategyArray.length - 1]);
+            c.initializeConnection(tempStrategyArray[tempStrategyArray.length - 1],-1);
         }
         if (Subscribe.tes != null) {
   //          Subscribe.tes.addBidAskListener(this);
