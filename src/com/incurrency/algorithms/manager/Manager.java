@@ -43,6 +43,8 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
+import org.rosuda.REngine.REXP;
+import org.rosuda.REngine.Rserve.RConnection;
 
 /**
  *
@@ -59,6 +61,8 @@ public class Manager extends Strategy {
     Boolean rollover;
     int rolloverDays;
     String expiry;
+    String RStrategyFile;
+    String wd;
     private static final Logger logger = Logger.getLogger(Manager.class.getName());
 
     public Manager(MainAlgorithm m, Properties p, String parameterFile, ArrayList<String> accounts, Integer stratCount) {
@@ -66,7 +70,7 @@ public class Manager extends Strategy {
         loadParameters(p);
         String[] tempStrategyArray = parameterFile.split("\\.")[0].split("-|_");
         for (BeanConnection c : Parameters.connection) {
-            c.initializeConnection(tempStrategyArray[tempStrategyArray.length - 1],-1);
+            c.initializeConnection(tempStrategyArray[tempStrategyArray.length - 1], -1);
         }
         rollover = rolloverDay(rolloverDays);
         if (rollover) {
@@ -92,6 +96,9 @@ public class Manager extends Strategy {
         calToday.set(Calendar.SECOND, Utilities.getInt(entryTimeComponents[2], 0));
         monitoringStart = calToday.getTime();
         rolloverDays = Integer.valueOf(p.getProperty("RolloverDays", "0"));
+        RStrategyFile = p.getProperty("RStrategyFile", "");
+        wd = p.getProperty("wd", "/home/psharma/Seafile/R");
+
 
     }
 
@@ -115,6 +122,21 @@ public class Manager extends Strategy {
     TimerTask tradeScannerTask = new TimerTask() {
         @Override
         public void run() {
+            if (!RStrategyFile.equals("")) {
+                logger.log(Level.INFO, "501,Scan,{0}", new Object[]{getStrategy()});
+                RConnection c = null;
+                try {
+                    c = new RConnection(rServerIP);
+                    c.eval("setwd(\"" + wd + "\")");
+                    REXP wd = c.eval("getwd()");
+                    System.out.println(wd.asString());
+                    c.eval("options(encoding = \"UTF-8\")");
+                    c.eval("source(\"" + RStrategyFile + "\")");
+                } catch (Exception e) {
+                    logger.log(Level.SEVERE, null, e);
+                }
+
+            }
             while (true) {
                 waitForTrades();
             }
@@ -135,12 +157,12 @@ public class Manager extends Strategy {
             sl = Utilities.round(sl, getTickSize(), 2);
             HashMap<String, Object> order = new HashMap<>();
             id = Utilities.getOptionIDForLongSystem(Parameters.symbol, this.getPosition(), symbolid, side, expiry);
-            nearid=id;
+            nearid = id;
             if (rollover) {
-                    nearid = Utilities.getOptionIDForLongSystem(Parameters.symbol, this.getPosition(), symbolid, side, this.expiryNearMonth);
+                nearid = Utilities.getOptionIDForLongSystem(Parameters.symbol, this.getPosition(), symbolid, side, this.expiryNearMonth);
             }
-           this.initSymbol(id);
-           this.initSymbol(nearid);
+            this.initSymbol(id);
+            this.initSymbol(nearid);
 
             order.put("type", ordType);
             order.put("expiretime", getMaxOrderDuration());
@@ -151,74 +173,74 @@ public class Manager extends Strategy {
             Stop stp = new Stop();
             switch (side) {
                 case BUY:
-                    if(id>=0){
-                    order.put("id", id);
-                    double limitprice=getOptionLimitPriceForRel(id, symbolid, EnumOrderSide.BUY,"CALL");
-                    order.put("limitprice", limitprice);
-                    order.put("side", EnumOrderSide.BUY);
-                    order.put("size", size);
-                    order.put("reason", EnumOrderReason.REGULARENTRY);
-                    order.put("orderstage", EnumOrderStage.INIT);
-                    order.put("log", "BUY" + delimiter + tradetuple.get(1));
-                    logger.log(Level.INFO, "501,Strategy BUY,{0}", new Object[]{getStrategy() + delimiter + "BUY" + delimiter + Parameters.symbol.get(id).getDisplayname()});
-                    orderid = entry(order);
-                    stp.stopValue = sl;
-                    stp.underlyingEntry = Parameters.symbol.get(symbolid).getLastPrice();
-                    stp.stopType = EnumStopType.STOPLOSS;
-                    stp.stopMode = EnumStopMode.POINT;
-                    stp.recalculate = true;
-                    stops.add(stp);
-                    Trade.setStop(db, this.getStrategy() + ":" + orderid + ":" + "Order", "opentrades", stops);
+                    if (id >= 0) {
+                        order.put("id", id);
+                        double limitprice = getOptionLimitPriceForRel(id, symbolid, EnumOrderSide.BUY, "CALL");
+                        order.put("limitprice", limitprice);
+                        order.put("side", EnumOrderSide.BUY);
+                        order.put("size", size);
+                        order.put("reason", EnumOrderReason.REGULARENTRY);
+                        order.put("orderstage", EnumOrderStage.INIT);
+                        order.put("log", "BUY" + delimiter + tradetuple.get(1));
+                        logger.log(Level.INFO, "501,Strategy BUY,{0}", new Object[]{getStrategy() + delimiter + "BUY" + delimiter + Parameters.symbol.get(id).getDisplayname()});
+                        orderid = entry(order);
+                        stp.stopValue = sl;
+                        stp.underlyingEntry = Parameters.symbol.get(symbolid).getLastPrice();
+                        stp.stopType = EnumStopType.STOPLOSS;
+                        stp.stopMode = EnumStopMode.POINT;
+                        stp.recalculate = true;
+                        stops.add(stp);
+                        Trade.setStop(db, this.getStrategy() + ":" + orderid + ":" + "Order", "opentrades", stops);
                     }
                     break;
                 case SELL:
-                    if(nearid>=0){
-                    order.put("id", nearid);
-                    double limitprice=getOptionLimitPriceForRel(nearid, symbolid, EnumOrderSide.SELL,"CALL");
-                    order.put("limitprice", limitprice);
-                    order.put("side", EnumOrderSide.SELL);
-                    order.put("size", size);
-                    order.put("reason", EnumOrderReason.REGULAREXIT);
-                    order.put("orderstage", EnumOrderStage.INIT);
-                    order.put("log", "SELL" + delimiter + tradetuple.get(1));
-                    logger.log(Level.INFO, "501,Strategy SELL,{0}", new Object[]{getStrategy() + delimiter + "SELL" + delimiter + Parameters.symbol.get(id).getDisplayname()});
-                    orderid = exit(order);
+                    if (nearid >= 0) {
+                        order.put("id", nearid);
+                        double limitprice = getOptionLimitPriceForRel(nearid, symbolid, EnumOrderSide.SELL, "CALL");
+                        order.put("limitprice", limitprice);
+                        order.put("side", EnumOrderSide.SELL);
+                        order.put("size", size);
+                        order.put("reason", EnumOrderReason.REGULAREXIT);
+                        order.put("orderstage", EnumOrderStage.INIT);
+                        order.put("log", "SELL" + delimiter + tradetuple.get(1));
+                        logger.log(Level.INFO, "501,Strategy SELL,{0}", new Object[]{getStrategy() + delimiter + "SELL" + delimiter + Parameters.symbol.get(id).getDisplayname()});
+                        orderid = exit(order);
                     }
                     break;
                 case SHORT:
-                    if(id>=0){
-                    order.put("id", id);
-                    double limitprice=this.getOptionLimitPriceForRel(id, symbolid, EnumOrderSide.BUY,"PUT");
-                    order.put("limitprice", limitprice);
-                    order.put("side", EnumOrderSide.BUY);
-                    order.put("size", size);
-                    order.put("reason", EnumOrderReason.REGULARENTRY);
-                    order.put("orderstage", EnumOrderStage.INIT);
-                    order.put("log", "SHORT" + delimiter + tradetuple.get(1));
-                    logger.log(Level.INFO, "501,Strategy SHORT,{0}", new Object[]{getStrategy() + delimiter + "SHORT" + delimiter + Parameters.symbol.get(id).getDisplayname()});
-                    orderid = entry(order);
-                    Trade.setStop(db, this.getStrategy() + ":" + orderid + ":" + "Order", "opentrades", stops);
-                    stp.stopValue = sl;
-                    stp.underlyingEntry = Parameters.symbol.get(symbolid).getLastPrice();
-                    stp.stopType = EnumStopType.STOPLOSS;
-                    stp.stopMode = EnumStopMode.POINT;
-                    stp.recalculate = true;
-                    stops.add(stp);
-                    Trade.setStop(db, this.getStrategy() + ":" + orderid + ":" + "Order", "opentrades", stops);
+                    if (id >= 0) {
+                        order.put("id", id);
+                        double limitprice = this.getOptionLimitPriceForRel(id, symbolid, EnumOrderSide.BUY, "PUT");
+                        order.put("limitprice", limitprice);
+                        order.put("side", EnumOrderSide.BUY);
+                        order.put("size", size);
+                        order.put("reason", EnumOrderReason.REGULARENTRY);
+                        order.put("orderstage", EnumOrderStage.INIT);
+                        order.put("log", "SHORT" + delimiter + tradetuple.get(1));
+                        logger.log(Level.INFO, "501,Strategy SHORT,{0}", new Object[]{getStrategy() + delimiter + "SHORT" + delimiter + Parameters.symbol.get(id).getDisplayname()});
+                        orderid = entry(order);
+                        Trade.setStop(db, this.getStrategy() + ":" + orderid + ":" + "Order", "opentrades", stops);
+                        stp.stopValue = sl;
+                        stp.underlyingEntry = Parameters.symbol.get(symbolid).getLastPrice();
+                        stp.stopType = EnumStopType.STOPLOSS;
+                        stp.stopMode = EnumStopMode.POINT;
+                        stp.recalculate = true;
+                        stops.add(stp);
+                        Trade.setStop(db, this.getStrategy() + ":" + orderid + ":" + "Order", "opentrades", stops);
                     }
                     break;
                 case COVER:
-                    if(nearid>=0){
-                    order.put("id", nearid);
-                    double limitprice=this.getOptionLimitPriceForRel(nearid, symbolid, EnumOrderSide.SELL,"PUT");
-                    order.put("limitprice", limitprice);
-                    order.put("side", EnumOrderSide.SELL);
-                    order.put("size", size);
-                    order.put("reason", EnumOrderReason.REGULAREXIT);
-                    order.put("orderstage", EnumOrderStage.INIT);
-                    order.put("log", "COVER" + delimiter + tradetuple.get(1));
-                    logger.log(Level.INFO, "501,Strategy COVER,{0}", new Object[]{getStrategy() + delimiter + "COVER" + delimiter + Parameters.symbol.get(id).getDisplayname()});
-                    orderid = exit(order);
+                    if (nearid >= 0) {
+                        order.put("id", nearid);
+                        double limitprice = this.getOptionLimitPriceForRel(nearid, symbolid, EnumOrderSide.SELL, "PUT");
+                        order.put("limitprice", limitprice);
+                        order.put("side", EnumOrderSide.SELL);
+                        order.put("size", size);
+                        order.put("reason", EnumOrderReason.REGULAREXIT);
+                        order.put("orderstage", EnumOrderStage.INIT);
+                        order.put("log", "COVER" + delimiter + tradetuple.get(1));
+                        logger.log(Level.INFO, "501,Strategy COVER,{0}", new Object[]{getStrategy() + delimiter + "COVER" + delimiter + Parameters.symbol.get(id).getDisplayname()});
+                        orderid = exit(order);
                     }
                     break;
                 default:
@@ -277,6 +299,4 @@ public class Manager extends Strategy {
         price = Utilities.roundTo(price, this.getTickSize());
         return price;
     }
-    
-
 }
