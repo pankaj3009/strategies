@@ -4,18 +4,14 @@
  */
 package com.incurrency.algorithms.manager;
 
-import com.cedarsoftware.util.io.JsonWriter;
 import com.incurrency.framework.Algorithm;
 import com.incurrency.framework.BeanConnection;
-import com.incurrency.framework.BeanPosition;
 import com.incurrency.framework.EnumOrderReason;
 import com.incurrency.framework.EnumOrderSide;
 import com.incurrency.framework.EnumOrderStage;
 import com.incurrency.framework.EnumOrderType;
 import com.incurrency.framework.EnumStopMode;
 import com.incurrency.framework.EnumStopType;
-import com.incurrency.framework.HistoricalRequestJson;
-import com.incurrency.framework.Index;
 import com.incurrency.framework.MainAlgorithm;
 import com.incurrency.framework.Parameters;
 import com.incurrency.framework.Stop;
@@ -34,15 +30,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.HttpClients;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.Rserve.RConnection;
 

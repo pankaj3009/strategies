@@ -91,6 +91,7 @@ public class EODMaintenance {
         historicalfutures();
         historicalfuturesfwd();
         swing();
+        contra();
 
         MainAlgorithm.setCloseDate(new Date());
     }
@@ -393,6 +394,20 @@ public class EODMaintenance {
         printToFile(out, this.f_Swing, false);
     }
 
+    public void contra() throws IOException, ParseException{
+        ArrayList<BeanSymbol> out = new ArrayList<>();
+        out.addAll(nifty50);
+        out.addAll(fno);
+        String expiry = getNextExpiry(currentDay);
+        expiry = getNextExpiry(expiry);
+        ArrayList<BeanSymbol> fwdout = loadFutures(this.fnolotsizeurl, this.f_Strikes, expiry);
+        out.addAll(fwdout);
+        for(int i=0;i<out.size();i++){
+            out.get(i).setStrategy("MANAGER");
+        }
+        printToFile(out, "04-symbols-inr.csv", false);
+        
+    }
     public void extractSymbolsFromIB(String urlName, String fileName, List<BeanSymbol> symbols) throws IOException {
         String constant = "&sequence_idx=";
         if (urlName != null) {

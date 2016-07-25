@@ -423,7 +423,10 @@ public class Launch extends javax.swing.JFrame {
          }
           if(input.get("scanneradr")!=null){
              algo.registerStrategy("com.incurrency.scanneradr.ScannerAdr");
-         } 
+         }
+          if(input.get("manager")!=null){
+              algo.registerStrategy("com.incurrency.algorithms.manager.Manager");
+          }
         algo.postInit();
     }
 
