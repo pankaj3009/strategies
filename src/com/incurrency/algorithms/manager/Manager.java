@@ -185,6 +185,8 @@ public class Manager extends Strategy {
                             order.put("reason", EnumOrderReason.REGULARENTRY);
                             order.put("orderstage", EnumOrderStage.INIT);
                             order.put("scale", scaleEntry);
+                            order.put("dynamicorderduration", this.getDynamicOrderDuration());
+                            order.put("expiretime",0);
                             order.put("log", "BUY" + delimiter + tradetuple.get(1));
                             logger.log(Level.INFO, "501,Strategy BUY,{0}", new Object[]{getStrategy() + delimiter + "BUY" + delimiter + Parameters.symbol.get(id).getDisplayname()});
                             orderid = entry(order);
