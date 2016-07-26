@@ -148,6 +148,7 @@ public class Swing extends Strategy implements TradeListener {
         rServerIP = p.getProperty("RServerIP").toString().trim();
         String entryScanTime = p.getProperty("EntryScanTime");
         Calendar calToday = Calendar.getInstance(TimeZone.getTimeZone(Algorithm.timeZone));
+        calToday.setTime(this.getEndDate());
         String[] entryTimeComponents = entryScanTime.split(":");
         calToday.set(Calendar.HOUR_OF_DAY, Utilities.getInt(entryTimeComponents[0], 15));
         calToday.set(Calendar.MINUTE, Utilities.getInt(entryTimeComponents[1], 20));
