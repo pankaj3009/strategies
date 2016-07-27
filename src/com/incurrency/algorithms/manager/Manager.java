@@ -289,23 +289,21 @@ public class Manager extends Strategy {
                 case BUY:
                 case COVER:
                     if (bidprice > 0) {
-                        price = bidprice;
+                        price = Math.min(bidprice,price);
 
-                    } else if (askprice > 0) {
-                        price = 0.80 * askprice;
                     } else {
                         price = 0.80 * price;
+                        logger.log(Level.INFO,"Calculated Price as bidprice is zero. Symbol {0}, BidPrice:{1}",new Object[]{Parameters.symbol.get(id).getDisplayname(),price});
                     }
                     break;
                 case SHORT:
                 case SELL:
                     if (askprice > 0) {
-                        price = askprice;
+                        price = Math.max(askprice,price);
 
-                    } else if (bidprice > 0) {
-                        price = 1.2 * askprice;
                     } else {
                         price = 1.2 * price;
+                        logger.log(Level.INFO,"Calculated Price as askprice is zero. Symbol {0}, BidPrice:{1}",new Object[]{Parameters.symbol.get(id).getDisplayname(),price});
                     }
                     break;
                 default:
