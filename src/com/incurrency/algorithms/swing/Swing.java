@@ -367,10 +367,10 @@ public class Swing extends Strategy implements TradeListener {
             HashMap<String, Object> order = new HashMap<>();
             
             if (this.optionTrades) {
-                id = Utilities.getOptionIDForLongSystem(Parameters.symbol, this.getPosition(), symbolid, side, expiry);
+                id = Utilities.getOptionIDForLongSystem(Parameters.symbol, this.getPosition(), symbolid, side, expiry).get(0);
                 nearid=id;
                 if (rollover) {
-                    nearid = Utilities.getOptionIDForLongSystem(Parameters.symbol, this.getPosition(), symbolid, side, this.expiryNearMonth);
+                    nearid = Utilities.getOptionIDForLongSystem(Parameters.symbol, this.getPosition(), symbolid, side, this.expiryNearMonth).get(0);
                 }
             } else {
                 id = Utilities.getFutureIDFromSymbol(Parameters.symbol, symbolid, expiry);
