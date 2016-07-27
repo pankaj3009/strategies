@@ -288,7 +288,7 @@ public class Manager extends Strategy {
                 double underlyingprice = Parameters.symbol.get(underlyingid).getLastPrice();
                 double underlyingpriorclose = Parameters.symbol.get(underlyingid).getClosePrice();
                 double underlyingchange = underlyingprice - underlyingpriorclose;//+ve if up
-                while (Parameters.symbol.get(id).getClosePrice() == 0) {
+                while (Parameters.symbol.get(id).getClosePrice() == 0 && (Parameters.symbol.get(id).getBidPrice()== 0 || Parameters.symbol.get(id).getAskPrice() == 0)) {
                     Thread.sleep(1000);
                     Thread.yield();
                 }
