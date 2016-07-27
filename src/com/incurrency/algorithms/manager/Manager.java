@@ -219,6 +219,8 @@ public class Manager extends Strategy {
                                 order.put("reason", EnumOrderReason.REGULAREXIT);
                                 order.put("orderstage", EnumOrderStage.INIT);
                                 order.put("scale", scaleExit);
+                                order.put("dynamicorderduration", this.getDynamicOrderDuration());
+                                order.put("expiretime", 0);                                
                                 order.put("log", "SELL" + delimiter + tradetuple.get(1));
                                 logger.log(Level.INFO, "501,Strategy SELL,{0}", new Object[]{getStrategy() + delimiter + "SELL" + delimiter + Parameters.symbol.get(nearid).getDisplayname()});
                                 orderid = exit(order);
@@ -236,6 +238,8 @@ public class Manager extends Strategy {
                                 order.put("reason", EnumOrderReason.REGULARENTRY);
                                 order.put("scale", scaleEntry);
                                 order.put("orderstage", EnumOrderStage.INIT);
+                                order.put("dynamicorderduration", this.getDynamicOrderDuration());
+                                order.put("expiretime", 0);                                
                                 order.put("log", "SHORT" + delimiter + tradetuple.get(1));
                                 logger.log(Level.INFO, "501,Strategy SHORT,{0}", new Object[]{getStrategy() + delimiter + "SHORT" + delimiter + Parameters.symbol.get(id).getDisplayname()});
                                 orderid = entry(order);
@@ -261,6 +265,8 @@ public class Manager extends Strategy {
                                 order.put("reason", EnumOrderReason.REGULAREXIT);
                                 order.put("scale", scaleExit);
                                 order.put("orderstage", EnumOrderStage.INIT);
+                                order.put("dynamicorderduration", this.getDynamicOrderDuration());
+                                order.put("expiretime", 0);                                
                                 order.put("log", "COVER" + delimiter + tradetuple.get(1));
                                 logger.log(Level.INFO, "501,Strategy COVER,{0}", new Object[]{getStrategy() + delimiter + "COVER" + delimiter + Parameters.symbol.get(nearid).getDisplayname()});
                                 orderid = exit(order);
