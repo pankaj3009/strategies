@@ -122,7 +122,7 @@ public class Manager extends Strategy {
                     REXP wd = c.eval("getwd()");
                     System.out.println(wd.asString());
                     c.eval("options(encoding = \"UTF-8\")");
-                    //c.eval("source(\"" + RStrategyFile + "\")");
+                    c.eval("source(\"" + RStrategyFile + "\")");
                 } catch (Exception e) {
                     logger.log(Level.SEVERE, null, e);
                 }
