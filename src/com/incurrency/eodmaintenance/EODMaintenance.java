@@ -83,9 +83,9 @@ public class EODMaintenance {
             new Symbol().reader("logs/" + f_IBSymbol, (ArrayList) symbols);
         }
         String nextExpiry = getNextExpiry(currentDay);
-        nifty50 = loadNifty50Stocks(niftyurl);
+        nifty50 = loadNifty50Stocks(niftyurl, f_Strikes);
         fno = loadFutures(fnolotsizeurl, f_Strikes, nextExpiry);
-        cnx500 = loadCNX500Stocks(cnx500url);
+        cnx500 = loadCNX500Stocks(cnx500url, f_Strikes);
         rateserver();
         historicalstocks();
         historicalfutures();
@@ -96,7 +96,7 @@ public class EODMaintenance {
         MainAlgorithm.setCloseDate(new Date());
     }
 
-    public ArrayList<BeanSymbol> loadNifty50Stocks(String url) {
+    public ArrayList<BeanSymbol> loadNifty50Stocks(String url, String f_strike) {
         ArrayList<BeanSymbol> out = new ArrayList<>();
         try {
             URL niftyURL = new URL(url);
@@ -119,11 +119,31 @@ public class EODMaintenance {
                     }
                 }
             }
+
+            for (int i = 0; i < out.size(); i++) {
+                out.get(i).setSerialno(i + 1);
+            }
+
+            //Capture Strike levels
+            BufferedReader in = new BufferedReader(new FileReader(f_strike));
+            int j = 0;
+            int i = 0;
+            String line;
+            while ((line = in.readLine()) != null) {
+                j = j + 1;
+                if (j > 1) {//skip first row
+                    String[] input = line.split(",");
+                    String exchangeSymbol = input[0].trim().toUpperCase();//2nd column of nse file                        
+                    int id = Utilities.getIDFromExchangeSymbol(out, exchangeSymbol, "STK", "", "", "");
+                    if (id >= 0) {
+                        BeanSymbol s = out.get(id);
+                        s.setStrikeDistance(Double.parseDouble(input[1].trim()));
+                    }
+                }
+            }
+
         } catch (Exception e) {
             logger.log(Level.SEVERE, null, e);
-        }
-        for (int i = 0; i < out.size(); i++) {
-            out.get(i).setSerialno(i + 1);
         }
         return out;
 
@@ -229,7 +249,7 @@ public class EODMaintenance {
 
     }
 
-    public ArrayList<BeanSymbol> loadCNX500Stocks(String url) {
+    public ArrayList<BeanSymbol> loadCNX500Stocks(String url, String f_strike) {
         ArrayList<BeanSymbol> out = new ArrayList<>();
         try {
             URL CNX500 = new URL(url);
@@ -252,11 +272,29 @@ public class EODMaintenance {
                     }
                 }
             }
+            for (int i = 0; i < out.size(); i++) {
+                out.get(i).setSerialno(i + 1);
+            }
+
+            //Capture Strike levels
+            BufferedReader in = new BufferedReader(new FileReader(f_strike));
+            int j = 0;
+            int i = 0;
+            String line;
+            while ((line = in.readLine()) != null) {
+                j = j + 1;
+                if (j > 1) {//skip first row
+                    String[] input = line.split(",");
+                    String exchangeSymbol = input[0].trim().toUpperCase();//2nd column of nse file                        
+                    int id = Utilities.getIDFromExchangeSymbol(out, exchangeSymbol, "STK", "", "", "");
+                    if (id >= 0) {
+                        BeanSymbol s = out.get(id);
+                        s.setStrikeDistance(Double.parseDouble(input[1].trim()));
+                    }
+                }
+            }
         } catch (Exception e) {
             logger.log(Level.SEVERE, null, e);
-        }
-        for (int i = 0; i < out.size(); i++) {
-            out.get(i).setSerialno(i + 1);
         }
         return out;
 
@@ -305,7 +343,8 @@ public class EODMaintenance {
             String exchangesymbol = fno.get(i).getExchangeSymbol();
             int id = Utilities.getIDFromExchangeSymbol(nifty50, exchangesymbol, "STK", "", "", "");
             if (id >= 0) {
-                s = nifty50.get(id);
+                id = Utilities.getIDFromExchangeSymbol(fno, exchangesymbol, "FUT", expiry, "", "");
+                s = fno.get(id);
                 BeanSymbol s1 = s.clone(s);
                 s1.setStreamingpriority(2);
                 s1.setStrategy("DATA");
@@ -321,14 +360,15 @@ public class EODMaintenance {
                 out.add(s1);
             }
         }
-        
+
         expiry = getNextExpiry(expiry);
         ArrayList<BeanSymbol> fwdout = loadFutures(this.fnolotsizeurl, this.f_Strikes, expiry);
-            for (int i = 0; i < fwdout.size(); i++) {
+        for (int i = 0; i < fwdout.size(); i++) {
             String exchangesymbol = fwdout.get(i).getExchangeSymbol();
             int id = Utilities.getIDFromExchangeSymbol(nifty50, exchangesymbol, "STK", "", "", "");
             if (id >= 0) {
-                s = nifty50.get(id);
+                id = Utilities.getIDFromExchangeSymbol(fwdout, exchangesymbol, "FUT", expiry, "", "");
+                s = fwdout.get(id);
                 BeanSymbol s1 = s.clone(s);
                 s1.setStreamingpriority(2);
                 s1.setStrategy("DATA");
@@ -344,7 +384,7 @@ public class EODMaintenance {
                 out.add(s1);
             }
         }
-        
+
         printToFile(out, this.f_RateServer, false);
     }
 
@@ -418,7 +458,7 @@ public class EODMaintenance {
         printToFile(out, this.f_Swing, false);
     }
 
-    public void contra() throws IOException, ParseException{
+    public void contra() throws IOException, ParseException {
         ArrayList<BeanSymbol> out = new ArrayList<>();
         out.addAll(nifty50);
         out.addAll(fno);
@@ -426,12 +466,13 @@ public class EODMaintenance {
         expiry = getNextExpiry(expiry);
         ArrayList<BeanSymbol> fwdout = loadFutures(this.fnolotsizeurl, this.f_Strikes, expiry);
         out.addAll(fwdout);
-        for(int i=0;i<out.size();i++){
+        for (int i = 0; i < out.size(); i++) {
             out.get(i).setStrategy("MANAGER");
         }
         printToFile(out, "04-symbols-inr.csv", false);
-        
+
     }
+
     public void extractSymbolsFromIB(String urlName, String fileName, List<BeanSymbol> symbols) throws IOException {
         String constant = "&sequence_idx=";
         if (urlName != null) {
@@ -604,8 +645,6 @@ public class EODMaintenance {
                         + "," + "EXTRA";
                 Utilities.writeToFile(outputFile, lastline);
             }
-
         }
-
     }
 }
