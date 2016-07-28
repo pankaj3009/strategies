@@ -64,6 +64,7 @@ public class Swing extends Strategy implements TradeListener {
     SimpleDateFormat sdtf_default = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     
     private boolean rollover;
+    int rolloverDays;
     private String expiry;
     private String wd;
     private Boolean optionTrades=Boolean.FALSE;
@@ -86,7 +87,7 @@ public class Swing extends Strategy implements TradeListener {
             tmpCalendar.add(Calendar.MINUTE, testingTimer);
             entryScanDate = tmpCalendar.getTime();
         }
-        rollover = rolloverDay();
+        rollover = rolloverDay(rolloverDays);
         if (rollover) {
             expiry = this.expiryFarMonth;
         } else {
@@ -159,6 +160,7 @@ public class Swing extends Strategy implements TradeListener {
         wd = p.getProperty("wd", "/home/psharma/Seafile/R");
         optionTrades=Boolean.parseBoolean(p.getProperty("UseOptions","FALSE"));
         ordType=EnumOrderType.valueOf(p.getProperty("OrderType", "LMT"));
+        rolloverDays = Integer.valueOf(p.getProperty("RolloverDays", "0"));
     }
 
     @Override
@@ -572,14 +574,16 @@ public class Swing extends Strategy implements TradeListener {
         }
     };
 
-    private boolean rolloverDay() {
+    private boolean rolloverDay(int daysBeforeExpiry) {
         rollover = false;
         try {
             SimpleDateFormat sdf_yyyyMMdd = new SimpleDateFormat("yyyyMMdd");
             String currentDay = sdf_yyyyMMdd.format(getStartDate());
             Date today = sdf_yyyyMMdd.parse(currentDay);
-            Date expiry = sdf_yyyyMMdd.parse(expiryNearMonth);
-            if (today.compareTo(expiry) >= 0) {
+            Calendar expiry = Calendar.getInstance();
+            expiry.setTime(sdf_yyyyMMdd.parse(expiryNearMonth));
+            expiry.set(Calendar.DATE, expiry.get(Calendar.DATE) - daysBeforeExpiry);
+            if (today.compareTo(expiry.getTime()) >= 0) {
                 rollover = true;
             }
         } catch (Exception e) {
