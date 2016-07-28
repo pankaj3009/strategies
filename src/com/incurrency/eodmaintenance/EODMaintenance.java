@@ -305,7 +305,7 @@ public class EODMaintenance {
             String exchangesymbol = fno.get(i).getExchangeSymbol();
             int id = Utilities.getIDFromExchangeSymbol(nifty50, exchangesymbol, "STK", "", "", "");
             if (id >= 0) {
-                s = fno.get(id);
+                s = nifty50.get(id);
                 BeanSymbol s1 = s.clone(s);
                 s1.setStreamingpriority(2);
                 s1.setStrategy("DATA");
@@ -321,6 +321,30 @@ public class EODMaintenance {
                 out.add(s1);
             }
         }
+        
+        expiry = getNextExpiry(expiry);
+        ArrayList<BeanSymbol> fwdout = loadFutures(this.fnolotsizeurl, this.f_Strikes, expiry);
+            for (int i = 0; i < fwdout.size(); i++) {
+            String exchangesymbol = fwdout.get(i).getExchangeSymbol();
+            int id = Utilities.getIDFromExchangeSymbol(nifty50, exchangesymbol, "STK", "", "", "");
+            if (id >= 0) {
+                s = nifty50.get(id);
+                BeanSymbol s1 = s.clone(s);
+                s1.setStreamingpriority(2);
+                s1.setStrategy("DATA");
+                s1.setExpiry(expiry);
+                s1.setType("FUT");
+                out.add(s1);
+            } else {
+                id = Utilities.getIDFromExchangeSymbol(fwdout, exchangesymbol, "FUT", expiry, "", "");
+                s = fwdout.get(id);
+                BeanSymbol s1 = s.clone(s);
+                s1.setStreamingpriority(3);
+                s1.setStrategy("DATA");
+                out.add(s1);
+            }
+        }
+        
         printToFile(out, this.f_RateServer, false);
     }
 
