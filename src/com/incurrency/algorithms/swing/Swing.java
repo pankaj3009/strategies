@@ -132,7 +132,7 @@ public class Swing extends Strategy implements TradeListener {
             }
         }
         Timer bodProcessing = new Timer("Timer: " + this.getStrategy() + " BODProcessing");
-        bodProcessing.schedule(bodProcessingTask, 1 * 1000);
+        bodProcessing.schedule(bodProcessingTask, 10 * 1000);
         
         Timer signals = new Timer("Timer: " + this.getStrategy() + " TradeProcessing");
         signals.schedule(tradeProcessingTask, 1 * 1000);
