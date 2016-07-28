@@ -154,6 +154,11 @@ public class Manager extends Strategy {
             nearorderidlist = orderidlist;
             if (rollover) {
                 nearorderidlist = Utilities.getOptionIDForLongSystem(Parameters.symbol, this.getPosition(), symbolid, side, this.expiryNearMonth);
+            }            
+            int futureid=Utilities.getFutureIDFromSymbol(Parameters.symbol, symbolid, expiry);
+            int nearfutureid=futureid;
+            if(rollover){
+                nearfutureid=Utilities.getFutureIDFromSymbol(Parameters.symbol, symbolid, this.expiryNearMonth);
             }
             for (int i : orderidlist) {
                 this.initSymbol(i);
@@ -185,7 +190,7 @@ public class Manager extends Strategy {
                         for (int id : orderidlist) {
                             if (id >= 0) {
                                 order.put("id", id);
-                                double limitprice = getOptionLimitPriceForRel(id, symbolid, EnumOrderSide.BUY, "CALL");
+                                double limitprice = getOptionLimitPriceForRel(id, futureid, EnumOrderSide.BUY, "CALL");
                                 order.put("limitprice", limitprice);
                                 order.put("side", EnumOrderSide.BUY);
                                 order.put("size", size);
@@ -204,7 +209,6 @@ public class Manager extends Strategy {
                                 stp.recalculate = true;
                                 stops.add(stp);
                                 Trade.setStop(db, this.getStrategy() + ":" + orderid + ":" + "Order", "opentrades", stops);
-
                             }
                         }
                         break;
@@ -212,7 +216,7 @@ public class Manager extends Strategy {
                         for (int nearid : nearorderidlist) {
                             if (nearid >= 0) {
                                 order.put("id", nearid);
-                                double limitprice = getOptionLimitPriceForRel(nearid, symbolid, EnumOrderSide.SELL, "CALL");
+                                double limitprice = getOptionLimitPriceForRel(nearid, nearfutureid, EnumOrderSide.SELL, "CALL");
                                 order.put("limitprice", limitprice);
                                 order.put("side", EnumOrderSide.SELL);
                                 order.put("size", size);
@@ -231,7 +235,7 @@ public class Manager extends Strategy {
                         for (int id : orderidlist) {
                             if (id >= 0) {
                                 order.put("id", id);
-                                double limitprice = this.getOptionLimitPriceForRel(id, symbolid, EnumOrderSide.BUY, "PUT");
+                                double limitprice = this.getOptionLimitPriceForRel(id, futureid, EnumOrderSide.BUY, "PUT");
                                 order.put("limitprice", limitprice);
                                 order.put("side", EnumOrderSide.BUY);
                                 order.put("size", size);
@@ -258,7 +262,7 @@ public class Manager extends Strategy {
                         for (int nearid : nearorderidlist) {
                             if (nearid >= 0) {
                                 order.put("id", nearid);
-                                double limitprice = this.getOptionLimitPriceForRel(nearid, symbolid, EnumOrderSide.SELL, "PUT");
+                                double limitprice = this.getOptionLimitPriceForRel(nearid, nearfutureid, EnumOrderSide.SELL, "PUT");
                                 order.put("limitprice", limitprice);
                                 order.put("side", EnumOrderSide.SELL);
                                 order.put("size", size);
@@ -300,9 +304,10 @@ public class Manager extends Strategy {
         try {
             if (price == 0 && optionlastprice>0) {
                 double underlyingprice = Parameters.symbol.get(underlyingid).getLastPrice();
-                double underlyingchange = underlyingprice - underlyingpriorclose;//+ve if up
-                //double optionlastprice = Parameters.symbol.get(id).getClosePrice();
-                // Utilities.getLastSettlePrice(id);
+                double underlyingchange=0;
+                if(underlyingprice!=0){
+                underlyingchange = underlyingprice - underlyingpriorclose;//+ve if up
+                }
                 switch (right) {
                     case "CALL":
                         price = optionlastprice + 0.5 * underlyingchange;
@@ -345,8 +350,6 @@ public class Manager extends Strategy {
         } catch (Exception e) {
             logger.log(Level.SEVERE, null, e);
         }
-
-
         return price;
     }
 }

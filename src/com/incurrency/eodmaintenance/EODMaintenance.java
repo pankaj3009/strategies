@@ -455,6 +455,40 @@ public class EODMaintenance {
         s.setMinsize(75);
         s.setStrikeDistance(100);
         out.add(s);
+        
+        ArrayList<BeanSymbol> out2 = new ArrayList<>();
+       for(int i=0;i<nifty50.size();i++){
+           s=nifty50.get(i);
+           s.setStrategy("MANAGER");
+           out2.add(s);
+       }
+        fno= loadFutures(this.fnolotsizeurl, this.f_Strikes, expiry);
+        for(int i=0;i<fno.size();i++){
+            String exchangesymbol = fno.get(i).getExchangeSymbol();
+            int id = Utilities.getIDFromExchangeSymbol(nifty50, exchangesymbol, "STK", "", "", "");
+            if (id >= 0) {
+                id = Utilities.getIDFromExchangeSymbol(fno, exchangesymbol, "FUT", expiry, "", "");
+                s = fno.get(id);
+                BeanSymbol s1 = s.clone(s);
+                s1.setStreamingpriority(2);
+                s1.setStrategy("MANAGER");
+                out2.add(s1);
+            }
+        }
+        ArrayList<BeanSymbol> fwdout = loadFutures(this.fnolotsizeurl, this.f_Strikes, getNextExpiry(expiry));
+        for(int i=0;i<fno.size();i++){
+            String exchangesymbol = fno.get(i).getExchangeSymbol();
+            int id = Utilities.getIDFromExchangeSymbol(nifty50, exchangesymbol, "STK", "", "", "");
+            if (id >= 0) {
+                id = Utilities.getIDFromExchangeSymbol(fwdout, exchangesymbol, "FUT", getNextExpiry(expiry), "", "");
+                s = fwdout.get(id);
+                BeanSymbol s1 = s.clone(s);
+                s1.setStreamingpriority(2);
+                s1.setStrategy("MANAGER");
+                out2.add(s1);
+            }
+        }
+        out.addAll(out2);
         printToFile(out, this.f_Swing, false);
     }
 
