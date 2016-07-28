@@ -283,24 +283,25 @@ public class Manager extends Strategy {
 
     double getOptionLimitPriceForRel(int id, int underlyingid, EnumOrderSide side, String right) {
         double price = Parameters.symbol.get(id).getLastPrice();
+        
+        double optionlastprice=0;
+//        Object[] optionlastpriceset = Utilities.getLastSettlePriceOption(Parameters.symbol, id, new Date().getTime() - 10 * 24 * 60 * 60 * 1000, new Date().getTime() - 1000000, "india.nse.option.s4.daily.settle");
+        Object[] optionlastpriceset = Utilities.getSettlePrice(Parameters.symbol.get(id), new Date());
+        Object[] underlyinglastpriceset = Utilities.getSettlePrice(Parameters.symbol.get(underlyingid), new Date());
+        double underlyingpriorclose = Utilities.getDouble(underlyinglastpriceset[1], 0);
+        
+        if (optionlastpriceset != null && optionlastpriceset.length == 2) {
+            long settletime = Utilities.getLong(optionlastpriceset[0], 0);
+            optionlastprice = Utilities.getDouble(optionlastpriceset[1], 0);
+            double vol = Utilities.getImpliedVol(Parameters.symbol.get(id), underlyingpriorclose, optionlastprice, new Date(settletime));
+            Parameters.symbol.get(id).setCloseVol(vol);
+
+        }
         try {
-            if (price == 0) {
+            if (price == 0 && optionlastprice>0) {
                 double underlyingprice = Parameters.symbol.get(underlyingid).getLastPrice();
-                double underlyingpriorclose = Parameters.symbol.get(underlyingid).getClosePrice();
                 double underlyingchange = underlyingprice - underlyingpriorclose;//+ve if up
-                while (Parameters.symbol.get(id).getClosePrice() == 0 && (Parameters.symbol.get(id).getBidPrice()== 0 || Parameters.symbol.get(id).getAskPrice() == 0)) {
-                    Thread.sleep(1000);
-                    Thread.yield();
-                }
                 //double optionlastprice = Parameters.symbol.get(id).getClosePrice();
-                Object[] optionlastpriceset=Utilities.getLastSettlePriceOption(Parameters.symbol, id, new Date().getTime()-10*24*60*60*1000,new Date().getTime()-1000000, "india.nse.option.s4.daily.settle");
-                double optionlastprice=0;
-                if (optionlastpriceset != null && optionlastpriceset.length == 2) {
-                    long settletime = Utilities.getLong(optionlastpriceset[0], 0);
-                    optionlastprice = Utilities.getDouble(optionlastpriceset[1], 0);
-                    double vol=Utilities.getImpliedVol(Parameters.symbol.get(id),underlyingpriorclose,optionlastprice,new Date(settletime));
-                    Parameters.symbol.get(id).setCloseVol(vol);
-                }
                 // Utilities.getLastSettlePrice(id);
                 switch (right) {
                     case "CALL":
