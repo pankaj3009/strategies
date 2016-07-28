@@ -293,8 +293,15 @@ public class Manager extends Strategy {
                     Thread.yield();
                 }
                 //double optionlastprice = Parameters.symbol.get(id).getClosePrice();
-                double optionlastprice=Utilities.getLastSettlePriceOption(Parameters.symbol, id, new Date().getTime()-10*24*60*60*1000,new Date().getTime()-1000000, "india.nse.option.s4.daily.settle");
-               // Utilities.getLastSettlePrice(id);
+                Object[] optionlastpriceset=Utilities.getLastSettlePriceOption(Parameters.symbol, id, new Date().getTime()-10*24*60*60*1000,new Date().getTime()-1000000, "india.nse.option.s4.daily.settle");
+                double optionlastprice=0;
+                if (optionlastpriceset != null && optionlastpriceset.length == 2) {
+                    long settletime = Utilities.getLong(optionlastpriceset[0], 0);
+                    optionlastprice = Utilities.getDouble(optionlastpriceset[1], 0);
+                    double vol=Utilities.getImpliedVol(Parameters.symbol.get(id),underlyingpriorclose,optionlastprice,new Date(settletime));
+                    Parameters.symbol.get(id).setCloseVol(vol);
+                }
+                // Utilities.getLastSettlePrice(id);
                 switch (right) {
                     case "CALL":
                         price = optionlastprice + 0.5 * underlyingchange;
