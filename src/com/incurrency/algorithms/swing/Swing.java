@@ -494,8 +494,9 @@ public class Swing extends Strategy implements TradeListener {
         }
     }
     
-   double getOptionLimitPriceForRel(int id, int underlyingid, EnumOrderSide side, String right) {
-        double price = Parameters.symbol.get(id).getLastPrice();        
+      double getOptionLimitPriceForRel(int id, int underlyingid, EnumOrderSide side, String right) {
+        double price = Parameters.symbol.get(id).getLastPrice();
+        
         double optionlastprice=0;
 //        Object[] optionlastpriceset = Utilities.getLastSettlePriceOption(Parameters.symbol, id, new Date().getTime() - 10 * 24 * 60 * 60 * 1000, new Date().getTime() - 1000000, "india.nse.option.s4.daily.settle");
         Object[] optionlastpriceset = Utilities.getSettlePrice(Parameters.symbol.get(id), new Date());
@@ -512,9 +513,10 @@ public class Swing extends Strategy implements TradeListener {
         try {
             if (price == 0 && optionlastprice>0) {
                 double underlyingprice = Parameters.symbol.get(underlyingid).getLastPrice();
-                double underlyingchange = underlyingprice - underlyingpriorclose;//+ve if up
-                //double optionlastprice = Parameters.symbol.get(id).getClosePrice();
-                // Utilities.getLastSettlePrice(id);
+                double underlyingchange=0;
+                if(underlyingprice!=0){
+                underlyingchange = underlyingprice - underlyingpriorclose;//+ve if up
+                }
                 switch (right) {
                     case "CALL":
                         price = optionlastprice + 0.5 * underlyingchange;
@@ -557,11 +559,9 @@ public class Swing extends Strategy implements TradeListener {
         } catch (Exception e) {
             logger.log(Level.SEVERE, null, e);
         }
-
-
         return price;
     }
-        
+     
     TimerTask rollProcessingTask=new TimerTask(){
 
         @Override
