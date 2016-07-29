@@ -494,7 +494,7 @@ public class IDT extends Strategy implements Serializable, HistoricalBarListener
     public void tradeReceived(TradeEvent event) {
         try {
             int id = event.getSymbolID(); //here symbolID is with zero base.
-            int futureid = expiry.equals("") ? id : Utilities.getFutureIDFromSymbol(Parameters.symbol,id, expiry);
+            int futureid = expiry.equals("") ? id : Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol,id, expiry);
             if (getPosition().get(futureid) != null && yesterdayClose.get(id) > 0 && getClose().get(id)!=0) { //do initialization checks 
                 if (getStrategySymbols().contains(id) && event.getTickType() == com.ib.client.TickType.LAST && Parameters.symbol.get(id).getType().equals("STK")) {
                     double symbolClose = getClose().get(id);

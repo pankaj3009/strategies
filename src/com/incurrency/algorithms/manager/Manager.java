@@ -135,13 +135,15 @@ public class Manager extends Strategy {
     };
 
     void waitForTrades() {
+        try{
         List<String> tradetuple = db.blpop("trades:" + this.getStrategy(), "", 60);
         if (tradetuple != null) {
             logger.log(Level.INFO, "Received Trade:{0} for strategy {1}", new Object[]{tradetuple.get(1), tradetuple.get(0)});
             //tradetuple as symbol:size:side:sl
             String symbol = tradetuple.get(1).split(":")[0];
             int symbolid = Utilities.getIDFromDisplayName(Parameters.symbol, symbol);
-            //int id = -1, nearid = -1;
+            int futureid=Utilities.getFutureIDFromExchangeSymbol(Parameters.symbol, symbolid, expiry);
+            int nearfutureid=futureid;
             int size = Integer.valueOf(tradetuple.get(1).split(":")[1]);
             EnumOrderSide side = EnumOrderSide.valueOf(tradetuple.get(1).split(":")[2]);
 
@@ -150,15 +152,13 @@ public class Manager extends Strategy {
             HashMap<String, Object> order = new HashMap<>();
             ArrayList<Integer> orderidlist = new ArrayList<>();
             ArrayList<Integer> nearorderidlist = new ArrayList<>();
-            orderidlist = Utilities.getOptionIDForLongSystem(Parameters.symbol, this.getPosition(), symbolid, side, expiry);
+            orderidlist = Utilities.getOptionIDForLongSystem(Parameters.symbol, this.getPosition(), futureid, side, expiry);
             nearorderidlist = orderidlist;
             if (rollover) {
                 nearorderidlist = Utilities.getOptionIDForLongSystem(Parameters.symbol, this.getPosition(), symbolid, side, this.expiryNearMonth);
             }            
-            int futureid=Utilities.getFutureIDFromSymbol(Parameters.symbol, symbolid, expiry);
-            int nearfutureid=futureid;
             if(rollover){
-                nearfutureid=Utilities.getFutureIDFromSymbol(Parameters.symbol, symbolid, this.expiryNearMonth);
+                nearfutureid=Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, symbolid, this.expiryNearMonth);
             }
             for (int i : orderidlist) {
                 this.initSymbol(i);
@@ -282,7 +282,9 @@ public class Manager extends Strategy {
                 }
             }
         }
-
+        }catch (Exception e){
+            logger.log(Level.SEVERE,null,e);
+        }
     }
 
     double getOptionLimitPriceForRel(int id, int underlyingid, EnumOrderSide side, String right) {
