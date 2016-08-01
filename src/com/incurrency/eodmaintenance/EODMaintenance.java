@@ -92,7 +92,8 @@ public class EODMaintenance {
         historicalfuturesfwd();
         swing();
         contra();
-
+        allsymbols();
+        
         MainAlgorithm.setCloseDate(new Date());
     }
 
@@ -511,6 +512,10 @@ public class EODMaintenance {
 
     }
 
+    public void allsymbols(){
+        printToFile(symbols,"symbols-inr.csv",true);
+    }
+    
     public void extractSymbolsFromIB(String urlName, String fileName, List<BeanSymbol> symbols) throws IOException {
         String constant = "&sequence_idx=";
         if (urlName != null) {

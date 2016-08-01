@@ -39,8 +39,8 @@ import org.rosuda.REngine.Rserve.RConnection;
  */
 public class Manager extends Strategy {
 
-    String expiryNearMonth;
-    String expiryFarMonth;
+    public String expiryNearMonth;
+    public String expiryFarMonth;
     String referenceCashType;
     String rServerIP;
     EnumOrderType ordType;
