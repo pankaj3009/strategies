@@ -228,8 +228,15 @@ public class OptSale extends Strategy implements TradeListener {
 
                         //write orders to redis
                         for (int i : filteredOrderList) {
+                            int actualPositionSize = Math.abs(Utilities.getNetPositionFromOptions(Parameters.symbol, getPosition(), i));
+                            if(actualPositionSize<maxPositionSize){
                             int position = getPosition().get(i).getPosition();
                             db.lpush("trades:" + getStrategy(), Parameters.symbol.get(i).getDisplayname() + ":" + getNumberOfContracts() + ":short" + ":" + position);
+                        }else {
+                                logger.log(Level.INFO,"501,{0},{1},{2},{3},{4},{5},Position Limit Hit. No Order Placed. Current Position Size: {6}",
+                                        new Object[]{getStrategy(),"Order",
+                                        Parameters.symbol.get(i).getDisplayname(),-1,-1,actualPositionSize});
+                            }
                         }
 
                     } else {
