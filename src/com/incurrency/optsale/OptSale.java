@@ -205,14 +205,14 @@ public class OptSale extends Strategy implements TradeListener {
                         //Place Orders
                         for (int i : allOrderList) {
                             BeanSymbol s = Parameters.symbol.get(i);
-                            double annualizedRet = s.getLastPrice() * 252 / (dte * indexPrice * margin);
+                            double annualizedRet = s.getLastPrice() * 365 / (s.getCdte() * indexPrice * margin);
                             double calcPremium = s.getOptionProcess().NPV();
                             double theta = s.getOptionProcess().theta();
                             double vega = s.getOptionProcess().vega();
                             double metric = theta / vega;
                             DecimalFormat df = new DecimalFormat("#.##");
                             TradingUtil.writeToFile(getStrategy() + ".csv", s.getDisplayname() + ","
-                                    + s.getDte() + "," + s.getLastPrice() + "," + annualizedRet + ","
+                                    + s.getBdte() + "," + s.getLastPrice() + "," + annualizedRet + ","
                                     + Utilities.formatDouble(theta, df) + ","
                                     + Utilities.formatDouble(vega, df) + ","
                                     + Utilities.formatDouble(metric, df) + ","
@@ -443,12 +443,12 @@ public class OptSale extends Strategy implements TradeListener {
         Integer id = event.getSymbolID();
         if (getStrategySymbols().contains(id) && getPosition().get(id).getPosition() > 0) {
             int position = getPosition().get(id).getPosition();
-            int optionDte = Parameters.symbol.get(id).getDte();
+            long optionDte = Parameters.symbol.get(id).getBdte();
             String right = Parameters.symbol.get(id).getRight();
-            if (Parameters.symbol.get(id).getDte() > 0) {
+            if (Parameters.symbol.get(id).getCdte() > 0) {
                 double futurePrice = Parameters.symbol.get(futureid).getLastPrice();
                 double strikePrice = Utilities.getDouble(Parameters.symbol.get(id).getOption(), 0);
-                double optionReturn = Parameters.symbol.get(id).getLastPrice() * 365 / (Parameters.symbol.get(indexid).getDte() * futurePrice * margin);
+                double optionReturn = Parameters.symbol.get(id).getLastPrice() * 365 / (Parameters.symbol.get(indexid).getCdte() * futurePrice * margin);
                 HashMap<String, Object> order = new HashMap<>();
                 switch (right) {
                     case "CALL":
