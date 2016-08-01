@@ -215,7 +215,7 @@ public class Swing extends Strategy implements TradeListener {
                         order.put("size", size);
                         order.put("type", EnumOrderType.CUSTOMREL);
                         String right = Parameters.symbol.get(id).getDisplayname().contains("CALL") ? "CALL" : "PUT";
-                        double limitprice = this.getOptionLimitPriceForRel(id, referenceid, EnumOrderSide.SELL, right);
+                        double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol,id, referenceid, EnumOrderSide.SELL, right,getTickSize());
                         order.put("limitprice", limitprice);
                         if (slTrigger) {
                             order.put("reason", EnumOrderReason.SL);
@@ -395,7 +395,7 @@ public class Swing extends Strategy implements TradeListener {
                         for (int id : orderidlist) {
                             if (id >= 0) {
                                 order.put("id", id);
-                                double limitprice = getOptionLimitPriceForRel(id, futureid, EnumOrderSide.BUY, "CALL");
+                                double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol,id, futureid, EnumOrderSide.BUY, "CALL",getTickSize());
                                 order.put("limitprice", limitprice);
                                 order.put("side", EnumOrderSide.BUY);
                                 order.put("size", size);
@@ -422,7 +422,7 @@ public class Swing extends Strategy implements TradeListener {
                         for (int nearid : nearorderidlist) {
                             if (nearid >= 0) {
                                 order.put("id", nearid);
-                                double limitprice = getOptionLimitPriceForRel(nearid, nearfutureid, EnumOrderSide.SELL, "CALL");
+                                double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol,nearid, nearfutureid, EnumOrderSide.SELL, "CALL",getTickSize());
                                 order.put("limitprice", limitprice);
                                 order.put("side", EnumOrderSide.SELL);
                                 order.put("size", size);
@@ -441,7 +441,7 @@ public class Swing extends Strategy implements TradeListener {
                         for (int id : orderidlist) {
                             if (id >= 0) {
                                 order.put("id", id);
-                                double limitprice = this.getOptionLimitPriceForRel(id, futureid, EnumOrderSide.BUY, "PUT");
+                                double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol,id, futureid, EnumOrderSide.BUY, "PUT",getTickSize());
                                 order.put("limitprice", limitprice);
                                 order.put("side", EnumOrderSide.BUY);
                                 order.put("size", size);
@@ -468,7 +468,7 @@ public class Swing extends Strategy implements TradeListener {
                         for (int nearid : nearorderidlist) {
                             if (nearid >= 0) {
                                 order.put("id", nearid);
-                                double limitprice = this.getOptionLimitPriceForRel(nearid, nearfutureid, EnumOrderSide.SELL, "PUT");
+                                double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol,nearid, nearfutureid, EnumOrderSide.SELL, "PUT",getTickSize());
                                 order.put("limitprice", limitprice);
                                 order.put("side", EnumOrderSide.SELL);
                                 order.put("size", size);
@@ -492,73 +492,6 @@ public class Swing extends Strategy implements TradeListener {
         }
     }
 
-    double getOptionLimitPriceForRel(int id, int underlyingid, EnumOrderSide side, String right) {
-        double price = Parameters.symbol.get(id).getLastPrice();
-        try {
-            double optionlastprice = 0;
-//        Object[] optionlastpriceset = Utilities.getLastSettlePriceOption(Parameters.symbol, id, new Date().getTime() - 10 * 24 * 60 * 60 * 1000, new Date().getTime() - 1000000, "india.nse.option.s4.daily.settle");
-            Object[] optionlastpriceset = Utilities.getSettlePrice(Parameters.symbol.get(id), new Date());
-            Object[] underlyinglastpriceset = Utilities.getSettlePrice(Parameters.symbol.get(underlyingid), new Date());
-            double underlyingpriorclose = Utilities.getDouble(underlyinglastpriceset[1], 0);
-
-            if (optionlastpriceset != null && optionlastpriceset.length == 2) {
-                long settletime = Utilities.getLong(optionlastpriceset[0], 0);
-                optionlastprice = Utilities.getDouble(optionlastpriceset[1], 0);
-                double vol = Utilities.getImpliedVol(Parameters.symbol.get(id), underlyingpriorclose, optionlastprice, new Date(settletime));
-                Parameters.symbol.get(id).setCloseVol(vol);
-
-            }
-
-            if (price == 0 && optionlastprice > 0) {
-                double underlyingprice = Parameters.symbol.get(underlyingid).getLastPrice();
-                double underlyingchange = 0;
-                if (underlyingprice != 0) {
-                    underlyingchange = underlyingprice - underlyingpriorclose;//+ve if up
-                }
-                switch (right) {
-                    case "CALL":
-                        price = optionlastprice + 0.5 * underlyingchange;
-                        break;
-                    case "PUT":
-                        price = optionlastprice - 0.5 * underlyingchange;
-                        break;
-                }
-            }
-            double bidprice = Parameters.symbol.get(id).getBidPrice();
-            double askprice = Parameters.symbol.get(id).getAskPrice();
-            logger.log(Level.INFO, "Symbol:{0},price:{1},BidPrice:{2},AskPrice:{3}", new Object[]{Parameters.symbol.get(id).getDisplayname(), price, bidprice, askprice});
-            switch (side) {
-                case BUY:
-                case COVER:
-                    if (bidprice > 0) {
-                        price = Math.min(bidprice, price);
-
-                    } else {
-                        price = 0.80 * price;
-                        logger.log(Level.INFO, "Calculated Price as bidprice is zero. Symbol {0}, BidPrice:{1}", new Object[]{Parameters.symbol.get(id).getDisplayname(), price});
-                    }
-                    break;
-                case SHORT:
-                case SELL:
-                    if (askprice > 0) {
-                        price = Math.max(askprice, price);
-
-                    } else {
-                        price = 1.2 * price;
-                        logger.log(Level.INFO, "Calculated Price as askprice is zero. Symbol {0}, BidPrice:{1}", new Object[]{Parameters.symbol.get(id).getDisplayname(), price});
-                    }
-                    break;
-                default:
-                    break;
-
-            }
-            price = Utilities.roundTo(price, this.getTickSize());
-
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, null, e);
-        }
-        return price;
-    }
     TimerTask rollProcessingTask = new TimerTask() {
         @Override
         public void run() {
