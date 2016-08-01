@@ -153,16 +153,18 @@ public class Manager extends Strategy {
                 ArrayList<Integer> orderidlist = new ArrayList<>();
                 ArrayList<Integer> nearorderidlist = new ArrayList<>();
                 if(tradetuple.get(1).contains("_OPT")){
-                    int newid=Utilities.insertStrike(Parameters.symbol, tradetuple.get(1));
-                    orderidlist.add(newid);
+                    int newid=Utilities.getIDFromDisplayName(Parameters.symbol, tradetuple.get(1).split(":")[0]);
+                    orderidlist.add(newid);                
+              
                 }else{
                     orderidlist = Utilities.getOrInsertOptionIDForLongSystem(Parameters.symbol, this.getPosition(), futureid, side, expiry);
                 }
                 nearorderidlist = orderidlist;
                 if (rollover) {
                     if(tradetuple.get(1).contains("_OPT")){
-                        int newid=Utilities.insertStrike(Parameters.symbol, tradetuple.get(1));
-                    nearorderidlist.add(newid);
+                    int newid=Utilities.getIDFromDisplayName(Parameters.symbol, tradetuple.get(1).split(":")[0]);
+                    orderidlist.add(newid);                
+              
                     }else{
                     nearorderidlist = Utilities.getOrInsertOptionIDForLongSystem(Parameters.symbol, this.getPosition(), symbolid, side, this.expiryNearMonth);                        
                     }
