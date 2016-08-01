@@ -7,20 +7,27 @@ package com.incurrency.optsale;
 import com.incurrency.algorithms.manager.Manager;
 import com.incurrency.framework.Algorithm;
 import com.incurrency.framework.BeanSymbol;
+import com.incurrency.framework.DateUtil;
+import com.incurrency.framework.EnumOrderReason;
 import com.incurrency.framework.EnumOrderSide;
+import com.incurrency.framework.EnumOrderStage;
 import com.incurrency.framework.MainAlgorithm;
 import com.incurrency.framework.Parameters;
 import com.incurrency.framework.TradeEvent;
 import com.incurrency.framework.TradeListener;
+import com.incurrency.framework.TradingUtil;
 import com.incurrency.framework.Utilities;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Properties;
 import java.util.TimeZone;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jquantlib.time.JDate;
@@ -32,16 +39,20 @@ import org.jquantlib.time.JDate;
 public class OptSale extends Manager implements TradeListener {
 
     Date entryScanDate;
+    int indexid;
+    int futureid;
     SimpleDateFormat sdtf_default = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     private static final Logger logger = Logger.getLogger(OptSale.class.getName());
     String indexDisplayName;
-    double avgMovePerDay;
+    double avgMovePerDayEntry;
+    double avgMovePerDayExit;
     boolean buy;
     boolean shrt;
     String expiry;
-    double threshold;
+    double thresholdReturn;
     double historicalVol;
-    int size;
+    double dte = 1000000; //set dte to an arbitrarily large number so that trades are not exited before dte is actually calculated.
+    double margin;
 
     public OptSale(MainAlgorithm m, Properties p, String parameterFile, ArrayList<String> accounts, Integer stratCount) {
         super(m, p, parameterFile, accounts, stratCount);
@@ -67,45 +78,46 @@ public class OptSale extends Manager implements TradeListener {
             //ExternalOrderID
             // Get current market price of NSENIFTY index.
             try {
-                int indexid = Utilities.getIDFromDisplayName(Parameters.symbol, indexDisplayName);
+                indexid = Utilities.getIDFromDisplayName(Parameters.symbol, indexDisplayName);
                 if (indexid >= 0) {
                     SimpleDateFormat sdf_yyyyMMdd = new SimpleDateFormat("yyyyMMdd");
                     double indexPrice = Parameters.symbol.get(indexid).getLastPrice();
                     JDate expiryDate = new JDate(sdf_yyyyMMdd.parse(expiryNearMonth));
                     long dte = Algorithm.ind.businessDaysBetween(new JDate(new Date()), expiryDate);
                     expiry = expiryNearMonth;
+                    futureid = Utilities.getFutureIDFromExchangeSymbol(Parameters.symbol, indexid, expiry);
                     if (dte <= 7) {
                         expiryDate = new JDate(sdf_yyyyMMdd.parse(expiryFarMonth));
                         dte = Algorithm.ind.businessDaysBetween(new JDate(new Date()), expiryDate);
                         expiry = expiryFarMonth;
+                        futureid = Utilities.getFutureIDFromExchangeSymbol(Parameters.symbol, indexid, expiry);
                     }
-                    double cushion = dte * avgMovePerDay;
-                    double highestFloor = Utilities.roundTo(indexPrice - cushion, Parameters.symbol.get(indexid).getStrikeDistance());
-                    double lowestCeiling = Utilities.roundTo(indexPrice + cushion, Parameters.symbol.get(indexid).getStrikeDistance());
+
+                    
+                    double cushion = dte * avgMovePerDayEntry;
+                    double highestFloor = Utilities.roundTo(indexPrice - cushion, Parameters.symbol.get(futureid).getStrikeDistance());
+                    double lowestCeiling = Utilities.roundTo(indexPrice + cushion, Parameters.symbol.get(futureid).getStrikeDistance());
 
                     //Get 2 strikes
                     double[] putLevels = new double[2];
                     putLevels[0] = highestFloor;
-                    putLevels[1] = highestFloor - Parameters.symbol.get(indexid).getStrikeDistance();
+                    putLevels[1] = highestFloor - Parameters.symbol.get(futureid).getStrikeDistance();
 
                     double[] callLevels = new double[2];
                     callLevels[0] = lowestCeiling;
-                    callLevels[1] = lowestCeiling + Parameters.symbol.get(indexid).getStrikeDistance();
+                    callLevels[1] = lowestCeiling + Parameters.symbol.get(futureid).getStrikeDistance();
 
                     //Initialize 
                     ArrayList<Integer> allOrderList = new ArrayList<>();
                     if (buy) {
                         for (double str : putLevels) {
-                            int futureid = Utilities.getFutureIDFromExchangeSymbol(Parameters.symbol, indexid, expiry);
-                            allOrderList = Utilities.getOptionIDForShortSystem(Parameters.symbol, getPosition(), futureid, EnumOrderSide.SHORT, String.valueOf(str));
-
+                            allOrderList = Utilities.getOrInsertATMOptionIDForShortSystem(Parameters.symbol, getPosition(), futureid, EnumOrderSide.SHORT, String.valueOf(str));
                         }
                     }
 
                     if (shrt) {
                         for (double str : callLevels) {
-                            int futureid = Utilities.getFutureIDFromExchangeSymbol(Parameters.symbol, indexid, expiry);
-                            allOrderList.addAll(Utilities.getOptionIDForShortSystem(Parameters.symbol, getPosition(), futureid, EnumOrderSide.SHORT, String.valueOf(str)));
+                            allOrderList.addAll(Utilities.getOrInsertATMOptionIDForShortSystem(Parameters.symbol, getPosition(), futureid, EnumOrderSide.SHORT, String.valueOf(str)));
                         }
                     }
 
@@ -117,17 +129,16 @@ public class OptSale extends Manager implements TradeListener {
                         double theta = s.getOptionProcess().theta();
                         double vega = s.getOptionProcess().vega();
                         double metric = theta / vega;
-                        if (annualizedRet > threshold && theta > 1.2 * historicalVol && filteredOrderList.size() == 0) {
+                        if (annualizedRet > thresholdReturn && theta > 1.2 * historicalVol && filteredOrderList.size() == 0) {
                             filteredOrderList.add(i);
-                        } else if (annualizedRet > threshold && theta > 1.2 * historicalVol && metric < -0.3 && filteredOrderList.size() == 0) {
+                        } else if (annualizedRet > thresholdReturn && theta > 1.2 * historicalVol && metric < -0.3 && filteredOrderList.size() == 0) {
                             filteredOrderList.add(i);
                         }
                     }
                     //write orders to redis
                     for (int i : filteredOrderList) {
                         int position = getPosition().get(i).getPosition();
-                        db.lpush("trades:" + getStrategy(), Parameters.symbol.get(i).getDisplayname() + ":" + size + ":short" + ":" + position);
-
+                        db.lpush("trades:" + getStrategy(), Parameters.symbol.get(i).getDisplayname() + ":" + getNumberOfContracts() + ":short" + ":" + position);
                     }
 
                 } else {
@@ -149,8 +160,68 @@ public class OptSale extends Manager implements TradeListener {
         }
     };
 
+    private void loadParameters(String strategy, String type, Properties p) {
+        indexDisplayName = p.getProperty("IndexDisplayName", "NSENIFTY_IND___");
+        avgMovePerDayEntry = Utilities.getDouble(p.getProperty("AverageMovePerDayEntry", "0.4"), 0.4);
+        avgMovePerDayExit = Utilities.getDouble(p.getProperty("AverageMovePerDayExit", "0.2"), 0.2);
+        thresholdReturn = Utilities.getDouble(p.getProperty("ThresholdReturn", "0.3"), 0.3);
+        historicalVol = Utilities.getDouble(p.getProperty("HistoricalVol", "0.15"), 0.15);
+        margin = Utilities.getDouble(p.getProperty("Margin", "0.10"), 0.10);
+    }
+
     @Override
     public void tradeReceived(TradeEvent event) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        Integer id = event.getSymbolID();
+        if (getStrategySymbols().contains(id) && getPosition().get(id).getPosition() > 0) {
+            int position = getPosition().get(id).getPosition();
+            int optionDte = Parameters.symbol.get(id).getDte();
+            String right = Parameters.symbol.get(id).getRight();
+            if (Parameters.symbol.get(id).getDte() > 0) {
+                double futurePrice = Parameters.symbol.get(futureid).getLastPrice();
+                double strikePrice = Utilities.getDouble(Parameters.symbol.get(id).getOption(), 0);
+                double optionReturn = Parameters.symbol.get(id).getLastPrice() * 365 / (Parameters.symbol.get(indexid).getDte() * futurePrice * margin);
+                HashMap<String, Object> order = new HashMap<>();
+                switch (right) {
+                    case "CALL":
+                        if (optionReturn < 0.1 || (strikePrice - optionDte * avgMovePerDayExit) < futurePrice) {
+                            order.put("type", getOrdType());
+                            order.put("expiretime", getMaxOrderDuration());
+                            order.put("dynamicorderduration", getDynamicOrderDuration());
+                            order.put("maxslippage", this.getMaxSlippageEntry());
+                            order.put("id", id);
+                            double limitprice = getOptionLimitPriceForRel(id, indexid, EnumOrderSide.COVER, "CALL");
+                            order.put("limitprice", limitprice);
+                            order.put("side", EnumOrderSide.BUY);
+                            order.put("size", position);
+                            order.put("reason", EnumOrderReason.REGULARENTRY);
+                            order.put("orderstage", EnumOrderStage.INIT);
+                            order.put("scale", getScaleExit());
+                            order.put("dynamicorderduration", this.getDynamicOrderDuration());
+                            order.put("expiretime", 0);
+                            logger.log(Level.INFO, "501,Strategy BUY,{0}", new Object[]{getStrategy() + delimiter + "BUY" + delimiter + Parameters.symbol.get(id).getDisplayname()});
+                            int orderid = exit(order);
+                        }
+                        break;
+                    case "PUT":
+                        if (optionReturn < 0.1 || (strikePrice + optionDte * avgMovePerDayExit) > futurePrice) {
+                            double limitprice = getOptionLimitPriceForRel(id, indexid, EnumOrderSide.COVER, "PUT");
+                            order.put("limitprice", limitprice);
+                            order.put("side", EnumOrderSide.BUY);
+                            order.put("size", position);
+                            order.put("reason", EnumOrderReason.REGULARENTRY);
+                            order.put("orderstage", EnumOrderStage.INIT);
+                            order.put("scale", getScaleExit());
+                            order.put("dynamicorderduration", this.getDynamicOrderDuration());
+                            order.put("expiretime", 0);
+                            logger.log(Level.INFO, "501,Strategy BUY,{0}", new Object[]{getStrategy() + delimiter + "BUY" + delimiter + Parameters.symbol.get(id).getDisplayname()});
+                            int orderid = exit(order);
+                        }
+                        break;
+                    default:
+
+                }
+            }
+
+        }
     }
 }

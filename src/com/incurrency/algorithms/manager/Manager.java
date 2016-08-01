@@ -43,15 +43,15 @@ public class Manager extends Strategy {
     public String expiryFarMonth;
     String referenceCashType;
     String rServerIP;
-    EnumOrderType ordType;
+    private EnumOrderType ordType;
     Date monitoringStart;
     Boolean rollover;
     int rolloverDays;
     String expiry;
     String RStrategyFile;
     String wd;
-    Boolean scaleEntry = Boolean.FALSE;
-    Boolean scaleExit = Boolean.FALSE;
+    private Boolean scaleEntry = Boolean.FALSE;
+    private Boolean scaleExit = Boolean.FALSE;
     private static final Logger logger = Logger.getLogger(Manager.class.getName());
 
     public Manager(MainAlgorithm m, Properties p, String parameterFile, ArrayList<String> accounts, Integer stratCount) {
@@ -140,7 +140,7 @@ public class Manager extends Strategy {
             if (tradetuple != null) {
                 logger.log(Level.INFO, "Received Trade:{0} for strategy {1}", new Object[]{tradetuple.get(1), tradetuple.get(0)});
                 //tradetuple as symbol:size:side:sl
-                String symbol = tradetuple.get(1).split(":")[0];
+                String symbol = tradetuple.get(1).split(":")[0].split("_",-1)[0];
                 int symbolid = Utilities.getIDFromDisplayName(Parameters.symbol, symbol);
                 int futureid = Utilities.getFutureIDFromExchangeSymbol(Parameters.symbol, symbolid, expiry);
                 int nearfutureid = futureid;
@@ -152,10 +152,20 @@ public class Manager extends Strategy {
                 HashMap<String, Object> order = new HashMap<>();
                 ArrayList<Integer> orderidlist = new ArrayList<>();
                 ArrayList<Integer> nearorderidlist = new ArrayList<>();
-                orderidlist = Utilities.getOptionIDForLongSystem(Parameters.symbol, this.getPosition(), futureid, side, expiry);
+                if(tradetuple.get(1).contains("_OPT")){
+                    int newid=Utilities.insertStrike(Parameters.symbol, tradetuple.get(1));
+                    orderidlist.add(newid);
+                }else{
+                    orderidlist = Utilities.getOrInsertOptionIDForLongSystem(Parameters.symbol, this.getPosition(), futureid, side, expiry);
+                }
                 nearorderidlist = orderidlist;
                 if (rollover) {
-                    nearorderidlist = Utilities.getOptionIDForLongSystem(Parameters.symbol, this.getPosition(), symbolid, side, this.expiryNearMonth);
+                    if(tradetuple.get(1).contains("_OPT")){
+                        int newid=Utilities.insertStrike(Parameters.symbol, tradetuple.get(1));
+                    nearorderidlist.add(newid);
+                    }else{
+                    nearorderidlist = Utilities.getOrInsertOptionIDForLongSystem(Parameters.symbol, this.getPosition(), symbolid, side, this.expiryNearMonth);                        
+                    }
                 }
                 if (rollover) {
                     nearfutureid = Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, symbolid, this.expiryNearMonth);
@@ -178,7 +188,7 @@ public class Manager extends Strategy {
                  * IF initpositionsize=200, actualpositionsize=100, we set a SELL of 200, comp=100, size=abs(-200+100)=100
                  */
                 if (size > 0) {
-                    order.put("type", ordType);
+                    order.put("type", getOrdType());
                     order.put("expiretime", getMaxOrderDuration());
                     order.put("dynamicorderduration", getDynamicOrderDuration());
                     order.put("maxslippage", this.getMaxSlippageEntry());
@@ -196,7 +206,7 @@ public class Manager extends Strategy {
                                     order.put("size", size);
                                     order.put("reason", EnumOrderReason.REGULARENTRY);
                                     order.put("orderstage", EnumOrderStage.INIT);
-                                    order.put("scale", scaleEntry);
+                                    order.put("scale", getScaleEntry());
                                     order.put("dynamicorderduration", this.getDynamicOrderDuration());
                                     order.put("expiretime", 0);
                                     order.put("log", "BUY" + delimiter + tradetuple.get(1));
@@ -222,7 +232,7 @@ public class Manager extends Strategy {
                                     order.put("size", size);
                                     order.put("reason", EnumOrderReason.REGULAREXIT);
                                     order.put("orderstage", EnumOrderStage.INIT);
-                                    order.put("scale", scaleExit);
+                                    order.put("scale", getScaleExit());
                                     order.put("dynamicorderduration", this.getDynamicOrderDuration());
                                     order.put("expiretime", 0);
                                     order.put("log", "SELL" + delimiter + tradetuple.get(1));
@@ -240,7 +250,7 @@ public class Manager extends Strategy {
                                     order.put("side", EnumOrderSide.BUY);
                                     order.put("size", size);
                                     order.put("reason", EnumOrderReason.REGULARENTRY);
-                                    order.put("scale", scaleEntry);
+                                    order.put("scale", getScaleEntry());
                                     order.put("orderstage", EnumOrderStage.INIT);
                                     order.put("dynamicorderduration", this.getDynamicOrderDuration());
                                     order.put("expiretime", 0);
@@ -267,7 +277,7 @@ public class Manager extends Strategy {
                                     order.put("side", EnumOrderSide.SELL);
                                     order.put("size", size);
                                     order.put("reason", EnumOrderReason.REGULAREXIT);
-                                    order.put("scale", scaleExit);
+                                    order.put("scale", getScaleExit());
                                     order.put("orderstage", EnumOrderStage.INIT);
                                     order.put("dynamicorderduration", this.getDynamicOrderDuration());
                                     order.put("expiretime", 0);
@@ -287,7 +297,7 @@ public class Manager extends Strategy {
         }
     }
 
-    double getOptionLimitPriceForRel(int id, int underlyingid, EnumOrderSide side, String right) {
+    public double getOptionLimitPriceForRel(int id, int underlyingid, EnumOrderSide side, String right) {
         double price = Parameters.symbol.get(id).getLastPrice();
         try {
             double optionlastprice = 0;
@@ -353,5 +363,26 @@ public class Manager extends Strategy {
             logger.log(Level.SEVERE, null, e);
         }
         return price;
+    }
+
+    /**
+     * @return the ordType
+     */
+    public EnumOrderType getOrdType() {
+        return ordType;
+    }
+
+    /**
+     * @return the scaleEntry
+     */
+    public Boolean getScaleEntry() {
+        return scaleEntry;
+    }
+
+    /**
+     * @return the scaleExit
+     */
+    public Boolean getScaleExit() {
+        return scaleExit;
     }
 }
