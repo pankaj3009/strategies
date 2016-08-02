@@ -5,6 +5,7 @@
 package com.incurrency.optsale;
 
 import com.incurrency.framework.Algorithm;
+import com.incurrency.framework.BeanConnection;
 import com.incurrency.framework.BeanSymbol;
 import com.incurrency.framework.EnumOrderReason;
 import com.incurrency.framework.EnumOrderSide;
@@ -75,6 +76,10 @@ public class OptSale extends Strategy implements TradeListener {
     public OptSale(MainAlgorithm m, Properties p, String parameterFile, ArrayList<String> accounts, Integer stratCount) {
         super(m, "optsale", "FUT", p, parameterFile, accounts, stratCount);
         loadParameters(p);
+        String[] tempStrategyArray = parameterFile.split("\\.")[0].split("-|_");
+        for (BeanConnection c : Parameters.connection) {
+            c.initializeConnection(tempStrategyArray[tempStrategyArray.length - 1], -1);
+        }
         Timer eodProcessing;
         Calendar cal = Calendar.getInstance();
         cal.setTime(new Date());
