@@ -163,7 +163,8 @@ public class EODMaintenance {
         ArrayList<BeanSymbol> interimout = new ArrayList<>();
         try {
             int rowsToSkipFNO = 11;
-            SimpleDateFormat sdf_formatInFile = new SimpleDateFormat("MMM-yy");
+            SimpleDateFormat sdf_formatInFile1 = new SimpleDateFormat("MMM-yy");
+            SimpleDateFormat sdf_formatInFile2 = new SimpleDateFormat("yy-MMM");
             SimpleDateFormat sdf_yyyyMMdd = new SimpleDateFormat("yyyyMMdd");
             URL fnoURL = new URL(url);
             if (getResponseCode(url) != 404) {
@@ -178,11 +179,12 @@ public class EODMaintenance {
                         String[] input = line.split(",");
                         if (j == rowsToSkipFNO + 1) { //this row contains expiry dates
                             //data of interest will be in one of the columns. That column is identified and stored in columnNumber
-                            String expiryFormattedAsInput = sdf_formatInFile.format(sdf_yyyyMMdd.parse(expiry));//expiry is formatted in MMM-yy format
+                            String expiryFormattedAsInput1 = sdf_formatInFile1.format(sdf_yyyyMMdd.parse(expiry));//expiry is formatted in MMM-yy format
+                            String expiryFormattedAsInput2 = sdf_formatInFile2.format(sdf_yyyyMMdd.parse(expiry));//expiry is formatted in MMM-yy format
                             for (String inp : input) {
-                                if (Utilities.isDate(inp, sdf_formatInFile)) {
+                                if (Utilities.isDate(inp, sdf_formatInFile1)||Utilities.isDate(inp, sdf_formatInFile2)) {
                                     String expiration = inp.trim().toUpperCase();
-                                    if (expiration.equalsIgnoreCase(expiryFormattedAsInput)) {
+                                    if (expiration.equalsIgnoreCase(expiryFormattedAsInput1)||expiration.equalsIgnoreCase(expiryFormattedAsInput2)) {
                                         columnNumber = i;
                                         break;
                                     }
@@ -416,6 +418,9 @@ public class EODMaintenance {
         s.setStrikeDistance(100);
         out.add(s);
         out.addAll(fno);
+        for (int i = 0; i < out.size(); i++) {
+            out.get(i).setDisplayname(out.get(i).getExchangeSymbol().replaceAll("[^A-Za-z0-9]", ""));
+        }
         printToFile(out, this.f_HistoricalFutures, true);
     }
 
@@ -432,6 +437,9 @@ public class EODMaintenance {
         out.add(s);
         ArrayList<BeanSymbol> fwdout = loadFutures(this.fnolotsizeurl, this.f_Strikes, expiry);
         out.addAll(fwdout);
+        for (int i = 0; i < out.size(); i++) {
+            out.get(i).setDisplayname(out.get(i).getExchangeSymbol().replaceAll("[^A-Za-z0-9]", ""));
+        }
         printToFile(out, this.f_HistoricalFuturesFwd, true);
     }
 
