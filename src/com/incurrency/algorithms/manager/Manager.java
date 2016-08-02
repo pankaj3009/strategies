@@ -140,7 +140,7 @@ public class Manager extends Strategy {
             if (tradetuple != null) {
                 logger.log(Level.INFO, "Received Trade:{0} for strategy {1}", new Object[]{tradetuple.get(1), tradetuple.get(0)});
                 //tradetuple as symbol:size:side:sl
-                String symbol = tradetuple.get(1).split(":")[0].split("_",-1)[0];
+                String symbol = tradetuple.get(1).split(":")[0];
                 int symbolid = Utilities.getIDFromDisplayName(Parameters.symbol, symbol);
                 int futureid = Utilities.getFutureIDFromExchangeSymbol(Parameters.symbol, symbolid, expiry);
                 int nearfutureid = futureid;
