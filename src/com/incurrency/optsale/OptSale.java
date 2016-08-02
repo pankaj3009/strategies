@@ -229,6 +229,11 @@ public class OptSale extends Strategy implements TradeListener {
                         }
 
                         //write orders to redis
+                        if(filteredOrderList.size()==0){
+                            logger.log(Level.INFO,"501,{0},{1},{2},{3},{4}, No Orders Generated",
+                                    new Object[]{getStrategy(),"Order",Parameters.symbol.get(indexid).getDisplayname(),
+                                    -1,-1});
+                        }
                         for (int i : filteredOrderList) {
                             int actualPositionSize = Math.abs(Utilities.getNetPositionFromOptions(Parameters.symbol, getPosition(), i));
                             if(actualPositionSize<maxPositionSize){
