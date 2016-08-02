@@ -215,7 +215,7 @@ public class Swing extends Strategy implements TradeListener {
                         order.put("size", size);
                         order.put("type", EnumOrderType.CUSTOMREL);
                         String right = Parameters.symbol.get(id).getDisplayname().contains("CALL") ? "CALL" : "PUT";
-                        double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol,id, referenceid, EnumOrderSide.SELL, right,getTickSize());
+                        double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol, id, referenceid, EnumOrderSide.SELL, right, getTickSize());
                         order.put("limitprice", limitprice);
                         if (slTrigger) {
                             order.put("reason", EnumOrderReason.SL);
@@ -377,121 +377,125 @@ public class Swing extends Strategy implements TradeListener {
                         nearorderidlist = Utilities.getOrInsertOptionIDForLongSystem(Parameters.symbol, this.getPosition(), symbolid, side, this.expiryNearMonth);
                     }
                 }
-                for (int i : orderidlist) {
-                    this.initSymbol(i);
-                }
-                for (int i : nearorderidlist) {
-                    this.initSymbol(i);
-                }
-                order.put("type", ordType);
-                order.put("expiretime", getMaxOrderDuration());
-                order.put("dynamicorderduration", getDynamicOrderDuration());
-                order.put("maxslippage", this.getMaxSlippageEntry());
-                int orderid;
-                ArrayList<Stop> stops = new ArrayList<>();
-                Stop stp = new Stop();
-                switch (side) {
-                    case BUY:
-                        for (int id : orderidlist) {
-                            if (id >= 0) {
-                                order.put("id", id);
-                                double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol,id, futureid, EnumOrderSide.BUY, "CALL",getTickSize());
-                                order.put("limitprice", limitprice);
-                                order.put("side", EnumOrderSide.BUY);
-                                order.put("size", size);
-                                order.put("reason", EnumOrderReason.REGULARENTRY);
-                                order.put("orderstage", EnumOrderStage.INIT);
-                                order.put("scale", "FALSE");
-                                order.put("dynamicorderduration", this.getDynamicOrderDuration());
-                                order.put("expiretime", 0);
-                                order.put("log", "BUY" + delimiter + tradetuple.get(1));
-                                logger.log(Level.INFO, "501,Strategy BUY,{0}", new Object[]{getStrategy() + delimiter + "BUY" + delimiter + Parameters.symbol.get(id).getDisplayname()});
-                                orderid = entry(order);
-                                stp.stopValue = sl;
-                                stp.underlyingEntry = Parameters.symbol.get(symbolid).getLastPrice();
-                                stp.stopType = EnumStopType.STOPLOSS;
-                                stp.stopMode = EnumStopMode.POINT;
-                                stp.recalculate = true;
-                                stops.add(stp);
-                                Trade.setStop(db, this.getStrategy() + ":" + orderid + ":" + "Order", "opentrades", stops);
+                if ((orderidlist.size() > 0 && (side.equals(EnumOrderSide.BUY)||side.equals(EnumOrderSide.SHORT))) ||
+                     (nearorderidlist.size() > 0 && (side.equals(EnumOrderSide.SELL)||side.equals(EnumOrderSide.COVER)))   ) {
+                    for (int i : orderidlist) {
+                        this.initSymbol(i);
+                    }
+                    for (int i : nearorderidlist) {
+                        this.initSymbol(i);
+                    }
+                    order.put("type", ordType);
+                    order.put("expiretime", getMaxOrderDuration());
+                    order.put("dynamicorderduration", getDynamicOrderDuration());
+                    order.put("maxslippage", this.getMaxSlippageEntry());
+                    int orderid;
+                    ArrayList<Stop> stops = new ArrayList<>();
+                    Stop stp = new Stop();
+                    switch (side) {
+                        case BUY:
+                            for (int id : orderidlist) {
+                                if (id >= 0) {
+                                    order.put("id", id);
+                                    double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol, id, futureid, EnumOrderSide.BUY, "CALL", getTickSize());
+                                    order.put("limitprice", limitprice);
+                                    order.put("side", EnumOrderSide.BUY);
+                                    order.put("size", size);
+                                    order.put("reason", EnumOrderReason.REGULARENTRY);
+                                    order.put("orderstage", EnumOrderStage.INIT);
+                                    order.put("scale", "FALSE");
+                                    order.put("dynamicorderduration", this.getDynamicOrderDuration());
+                                    order.put("expiretime", 0);
+                                    order.put("log", "BUY" + delimiter + tradetuple.get(1));
+                                    logger.log(Level.INFO, "501,Strategy BUY,{0}", new Object[]{getStrategy() + delimiter + "BUY" + delimiter + Parameters.symbol.get(id).getDisplayname()});
+                                    orderid = entry(order);
+                                    stp.stopValue = sl;
+                                    stp.underlyingEntry = Parameters.symbol.get(symbolid).getLastPrice();
+                                    stp.stopType = EnumStopType.STOPLOSS;
+                                    stp.stopMode = EnumStopMode.POINT;
+                                    stp.recalculate = true;
+                                    stops.add(stp);
+                                    Trade.setStop(db, this.getStrategy() + ":" + orderid + ":" + "Order", "opentrades", stops);
 
+                                }
                             }
-                        }
-                        break;
-                    case SELL:
-                        for (int nearid : nearorderidlist) {
-                            if (nearid >= 0) {
-                                order.put("id", nearid);
-                                double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol,nearid, nearfutureid, EnumOrderSide.SELL, "CALL",getTickSize());
-                                order.put("limitprice", limitprice);
-                                order.put("side", EnumOrderSide.SELL);
-                                order.put("size", size);
-                                order.put("reason", EnumOrderReason.REGULAREXIT);
-                                order.put("orderstage", EnumOrderStage.INIT);
-                                order.put("scale", "FALSE");
-                                order.put("dynamicorderduration", this.getDynamicOrderDuration());
-                                order.put("expiretime", 0);
-                                order.put("log", "SELL" + delimiter + tradetuple.get(1));
-                                logger.log(Level.INFO, "501,Strategy SELL,{0}", new Object[]{getStrategy() + delimiter + "SELL" + delimiter + Parameters.symbol.get(nearid).getDisplayname()});
-                                orderid = exit(order);
+                            break;
+                        case SELL:
+                            for (int nearid : nearorderidlist) {
+                                if (nearid >= 0) {
+                                    order.put("id", nearid);
+                                    double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol, nearid, nearfutureid, EnumOrderSide.SELL, "CALL", getTickSize());
+                                    order.put("limitprice", limitprice);
+                                    order.put("side", EnumOrderSide.SELL);
+                                    order.put("size", size);
+                                    order.put("reason", EnumOrderReason.REGULAREXIT);
+                                    order.put("orderstage", EnumOrderStage.INIT);
+                                    order.put("scale", "FALSE");
+                                    order.put("dynamicorderduration", this.getDynamicOrderDuration());
+                                    order.put("expiretime", 0);
+                                    order.put("log", "SELL" + delimiter + tradetuple.get(1));
+                                    logger.log(Level.INFO, "501,Strategy SELL,{0}", new Object[]{getStrategy() + delimiter + "SELL" + delimiter + Parameters.symbol.get(nearid).getDisplayname()});
+                                    orderid = exit(order);
+                                }
                             }
-                        }
-                        break;
-                    case SHORT:
-                        for (int id : orderidlist) {
-                            if (id >= 0) {
-                                order.put("id", id);
-                                double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol,id, futureid, EnumOrderSide.BUY, "PUT",getTickSize());
-                                order.put("limitprice", limitprice);
-                                order.put("side", EnumOrderSide.BUY);
-                                order.put("size", size);
-                                order.put("reason", EnumOrderReason.REGULARENTRY);
-                                order.put("scale", "FALSE");
-                                order.put("orderstage", EnumOrderStage.INIT);
-                                order.put("dynamicorderduration", this.getDynamicOrderDuration());
-                                order.put("expiretime", 0);
-                                order.put("log", "SHORT" + delimiter + tradetuple.get(1));
-                                logger.log(Level.INFO, "501,Strategy SHORT,{0}", new Object[]{getStrategy() + delimiter + "SHORT" + delimiter + Parameters.symbol.get(id).getDisplayname()});
-                                orderid = entry(order);
-                                Trade.setStop(db, this.getStrategy() + ":" + orderid + ":" + "Order", "opentrades", stops);
-                                stp.stopValue = sl;
-                                stp.underlyingEntry = Parameters.symbol.get(symbolid).getLastPrice();
-                                stp.stopType = EnumStopType.STOPLOSS;
-                                stp.stopMode = EnumStopMode.POINT;
-                                stp.recalculate = true;
-                                stops.add(stp);
-                                Trade.setStop(db, this.getStrategy() + ":" + orderid + ":" + "Order", "opentrades", stops);
+                            break;
+                        case SHORT:
+                            for (int id : orderidlist) {
+                                if (id >= 0) {
+                                    order.put("id", id);
+                                    double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol, id, futureid, EnumOrderSide.BUY, "PUT", getTickSize());
+                                    order.put("limitprice", limitprice);
+                                    order.put("side", EnumOrderSide.BUY);
+                                    order.put("size", size);
+                                    order.put("reason", EnumOrderReason.REGULARENTRY);
+                                    order.put("scale", "FALSE");
+                                    order.put("orderstage", EnumOrderStage.INIT);
+                                    order.put("dynamicorderduration", this.getDynamicOrderDuration());
+                                    order.put("expiretime", 0);
+                                    order.put("log", "SHORT" + delimiter + tradetuple.get(1));
+                                    logger.log(Level.INFO, "501,Strategy SHORT,{0}", new Object[]{getStrategy() + delimiter + "SHORT" + delimiter + Parameters.symbol.get(id).getDisplayname()});
+                                    orderid = entry(order);
+                                    Trade.setStop(db, this.getStrategy() + ":" + orderid + ":" + "Order", "opentrades", stops);
+                                    stp.stopValue = sl;
+                                    stp.underlyingEntry = Parameters.symbol.get(symbolid).getLastPrice();
+                                    stp.stopType = EnumStopType.STOPLOSS;
+                                    stp.stopMode = EnumStopMode.POINT;
+                                    stp.recalculate = true;
+                                    stops.add(stp);
+                                    Trade.setStop(db, this.getStrategy() + ":" + orderid + ":" + "Order", "opentrades", stops);
+                                }
                             }
-                        }
-                        break;
-                    case COVER:
-                        for (int nearid : nearorderidlist) {
-                            if (nearid >= 0) {
-                                order.put("id", nearid);
-                                double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol,nearid, nearfutureid, EnumOrderSide.SELL, "PUT",getTickSize());
-                                order.put("limitprice", limitprice);
-                                order.put("side", EnumOrderSide.SELL);
-                                order.put("size", size);
-                                order.put("reason", EnumOrderReason.REGULAREXIT);
-                                order.put("scale", "FALSE");
-                                order.put("orderstage", EnumOrderStage.INIT);
-                                order.put("dynamicorderduration", this.getDynamicOrderDuration());
-                                order.put("expiretime", 0);
-                                order.put("log", "COVER" + delimiter + tradetuple.get(1));
-                                logger.log(Level.INFO, "501,Strategy COVER,{0}", new Object[]{getStrategy() + delimiter + "COVER" + delimiter + Parameters.symbol.get(nearid).getDisplayname()});
-                                orderid = exit(order);
+                            break;
+                        case COVER:
+                            for (int nearid : nearorderidlist) {
+                                if (nearid >= 0) {
+                                    order.put("id", nearid);
+                                    double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol, nearid, nearfutureid, EnumOrderSide.SELL, "PUT", getTickSize());
+                                    order.put("limitprice", limitprice);
+                                    order.put("side", EnumOrderSide.SELL);
+                                    order.put("size", size);
+                                    order.put("reason", EnumOrderReason.REGULAREXIT);
+                                    order.put("scale", "FALSE");
+                                    order.put("orderstage", EnumOrderStage.INIT);
+                                    order.put("dynamicorderduration", this.getDynamicOrderDuration());
+                                    order.put("expiretime", 0);
+                                    order.put("log", "COVER" + delimiter + tradetuple.get(1));
+                                    logger.log(Level.INFO, "501,Strategy COVER,{0}", new Object[]{getStrategy() + delimiter + "COVER" + delimiter + Parameters.symbol.get(nearid).getDisplayname()});
+                                    orderid = exit(order);
+                                }
                             }
-                        }
-                        break;
-                    default:
-                        break;
+                            break;
+                        default:
+                            break;
+                    }
                 }
+
+
             }
         } catch (Exception e) {
             logger.log(Level.SEVERE, null, e);
         }
     }
-
     TimerTask rollProcessingTask = new TimerTask() {
         @Override
         public void run() {
