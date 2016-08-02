@@ -220,8 +220,9 @@ public class OptSale extends Strategy implements TradeListener {
                                     + Utilities.formatDouble(calcPremium, df));
 
                             if (annualizedRet > thresholdReturn && s.getLastVol() > 1.2 * historicalVol && filteredOrderList.size() == 0) {
-                                filteredOrderList.add(i);
-                            } else if (annualizedRet > thresholdReturn && s.getLastVol() > 1.2 * historicalVol && metric < -0.3 && filteredOrderList.size() == 0) {
+                            //if(true){
+                            filteredOrderList.add(i);
+                            } else if (annualizedRet > thresholdReturn && metric < -0.3 && filteredOrderList.size() == 0) {
                                 filteredOrderList.add(i);
                             }
                         }
@@ -231,7 +232,7 @@ public class OptSale extends Strategy implements TradeListener {
                             int actualPositionSize = Math.abs(Utilities.getNetPositionFromOptions(Parameters.symbol, getPosition(), i));
                             if(actualPositionSize<maxPositionSize){
                             int position = getPosition().get(i).getPosition();
-                            db.lpush("trades:" + getStrategy(), Parameters.symbol.get(i).getDisplayname() + ":" + getNumberOfContracts() + ":short" + ":" + position);
+                            db.lpush("trades:" + getStrategy(), Parameters.symbol.get(i).getDisplayname() + ":" + getNumberOfContracts() + ":SHORT" + ":0:" + position);
                         }else {
                                 logger.log(Level.INFO,"501,{0},{1},{2},{3},{4},{5},Position Limit Hit. No Order Placed. Current Position Size: {6}",
                                         new Object[]{getStrategy(),"Order",
@@ -289,9 +290,6 @@ public class OptSale extends Strategy implements TradeListener {
                 orderidlist.add(newid);
                 nearorderidlist = orderidlist;
 
-                if (rollover) {
-                    nearfutureid = Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, symbolid, this.expiryNearMonth);
-                }
                 for (int i : orderidlist) {
                     this.initSymbol(i);
                 }
@@ -360,7 +358,7 @@ public class OptSale extends Strategy implements TradeListener {
                                     order.put("id", id);
                                     double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol, id, futureid, EnumOrderSide.BUY, "PUT", getTickSize());
                                     order.put("limitprice", limitprice);
-                                    order.put("side", EnumOrderSide.BUY);
+                                    order.put("side", EnumOrderSide.SHORT);
                                     order.put("size", size);
                                     order.put("reason", EnumOrderReason.REGULARENTRY);
                                     order.put("scale", scaleEntry);
@@ -379,7 +377,7 @@ public class OptSale extends Strategy implements TradeListener {
                                     order.put("id", nearid);
                                     double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol, nearid, nearfutureid, EnumOrderSide.SELL, "PUT", getTickSize());
                                     order.put("limitprice", limitprice);
-                                    order.put("side", EnumOrderSide.SELL);
+                                    order.put("side", EnumOrderSide.COVER);
                                     order.put("size", size);
                                     order.put("reason", EnumOrderReason.REGULAREXIT);
                                     order.put("scale", scaleExit);
@@ -460,7 +458,7 @@ public class OptSale extends Strategy implements TradeListener {
                             order.put("id", id);
                             double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol, id, indexid, EnumOrderSide.COVER, "CALL", getTickSize());
                             order.put("limitprice", limitprice);
-                            order.put("side", EnumOrderSide.BUY);
+                            order.put("side", EnumOrderSide.COVER);
                             order.put("size", position);
                             order.put("reason", EnumOrderReason.REGULARENTRY);
                             order.put("orderstage", EnumOrderStage.INIT);
@@ -475,7 +473,7 @@ public class OptSale extends Strategy implements TradeListener {
                         if (optionReturn < 0.1 || (strikePrice + optionDte * avgMovePerDayExit) > futurePrice) {
                             double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol, id, indexid, EnumOrderSide.COVER, "PUT", getTickSize());
                             order.put("limitprice", limitprice);
-                            order.put("side", EnumOrderSide.BUY);
+                            order.put("side", EnumOrderSide.COVER);
                             order.put("size", position);
                             order.put("reason", EnumOrderReason.REGULARENTRY);
                             order.put("orderstage", EnumOrderStage.INIT);
