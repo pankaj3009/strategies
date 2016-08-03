@@ -242,7 +242,7 @@ public class Manager extends Strategy {
                                         order.put("expiretime", 0);
                                         order.put("log", "SELL" + delimiter + tradetuple.get(1));
                                         logger.log(Level.INFO, "501,Strategy SELL,{0}", new Object[]{getStrategy() + delimiter + "SELL" + delimiter + Parameters.symbol.get(nearid).getDisplayname()});
-                                        orderid = exit(order);
+                                        exit(order);
                                     }
                                 }
                                 break;
@@ -288,7 +288,7 @@ public class Manager extends Strategy {
                                         order.put("expiretime", 0);
                                         order.put("log", "COVER" + delimiter + tradetuple.get(1));
                                         logger.log(Level.INFO, "501,Strategy COVER,{0}", new Object[]{getStrategy() + delimiter + "COVER" + delimiter + Parameters.symbol.get(nearid).getDisplayname()});
-                                        orderid = exit(order);
+                                        exit(order);
                                     }
                                 }
                                 break;

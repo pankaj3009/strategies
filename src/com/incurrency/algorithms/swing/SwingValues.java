@@ -19,13 +19,13 @@ public class SwingValues extends javax.swing.JFrame {
     
     String contractSize;
     boolean stopOrders;
-    SwingOld a;
+
     
-    public SwingValues(SwingOld a) {
-        this.a=a;
-        this.stopOrders=a.isStopOrders();
+    public SwingValues() {
+        //this.a=a;
+        //this.stopOrders=a.isStopOrders();
         initComponents();
-        contractSize=String.valueOf(a.getNumberOfContracts());
+        //contractSize=String.valueOf(a.getNumberOfContracts());
         txtContractCount.setText(contractSize);
         if (stopOrders) {
             this.btnStopOrdersTrue.setSelected(true);
@@ -34,10 +34,7 @@ public class SwingValues extends javax.swing.JFrame {
         }
     }
     
-    public SwingValues(){
-        
-    }
-
+   
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -272,12 +269,12 @@ public class SwingValues extends javax.swing.JFrame {
     }//GEN-LAST:event_txtStopLossActionPerformed
 
     private void btnUpdateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUpdateActionPerformed
-        a.setNumberOfContracts(Integer.valueOf(this.txtContractCount.getText()));
-         if(btnStopOrdersTrue.isSelected()){
-            a.setStopOrders(true);
-        }else{
-            a.setStopOrders(false);
-        }
+//        a.setNumberOfContracts(Integer.valueOf(this.txtContractCount.getText()));
+//         if(btnStopOrdersTrue.isSelected()){
+//            a.setStopOrders(true);
+//        }else{
+//            a.setStopOrders(false);
+//        }
         
     }//GEN-LAST:event_btnUpdateActionPerformed
 

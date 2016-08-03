@@ -359,7 +359,7 @@ public class OptSale extends Strategy implements TradeListener {
                                         order.put("expiretime", 0);
                                         order.put("log", "SELL" + delimiter + tradetuple.get(1));
                                         logger.log(Level.INFO, "501,Strategy SELL,{0}", new Object[]{getStrategy() + delimiter + "SELL" + delimiter + Parameters.symbol.get(nearid).getDisplayname()});
-                                        orderid = exit(order);
+                                        exit(order);
                                     }
                                 }
                                 break;
@@ -397,7 +397,7 @@ public class OptSale extends Strategy implements TradeListener {
                                         order.put("expiretime", 0);
                                         order.put("log", "COVER" + delimiter + tradetuple.get(1));
                                         logger.log(Level.INFO, "501,Strategy COVER,{0}", new Object[]{getStrategy() + delimiter + "COVER" + delimiter + Parameters.symbol.get(nearid).getDisplayname()});
-                                        orderid = exit(order);
+                                        exit(order);
                                     }
                                 }
                                 break;
@@ -479,7 +479,7 @@ public class OptSale extends Strategy implements TradeListener {
                             order.put("dynamicorderduration", this.getDynamicOrderDuration());
                             order.put("expiretime", 0);
                             logger.log(Level.INFO, "501,Strategy BUY,{0}", new Object[]{getStrategy() + delimiter + "BUY" + delimiter + Parameters.symbol.get(id).getDisplayname()});
-                            int orderid = exit(order);
+                            exit(order);
                         }
                         break;
                     case "PUT":
@@ -494,7 +494,7 @@ public class OptSale extends Strategy implements TradeListener {
                             order.put("dynamicorderduration", this.getDynamicOrderDuration());
                             order.put("expiretime", 0);
                             logger.log(Level.INFO, "501,Strategy BUY,{0}", new Object[]{getStrategy() + delimiter + "BUY" + delimiter + Parameters.symbol.get(id).getDisplayname()});
-                            int orderid = exit(order);
+                            exit(order);
                         }
                         break;
                     default:

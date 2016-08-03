@@ -141,7 +141,8 @@ public class CSV extends Strategy {
                             case SELL:
                             case COVER:
                                 internalorderid = getInternalOrderID();
-                                int tempinternalOrderID = this.getFirstInternalOpenOrder(id, sside, "Order");
+                                int tempinternalOrderID=0;
+                                //  int tempinternalOrderID = this.getFirstInternalOpenOrder(id, sside, "Order");
                                 entryID = tempinternalOrderID;
                                 exitID = internalorderid;
 //                                parentorderid=Trade.getParentExitOrderIDInternal(getTrades(), tempinternalOrderID);
@@ -179,7 +180,8 @@ public class CSV extends Strategy {
                         case SELL:
                         case COVER:
                             internalorderid = getInternalOrderID();
-                            int tempinternalOrderID = this.getFirstInternalOpenOrder(id, sside, "Order");
+                            int tempinternalOrderID=0;
+                            //int tempinternalOrderID = this.getFirstInternalOpenOrder(id, sside, "Order");
                             entryID = tempinternalOrderID;
                             exitID = internalorderid;
 //                            parentorderid=Trade.getParentExitOrderIDInternal(getTrades(), tempinternalOrderID);
