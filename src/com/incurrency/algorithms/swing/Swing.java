@@ -169,6 +169,7 @@ public class Swing extends Strategy implements TradeListener {
             if (this.getStrategySymbols().contains(id) && !Parameters.symbol.get(id).getType().equals(referenceCashType)) {
                 if (this.getPosition().get(id).getPosition() > 0 && this.getPosition().get(id).getStrategy().equalsIgnoreCase(this.getStrategy())) {
                     int referenceid = Utilities.getReferenceID(Parameters.symbol, id, referenceCashType);
+                    int futureid = Utilities.getFutureIDFromExchangeSymbol(Parameters.symbol, referenceid, expiry);
                     Double tradePrice = this.getPosition().get(id).getPrice();
                     ArrayList<Stop> stops = Trade.getStop(db, this.getStrategy() + ":" + this.getFirstInternalOpenOrder(id, EnumOrderSide.SELL, "Order") + ":Order");
                     boolean tpTrigger = false;
@@ -215,7 +216,7 @@ public class Swing extends Strategy implements TradeListener {
                         order.put("size", size);
                         order.put("type", EnumOrderType.CUSTOMREL);
                         String right = Parameters.symbol.get(id).getDisplayname().contains("CALL") ? "CALL" : "PUT";
-                        double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol, id, referenceid, EnumOrderSide.SELL, right, getTickSize());
+                        double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol, id, futureid, EnumOrderSide.SELL, right, getTickSize());
                         order.put("limitprice", limitprice);
                         if (slTrigger) {
                             order.put("reason", EnumOrderReason.SL);
