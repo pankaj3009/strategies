@@ -307,11 +307,6 @@ public class OptSale extends Strategy implements TradeListener {
                     for (int i : nearorderidlist) {
                         this.initSymbol(i);
                     }
-                    int initPositionSize = Integer.valueOf(tradetuple.get(1).split(":")[4]);
-                    int actualPositionSize = Utilities.getNetPositionFromOptions(Parameters.symbol, this.getPosition(), orderidlist.get(0));
-//            int actualPositionSize = this.getPosition().get(id) == null ? 0 : this.getPosition().get(id).getPosition();
-                    int compensation = initPositionSize - actualPositionSize;
-                    size = (side == EnumOrderSide.BUY || side == EnumOrderSide.COVER) ? size + compensation : Math.abs(-size + compensation);
                     /*
                      * IF initpositionsize = 100, actual positionsize=0, we get a buy of 100. comp=100, size=200
                      * IF initpositionsize=0, actualpositionsize=100, we get buy of 100, comp=-100, size=0, probably a duplicate trade
