@@ -85,6 +85,7 @@ public class OptSale extends Strategy implements TradeListener {
         if (Subscribe.tes != null) {
             Subscribe.tes.addTradeListener(this);
         }
+        MainAlgorithm.tes.addTradeListener(this);
         Timer eodProcessing;
         Calendar cal = Calendar.getInstance();
         cal.setTime(new Date());
@@ -452,18 +453,18 @@ public class OptSale extends Strategy implements TradeListener {
     @Override
     public void tradeReceived(TradeEvent event) {
         Integer id = event.getSymbolID();
-        if (getStrategySymbols().contains(id) && getPosition().get(id).getPosition() > 0) {
+        if (getStrategySymbols().contains(id) && getPosition().get(id).getPosition() != 0) {
             int position = getPosition().get(id).getPosition();
             long optionDte = Parameters.symbol.get(id).getBdte();
             String right = Parameters.symbol.get(id).getRight();
             if (Parameters.symbol.get(id).getCdte() > 0) {
                 double futurePrice = Parameters.symbol.get(futureid).getLastPrice();
                 double strikePrice = Utilities.getDouble(Parameters.symbol.get(id).getOption(), 0);
-                double optionReturn = Parameters.symbol.get(id).getLastPrice() * 365 / (Parameters.symbol.get(indexid).getCdte() * futurePrice * margin);
+                double optionReturn = Parameters.symbol.get(id).getLastPrice() * 365 / (Parameters.symbol.get(id).getCdte() * futurePrice * margin);
                 HashMap<String, Object> order = new HashMap<>();
                 switch (right) {
                     case "CALL":
-                        if (optionReturn < thresholdReturnExit || (strikePrice - optionDte * avgMovePerDayExit) < futurePrice) {
+                        if (optionReturn < thresholdReturnExit || (strikePrice - (optionDte * avgMovePerDayExit*futurePrice/100)) < futurePrice) {
                             order.put("type", ordType);
                             order.put("expiretime", getMaxOrderDuration());
                             order.put("dynamicorderduration", getDynamicOrderDuration());
@@ -478,12 +479,12 @@ public class OptSale extends Strategy implements TradeListener {
                             order.put("scale", this.scaleExit);
                             order.put("dynamicorderduration", this.getDynamicOrderDuration());
                             order.put("expiretime", 0);
-                            logger.log(Level.INFO, "501,Strategy BUY,{0}", new Object[]{getStrategy() + delimiter + "BUY" + delimiter + Parameters.symbol.get(id).getDisplayname()});
+                            logger.log(Level.INFO, "501,Strategy BUY,{0},", new Object[]{getStrategy() + delimiter + "BUY" + delimiter + Parameters.symbol.get(id).getDisplayname()+delimiter+optionReturn});
                             exit(order);
                         }
                         break;
                     case "PUT":
-                        if (optionReturn < thresholdReturnExit || (strikePrice + optionDte * avgMovePerDayExit) > futurePrice) {
+                        if (optionReturn < thresholdReturnExit || (strikePrice + (optionDte * avgMovePerDayExit*futurePrice)/100) > futurePrice) {
                             double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol, id, indexid, EnumOrderSide.COVER, "PUT", getTickSize());
                             order.put("limitprice", limitprice);
                             order.put("side", EnumOrderSide.COVER);
@@ -493,7 +494,7 @@ public class OptSale extends Strategy implements TradeListener {
                             order.put("scale", scaleExit);
                             order.put("dynamicorderduration", this.getDynamicOrderDuration());
                             order.put("expiretime", 0);
-                            logger.log(Level.INFO, "501,Strategy BUY,{0}", new Object[]{getStrategy() + delimiter + "BUY" + delimiter + Parameters.symbol.get(id).getDisplayname()});
+                            logger.log(Level.INFO, "501,Strategy BUY,{0}", new Object[]{getStrategy() + delimiter + "BUY" + delimiter + Parameters.symbol.get(id).getDisplayname()+delimiter+optionReturn});
                             exit(order);
                         }
                         break;

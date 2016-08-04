@@ -80,7 +80,7 @@ public class Swing extends Strategy implements TradeListener {
         if (Subscribe.tes != null) {
             Subscribe.tes.addTradeListener(this);
         }
-
+        MainAlgorithm.tes.addTradeListener(this);
         if (testingTimer > 0) {
             Calendar tmpCalendar = Calendar.getInstance(TimeZone.getTimeZone(Algorithm.timeZone));
             tmpCalendar.add(Calendar.MINUTE, testingTimer);
