@@ -4,6 +4,7 @@
  */
 package com.incurrency.optsale;
 
+import com.incurrency.RatesClient.Subscribe;
 import com.incurrency.framework.Algorithm;
 import com.incurrency.framework.BeanConnection;
 import com.incurrency.framework.BeanSymbol;
@@ -78,7 +79,11 @@ public class OptSale extends Strategy implements TradeListener {
         loadParameters(p);
         String[] tempStrategyArray = parameterFile.split("\\.")[0].split("-|_");
         for (BeanConnection c : Parameters.connection) {
+            c.getWrapper().addTradeListener(this);
             c.initializeConnection(tempStrategyArray[tempStrategyArray.length - 1], -1);
+        }
+        if (Subscribe.tes != null) {
+            Subscribe.tes.addTradeListener(this);
         }
         Timer eodProcessing;
         Calendar cal = Calendar.getInstance();
