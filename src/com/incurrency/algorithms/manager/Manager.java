@@ -197,6 +197,7 @@ public class Manager extends Strategy {
                         order.put("expiretime", getMaxOrderDuration());
                         order.put("dynamicorderduration", getDynamicOrderDuration());
                         order.put("maxslippage", this.getMaxSlippageEntry());
+                        order.put("disclosedsize",Parameters.symbol.get(futureid).getMinsize());
                         int orderid;
                         ArrayList<Stop> stops = new ArrayList<>();
                         Stop stp = new Stop();
