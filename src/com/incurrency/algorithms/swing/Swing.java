@@ -408,16 +408,17 @@ public class Swing extends Strategy implements TradeListener {
                                     order.put("dynamicorderduration", this.getDynamicOrderDuration());
                                     order.put("expiretime", 0);
                                     order.put("log", "BUY" + delimiter + tradetuple.get(1));
-                                    logger.log(Level.INFO, "501,Strategy BUY,{0}", new Object[]{getStrategy() + delimiter + "BUY" + delimiter + Parameters.symbol.get(id).getDisplayname()});
-                                    orderid = entry(order);
-                                    stp.stopValue = sl;
-                                    stp.underlyingEntry = Parameters.symbol.get(symbolid).getLastPrice();
-                                    stp.stopType = EnumStopType.STOPLOSS;
-                                    stp.stopMode = EnumStopMode.POINT;
-                                    stp.recalculate = true;
-                                    stops.add(stp);
-                                    Trade.setStop(db, this.getStrategy() + ":" + orderid + ":" + "Order", "opentrades", stops);
-
+                                    if (limitprice > 0) {
+                                        logger.log(Level.INFO, "501,Strategy BUY,{0}", new Object[]{getStrategy() + delimiter + "BUY" + delimiter + Parameters.symbol.get(id).getDisplayname()});
+                                        orderid = entry(order);
+                                        stp.stopValue = sl;
+                                        stp.underlyingEntry = Parameters.symbol.get(symbolid).getLastPrice();
+                                        stp.stopType = EnumStopType.STOPLOSS;
+                                        stp.stopMode = EnumStopMode.POINT;
+                                        stp.recalculate = true;
+                                        stops.add(stp);
+                                        Trade.setStop(db, this.getStrategy() + ":" + orderid + ":" + "Order", "opentrades", stops);
+                                    }
                                 }
                             }
                             break;
@@ -435,8 +436,10 @@ public class Swing extends Strategy implements TradeListener {
                                     order.put("dynamicorderduration", this.getDynamicOrderDuration());
                                     order.put("expiretime", 0);
                                     order.put("log", "SELL" + delimiter + tradetuple.get(1));
-                                    logger.log(Level.INFO, "501,Strategy SELL,{0}", new Object[]{getStrategy() + delimiter + "SELL" + delimiter + Parameters.symbol.get(nearid).getDisplayname()});
-                                    exit(order);
+                                    if (limitprice > 0) {
+                                        logger.log(Level.INFO, "501,Strategy SELL,{0}", new Object[]{getStrategy() + delimiter + "SELL" + delimiter + Parameters.symbol.get(nearid).getDisplayname()});
+                                        exit(order);
+                                    }
                                 }
                             }
                             break;
@@ -454,16 +457,18 @@ public class Swing extends Strategy implements TradeListener {
                                     order.put("dynamicorderduration", this.getDynamicOrderDuration());
                                     order.put("expiretime", 0);
                                     order.put("log", "SHORT" + delimiter + tradetuple.get(1));
-                                    logger.log(Level.INFO, "501,Strategy SHORT,{0}", new Object[]{getStrategy() + delimiter + "SHORT" + delimiter + Parameters.symbol.get(id).getDisplayname()});
-                                    orderid = entry(order);
-                                    Trade.setStop(db, this.getStrategy() + ":" + orderid + ":" + "Order", "opentrades", stops);
-                                    stp.stopValue = sl;
-                                    stp.underlyingEntry = Parameters.symbol.get(symbolid).getLastPrice();
-                                    stp.stopType = EnumStopType.STOPLOSS;
-                                    stp.stopMode = EnumStopMode.POINT;
-                                    stp.recalculate = true;
-                                    stops.add(stp);
-                                    Trade.setStop(db, this.getStrategy() + ":" + orderid + ":" + "Order", "opentrades", stops);
+                                    if (limitprice > 0) {
+                                        logger.log(Level.INFO, "501,Strategy SHORT,{0}", new Object[]{getStrategy() + delimiter + "SHORT" + delimiter + Parameters.symbol.get(id).getDisplayname()});
+                                        orderid = entry(order);
+                                        Trade.setStop(db, this.getStrategy() + ":" + orderid + ":" + "Order", "opentrades", stops);
+                                        stp.stopValue = sl;
+                                        stp.underlyingEntry = Parameters.symbol.get(symbolid).getLastPrice();
+                                        stp.stopType = EnumStopType.STOPLOSS;
+                                        stp.stopMode = EnumStopMode.POINT;
+                                        stp.recalculate = true;
+                                        stops.add(stp);
+                                        Trade.setStop(db, this.getStrategy() + ":" + orderid + ":" + "Order", "opentrades", stops);
+                                    }
                                 }
                             }
                             break;
@@ -481,8 +486,10 @@ public class Swing extends Strategy implements TradeListener {
                                     order.put("dynamicorderduration", this.getDynamicOrderDuration());
                                     order.put("expiretime", 0);
                                     order.put("log", "COVER" + delimiter + tradetuple.get(1));
-                                    logger.log(Level.INFO, "501,Strategy COVER,{0}", new Object[]{getStrategy() + delimiter + "COVER" + delimiter + Parameters.symbol.get(nearid).getDisplayname()});
-                                    exit(order);
+                                    if (limitprice > 0) {
+                                        logger.log(Level.INFO, "501,Strategy COVER,{0}", new Object[]{getStrategy() + delimiter + "COVER" + delimiter + Parameters.symbol.get(nearid).getDisplayname()});
+                                        exit(order);
+                                    }
                                 }
                             }
                             break;

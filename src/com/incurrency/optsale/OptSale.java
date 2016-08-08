@@ -340,8 +340,10 @@ public class OptSale extends Strategy implements TradeListener {
                                         order.put("dynamicorderduration", this.getDynamicOrderDuration());
                                         order.put("expiretime", 0);
                                         order.put("log", "BUY" + delimiter + tradetuple.get(1));
-                                        logger.log(Level.INFO, "501,Strategy BUY,{0}", new Object[]{getStrategy() + delimiter + "BUY" + delimiter + Parameters.symbol.get(id).getDisplayname()});
-                                        orderid = entry(order);
+                                        if (limitprice > 0) {
+                                            logger.log(Level.INFO, "501,Strategy BUY,{0}", new Object[]{getStrategy() + delimiter + "BUY" + delimiter + Parameters.symbol.get(id).getDisplayname()});
+                                            orderid = entry(order);
+                                        }
                                     }
                                 }
                                 break;
@@ -359,8 +361,10 @@ public class OptSale extends Strategy implements TradeListener {
                                         order.put("dynamicorderduration", this.getDynamicOrderDuration());
                                         order.put("expiretime", 0);
                                         order.put("log", "SELL" + delimiter + tradetuple.get(1));
-                                        logger.log(Level.INFO, "501,Strategy SELL,{0}", new Object[]{getStrategy() + delimiter + "SELL" + delimiter + Parameters.symbol.get(nearid).getDisplayname()});
-                                        exit(order);
+                                        if (limitprice > 0) {
+                                            logger.log(Level.INFO, "501,Strategy SELL,{0}", new Object[]{getStrategy() + delimiter + "SELL" + delimiter + Parameters.symbol.get(nearid).getDisplayname()});
+                                            exit(order);
+                                        }
                                     }
                                 }
                                 break;
@@ -378,8 +382,10 @@ public class OptSale extends Strategy implements TradeListener {
                                         order.put("dynamicorderduration", this.getDynamicOrderDuration());
                                         order.put("expiretime", 0);
                                         order.put("log", "SHORT" + delimiter + tradetuple.get(1));
-                                        logger.log(Level.INFO, "501,Strategy SHORT,{0}", new Object[]{getStrategy() + delimiter + "SHORT" + delimiter + Parameters.symbol.get(id).getDisplayname()});
-                                        orderid = entry(order);
+                                        if (limitprice > 0) {
+                                            logger.log(Level.INFO, "501,Strategy SHORT,{0}", new Object[]{getStrategy() + delimiter + "SHORT" + delimiter + Parameters.symbol.get(id).getDisplayname()});
+                                            orderid = entry(order);
+                                        }
                                     }
                                 }
                                 break;
@@ -397,8 +403,10 @@ public class OptSale extends Strategy implements TradeListener {
                                         order.put("dynamicorderduration", this.getDynamicOrderDuration());
                                         order.put("expiretime", 0);
                                         order.put("log", "COVER" + delimiter + tradetuple.get(1));
-                                        logger.log(Level.INFO, "501,Strategy COVER,{0}", new Object[]{getStrategy() + delimiter + "COVER" + delimiter + Parameters.symbol.get(nearid).getDisplayname()});
-                                        exit(order);
+                                        if (limitprice > 0) {
+                                            logger.log(Level.INFO, "501,Strategy COVER,{0}", new Object[]{getStrategy() + delimiter + "COVER" + delimiter + Parameters.symbol.get(nearid).getDisplayname()});
+                                            exit(order);
+                                        }
                                     }
                                 }
                                 break;
@@ -461,14 +469,14 @@ public class OptSale extends Strategy implements TradeListener {
                 double futurePrice = Parameters.symbol.get(futureid).getLastPrice();
                 double strikePrice = Utilities.getDouble(Parameters.symbol.get(id).getOption(), 0);
                 double optionReturn = Parameters.symbol.get(id).getLastPrice() * 365 / (Parameters.symbol.get(id).getCdte() * futurePrice * margin);
-                if(optionReturn==0){
-                    logger.log(Level.INFO,"Option Return for Symbol:{0}, lastPrice:{1}, DTE: {2} is 0",
-                            new Object[]{Parameters.symbol.get(id).getDisplayname(),Parameters.symbol.get(id).getLastPrice(),Parameters.symbol.get(id).getCdte()});
+                if (optionReturn == 0) {
+                    logger.log(Level.INFO, "Option Return for Symbol:{0}, lastPrice:{1}, DTE: {2} is 0",
+                            new Object[]{Parameters.symbol.get(id).getDisplayname(), Parameters.symbol.get(id).getLastPrice(), Parameters.symbol.get(id).getCdte()});
                 }
                 HashMap<String, Object> order = new HashMap<>();
                 switch (right) {
                     case "CALL":
-                        if ((optionReturn < thresholdReturnExit || (strikePrice - (optionDte * avgMovePerDayExit*futurePrice/100)) < futurePrice) && optionReturn >0){
+                        if ((optionReturn < thresholdReturnExit || (strikePrice - (optionDte * avgMovePerDayExit * futurePrice / 100)) < futurePrice) && optionReturn > 0) {
                             order.put("type", ordType);
                             order.put("expiretime", getMaxOrderDuration());
                             order.put("dynamicorderduration", getDynamicOrderDuration());
@@ -483,12 +491,14 @@ public class OptSale extends Strategy implements TradeListener {
                             order.put("scale", this.scaleExit);
                             order.put("dynamicorderduration", this.getDynamicOrderDuration());
                             order.put("expiretime", 0);
-                            logger.log(Level.INFO, "501,Strategy BUY,{0},", new Object[]{getStrategy() + delimiter + "BUY" + delimiter + Parameters.symbol.get(id).getDisplayname()+delimiter+optionReturn});
-                            exit(order);
+                            if (limitprice > 0) {
+                                logger.log(Level.INFO, "501,Strategy BUY,{0},", new Object[]{getStrategy() + delimiter + "BUY" + delimiter + Parameters.symbol.get(id).getDisplayname() + delimiter + optionReturn});
+                                exit(order);
+                            }
                         }
                         break;
                     case "PUT":
-                        if ((optionReturn < thresholdReturnExit || (strikePrice + (optionDte * avgMovePerDayExit*futurePrice)/100) > futurePrice) && optionReturn>0){
+                        if ((optionReturn < thresholdReturnExit || (strikePrice + (optionDte * avgMovePerDayExit * futurePrice) / 100) > futurePrice) && optionReturn > 0) {
                             double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol, id, futureid, EnumOrderSide.COVER, "PUT", getTickSize());
                             order.put("limitprice", limitprice);
                             order.put("side", EnumOrderSide.COVER);
@@ -498,8 +508,10 @@ public class OptSale extends Strategy implements TradeListener {
                             order.put("scale", scaleExit);
                             order.put("dynamicorderduration", this.getDynamicOrderDuration());
                             order.put("expiretime", 0);
-                            logger.log(Level.INFO, "501,Strategy BUY,{0}", new Object[]{getStrategy() + delimiter + "BUY" + delimiter + Parameters.symbol.get(id).getDisplayname()+delimiter+optionReturn});
-                            exit(order);
+                            if (limitprice > 0) {
+                                logger.log(Level.INFO, "501,Strategy BUY,{0}", new Object[]{getStrategy() + delimiter + "BUY" + delimiter + Parameters.symbol.get(id).getDisplayname() + delimiter + optionReturn});
+                                exit(order);
+                            }
                         }
                         break;
                     default:
