@@ -141,6 +141,16 @@ public class OptSale extends Strategy implements TradeListener {
                 if (indexid >= 0) {
                     SimpleDateFormat sdf_yyyyMMdd = new SimpleDateFormat("yyyyMMdd");
                     SimpleDateFormat sdf_yyyy_MM_dd = new SimpleDateFormat("yyyy-MM-dd");
+                    JDate expiryDate = new JDate(sdf_yyyyMMdd.parse(expiryNearMonth));
+                long dte = Algorithm.ind.businessDaysBetween(new JDate(new Date()), expiryDate);
+                expiry = expiryNearMonth;
+                futureid = Utilities.getFutureIDFromExchangeSymbol(Parameters.symbol, indexid, expiry);
+                if (dte <= 7) {
+                    expiryDate = new JDate(sdf_yyyyMMdd.parse(expiryFarMonth));
+                    dte = Algorithm.ind.businessDaysBetween(new JDate(new Date()), expiryDate);
+                    expiry = expiryFarMonth;
+                    futureid = Utilities.getFutureIDFromExchangeSymbol(Parameters.symbol, indexid, expiry);
+                }
                     //Initialize 
                     ArrayList<Integer> allOrderList = new ArrayList<>();
                     Thread.sleep(2000);
