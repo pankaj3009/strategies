@@ -58,7 +58,7 @@ public class OptSale extends Strategy implements TradeListener {
     private Boolean scaleExit = Boolean.FALSE;
     Date entryScanDate;
     int indexid;
-    int futureid;
+    int futureid = -1;
     SimpleDateFormat sdtf_default = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     private static final Logger logger = Logger.getLogger(OptSale.class.getName());
     String indexDisplayName;
@@ -92,19 +92,39 @@ public class OptSale extends Strategy implements TradeListener {
         cal.setTimeZone(TimeZone.getTimeZone(Algorithm.timeZone));
         cal.add(Calendar.DATE, -1);
         Date priorEndDate = cal.getTime();
-        if (new Date().before(this.getEndDate()) && new Date().after(priorEndDate)) {
-            logger.log(Level.INFO, "Set EODProcessing Task at {0}", new Object[]{sdtf_default.format(entryScanDate)});
-            eodProcessing = new Timer("Timer: " + this.getStrategy() + " EODProcessing");
-            eodProcessing.schedule(eodProcessingTask, entryScanDate);
-        }
-        Timer monitor = new Timer("Timer: " + this.getStrategy() + " TradeScanner");
-        monitor.schedule(tradeScannerTask, monitoringStart);
-        File dir = new File("logs");
-        File file = new File(dir, getStrategy() + ".csv");
+        indexid = Utilities.getIDFromDisplayName(Parameters.symbol, indexDisplayName);
+        if (indexid >= 0) {
+            try {
+                SimpleDateFormat sdf_yyyyMMdd = new SimpleDateFormat("yyyyMMdd");
+                SimpleDateFormat sdf_yyyy_MM_dd = new SimpleDateFormat("yyyy-MM-dd");
+                JDate expiryDate = new JDate(sdf_yyyyMMdd.parse(expiryNearMonth));
+                long dte = Algorithm.ind.businessDaysBetween(new JDate(new Date()), expiryDate);
+                expiry = expiryNearMonth;
+                futureid = Utilities.getFutureIDFromExchangeSymbol(Parameters.symbol, indexid, expiry);
+                if (dte <= 7) {
+                    expiryDate = new JDate(sdf_yyyyMMdd.parse(expiryFarMonth));
+                    dte = Algorithm.ind.businessDaysBetween(new JDate(new Date()), expiryDate);
+                    expiry = expiryFarMonth;
+                    futureid = Utilities.getFutureIDFromExchangeSymbol(Parameters.symbol, indexid, expiry);
+                }
 
-        //if file doesnt exists, then create it
-        if (!file.exists()) {
-            TradingUtil.writeToFile(getStrategy() + ".csv", "DisplayName,DTE,LastPrice,AnnualizedReturn,Theta,Vega,Theta/Vega,YesterdayVol,CalculatedPremium");
+                if (new Date().before(this.getEndDate()) && new Date().after(priorEndDate)) {
+                    logger.log(Level.INFO, "Set EODProcessing Task at {0}", new Object[]{sdtf_default.format(entryScanDate)});
+                    eodProcessing = new Timer("Timer: " + this.getStrategy() + " EODProcessing");
+                    eodProcessing.schedule(eodProcessingTask, entryScanDate);
+                }
+                Timer monitor = new Timer("Timer: " + this.getStrategy() + " TradeScanner");
+                monitor.schedule(tradeScannerTask, monitoringStart);
+                File dir = new File("logs");
+                File file = new File(dir, getStrategy() + ".csv");
+
+                //if file doesnt exists, then create it
+                if (!file.exists()) {
+                    TradingUtil.writeToFile(getStrategy() + ".csv", "DisplayName,DTE,LastPrice,AnnualizedReturn,Theta,Vega,Theta/Vega,YesterdayVol,CalculatedPremium");
+                }
+            } catch (Exception e) {
+                logger.log(Level.SEVERE, null, e);
+            }
         }
     }
     TimerTask eodProcessingTask = new TimerTask() {
@@ -121,19 +141,6 @@ public class OptSale extends Strategy implements TradeListener {
                 if (indexid >= 0) {
                     SimpleDateFormat sdf_yyyyMMdd = new SimpleDateFormat("yyyyMMdd");
                     SimpleDateFormat sdf_yyyy_MM_dd = new SimpleDateFormat("yyyy-MM-dd");
-
-                    JDate expiryDate = new JDate(sdf_yyyyMMdd.parse(expiryNearMonth));
-                    long dte = Algorithm.ind.businessDaysBetween(new JDate(new Date()), expiryDate);
-                    expiry = expiryNearMonth;
-                    futureid = Utilities.getFutureIDFromExchangeSymbol(Parameters.symbol, indexid, expiry);
-                    if (dte <= 7) {
-                        expiryDate = new JDate(sdf_yyyyMMdd.parse(expiryFarMonth));
-                        dte = Algorithm.ind.businessDaysBetween(new JDate(new Date()), expiryDate);
-                        expiry = expiryFarMonth;
-                        futureid = Utilities.getFutureIDFromExchangeSymbol(Parameters.symbol, indexid, expiry);
-                    }
-
-
                     //Initialize 
                     ArrayList<Integer> allOrderList = new ArrayList<>();
                     Thread.sleep(2000);
@@ -465,11 +472,11 @@ public class OptSale extends Strategy implements TradeListener {
             int position = getPosition().get(id).getPosition();
             long optionDte = Parameters.symbol.get(id).getBdte();
             String right = Parameters.symbol.get(id).getRight();
-            if (Parameters.symbol.get(id).getCdte() > 0) {
+            if (Parameters.symbol.get(id).getCdte() > 0 && futureid >= 0) {
                 double futurePrice = Parameters.symbol.get(futureid).getLastPrice();
                 double strikePrice = Utilities.getDouble(Parameters.symbol.get(id).getOption(), 0);
                 double optionReturn = Parameters.symbol.get(id).getLastPrice() * 365 / (Parameters.symbol.get(id).getCdte() * futurePrice * margin);
-                if (optionReturn == 0 ||futurePrice==0) {
+                if (optionReturn == 0 || futurePrice == 0) {
                     logger.log(Level.INFO, "Option Return for Symbol:{0}, lastPrice:{1}, DTE: {2} is 0",
                             new Object[]{Parameters.symbol.get(id).getDisplayname(), Parameters.symbol.get(id).getLastPrice(), Parameters.symbol.get(id).getCdte()});
                 }
