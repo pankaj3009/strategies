@@ -469,7 +469,7 @@ public class OptSale extends Strategy implements TradeListener {
                 double futurePrice = Parameters.symbol.get(futureid).getLastPrice();
                 double strikePrice = Utilities.getDouble(Parameters.symbol.get(id).getOption(), 0);
                 double optionReturn = Parameters.symbol.get(id).getLastPrice() * 365 / (Parameters.symbol.get(id).getCdte() * futurePrice * margin);
-                if (optionReturn == 0) {
+                if (optionReturn == 0 ||futurePrice==0) {
                     logger.log(Level.INFO, "Option Return for Symbol:{0}, lastPrice:{1}, DTE: {2} is 0",
                             new Object[]{Parameters.symbol.get(id).getDisplayname(), Parameters.symbol.get(id).getLastPrice(), Parameters.symbol.get(id).getCdte()});
                 }
@@ -499,6 +499,11 @@ public class OptSale extends Strategy implements TradeListener {
                         break;
                     case "PUT":
                         if ((optionReturn < thresholdReturnExit || (strikePrice + (optionDte * avgMovePerDayExit * futurePrice) / 100) > futurePrice) && optionReturn > 0) {
+                            order.put("type", ordType);
+                            order.put("expiretime", getMaxOrderDuration());
+                            order.put("dynamicorderduration", getDynamicOrderDuration());
+                            order.put("maxslippage", this.getMaxSlippageEntry());
+                            order.put("id", id);
                             double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol, id, futureid, EnumOrderSide.COVER, "PUT", getTickSize());
                             order.put("limitprice", limitprice);
                             order.put("side", EnumOrderSide.COVER);
