@@ -313,6 +313,7 @@ public class OptSale extends Strategy implements TradeListener {
                 if (symbolid < 0) {
                     symbolid = Utilities.insertStrike(Parameters.symbol, futureid, symbol.split("_", -1)[2], symbol.split("_", -1)[3], symbol.split("_", -1)[4]);
                     this.initSymbol(symbolid);
+                    Thread.sleep(2000);
                 }
                 int localfutureid = Utilities.getFutureIDFromExchangeSymbol(Parameters.symbol, symbolid, expiry);
                 int nearfutureid = localfutureid;
