@@ -142,15 +142,15 @@ public class OptSale extends Strategy implements TradeListener {
                     SimpleDateFormat sdf_yyyyMMdd = new SimpleDateFormat("yyyyMMdd");
                     SimpleDateFormat sdf_yyyy_MM_dd = new SimpleDateFormat("yyyy-MM-dd");
                     JDate expiryDate = new JDate(sdf_yyyyMMdd.parse(expiryNearMonth));
-                long dte = Algorithm.ind.businessDaysBetween(new JDate(new Date()), expiryDate);
-                expiry = expiryNearMonth;
-                futureid = Utilities.getFutureIDFromExchangeSymbol(Parameters.symbol, indexid, expiry);
-                if (dte <= 7) {
-                    expiryDate = new JDate(sdf_yyyyMMdd.parse(expiryFarMonth));
-                    dte = Algorithm.ind.businessDaysBetween(new JDate(new Date()), expiryDate);
-                    expiry = expiryFarMonth;
+                    long dte = Algorithm.ind.businessDaysBetween(new JDate(new Date()), expiryDate);
+                    expiry = expiryNearMonth;
                     futureid = Utilities.getFutureIDFromExchangeSymbol(Parameters.symbol, indexid, expiry);
-                }
+                    if (dte <= 7) {
+                        expiryDate = new JDate(sdf_yyyyMMdd.parse(expiryFarMonth));
+                        dte = Algorithm.ind.businessDaysBetween(new JDate(new Date()), expiryDate);
+                        expiry = expiryFarMonth;
+                        futureid = Utilities.getFutureIDFromExchangeSymbol(Parameters.symbol, indexid, expiry);
+                    }
                     //Initialize 
                     ArrayList<Integer> allOrderList = new ArrayList<>();
                     Thread.sleep(2000);
@@ -310,8 +310,12 @@ public class OptSale extends Strategy implements TradeListener {
                 //tradetuple as symbol:size:side:sl
                 String symbol = tradetuple.get(1).split(":")[0];
                 int symbolid = Utilities.getIDFromDisplayName(Parameters.symbol, symbol);
-                int futureid = Utilities.getFutureIDFromExchangeSymbol(Parameters.symbol, symbolid, expiry);
-                int nearfutureid = futureid;
+                if (symbolid < 0) {
+                    symbolid = Utilities.insertStrike(Parameters.symbol, futureid, symbol.split("_", -1)[2], symbol.split("_", -1)[3], symbol.split("_", -1)[4]);
+                    this.initSymbol(symbolid);
+                }
+                int localfutureid = Utilities.getFutureIDFromExchangeSymbol(Parameters.symbol, symbolid, expiry);
+                int nearfutureid = localfutureid;
                 int size = Integer.valueOf(tradetuple.get(1).split(":")[1]);
                 EnumOrderSide side = EnumOrderSide.valueOf(tradetuple.get(1).split(":")[2]);
 
@@ -347,7 +351,7 @@ public class OptSale extends Strategy implements TradeListener {
                                 for (int id : orderidlist) {
                                     if (id >= 0) {
                                         order.put("id", id);
-                                        double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol, id, futureid, EnumOrderSide.BUY, "CALL", getTickSize());
+                                        double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol, id, localfutureid, EnumOrderSide.BUY, "CALL", getTickSize());
                                         order.put("limitprice", limitprice);
                                         order.put("side", EnumOrderSide.BUY);
                                         order.put("size", size);
@@ -389,7 +393,7 @@ public class OptSale extends Strategy implements TradeListener {
                                 for (int id : orderidlist) {
                                     if (id >= 0) {
                                         order.put("id", id);
-                                        double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol, id, futureid, EnumOrderSide.BUY, "PUT", getTickSize());
+                                        double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol, id, localfutureid, EnumOrderSide.BUY, "PUT", getTickSize());
                                         order.put("limitprice", limitprice);
                                         order.put("side", EnumOrderSide.SHORT);
                                         order.put("size", size);
