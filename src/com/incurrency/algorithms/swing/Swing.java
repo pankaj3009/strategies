@@ -312,6 +312,7 @@ public class Swing extends Strategy implements TradeListener {
     };
 
     private void scan(int symbolid, boolean today) {
+        if(!getRStrategyFile().equals("")){
         logger.log(Level.INFO, "501,Scan,{0}", new Object[]{this.getStrategy()});
         RConnection c = null;
         try {
@@ -339,7 +340,7 @@ public class Swing extends Strategy implements TradeListener {
         } catch (Exception e) {
             logger.log(Level.SEVERE, null, e);
         }
-
+        }
     }
     TimerTask tradeProcessingTask = new TimerTask() {
         @Override
