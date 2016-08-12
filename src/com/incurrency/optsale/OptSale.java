@@ -486,62 +486,68 @@ public class OptSale extends Strategy implements TradeListener {
             int position = getPosition().get(id).getPosition();
             long optionDte = Parameters.symbol.get(id).getBdte();
             String right = Parameters.symbol.get(id).getRight();
-            if (Parameters.symbol.get(id).getCdte() > 0 && futureid >= 0) {
-                double futurePrice = Parameters.symbol.get(futureid).getLastPrice();
-                double strikePrice = Utilities.getDouble(Parameters.symbol.get(id).getOption(), 0);
-                double optionReturn = Parameters.symbol.get(id).getLastPrice() * 365 / (Parameters.symbol.get(id).getCdte() * futurePrice * margin);
-                if (optionReturn == 0 || futurePrice == 0) {
-                    logger.log(Level.INFO, "Option Return for Symbol:{0}, lastPrice:{1}, DTE: {2} is 0",
-                            new Object[]{Parameters.symbol.get(id).getDisplayname(), Parameters.symbol.get(id).getLastPrice(), Parameters.symbol.get(id).getCdte()});
+            double optionReturn = 0;
+            double futurePrice = 0;
+            double strikePrice = 0;
+            if (Parameters.symbol.get(id).getCdte() > 0 && futureid >= 0 ) {
+                futurePrice = Parameters.symbol.get(futureid).getLastPrice();
+                strikePrice = Utilities.getDouble(Parameters.symbol.get(id).getOption(), 0);
+                optionReturn = Parameters.symbol.get(id).getLastPrice() * 365 / (Parameters.symbol.get(id).getCdte() * futurePrice * margin);
+                if (optionReturn == 0 || futurePrice == 0 ||strikePrice==0) {
+                    logger.log(Level.INFO, "Option Return for Symbol:{0}, lastPrice:{1}, DTE: {2} is {3}",
+                            new Object[]{Parameters.symbol.get(id).getDisplayname(), Parameters.symbol.get(id).getLastPrice(), Parameters.symbol.get(id).getCdte(), optionReturn});
+                    return;
                 }
-                HashMap<String, Object> order = new HashMap<>();
-                switch (right) {
-                    case "CALL":
-                        if ((optionReturn < thresholdReturnExit || (strikePrice - (optionDte * avgMovePerDayExit * futurePrice / 100)) < futurePrice) && optionReturn > 0) {
-                            order.put("type", ordType);
-                            order.put("expiretime", getMaxOrderDuration());
-                            order.put("dynamicorderduration", getDynamicOrderDuration());
-                            order.put("maxslippage", this.getMaxSlippageEntry());
-                            order.put("id", id);
-                            double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol, id, futureid, EnumOrderSide.COVER, "CALL", getTickSize());
-                            order.put("limitprice", limitprice);
-                            order.put("side", EnumOrderSide.COVER);
-                            order.put("size", position);
-                            order.put("reason", EnumOrderReason.REGULARENTRY);
-                            order.put("orderstage", EnumOrderStage.INIT);
-                            order.put("scale", this.scaleExit);
-                            order.put("dynamicorderduration", this.getDynamicOrderDuration());
-                            order.put("expiretime", 0);
-                            if (limitprice > 0) {
-                                logger.log(Level.INFO, "501,Strategy BUY,{0},", new Object[]{getStrategy() + delimiter + "BUY" + delimiter + Parameters.symbol.get(id).getDisplayname() + delimiter + optionReturn});
-                                exit(order);
+                if (optionReturn > 0 && futurePrice > 0 && strikePrice > 0 && optionDte>=0) {
+                    HashMap<String, Object> order = new HashMap<>();
+                    switch (right) {
+                        case "CALL":
+                            if ((optionReturn < thresholdReturnExit || (strikePrice - (optionDte * avgMovePerDayExit * futurePrice / 100)) < futurePrice) && optionReturn > 0) {
+                                order.put("type", ordType);
+                                order.put("expiretime", getMaxOrderDuration());
+                                order.put("dynamicorderduration", getDynamicOrderDuration());
+                                order.put("maxslippage", this.getMaxSlippageEntry());
+                                order.put("id", id);
+                                double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol, id, futureid, EnumOrderSide.COVER, "CALL", getTickSize());
+                                order.put("limitprice", limitprice);
+                                order.put("side", EnumOrderSide.COVER);
+                                order.put("size", position);
+                                order.put("reason", EnumOrderReason.REGULARENTRY);
+                                order.put("orderstage", EnumOrderStage.INIT);
+                                order.put("scale", this.scaleExit);
+                                order.put("dynamicorderduration", this.getDynamicOrderDuration());
+                                order.put("expiretime", 0);
+                                if (limitprice > 0) {
+                                    logger.log(Level.INFO, "501,Strategy BUY,{0},", new Object[]{getStrategy() + delimiter + "BUY" + delimiter + Parameters.symbol.get(id).getDisplayname() + delimiter + optionReturn});
+                                    exit(order);
+                                }
                             }
-                        }
-                        break;
-                    case "PUT":
-                        if ((optionReturn < thresholdReturnExit || (strikePrice + (optionDte * avgMovePerDayExit * futurePrice) / 100) > futurePrice) && optionReturn > 0) {
-                            order.put("type", ordType);
-                            order.put("expiretime", getMaxOrderDuration());
-                            order.put("dynamicorderduration", getDynamicOrderDuration());
-                            order.put("maxslippage", this.getMaxSlippageEntry());
-                            order.put("id", id);
-                            double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol, id, futureid, EnumOrderSide.COVER, "PUT", getTickSize());
-                            order.put("limitprice", limitprice);
-                            order.put("side", EnumOrderSide.COVER);
-                            order.put("size", position);
-                            order.put("reason", EnumOrderReason.REGULARENTRY);
-                            order.put("orderstage", EnumOrderStage.INIT);
-                            order.put("scale", scaleExit);
-                            order.put("dynamicorderduration", this.getDynamicOrderDuration());
-                            order.put("expiretime", 0);
-                            if (limitprice > 0) {
-                                logger.log(Level.INFO, "501,Strategy BUY,{0}", new Object[]{getStrategy() + delimiter + "BUY" + delimiter + Parameters.symbol.get(id).getDisplayname() + delimiter + optionReturn});
-                                exit(order);
+                            break;
+                        case "PUT":
+                            if ((optionReturn < thresholdReturnExit || (strikePrice + (optionDte * avgMovePerDayExit * futurePrice) / 100) > futurePrice) && optionReturn > 0) {
+                                order.put("type", ordType);
+                                order.put("expiretime", getMaxOrderDuration());
+                                order.put("dynamicorderduration", getDynamicOrderDuration());
+                                order.put("maxslippage", this.getMaxSlippageEntry());
+                                order.put("id", id);
+                                double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol, id, futureid, EnumOrderSide.COVER, "PUT", getTickSize());
+                                order.put("limitprice", limitprice);
+                                order.put("side", EnumOrderSide.COVER);
+                                order.put("size", position);
+                                order.put("reason", EnumOrderReason.REGULARENTRY);
+                                order.put("orderstage", EnumOrderStage.INIT);
+                                order.put("scale", scaleExit);
+                                order.put("dynamicorderduration", this.getDynamicOrderDuration());
+                                order.put("expiretime", 0);
+                                if (limitprice > 0) {
+                                    logger.log(Level.INFO, "501,Strategy BUY,{0}", new Object[]{getStrategy() + delimiter + "BUY" + delimiter + Parameters.symbol.get(id).getDisplayname() + delimiter + optionReturn});
+                                    exit(order);
+                                }
                             }
-                        }
-                        break;
-                    default:
+                            break;
+                        default:
 
+                    }
                 }
             }
         }
