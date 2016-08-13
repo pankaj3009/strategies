@@ -196,10 +196,10 @@ public class OptSale extends Strategy implements TradeListener {
 
                             }
                         }
-                        double cushion = dte * avgMovePerDayEntry;
-                        double indexPrice = Parameters.symbol.get(indexid).getLastPrice();
-                        double highestFloor = Utilities.roundTo((indexPrice - cushion * indexPrice / 100), Parameters.symbol.get(futureid).getStrikeDistance());
-                        double lowestCeiling = Utilities.roundTo((indexPrice + cushion * indexPrice / 100), Parameters.symbol.get(futureid).getStrikeDistance());
+                        double cushion = Math.sqrt(dte) * historicalVol* avgMovePerDayEntry;
+                        double futurePrice = Parameters.symbol.get(futureid).getLastPrice();
+                        double highestFloor = Utilities.roundTo((futurePrice - cushion * futurePrice / 100), Parameters.symbol.get(futureid).getStrikeDistance());
+                        double lowestCeiling = Utilities.roundTo((futurePrice + cushion * futurePrice / 100), Parameters.symbol.get(futureid).getStrikeDistance());
 
                         //Get 2 strikes
                         double[] putLevels = new double[2];
@@ -234,7 +234,7 @@ public class OptSale extends Strategy implements TradeListener {
                         //Place Orders
                         for (int i : allOrderList) {
                             BeanSymbol s = Parameters.symbol.get(i);
-                            double annualizedRet = s.getLastPrice() * 365 / (s.getCdte() * indexPrice * margin);
+                            double annualizedRet = s.getLastPrice() * 365 / (s.getCdte() * futurePrice * margin);
                             double calcPremium = s.getOptionProcess().NPV();
                             double theta = s.getOptionProcess().theta();
                             double vega = s.getOptionProcess().vega();
@@ -503,7 +503,7 @@ public class OptSale extends Strategy implements TradeListener {
                     HashMap<String, Object> order = new HashMap<>();
                     switch (right) {
                         case "CALL":
-                            if ((optionReturn < thresholdReturnExit || (strikePrice - (optionDte * avgMovePerDayExit * futurePrice / 100)) < futurePrice) && optionReturn > 0) {
+                            if ((optionReturn < thresholdReturnExit || (strikePrice - (Math.sqrt(optionDte) *historicalVol* avgMovePerDayExit * futurePrice / 100)) < futurePrice) && optionReturn > 0) {
                                 order.put("type", ordType);
                                 order.put("expiretime", getMaxOrderDuration());
                                 order.put("dynamicorderduration", getDynamicOrderDuration());
@@ -525,7 +525,7 @@ public class OptSale extends Strategy implements TradeListener {
                             }
                             break;
                         case "PUT":
-                            if ((optionReturn < thresholdReturnExit || (strikePrice + (optionDte * avgMovePerDayExit * futurePrice) / 100) > futurePrice) && optionReturn > 0) {
+                            if ((optionReturn < thresholdReturnExit || (strikePrice + (Math.sqrt(optionDte) *historicalVol* avgMovePerDayExit * futurePrice) / 100) > futurePrice) && optionReturn > 0) {
                                 order.put("type", ordType);
                                 order.put("expiretime", getMaxOrderDuration());
                                 order.put("dynamicorderduration", getDynamicOrderDuration());
