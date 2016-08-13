@@ -248,10 +248,8 @@ public class OptSale extends Strategy implements TradeListener {
                                     + Utilities.formatDouble(s.getLastVol(), df) + ","
                                     + Utilities.formatDouble(calcPremium, df));
 
-                            if (annualizedRet > thresholdReturnEntry && s.getLastVol() > 1.2 * historicalVol && filteredOrderList.size() == 0) {
+                            if (annualizedRet > thresholdReturnEntry ) {
                                 //if(true){
-                                filteredOrderList.add(i);
-                            } else if (annualizedRet > thresholdReturnEntry && metric < -0.3 && filteredOrderList.size() == 0) {
                                 filteredOrderList.add(i);
                             }
                         }
@@ -466,7 +464,7 @@ public class OptSale extends Strategy implements TradeListener {
         avgMovePerDayExit = Utilities.getDouble(p.getProperty("AverageMovePerDayExit", "0.2"), 0.2);
         thresholdReturnEntry = Utilities.getDouble(p.getProperty("ThresholdReturnEntry", "0.3"), 0.3);
         thresholdReturnExit = Utilities.getDouble(p.getProperty("ThresholdReturnExit", "0.15"), 0.15);
-        historicalVol = Utilities.getDouble(p.getProperty("HistoricalVol", "0.15"), 0.15);
+        historicalVol = Utilities.getDouble(p.getProperty("HistoricalVol", "0.7"), 0.7);
         margin = Utilities.getDouble(p.getProperty("Margin", "0.10"), 0.10);
         entryScanTime = p.getProperty("EntryStartTime");
         calToday = Calendar.getInstance(TimeZone.getTimeZone(Algorithm.timeZone));
