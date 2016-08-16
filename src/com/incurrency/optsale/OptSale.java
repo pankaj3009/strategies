@@ -101,7 +101,7 @@ public class OptSale extends Strategy implements TradeListener {
                 long dte = Algorithm.ind.businessDaysBetween(new JDate(new Date()), expiryDate);
                 expiry = expiryNearMonth;
                 futureid = Utilities.getFutureIDFromExchangeSymbol(Parameters.symbol, indexid, expiry);
-                if (dte <= 7) {
+                if (dte <= rolloverDays) {
                     expiryDate = new JDate(sdf_yyyyMMdd.parse(expiryFarMonth));
                     dte = Algorithm.ind.businessDaysBetween(new JDate(new Date()), expiryDate);
                     expiry = expiryFarMonth;
@@ -145,7 +145,7 @@ public class OptSale extends Strategy implements TradeListener {
                     long dte = Algorithm.ind.businessDaysBetween(new JDate(new Date()), expiryDate);
                     expiry = expiryNearMonth;
                     futureid = Utilities.getFutureIDFromExchangeSymbol(Parameters.symbol, indexid, expiry);
-                    if (dte <= 7) {
+                    if (dte <= rolloverDays) {
                         expiryDate = new JDate(sdf_yyyyMMdd.parse(expiryFarMonth));
                         dte = Algorithm.ind.businessDaysBetween(new JDate(new Date()), expiryDate);
                         expiry = expiryFarMonth;
