@@ -197,7 +197,7 @@ public class OptSale extends Strategy implements TradeListener {
                             }
                         }
                         double cushion = Math.sqrt(dte) * historicalVol* avgMovePerDayEntry;
-                        double futurePrice = Parameters.symbol.get(futureid).getLastPrice();
+                        double futurePrice = Parameters.symbol.get(indexid).getLastPrice();
                         double highestFloor = Utilities.roundTo((futurePrice - cushion * futurePrice / 100), Parameters.symbol.get(futureid).getStrikeDistance());
                         double lowestCeiling = Utilities.roundTo((futurePrice + cushion * futurePrice / 100), Parameters.symbol.get(futureid).getStrikeDistance());
 
