@@ -228,7 +228,7 @@ public class OptSale extends Strategy implements TradeListener {
                             initSymbol(i);
                         }
 
-                        Thread.sleep(2000);
+                        Thread.sleep(4000); //wait for 4 seconds
                         Thread.yield();
                         ArrayList<Integer> filteredOrderList = new ArrayList<>();
                         //Place Orders
