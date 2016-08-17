@@ -387,6 +387,8 @@ public class Swing extends Strategy implements TradeListener {
                     for (int i : nearorderidlist) {
                         this.initSymbol(i);
                     }
+                    Thread.sleep(2000);
+                    Thread.yield();
                     order.put("type", ordType);
                     order.put("expiretime", getMaxOrderDuration());
                     order.put("dynamicorderduration", getDynamicOrderDuration());
