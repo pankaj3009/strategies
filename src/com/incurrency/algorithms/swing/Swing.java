@@ -86,7 +86,8 @@ public class Swing extends Strategy implements TradeListener {
             tmpCalendar.add(Calendar.MINUTE, testingTimer);
             entryScanDate = tmpCalendar.getTime();
         }
-        rollover = rolloverDay(rolloverDays);
+        rollover = Utilities.rolloverDay(rolloverDays,this.getStartDate(),this.expiryNearMonth);
+
         if (rollover) {
             expiry = this.expiryFarMonth;
         } else {
@@ -523,23 +524,6 @@ public class Swing extends Strategy implements TradeListener {
         }
     };
 
-    private boolean rolloverDay(int daysBeforeExpiry) {
-        rollover = false;
-        try {
-            SimpleDateFormat sdf_yyyyMMdd = new SimpleDateFormat("yyyyMMdd");
-            String currentDay = sdf_yyyyMMdd.format(getStartDate());
-            Date today = sdf_yyyyMMdd.parse(currentDay);
-            Calendar expiry = Calendar.getInstance();
-            expiry.setTime(sdf_yyyyMMdd.parse(expiryNearMonth));
-            expiry.set(Calendar.DATE, expiry.get(Calendar.DATE) - daysBeforeExpiry);
-            if (today.compareTo(expiry.getTime()) >= 0) {
-                rollover = true;
-            }
-        } catch (Exception e) {
-            logger.log(Level.INFO, null, e);
-        }
-        return rollover;
-    }
 
     public void positionRollover(int initID, int targetID) {
         //get side, size of position

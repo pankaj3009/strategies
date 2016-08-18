@@ -30,6 +30,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jquantlib.time.JDate;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.Rserve.RConnection;
 
@@ -61,7 +62,7 @@ public class Manager extends Strategy {
         for (BeanConnection c : Parameters.connection) {
             c.initializeConnection(tempStrategyArray[tempStrategyArray.length - 1], -1);
         }
-        rollover = rolloverDay(rolloverDays);
+        rollover = Utilities.rolloverDay(rolloverDays,this.getStartDate(),this.expiryNearMonth);
         if (rollover) {
             expiry = this.expiryFarMonth;
         } else {
@@ -93,23 +94,8 @@ public class Manager extends Strategy {
 
     }
 
-    private boolean rolloverDay(int daysBeforeExpiry) {
-        rollover = false;
-        try {
-            SimpleDateFormat sdf_yyyyMMdd = new SimpleDateFormat("yyyyMMdd");
-            String currentDay = sdf_yyyyMMdd.format(getStartDate());
-            Date today = sdf_yyyyMMdd.parse(currentDay);
-            Calendar expiry = Calendar.getInstance();
-            expiry.setTime(sdf_yyyyMMdd.parse(expiryNearMonth));
-            expiry.set(Calendar.DATE, expiry.get(Calendar.DATE) - daysBeforeExpiry);
-            if (today.compareTo(expiry.getTime()) >= 0) {
-                rollover = true;
-            }
-        } catch (Exception e) {
-            logger.log(Level.INFO, null, e);
-        }
-        return rollover;
-    }
+   
+    
     TimerTask tradeScannerTask = new TimerTask() {
         @Override
         public void run() {
