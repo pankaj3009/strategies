@@ -146,16 +146,16 @@ public class Manager extends Strategy {
                     orderidlist = Utilities.getOrInsertOptionIDForLongSystem(Parameters.symbol, this.getPosition(), futureid, side, expiry);
                 }
                 nearorderidlist = orderidlist;
-                if (rollover) {
+                if (rollover && (side==EnumOrderSide.SELL ||side==EnumOrderSide.COVER)) {
                     if (tradetuple.get(1).contains("_OPT")) {
                         int newid = Utilities.getIDFromDisplayName(Parameters.symbol, tradetuple.get(1).split(":")[0]);
-                        orderidlist.add(newid);
+                        nearorderidlist.add(newid);
 
                     } else {
                         nearorderidlist = Utilities.getOrInsertOptionIDForLongSystem(Parameters.symbol, this.getPosition(), symbolid, side, this.expiryNearMonth);
                     }
                 }
-                if (rollover) {
+                if (rollover && (side==EnumOrderSide.SELL ||side==EnumOrderSide.COVER)) {
                     nearfutureid = Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, symbolid, this.expiryNearMonth);
                 }
                 if (orderidlist.size() > 0) {
