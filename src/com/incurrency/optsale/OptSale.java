@@ -392,7 +392,7 @@ public class OptSale extends Strategy implements TradeListener {
                                 for (int id : orderidlist) {
                                     if (id >= 0) {
                                         order.put("id", id);
-                                        double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol, id, localfutureid, EnumOrderSide.BUY, "PUT", getTickSize());
+                                        double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol, id, localfutureid, EnumOrderSide.SHORT, "PUT", getTickSize());
                                         order.put("limitprice", limitprice);
                                         order.put("side", EnumOrderSide.SHORT);
                                         order.put("size", size);
@@ -413,7 +413,7 @@ public class OptSale extends Strategy implements TradeListener {
                                 for (int nearid : nearorderidlist) {
                                     if (nearid >= 0) {
                                         order.put("id", nearid);
-                                        double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol, nearid, nearfutureid, EnumOrderSide.SELL, "PUT", getTickSize());
+                                        double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol, nearid, nearfutureid, EnumOrderSide.COVER, "PUT", getTickSize());
                                         order.put("limitprice", limitprice);
                                         order.put("side", EnumOrderSide.COVER);
                                         order.put("size", size);
