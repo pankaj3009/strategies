@@ -742,6 +742,7 @@ public class EODMaintenance {
     
     public void extractSymbolsFromIB(String urlName, String fileName, List<BeanSymbol> symbols) throws IOException {
         String constant = "&page=";
+        String today=new SimpleDateFormat("yyyyMMdd").format(new Date());
         if (urlName != null) {
             String exchange = urlName.split("&")[1].split("=")[1].toUpperCase();
             String type = urlName.split("&")[2].split("=")[1].toUpperCase();
@@ -785,6 +786,10 @@ public class EODMaintenance {
                             tempContract.setExchange(exchange);
                             tempContract.setType(type);
                             symbols.add(tempContract);
+                         try (Jedis jedis = jPool.getResource()) {
+                            jedis.hset("ibsymbols:"+today,tempExchangeSymbol,tempIBSymbol);
+                            
+                        }
                             System.out.println(tempContract.getExchangeSymbol());
                         }
                         i++;
