@@ -743,11 +743,11 @@ public class EODMaintenance {
     }
     
     public void extractSymbolsFromIB(String urlName, String fileName, List<BeanSymbol> symbols) throws IOException {
-        String constant = "&sequence_idx=";
+        String constant = "&page=";
         if (urlName != null) {
             String exchange = urlName.split("&")[1].split("=")[1].toUpperCase();
             String type = urlName.split("&")[2].split("=")[1].toUpperCase();
-            for (int pageno = 100; pageno < 10000; pageno = pageno + 100) {
+            for (int pageno = 1; pageno < 100; pageno = pageno + 1) {
                 String url = urlName + constant + pageno;
                 System.out.println("Parsing :" + pageno);
                 org.jsoup.nodes.Document stockList = Jsoup.connect(url).timeout(0).get();
@@ -765,8 +765,11 @@ public class EODMaintenance {
                     //tbl = stockList.getElementsByClass("comm_table_background").get(4); //Todo: Check for 404 error
                     Elements rows = tbl.select("tr");
                     int i = 0;
+                    if(rows.size()==1){
+                        break;
+                    }
                     for (Element stockRow : rows) {
-                        if (i >= 2) {
+                        if (i >= 2) {                           
                             //if (stockRow.attr("class").equals("linebottom")) {
                             BeanSymbol tempContract = new BeanSymbol();
                             String tempIBSymbol = stockRow.getElementsByTag("td").get(0).text().toUpperCase().trim();
