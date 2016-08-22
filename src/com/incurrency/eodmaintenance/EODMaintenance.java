@@ -23,14 +23,22 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.JedisPoolConfig;
+import redis.clients.jedis.ScanResult;
 
 /**
  *
@@ -56,7 +64,13 @@ public class EODMaintenance {
     private String f_RateServer;
     private String f_IBSymbol;
     private String ibsymbolurl;
+    private JedisPool jPool;
+    private String redisurl;
 
+        public static JedisPool RedisConnect(String uri, Integer port, Integer database) {
+        return new JedisPool(new JedisPoolConfig(),uri, port,2000,null,database);
+    }
+    
     /**
      * @param args the command line arguments
      */
@@ -75,7 +89,9 @@ public class EODMaintenance {
         f_RateServer = properties.getProperty("filenamerateserver");
         f_IBSymbol = properties.getProperty("fileibsymbol");
         ibsymbolurl = properties.getProperty("ibsymbolurl");
-
+        redisurl = properties.getProperty("redisurl","127.0.0.1:6379:2");
+        jPool=RedisConnect(redisurl.split(":")[0], Integer.valueOf(redisurl.split(":")[1]), Integer.valueOf(redisurl.split(":")[2]));
+                
         File outputfile = new File("logs", f_IBSymbol);
         if (!outputfile.exists()) {
             extractSymbolsFromIB(ibsymbolurl, f_IBSymbol, symbols);
@@ -84,6 +100,8 @@ public class EODMaintenance {
         }
         String nextExpiry = getNextExpiry(currentDay);
         nifty50 = loadNifty50Stocks(niftyurl, f_Strikes);
+        saveToRedis(fnolotsizeurl, f_Strikes, nextExpiry);
+        saveToRedis(fnolotsizeurl, f_Strikes, getNextExpiry(nextExpiry));
         fno = loadFutures(fnolotsizeurl, f_Strikes, nextExpiry);
         cnx500 = loadCNX500Stocks(cnx500url, f_Strikes);
         rateserver();
@@ -97,75 +115,54 @@ public class EODMaintenance {
         MainAlgorithm.setCloseDate(new Date());
     }
 
-    public ArrayList<BeanSymbol> loadNifty50Stocks(String url, String f_strike) {
-        ArrayList<BeanSymbol> out = new ArrayList<>();
+    public void saveToRedis(String url, String f_strike, String expiry)  {
         try {
-            URL niftyURL = new URL(url);
-            if (getResponseCode(url) != 404) {
+            ArrayList<BeanSymbol> out = new ArrayList<>();
+            ArrayList<BeanSymbol> interimout = new ArrayList<>();
+            URL niftyURL = new URL(niftyurl);
+            if (getResponseCode(niftyurl) != 404) {
                 BufferedReader in = new BufferedReader(new InputStreamReader(niftyURL.openStream()));
                 int j = 0;
                 int i = 0;
                 String line;
+                SimpleDateFormat sdf_yyyyMMdd = new SimpleDateFormat("yyyyMMdd");
                 while ((line = in.readLine()) != null) {
                     j = j + 1;
                     if (j > 1) {//skip first row
                         String[] input = line.split(",");
                         String exchangeSymbol = input[2].trim().toUpperCase();//2nd column of nse file
-                        int id = Utilities.getIDFromExchangeSymbol(symbols, exchangeSymbol, "STK", "", "", "");
-                        if (id >= 0) {
-                            BeanSymbol s = symbols.get(id);
-                            BeanSymbol s1 = s.clone(s);
-                            out.add(s1);
+                        try (Jedis jedis = jPool.getResource()) {
+                            jedis.sadd("nifty50:" + sdf_yyyyMMdd.format(new Date()), exchangeSymbol);
                         }
                     }
                 }
             }
 
-            for (int i = 0; i < out.size(); i++) {
-                out.get(i).setSerialno(i + 1);
-            }
 
-            //Capture Strike levels
-            BufferedReader in = new BufferedReader(new FileReader(f_strike));
-            int j = 0;
-            int i = 0;
-            String line;
-            while ((line = in.readLine()) != null) {
-                j = j + 1;
-                if (j > 1) {//skip first row
-                    String[] input = line.split(",");
-                    String exchangeSymbol = input[0].trim().toUpperCase();//2nd column of nse file                        
-                    int id = Utilities.getIDFromExchangeSymbol(out, exchangeSymbol, "STK", "", "", "");
-                    if (id >= 0) {
-                        BeanSymbol s = out.get(id);
-                        s.setStrikeDistance(Double.parseDouble(input[1].trim()));
+            URL CNX500 = new URL(cnx500url);
+            if (getResponseCode(cnx500url) != 404) {
+                BufferedReader in = new BufferedReader(new InputStreamReader(CNX500.openStream()));
+                int i = 0;
+                int j = 0;
+                String line;
+                SimpleDateFormat sdf_yyyyMMdd = new SimpleDateFormat("yyyyMMdd");
+                while ((line = in.readLine()) != null) {
+                    j = j + 1;
+                    if (j > 1) {//skip first row
+                        String[] input = line.split(",");
+                        String exchangeSymbol = input[2].trim().toUpperCase();//2nd column of nse file
+                        try (Jedis jedis = jPool.getResource()) {
+                            jedis.sadd("cnx500:" + sdf_yyyyMMdd.format(new Date()), exchangeSymbol);
+                        }
                     }
                 }
             }
 
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, null, e);
-        }
-        return out;
-
-    }
-
-    /**
-     * Loads FNO stocks in ArrayList comprising BeanSymbols .Expiration date and
-     * contract sizes are set.
-     *
-     * @param url
-     * @param expiry
-     * @return
-     */
-    public ArrayList<BeanSymbol> loadFutures(String url, String f_strike, String expiry) {
-        ArrayList<BeanSymbol> out = new ArrayList<>();
-        ArrayList<BeanSymbol> interimout = new ArrayList<>();
-        try {
             int rowsToSkipFNO = 11;
             SimpleDateFormat sdf_formatInFile1 = new SimpleDateFormat("MMM-yy");
             SimpleDateFormat sdf_formatInFile2 = new SimpleDateFormat("yy-MMM");
             SimpleDateFormat sdf_yyyyMMdd = new SimpleDateFormat("yyyyMMdd");
+            SimpleDateFormat sdf_yyyyMM = new SimpleDateFormat("yyyyMM");
             URL fnoURL = new URL(url);
             if (getResponseCode(url) != 404) {
                 BufferedReader in = new BufferedReader(new InputStreamReader(fnoURL.openStream()));
@@ -182,9 +179,9 @@ public class EODMaintenance {
                             String expiryFormattedAsInput1 = sdf_formatInFile1.format(sdf_yyyyMMdd.parse(expiry));//expiry is formatted in MMM-yy format
                             String expiryFormattedAsInput2 = sdf_formatInFile2.format(sdf_yyyyMMdd.parse(expiry));//expiry is formatted in MMM-yy format
                             for (String inp : input) {
-                                if (Utilities.isDate(inp, sdf_formatInFile1)||Utilities.isDate(inp, sdf_formatInFile2)) {
+                                if (Utilities.isDate(inp, sdf_formatInFile1) || Utilities.isDate(inp, sdf_formatInFile2)) {
                                     String expiration = inp.trim().toUpperCase();
-                                    if (expiration.equalsIgnoreCase(expiryFormattedAsInput1)||expiration.equalsIgnoreCase(expiryFormattedAsInput2)) {
+                                    if (expiration.equalsIgnoreCase(expiryFormattedAsInput1) || expiration.equalsIgnoreCase(expiryFormattedAsInput2)) {
                                         columnNumber = i;
                                         break;
                                     }
@@ -199,15 +196,9 @@ public class EODMaintenance {
                                 if (minsize > 0) {
                                     int id = Utilities.getIDFromExchangeSymbol(symbols, exchangesymbol, "STK", "", "", "");
                                     if (id >= 0) {
-                                        BeanSymbol s = symbols.get(id);
-                                        BeanSymbol s1 = s.clone(s);
-                                        s1.setType("FUT");
-                                        s1.setExpiry(expiry);
-                                        s1.setMinsize(minsize);
-                                        s1.setStrategy("DATA");
-                                        s1.setStreamingpriority(2);
-                                        s1.setSerialno(out.size() + 1);
-                                        interimout.add(s1);
+                                        try (Jedis jedis = jPool.getResource()) {
+                                            jedis.hset("contractsize:" + expiry.substring(0, 6), exchangesymbol, String.valueOf(minsize));
+                                        }
                                     } else {
                                         logger.log(Level.SEVERE, "Exchange Symbol {} not found in IB database", new Object[]{exchangesymbol});
                                     }
@@ -233,15 +224,208 @@ public class EODMaintenance {
                     String exchangeSymbol = input[0].trim().toUpperCase();//2nd column of nse file                        
                     int id = Utilities.getIDFromExchangeSymbol(interimout, exchangeSymbol, "FUT", expiry, "", "");
                     if (id >= 0) {
-                        BeanSymbol s = interimout.get(id);
-                        BeanSymbol s1 = s.clone(s);
-                        s1.setType("FUT");
-                        s1.setStrikeDistance(Double.parseDouble(input[1].trim()));
-                        out.add(s1);
+                        try (Jedis jedis = jPool.getResource()) {
+                            jedis.hset("strikedistance:" + expiry.substring(0, 6), exchangeSymbol, String.valueOf(input[1].trim()));
+                        }
                     }
                 }
             }
 
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, null, e);
+        }
+
+    }
+
+    public ArrayList<BeanSymbol> loadNifty50Stocks(String url, String f_strike) {
+        ArrayList<BeanSymbol> out = new ArrayList<>();
+        try {
+            String cursor = "";
+            String shortlistedkey = "";
+            while (!cursor.equals("0")) {
+                cursor = cursor.equals("") ? "0" : cursor;
+                try (Jedis jedis = jPool.getResource()) {
+                    ScanResult s = jedis.scan(cursor);
+                    cursor = s.getStringCursor();
+                    for (Object key : s.getResult()) {
+                        if (key.toString().contains("nifty50")) {
+                            if (shortlistedkey.equals("")) {
+                                shortlistedkey = key.toString();
+                            } else {
+                                int date = Integer.valueOf(shortlistedkey.split(":")[1]);
+                                int newdate = Integer.valueOf(key.toString().split(":")[1]);
+                                if (newdate > date && newdate <= Integer.valueOf(getNextExpiry(currentDay))) {
+                                    shortlistedkey = key.toString();//replace with latest nifty setup
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            Set<String> niftySymbols = new HashSet<>();
+            try (Jedis jedis = jPool.getResource()) {
+                niftySymbols = jedis.smembers(shortlistedkey);
+                Iterator iterator = niftySymbols.iterator();
+                while (iterator.hasNext()) {
+                    String exchangeSymbol = iterator.next().toString().toUpperCase();
+                    int id = Utilities.getIDFromExchangeSymbol(symbols, exchangeSymbol, "STK", "", "", "");
+                    if (id >= 0) {
+                        BeanSymbol s = symbols.get(id);
+                        BeanSymbol s1 = s.clone(s);
+                        out.add(s1);
+                    }
+                }
+            }
+            for (int i = 0; i < out.size(); i++) {
+                out.get(i).setSerialno(i + 1);
+            }
+
+            //Capture Strike levels
+            cursor = "";
+            shortlistedkey = "";
+            while (!cursor.equals("0")) {
+                cursor = cursor.equals("") ? "0" : cursor;
+                try (Jedis jedis = jPool.getResource()) {
+                    ScanResult s = jedis.scan(cursor);
+                    cursor = s.getStringCursor();
+                    for (Object key : s.getResult()) {
+                        if (key.toString().contains("strikedistance")) {
+                            if (shortlistedkey.equals("")) {
+                                shortlistedkey = key.toString();
+                            } else {
+                                int date = Integer.valueOf(shortlistedkey.split(":")[1]);
+                                int newdate = Integer.valueOf(key.toString().split(":")[1]);
+                                if (newdate > date && newdate <= Integer.valueOf(getNextExpiry(currentDay.substring(0, 6)))) {
+                                    shortlistedkey = key.toString();//replace with latest nifty setup
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            Map<String, String> strikeLevels = new HashMap<>();
+            try (Jedis jedis = jPool.getResource()) {
+                strikeLevels = jedis.hgetAll(shortlistedkey);
+                for (Map.Entry<String, String> entry : strikeLevels.entrySet()) {
+                    String exchangeSymbol = entry.getKey().toUpperCase();//2nd column of nse file                        
+                    int id = Utilities.getIDFromExchangeSymbol(out, exchangeSymbol, "STK", "", "", "");
+                    if (id >= 0) {
+                        BeanSymbol s = out.get(id);
+                        s.setStrikeDistance(Double.parseDouble(entry.getValue().trim()));
+                    }
+                }
+            }
+
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, null, e);
+        }
+        return out;
+
+    }
+
+    
+    /**
+     * Loads FNO stocks in ArrayList comprising BeanSymbols .Expiration date and
+     * contract sizes are set.
+     *
+     * @param url
+     * @param expiry
+     * @return
+     */
+    public ArrayList<BeanSymbol> loadFutures(String url, String f_strike, String expiry) {
+        ArrayList<BeanSymbol> out = new ArrayList<>();
+        ArrayList<BeanSymbol> interimout = new ArrayList<>();
+        try {
+            String cursor = "";
+            String shortlistedkey = "";
+            while (!cursor.equals("0")) {
+                cursor = cursor.equals("") ? "0" : cursor;
+                try (Jedis jedis = jPool.getResource()) {
+                    ScanResult s = jedis.scan(cursor);
+                    cursor = s.getStringCursor();
+                    for (Object key : s.getResult()) {
+                        if (key.toString().contains("contractsize")) {
+                            if (shortlistedkey.equals("")) {
+                                shortlistedkey = key.toString();
+                            } else {
+                                int date = Integer.valueOf(shortlistedkey.split(":")[1]);
+                                int newdate = Integer.valueOf(key.toString().split(":")[1]);
+                                if (newdate > date && newdate <= Integer.valueOf(expiry.substring(0,6))) {
+                                    shortlistedkey = key.toString();//replace with latest nifty setup
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+             Map<String, String> contractSizes = new HashMap<>();
+            try (Jedis jedis = jPool.getResource()) {
+                contractSizes = jedis.hgetAll(shortlistedkey);
+                for (Map.Entry<String, String> entry : contractSizes.entrySet()) {
+                    String exchangeSymbol = entry.getKey().trim().toUpperCase();
+                     int minsize = Utilities.getInt(entry.getValue().trim(),0);
+                     if(minsize>0){
+                         int id = Utilities.getIDFromExchangeSymbol(symbols, exchangeSymbol, "STK", "", "", "");
+                                    if (id >= 0) {
+                                        BeanSymbol s = symbols.get(id);
+                                        BeanSymbol s1 = s.clone(s);
+                                        s1.setType("FUT");
+                                        s1.setExpiry(expiry);
+                                        s1.setMinsize(minsize);
+                                        s1.setStrategy("DATA");
+                                        s1.setStreamingpriority(2);
+                                        s1.setSerialno(out.size() + 1);
+                                        interimout.add(s1);
+                                    } else {
+                                        logger.log(Level.SEVERE, "Exchange Symbol {} not found in IB database", new Object[]{exchangeSymbol});
+                                    }
+                     }
+                }
+            }
+            
+            //Fix sequential serial numbers
+            for (int i = 0; i < interimout.size(); i++) {
+                interimout.get(i).setSerialno(i + 1);
+            }
+            
+          //Capture Strike levels
+            cursor = "";
+            shortlistedkey = "";
+            while (!cursor.equals("0")) {
+                cursor = cursor.equals("") ? "0" : cursor;
+                try (Jedis jedis = jPool.getResource()) {
+                    ScanResult s = jedis.scan(cursor);
+                    cursor = s.getStringCursor();
+                    for (Object key : s.getResult()) {
+                        if (key.toString().contains("strikedistance")) {
+                            if (shortlistedkey.equals("")) {
+                                shortlistedkey = key.toString();
+                            } else {
+                                int date = Integer.valueOf(shortlistedkey.split(":")[1]);
+                                int newdate = Integer.valueOf(key.toString().split(":")[1]);
+                                if (newdate > date && newdate <= Integer.valueOf(getNextExpiry(currentDay.substring(0, 6)))) {
+                                    shortlistedkey = key.toString();//replace with latest nifty setup
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            Map<String, String> strikeLevels = new HashMap<>();
+            try (Jedis jedis = jPool.getResource()) {
+                strikeLevels = jedis.hgetAll(shortlistedkey);
+                for (Map.Entry<String, String> entry : strikeLevels.entrySet()) {
+                    String exchangeSymbol = entry.getKey().toUpperCase();//2nd column of nse file                        
+                    int id = Utilities.getIDFromExchangeSymbol(interimout, exchangeSymbol, "FUT", expiry, "", "");
+                    if (id >= 0) {
+                        BeanSymbol s = interimout.get(id);
+                        BeanSymbol s1 = s.clone(s);
+                        s1.setType("FUT");
+                        s1.setStrikeDistance(Double.parseDouble(entry.getValue().trim()));
+                        out.add(s1);
+                    }
+                }
+            }
         } catch (Exception e) {
             logger.log(Level.SEVERE, null, e);
         }
@@ -253,25 +437,41 @@ public class EODMaintenance {
     }
 
     public ArrayList<BeanSymbol> loadCNX500Stocks(String url, String f_strike) {
-        ArrayList<BeanSymbol> out = new ArrayList<>();
+         ArrayList<BeanSymbol> out = new ArrayList<>();
         try {
-            URL CNX500 = new URL(url);
-            if (getResponseCode(url) != 404) {
-                BufferedReader in = new BufferedReader(new InputStreamReader(CNX500.openStream()));
-                int i = 0;
-                int j = 0;
-                String line;
-                while ((line = in.readLine()) != null) {
-                    j = j + 1;
-                    if (j > 1) {//skip first row
-                        String[] input = line.split(",");
-                        String exchangeSymbol = input[2].trim().toUpperCase();//2nd column of nse file
-                        int id = Utilities.getIDFromExchangeSymbol(symbols, exchangeSymbol, "STK", "", "", "");
-                        if (id >= 0) {
-                            BeanSymbol s = symbols.get(id);
-                            BeanSymbol s1 = s.clone(s);
-                            out.add(s1);
+            String cursor = "";
+            String shortlistedkey = "";
+            while (!cursor.equals("0")) {
+                cursor = cursor.equals("") ? "0" : cursor;
+                try (Jedis jedis = jPool.getResource()) {
+                    ScanResult s = jedis.scan(cursor);
+                    cursor = s.getStringCursor();
+                    for (Object key : s.getResult()) {
+                        if (key.toString().contains("cnx500")) {
+                            if (shortlistedkey.equals("")) {
+                                shortlistedkey = key.toString();
+                            } else {
+                                int date = Integer.valueOf(shortlistedkey.split(":")[1]);
+                                int newdate = Integer.valueOf(key.toString().split(":")[1]);
+                                if (newdate > date && newdate <= Integer.valueOf(getNextExpiry(currentDay))) {
+                                    shortlistedkey = key.toString();//replace with latest nifty setup
+                                }
+                            }
                         }
+                    }
+                }
+            }
+            Set<String> niftySymbols = new HashSet<>();
+            try (Jedis jedis = jPool.getResource()) {
+                niftySymbols = jedis.smembers(shortlistedkey);
+                Iterator iterator = niftySymbols.iterator();
+                while (iterator.hasNext()) {
+                    String exchangeSymbol = iterator.next().toString().toUpperCase();
+                    int id = Utilities.getIDFromExchangeSymbol(symbols, exchangeSymbol, "STK", "", "", "");
+                    if (id >= 0) {
+                        BeanSymbol s = symbols.get(id);
+                        BeanSymbol s1 = s.clone(s);
+                        out.add(s1);
                     }
                 }
             }
@@ -280,27 +480,45 @@ public class EODMaintenance {
             }
 
             //Capture Strike levels
-            BufferedReader in = new BufferedReader(new FileReader(f_strike));
-            int j = 0;
-            int i = 0;
-            String line;
-            while ((line = in.readLine()) != null) {
-                j = j + 1;
-                if (j > 1) {//skip first row
-                    String[] input = line.split(",");
-                    String exchangeSymbol = input[0].trim().toUpperCase();//2nd column of nse file                        
-                    int id = Utilities.getIDFromExchangeSymbol(out, exchangeSymbol, "STK", "", "", "");
-                    if (id >= 0) {
-                        BeanSymbol s = out.get(id);
-                        s.setStrikeDistance(Double.parseDouble(input[1].trim()));
+            cursor = "";
+            shortlistedkey = "";
+            while (!cursor.equals("0")) {
+                cursor = cursor.equals("") ? "0" : cursor;
+                try (Jedis jedis = jPool.getResource()) {
+                    ScanResult s = jedis.scan(cursor);
+                    cursor = s.getStringCursor();
+                    for (Object key : s.getResult()) {
+                        if (key.toString().contains("strikedistance")) {
+                            if (shortlistedkey.equals("")) {
+                                shortlistedkey = key.toString();
+                            } else {
+                                int date = Integer.valueOf(shortlistedkey.split(":")[1]);
+                                int newdate = Integer.valueOf(key.toString().split(":")[1]);
+                                if (newdate > date && newdate <= Integer.valueOf(getNextExpiry(currentDay.substring(0, 6)))) {
+                                    shortlistedkey = key.toString();//replace with latest nifty setup
+                                }
+                            }
+                        }
                     }
                 }
             }
+            Map<String, String> strikeLevels = new HashMap<>();
+            try (Jedis jedis = jPool.getResource()) {
+                strikeLevels = jedis.hgetAll(shortlistedkey);
+                for (Map.Entry<String, String> entry : strikeLevels.entrySet()) {
+                    String exchangeSymbol = entry.getKey().toUpperCase();//2nd column of nse file                        
+                    int id = Utilities.getIDFromExchangeSymbol(out, exchangeSymbol, "STK", "", "", "");
+                    if (id >= 0) {
+                        BeanSymbol s = out.get(id);
+                        s.setStrikeDistance(Double.parseDouble(entry.getValue().trim()));
+                    }
+                }
+            }
+
         } catch (Exception e) {
             logger.log(Level.SEVERE, null, e);
         }
-        return out;
-
+        return out;          
     }
 
     public void rateserver() throws MalformedURLException, IOException, ParseException {
