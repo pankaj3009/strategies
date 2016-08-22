@@ -92,16 +92,16 @@ public class EODMaintenance {
         redisurl = properties.getProperty("redisurl","127.0.0.1:6379:2");
         jPool=RedisConnect(redisurl.split(":")[0], Integer.valueOf(redisurl.split(":")[1]), Integer.valueOf(redisurl.split(":")[2]));
                 
+        String nextExpiry = getNextExpiry(currentDay);
         File outputfile = new File("logs", f_IBSymbol);
         if (!outputfile.exists()) {
             extractSymbolsFromIB(ibsymbolurl, f_IBSymbol, symbols);
+            saveToRedis(fnolotsizeurl, f_Strikes, nextExpiry);
+            saveToRedis(fnolotsizeurl, f_Strikes, getNextExpiry(nextExpiry));
         } else {
             new Symbol().reader("logs/" + f_IBSymbol, (ArrayList) symbols);
         }
-        String nextExpiry = getNextExpiry(currentDay);
         nifty50 = loadNifty50Stocks(niftyurl, f_Strikes);
-        saveToRedis(fnolotsizeurl, f_Strikes, nextExpiry);
-        saveToRedis(fnolotsizeurl, f_Strikes, getNextExpiry(nextExpiry));
         fno = loadFutures(fnolotsizeurl, f_Strikes, nextExpiry);
         cnx500 = loadCNX500Stocks(cnx500url, f_Strikes);
         rateserver();
