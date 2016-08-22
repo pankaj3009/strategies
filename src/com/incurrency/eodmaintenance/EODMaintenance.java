@@ -222,12 +222,10 @@ public class EODMaintenance {
                 if (j > 1) {//skip first row
                     String[] input = line.split(",");
                     String exchangeSymbol = input[0].trim().toUpperCase();//2nd column of nse file                        
-                    int id = Utilities.getIDFromExchangeSymbol(interimout, exchangeSymbol, "FUT", expiry, "", "");
-                    if (id >= 0) {
                         try (Jedis jedis = jPool.getResource()) {
                             jedis.hset("strikedistance:" + expiry.substring(0, 6), exchangeSymbol, String.valueOf(input[1].trim()));
                         }
-                    }
+                    
                 }
             }
 
@@ -295,7 +293,7 @@ public class EODMaintenance {
                             } else {
                                 int date = Integer.valueOf(shortlistedkey.split(":")[1]);
                                 int newdate = Integer.valueOf(key.toString().split(":")[1]);
-                                if (newdate > date && newdate <= Integer.valueOf(getNextExpiry(currentDay.substring(0, 6)))) {
+                                if (newdate > date && newdate <= Integer.valueOf(getNextExpiry(currentDay).substring(0,6))) {
                                     shortlistedkey = key.toString();//replace with latest nifty setup
                                 }
                             }
@@ -403,7 +401,7 @@ public class EODMaintenance {
                             } else {
                                 int date = Integer.valueOf(shortlistedkey.split(":")[1]);
                                 int newdate = Integer.valueOf(key.toString().split(":")[1]);
-                                if (newdate > date && newdate <= Integer.valueOf(getNextExpiry(currentDay.substring(0, 6)))) {
+                                if (newdate > date && newdate <= Integer.valueOf(getNextExpiry(currentDay).substring(0,6))) {
                                     shortlistedkey = key.toString();//replace with latest nifty setup
                                 }
                             }
@@ -494,7 +492,7 @@ public class EODMaintenance {
                             } else {
                                 int date = Integer.valueOf(shortlistedkey.split(":")[1]);
                                 int newdate = Integer.valueOf(key.toString().split(":")[1]);
-                                if (newdate > date && newdate <= Integer.valueOf(getNextExpiry(currentDay.substring(0, 6)))) {
+                                if (newdate > date && newdate <= Integer.valueOf(getNextExpiry(currentDay).substring(0,6))) {
                                     shortlistedkey = key.toString();//replace with latest nifty setup
                                 }
                             }
@@ -744,6 +742,7 @@ public class EODMaintenance {
     
     public void extractSymbolsFromIB(String urlName, String fileName, List<BeanSymbol> symbols) throws IOException {
         String constant = "&page=";
+        String today=new SimpleDateFormat("yyyyMMdd").format(new Date());
         if (urlName != null) {
             String exchange = urlName.split("&")[1].split("=")[1].toUpperCase();
             String type = urlName.split("&")[2].split("=")[1].toUpperCase();
@@ -787,6 +786,10 @@ public class EODMaintenance {
                             tempContract.setExchange(exchange);
                             tempContract.setType(type);
                             symbols.add(tempContract);
+                         try (Jedis jedis = jPool.getResource()) {
+                            jedis.hset("ibsymbols:"+today,tempExchangeSymbol,tempIBSymbol);
+                            
+                        }
                             System.out.println(tempContract.getExchangeSymbol());
                         }
                         i++;
