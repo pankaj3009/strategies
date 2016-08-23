@@ -23,6 +23,7 @@ import java.io.File;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -173,6 +174,7 @@ public class OptSale extends Strategy implements TradeListener {
                             System.out.println(wd.asString());
                             c.eval("options(encoding = \"UTF-8\")");
                             c.assign("args", args);
+                             logger.log(Level.INFO, "Invoking R. Strategy:{0}, args: {1}", new Object[]{getStrategy(),Arrays.toString(args)});
                             c.eval("source(\"" + RStrategyFile + "\")");
                         } catch (Exception e) {
                             logger.log(Level.SEVERE, null, e);
