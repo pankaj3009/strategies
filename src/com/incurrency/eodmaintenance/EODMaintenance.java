@@ -109,7 +109,7 @@ public class EODMaintenance {
         historicalfutures();
         historicalfuturesfwd();
         swing();
-        contra();
+        //contra();
         allsymbols();
         
         MainAlgorithm.setCloseDate(new Date());
@@ -666,13 +666,13 @@ public class EODMaintenance {
         s.setCurrency("INR");
         s.setExchange("NSE");
         s.setStreamingpriority(1);
-        s.setStrategy("SWING");
+        s.setStrategy("SWING:OPTSALE");
         out.add(s);
         s = new BeanSymbol("NIFTY50", "NSENIFTY", "FUT", expiry, "", "");
         s.setCurrency("INR");
         s.setExchange("NSE");
         s.setStreamingpriority(1);
-        s.setStrategy("SWING");
+        s.setStrategy("SWING:OPTSALE");
         s.setMinsize(75);
         s.setStrikeDistance(100);
         out.add(s);
@@ -680,7 +680,7 @@ public class EODMaintenance {
         s.setCurrency("INR");
         s.setExchange("NSE");
         s.setStreamingpriority(1);
-        s.setStrategy("SWING");
+        s.setStrategy("SWING:OPTSALE");
         s.setMinsize(75);
         s.setStrikeDistance(100);
         out.add(s);
