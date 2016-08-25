@@ -172,7 +172,7 @@ public class Swing extends Strategy implements TradeListener {
                     int referenceid = Utilities.getReferenceID(Parameters.symbol, id, referenceCashType);
                     int futureid = Utilities.getFutureIDFromExchangeSymbol(Parameters.symbol, referenceid, expiry);
                     Double tradePrice = this.getPosition().get(id).getPrice();
-                    ArrayList<Stop> stops = Trade.getStop(db, this.getStrategy() + ":" + this.getFirstInternalOpenOrder(id, EnumOrderSide.SELL, "Order") + ":Order");
+                    ArrayList<Stop> stops = Trade.getStop(db, this.getStrategy() + ":" + this.getFirstInternalOpenOrder(id, EnumOrderSide.SELL, "Order").iterator().next() + ":Order");
                     boolean tpTrigger = false;
                     boolean slTrigger = false;
                     double tpDistance = 0D;
@@ -535,7 +535,7 @@ public class Swing extends Strategy implements TradeListener {
         switch (origSide) {
             case BUY:
                 logger.log(Level.INFO, "501,Strategy Rollover EXIT BUY,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(initID).getExchangeSymbol()});
-                stops = Trade.getStop(db, this.getStrategy() + ":" + this.getFirstInternalOpenOrder(initID, EnumOrderSide.SELL, "Order") + ":Order");
+                stops = Trade.getStop(db, this.getStrategy() + ":" + this.getFirstInternalOpenOrder(initID, EnumOrderSide.SELL, "Order").iterator().next() + ":Order");
                 HashMap<String, Object> order = new HashMap<>();
                 order.put("id", initID);
                 order.put("type", ordType);
@@ -552,7 +552,7 @@ public class Swing extends Strategy implements TradeListener {
                 break;
             case SHORT:
                 logger.log(Level.INFO, "501,Strategy Rollover EXIT SHORT,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(initID).getExchangeSymbol()});
-                stops = Trade.getStop(db, this.getStrategy() + ":" + this.getFirstInternalOpenOrder(initID, EnumOrderSide.COVER, "Order") + ":Order");
+                stops = Trade.getStop(db, this.getStrategy() + ":" + this.getFirstInternalOpenOrder(initID, EnumOrderSide.COVER, "Order").iterator().next() + ":Order");
                 order = new HashMap<>();
                 order.put("id", initID);
                 order.put("type", ordType);
