@@ -214,14 +214,14 @@ public class OptSale extends Strategy implements TradeListener {
 
                         if (buy) {
                             for (double str : callLevels) {
-                                int id = Utilities.insertStrike(Parameters.symbol, futureid, expiry, "CALL", String.valueOf(str));
+                                int id = Utilities.insertStrike(Parameters.symbol, futureid, expiry, "CALL", Utilities.formatDouble(str,  new DecimalFormat("#.##")));
                                 allOrderList.add(id);
                             }
                         }
 
                         if (shrt) {
                             for (double str : putLevels) {
-                                int id = Utilities.insertStrike(Parameters.symbol, futureid, expiry, "PUT", String.valueOf(str));
+                                int id = Utilities.insertStrike(Parameters.symbol, futureid, expiry, "PUT", Utilities.formatDouble(str,  new DecimalFormat("#.##")));
                                 allOrderList.add(id);
                             }
                         }
