@@ -257,7 +257,9 @@ public class Swing extends Strategy implements TradeListener {
         List<String> expectedTrades = new ArrayList<>();
         while (tradetuple != null) {
             logger.log(Level.INFO, "Received BOD Position: {0} for strategy: {1}", new Object[]{tradetuple.get(1), tradetuple.get(0)});
-            expectedTrades.add(tradetuple.get(1));
+            if(tradetuple.get(1).contains("BUY")||tradetuple.get(1).contains("SHORT")){
+                expectedTrades.add(tradetuple.get(1));
+            }
             tradetuple = db.brpop("recontrades:" + this.getStrategy(), "", 1);
         }
         for (String key : db.getKeys("opentrades_" + this.getStrategy())) {
