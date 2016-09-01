@@ -18,7 +18,6 @@ import com.incurrency.framework.Stop;
 import com.incurrency.framework.Strategy;
 import com.incurrency.framework.Trade;
 import com.incurrency.framework.Utilities;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -30,7 +29,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jquantlib.time.JDate;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.Rserve.RConnection;
 
@@ -51,6 +49,9 @@ public class Manager extends Strategy {
     String expiry;
     String RStrategyFile;
     String wd;
+    String securityType;
+    boolean optionPricingUsingFutures = true;
+    String optionSystem;
     private Boolean scaleEntry = Boolean.FALSE;
     private Boolean scaleExit = Boolean.FALSE;
     private static final Logger logger = Logger.getLogger(Manager.class.getName());
@@ -62,7 +63,7 @@ public class Manager extends Strategy {
         for (BeanConnection c : Parameters.connection) {
             c.initializeConnection(tempStrategyArray[tempStrategyArray.length - 1], -1);
         }
-        rollover = Utilities.rolloverDay(rolloverDays,this.getStartDate(),this.expiryNearMonth);
+        rollover = Utilities.rolloverDay(rolloverDays, this.getStartDate(), this.expiryNearMonth);
         if (rollover) {
             expiry = this.expiryFarMonth;
         } else {
@@ -78,6 +79,9 @@ public class Manager extends Strategy {
         referenceCashType = p.getProperty("ReferenceCashType", "STK").toString().trim();
         rServerIP = p.getProperty("RServerIP").toString().trim();
         ordType = EnumOrderType.valueOf(p.getProperty("OrderType", "LMT"));
+        securityType = p.getProperty("SecurityType", "PASSTHROUGH");
+        optionPricingUsingFutures = Boolean.valueOf(p.getProperty("OptionPricingUsingFutures", "TRUE"));
+        optionSystem = p.getProperty("OptionSystem", "PAY");
         String entryScanTime = p.getProperty("ScanStartTime");
         Calendar calToday = Calendar.getInstance(TimeZone.getTimeZone(Algorithm.timeZone));
         String[] entryTimeComponents = entryScanTime.split(":");
@@ -93,9 +97,6 @@ public class Manager extends Strategy {
 
 
     }
-
-   
-    
     TimerTask tradeScannerTask = new TimerTask() {
         @Override
         public void run() {
@@ -126,50 +127,139 @@ public class Manager extends Strategy {
             if (tradetuple != null) {
                 logger.log(Level.INFO, "Received Trade:{0} for strategy {1}", new Object[]{tradetuple.get(1), tradetuple.get(0)});
                 //tradetuple as symbol:size:side:sl
-                String symbol = tradetuple.get(1).split(":")[0];
+                String displayName = tradetuple.get(1);
+                String symbol = displayName.split(":", -1)[0];
+                EnumOrderSide side = EnumOrderSide.valueOf(displayName.split(":")[2]);
+                int size = Integer.valueOf(displayName.split(":")[1]);
+                double stoploss = Double.valueOf(displayName.split(":")[3]);
+                int initPositionSize = Integer.valueOf(displayName.split(":")[4]);
+                int actualPositionSize = initPositionSize;
                 int symbolid = Utilities.getIDFromDisplayName(Parameters.symbol, symbol);
-                int futureid = Utilities.getFutureIDFromExchangeSymbol(Parameters.symbol, symbolid, expiry);
-                int nearfutureid = futureid;
-                int size = Integer.valueOf(tradetuple.get(1).split(":")[1]);
-                EnumOrderSide side = EnumOrderSide.valueOf(tradetuple.get(1).split(":")[2]);
-
-                double sl = Double.valueOf(tradetuple.get(1).split(":")[3]);
-                sl = Utilities.round(sl, getTickSize(), 2);
-                HashMap<String, Object> order = new HashMap<>();
-                ArrayList<Integer> orderidlist = new ArrayList<>();
-                ArrayList<Integer> nearorderidlist = new ArrayList<>();
-                if (tradetuple.get(1).contains("_OPT")) {
-                    int newid = Utilities.getIDFromDisplayName(Parameters.symbol, tradetuple.get(1).split(":")[0]);
-                    orderidlist.add(newid);
-
-                } else {
-                    orderidlist = Utilities.getOrInsertOptionIDForLongSystem(Parameters.symbol, this.getPosition(), futureid, side, expiry);
-                }
-                nearorderidlist = orderidlist;
-                if (rollover && (side==EnumOrderSide.SELL ||side==EnumOrderSide.COVER)) {
-                    if (tradetuple.get(1).contains("_OPT")) {
-                        int newid = Utilities.getIDFromDisplayName(Parameters.symbol, tradetuple.get(1).split(":")[0]);
-                        nearorderidlist.add(newid);
-
-                    } else {
-                        nearorderidlist = Utilities.getOrInsertOptionIDForLongSystem(Parameters.symbol, this.getPosition(), symbolid, side, this.expiryNearMonth);
+                if (symbolid >= 0) { //only proceed if symbolid exists in our db
+                    ArrayList<Integer> entryorderidlist = new ArrayList<>();
+                    ArrayList<Integer> exitorderidlist = new ArrayList<>();
+                    /*
+                     * We generate orderidlist, which is a list of all ids 
+                     * This is based on the securityType.
+                     */
+                    if (securityType.equals("OPT")) {
+                        if (displayName.contains("OPT")) { //passthrough
+                            if (side.equals(EnumOrderSide.SELL) || side.equals(EnumOrderSide.COVER)) {
+                                exitorderidlist.add(symbolid);
+                                actualPositionSize = Utilities.getNetPosition(Parameters.symbol, this.getPosition(), exitorderidlist.get(0), "OPT");
+                            } else if (side.equals(EnumOrderSide.BUY) || side.equals(EnumOrderSide.SHORT)) {
+                                int referenceid = Utilities.getReferenceID(Parameters.symbol, symbolid, referenceCashType);
+                                if (optionPricingUsingFutures) {
+                                    int futureid = Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, expiry);
+                                    if (futureid >= 0) { //future exists in db
+                                        symbolid = Utilities.insertStrike(Parameters.symbol, futureid, symbol.split("_", -1)[2], symbol.split("_", -1)[3], symbol.split("_", -1)[4]);
+                                    }
+                                    entryorderidlist.add(symbolid);
+                                } else {
+                                    symbolid = Utilities.insertStrike(Parameters.symbol, referenceid, symbol.split("_", -1)[2], symbol.split("_", -1)[3], symbol.split("_", -1)[4]);
+                                    entryorderidlist.add(symbolid);
+                                }
+                            }
+                            actualPositionSize = Utilities.getNetPosition(Parameters.symbol, this.getPosition(), entryorderidlist.get(0), "OPT");
+                        } else { //symbolid needs to be derived
+                            int referenceid = Utilities.getReferenceID(Parameters.symbol, symbolid, referenceCashType);
+                            if (side.equals(EnumOrderSide.SELL) || side.equals(EnumOrderSide.COVER)) {
+                                if (optionPricingUsingFutures) {
+                                    int futureid = Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, expiryNearMonth);
+                                    if (optionSystem.equals("PAY")) {
+                                        exitorderidlist = Utilities.getOrInsertOptionIDForPaySystem(Parameters.symbol, this.getPosition(), futureid, side, this.expiryNearMonth);
+                                    } else {
+                                        exitorderidlist = Utilities.getOrInsertOptionIDForReceiveSystem(Parameters.symbol, this.getPosition(), futureid, side, this.expiryNearMonth);
+                                    }
+                                    futureid = Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, expiryFarMonth);
+                                    if (optionSystem.equals("PAY")) {
+                                        exitorderidlist.addAll(Utilities.getOrInsertOptionIDForPaySystem(Parameters.symbol, this.getPosition(), futureid, side, this.expiryFarMonth));
+                                    } else {
+                                        exitorderidlist.addAll(Utilities.getOrInsertOptionIDForReceiveSystem(Parameters.symbol, this.getPosition(), futureid, side, this.expiryFarMonth));
+                                    }
+                                } else {
+                                    if (optionSystem.equals("PAY")) {
+                                        exitorderidlist = Utilities.getOrInsertOptionIDForPaySystem(Parameters.symbol, this.getPosition(), referenceid, side, this.expiryNearMonth);
+                                        exitorderidlist.addAll(Utilities.getOrInsertOptionIDForPaySystem(Parameters.symbol, this.getPosition(), referenceid, side, this.expiryFarMonth));
+                                    } else {
+                                        exitorderidlist = Utilities.getOrInsertOptionIDForReceiveSystem(Parameters.symbol, this.getPosition(), referenceid, side, this.expiryNearMonth);
+                                        exitorderidlist.addAll(Utilities.getOrInsertOptionIDForReceiveSystem(Parameters.symbol, this.getPosition(), referenceid, side, this.expiryFarMonth));
+                                    }
+                                }
+                                actualPositionSize = Utilities.getNetPosition(Parameters.symbol, this.getPosition(), exitorderidlist.get(0), "OPT");
+                            } else if (side.equals(EnumOrderSide.BUY) || side.equals(EnumOrderSide.SHORT)) {
+                                if (optionPricingUsingFutures) {
+                                    int futureid = Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, expiry);
+                                    if (optionSystem.equals("PAY")) {
+                                        entryorderidlist = Utilities.getOrInsertOptionIDForPaySystem(Parameters.symbol, this.getPosition(), futureid, side, expiry);
+                                    } else {
+                                        entryorderidlist = Utilities.getOrInsertOptionIDForReceiveSystem(Parameters.symbol, this.getPosition(), futureid, side, expiry);
+                                    }
+                                } else {
+                                    if (optionSystem.equals("PAY")) {
+                                        entryorderidlist = Utilities.getOrInsertOptionIDForPaySystem(Parameters.symbol, this.getPosition(), referenceid, side, expiry);
+                                    } else {
+                                        entryorderidlist = Utilities.getOrInsertOptionIDForReceiveSystem(Parameters.symbol, this.getPosition(), referenceid, side, expiry);
+                                    }
+                                }
+                            }
+                            actualPositionSize = Utilities.getNetPosition(Parameters.symbol, this.getPosition(), entryorderidlist.get(0), "OPT");
+                        }
                     }
-                }
-                if (rollover && (side==EnumOrderSide.SELL ||side==EnumOrderSide.COVER)) {
-                    nearfutureid = Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, symbolid, this.expiryNearMonth);
-                }
-                if (orderidlist.size() > 0) {
-                    //orderidlist.size can be zero if we get a SELL or COVER order, without an option position.
-                    //In this case, no symbols will be added and an empty orderidlist will be returned.
-                    for (int i : orderidlist) {
-                        this.initSymbol(i);
+
+                    if (securityType.equals("FUT")) {
+                        if (displayName.contains("FUT")) { //passthrough
+                            if (side.equals(EnumOrderSide.SELL) || side.equals(EnumOrderSide.COVER)) {
+                                exitorderidlist.add(symbolid);
+                                actualPositionSize = Utilities.getNetPosition(Parameters.symbol, this.getPosition(), exitorderidlist.get(0), "OPT");
+                            } else if (side.equals(EnumOrderSide.BUY) || side.equals(EnumOrderSide.SHORT)) {
+                                int referenceid = Utilities.getReferenceID(Parameters.symbol, symbolid, referenceCashType);
+                                int futureid = Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, expiry);
+                                entryorderidlist.add(futureid);
+                            }
+                            actualPositionSize = Utilities.getNetPosition(Parameters.symbol, this.getPosition(), entryorderidlist.get(0), "OPT");
+                        } else { //symbolid needs to be derived
+                            int referenceid = Utilities.getReferenceID(Parameters.symbol, symbolid, referenceCashType);
+                            if (side.equals(EnumOrderSide.SELL) || side.equals(EnumOrderSide.COVER)) {
+                                int futureid = Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, expiryNearMonth);
+                                exitorderidlist.addAll(this.getFirstInternalOpenOrder(futureid, side, "Order"));
+                                futureid = Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, expiryFarMonth);
+                                exitorderidlist.addAll(this.getFirstInternalOpenOrder(futureid, side, "Order"));
+                                actualPositionSize = Utilities.getNetPosition(Parameters.symbol, this.getPosition(), exitorderidlist.get(0), "OPT");
+                            } else if (side.equals(EnumOrderSide.BUY) || side.equals(EnumOrderSide.SHORT)) {
+                                if (optionPricingUsingFutures) {
+                                    int futureid = Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, expiry);
+                                    entryorderidlist.add(futureid);
+                                }
+                            }
+                            actualPositionSize = Utilities.getNetPosition(Parameters.symbol, this.getPosition(), entryorderidlist.get(0), "OPT");
+                        }
                     }
-                    for (int i : nearorderidlist) {
-                        this.initSymbol(i);
+
+                    if (securityType.equals("PASSTHROUGH")) {
+                        if (side.equals(EnumOrderSide.SELL) || side.equals(EnumOrderSide.COVER)) {
+                            exitorderidlist.add(symbolid);
+                            actualPositionSize = Utilities.getNetPosition(Parameters.symbol, this.getPosition(), exitorderidlist.get(0), "OPT");
+                        } else if (side.equals(EnumOrderSide.BUY) || side.equals(EnumOrderSide.SHORT)) {
+                            entryorderidlist.add(symbolid);
+                            actualPositionSize = Utilities.getNetPosition(Parameters.symbol, this.getPosition(), entryorderidlist.get(0), "OPT");
+                        }
                     }
-                    int initPositionSize = Integer.valueOf(tradetuple.get(1).split(":")[4]);
-                    int actualPositionSize = Utilities.getNetPositionFromOptions(Parameters.symbol, this.getPosition(), orderidlist.get(0));
-//            int actualPositionSize = this.getPosition().get(id) == null ? 0 : this.getPosition().get(id).getPosition();
+
+                    stoploss = Utilities.round(stoploss, getTickSize(), 2);
+                    HashMap<String, Object> order = new HashMap<>();
+
+                    if (entryorderidlist.size() > 0) {
+                        for (int i : entryorderidlist) {
+                            this.initSymbol(i);
+                        }
+                    }
+                    if (exitorderidlist.size() > 0) {
+                        for (int i : exitorderidlist) {
+                            this.initSymbol(i);
+                        }
+                    }
+
                     int compensation = initPositionSize - actualPositionSize;
                     size = (side == EnumOrderSide.BUY || side == EnumOrderSide.COVER) ? size + compensation : Math.abs(-size + compensation);
                     /*
@@ -183,16 +273,16 @@ public class Manager extends Strategy {
                         order.put("expiretime", getMaxOrderDuration());
                         order.put("dynamicorderduration", getDynamicOrderDuration());
                         order.put("maxslippage", this.getMaxSlippageEntry());
-                        order.put("disclosedsize",Parameters.symbol.get(futureid).getMinsize());
                         int orderid;
                         ArrayList<Stop> stops = new ArrayList<>();
                         Stop stp = new Stop();
                         switch (side) {
                             case BUY:
-                                for (int id : orderidlist) {
+                                for (int id : entryorderidlist) {
                                     if (id >= 0) {
                                         order.put("id", id);
-                                        double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol, id, futureid, EnumOrderSide.BUY, "CALL", getTickSize());
+                                        int referenceid = Utilities.getReferenceID(Parameters.symbol, id, referenceCashType);
+                                        double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, id, referenceid, EnumOrderSide.BUY, "CALL", getTickSize(), this.getOrdType());
                                         order.put("limitprice", limitprice);
                                         order.put("side", EnumOrderSide.BUY);
                                         order.put("size", size);
@@ -201,11 +291,12 @@ public class Manager extends Strategy {
                                         order.put("scale", getScaleEntry());
                                         order.put("dynamicorderduration", this.getDynamicOrderDuration());
                                         order.put("expiretime", 0);
+                                        order.put("disclosedsize", Parameters.symbol.get(id).getMinsize());
                                         order.put("log", "BUY" + delimiter + tradetuple.get(1));
-                                        if (limitprice > 0) {
+                                        if ((this.getOrdType() != EnumOrderType.MKT && limitprice > 0) || this.getOrdType().equals(EnumOrderType.MKT)) {
                                             logger.log(Level.INFO, "501,Strategy BUY,{0}", new Object[]{getStrategy() + delimiter + "BUY" + delimiter + Parameters.symbol.get(id).getDisplayname()});
                                             orderid = entry(order);
-                                            stp.stopValue = sl;
+                                            stp.stopValue = stoploss;
                                             stp.underlyingEntry = Parameters.symbol.get(symbolid).getLastPrice();
                                             stp.stopType = EnumStopType.STOPLOSS;
                                             stp.stopMode = EnumStopMode.POINT;
@@ -217,10 +308,11 @@ public class Manager extends Strategy {
                                 }
                                 break;
                             case SELL:
-                                for (int nearid : nearorderidlist) {
-                                    if (nearid >= 0) {
-                                        order.put("id", nearid);
-                                        double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol, nearid, nearfutureid, EnumOrderSide.SELL, "CALL", getTickSize());
+                                for (int id : exitorderidlist) {
+                                    if (id >= 0) {
+                                        order.put("id", id);
+                                        int referenceid = Utilities.getReferenceID(Parameters.symbol, id, referenceCashType);
+                                        double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, id, referenceid, EnumOrderSide.BUY, "CALL", getTickSize(), this.getOrdType());
                                         order.put("limitprice", limitprice);
                                         order.put("side", EnumOrderSide.SELL);
                                         order.put("size", size);
@@ -230,18 +322,19 @@ public class Manager extends Strategy {
                                         order.put("dynamicorderduration", this.getDynamicOrderDuration());
                                         order.put("expiretime", 0);
                                         order.put("log", "SELL" + delimiter + tradetuple.get(1));
-                                        if (limitprice > 0) {
-                                            logger.log(Level.INFO, "501,Strategy SELL,{0}", new Object[]{getStrategy() + delimiter + "SELL" + delimiter + Parameters.symbol.get(nearid).getDisplayname()});
+                                        if ((this.getOrdType() != EnumOrderType.MKT && limitprice > 0) || this.getOrdType().equals(EnumOrderType.MKT)) {
+                                            logger.log(Level.INFO, "501,Strategy SELL,{0}", new Object[]{getStrategy() + delimiter + "SELL" + delimiter + Parameters.symbol.get(id).getDisplayname()});
                                             exit(order);
                                         }
                                     }
                                 }
                                 break;
                             case SHORT:
-                                for (int id : orderidlist) {
+                                for (int id : entryorderidlist) {
                                     if (id >= 0) {
                                         order.put("id", id);
-                                        double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol, id, futureid, EnumOrderSide.BUY, "PUT", getTickSize());
+                                        int referenceid = Utilities.getReferenceID(Parameters.symbol, id, referenceCashType);
+                                        double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, id, referenceid, EnumOrderSide.BUY, "CALL", getTickSize(), this.getOrdType());
                                         order.put("limitprice", limitprice);
                                         order.put("side", EnumOrderSide.BUY);
                                         order.put("size", size);
@@ -251,11 +344,11 @@ public class Manager extends Strategy {
                                         order.put("dynamicorderduration", this.getDynamicOrderDuration());
                                         order.put("expiretime", 0);
                                         order.put("log", "SHORT" + delimiter + tradetuple.get(1));
-                                        if (limitprice > 0) {
+                                        if ((this.getOrdType() != EnumOrderType.MKT && limitprice > 0) || this.getOrdType().equals(EnumOrderType.MKT)) {
                                             logger.log(Level.INFO, "501,Strategy SHORT,{0}", new Object[]{getStrategy() + delimiter + "SHORT" + delimiter + Parameters.symbol.get(id).getDisplayname()});
                                             orderid = entry(order);
                                             Trade.setStop(db, this.getStrategy() + ":" + orderid + ":" + "Order", "opentrades", stops);
-                                            stp.stopValue = sl;
+                                            stp.stopValue = stoploss;
                                             stp.underlyingEntry = Parameters.symbol.get(symbolid).getLastPrice();
                                             stp.stopType = EnumStopType.STOPLOSS;
                                             stp.stopMode = EnumStopMode.POINT;
@@ -267,10 +360,11 @@ public class Manager extends Strategy {
                                 }
                                 break;
                             case COVER:
-                                for (int nearid : nearorderidlist) {
-                                    if (nearid >= 0) {
-                                        order.put("id", nearid);
-                                        double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol, nearid, nearfutureid, EnumOrderSide.SELL, "PUT", getTickSize());
+                                for (int id : exitorderidlist) {
+                                    if (id >= 0) {
+                                        order.put("id", id);
+                                        int referenceid = Utilities.getReferenceID(Parameters.symbol, id, referenceCashType);
+                                        double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, id, referenceid, EnumOrderSide.BUY, "CALL", getTickSize(), this.getOrdType());
                                         order.put("limitprice", limitprice);
                                         order.put("side", EnumOrderSide.SELL);
                                         order.put("size", size);
@@ -280,8 +374,8 @@ public class Manager extends Strategy {
                                         order.put("dynamicorderduration", this.getDynamicOrderDuration());
                                         order.put("expiretime", 0);
                                         order.put("log", "COVER" + delimiter + tradetuple.get(1));
-                                        if (limitprice > 0) {
-                                            logger.log(Level.INFO, "501,Strategy COVER,{0}", new Object[]{getStrategy() + delimiter + "COVER" + delimiter + Parameters.symbol.get(nearid).getDisplayname()});
+                                        if ((this.getOrdType() != EnumOrderType.MKT && limitprice > 0) || this.getOrdType().equals(EnumOrderType.MKT)) {
+                                            logger.log(Level.INFO, "501,Strategy COVER,{0}", new Object[]{getStrategy() + delimiter + "COVER" + delimiter + Parameters.symbol.get(id).getDisplayname()});
                                             exit(order);
                                         }
                                     }
@@ -293,8 +387,8 @@ public class Manager extends Strategy {
                     }
                 }
 
-
             }
+
         } catch (Exception e) {
             logger.log(Level.SEVERE, null, e);
         }

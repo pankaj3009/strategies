@@ -374,12 +374,12 @@ public class Swing extends Strategy implements TradeListener {
                 HashMap<String, Object> order = new HashMap<>();
                 ArrayList<Integer> orderidlist = new ArrayList<>();
                 ArrayList<Integer> nearorderidlist = new ArrayList<>();
-                orderidlist = Utilities.getOrInsertOptionIDForLongSystem(Parameters.symbol, this.getPosition(), futureid, side, expiry);
+                orderidlist = Utilities.getOrInsertOptionIDForPaySystem(Parameters.symbol, this.getPosition(), futureid, side, expiry);
                 nearorderidlist = orderidlist;
 
                 if (this.optionTrades) {
                     if (rollover) {
-                        nearorderidlist = Utilities.getOrInsertOptionIDForLongSystem(Parameters.symbol, this.getPosition(), symbolid, side, this.expiryNearMonth);
+                        nearorderidlist = Utilities.getOrInsertOptionIDForPaySystem(Parameters.symbol, this.getPosition(), symbolid, side, this.expiryNearMonth);
                     }
                 }
                 if ((orderidlist.size() > 0 && (side.equals(EnumOrderSide.BUY)||side.equals(EnumOrderSide.SHORT))) ||

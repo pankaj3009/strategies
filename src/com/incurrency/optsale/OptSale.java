@@ -263,7 +263,7 @@ public class OptSale extends Strategy implements TradeListener {
                                 -1, -1});
                         }
                         for (int i : filteredOrderList) {
-                            int actualPositionSize = Math.abs(Utilities.getNetPositionFromOptions(Parameters.symbol, getPosition(), i));
+                            int actualPositionSize = Math.abs(Utilities.getNetPosition(Parameters.symbol, getPosition(), i,"OPT"));
                             if (actualPositionSize < maxPositionSize) {
                                 int position = getPosition().get(i).getPosition();
                                 db.lpush("trades:" + getStrategy(), Parameters.symbol.get(i).getDisplayname() + ":" + getNumberOfContracts() + ":SHORT" + ":0:" + position);
