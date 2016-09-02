@@ -270,7 +270,7 @@ public class Swing extends Strategy implements TradeListener {
             int stopindex = -1;
             if (tradestops != null && tradestops.size() == 1) {
                 Stop stop = tradestops.get(0);
-                if (stop.recalculate == Boolean.TRUE) {
+               // if (stop.recalculate == Boolean.TRUE) {
                     for (int i = 0; i < expectedTrades.size(); i++) {
                         if (expectedTrades.get(i).contains(symbol)) {
                             stopindex = i;
@@ -298,7 +298,7 @@ public class Swing extends Strategy implements TradeListener {
                         Thread t = new Thread(new Mail("psharma@incurrency.com", "Opening position where none expected for: " + entrysymbol + " for strategy: " + this.getStrategy() + ".Please review strategy results", "Algorithm ALERT"));
                         t.start();
                     }
-                }
+               // }
             }
         }
     }
