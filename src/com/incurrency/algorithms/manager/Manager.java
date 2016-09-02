@@ -159,8 +159,12 @@ public class Manager extends Strategy {
                                     symbolid = Utilities.insertStrike(Parameters.symbol, referenceid, symbol.split("_", -1)[2], symbol.split("_", -1)[3], symbol.split("_", -1)[4]);
                                     entryorderidlist.add(symbolid);
                                 }
+                                if (exitorderidlist.size() > 0) {
+                                    actualPositionSize = Utilities.getNetPosition(Parameters.symbol, this.getPosition(), entryorderidlist.get(0), "OPT");
+                                } else {
+                                    actualPositionSize = 0;
+                                }
                             }
-                            actualPositionSize = Utilities.getNetPosition(Parameters.symbol, this.getPosition(), entryorderidlist.get(0), "OPT");
                         } else { //symbolid needs to be derived
                             int referenceid = Utilities.getReferenceID(Parameters.symbol, symbolid, referenceCashType);
                             if (side.equals(EnumOrderSide.SELL) || side.equals(EnumOrderSide.COVER)) {
@@ -186,7 +190,11 @@ public class Manager extends Strategy {
                                         exitorderidlist.addAll(Utilities.getOrInsertOptionIDForReceiveSystem(Parameters.symbol, this.getPosition(), referenceid, side, this.expiryFarMonth));
                                     }
                                 }
-                                actualPositionSize = Utilities.getNetPosition(Parameters.symbol, this.getPosition(), exitorderidlist.get(0), "OPT");
+                                if (exitorderidlist.size() > 0) {
+                                    actualPositionSize = Utilities.getNetPosition(Parameters.symbol, this.getPosition(), exitorderidlist.get(0), "OPT");
+                                } else {
+                                    actualPositionSize = 0;
+                                }
                             } else if (side.equals(EnumOrderSide.BUY) || side.equals(EnumOrderSide.SHORT)) {
                                 if (optionPricingUsingFutures) {
                                     int futureid = Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, expiry);
@@ -202,8 +210,9 @@ public class Manager extends Strategy {
                                         entryorderidlist = Utilities.getOrInsertOptionIDForReceiveSystem(Parameters.symbol, this.getPosition(), referenceid, side, expiry);
                                     }
                                 }
-                            }
                             actualPositionSize = Utilities.getNetPosition(Parameters.symbol, this.getPosition(), entryorderidlist.get(0), "OPT");
+                            }
+                            
                         }
                     }
 
