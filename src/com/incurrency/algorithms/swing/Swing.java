@@ -5,6 +5,7 @@
 package com.incurrency.algorithms.swing;
 
 import com.incurrency.algorithms.manager.Manager;
+import com.incurrency.framework.Algorithm;
 import com.incurrency.framework.BeanPosition;
 import com.incurrency.framework.BeanSymbol;
 import com.incurrency.framework.DateUtil;
@@ -23,11 +24,13 @@ import com.incurrency.framework.Utilities;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.TimeZone;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
@@ -58,6 +61,16 @@ public class Swing extends Manager implements TradeListener {
          * Timertask 4: rollProcessingTask - if trading day is also a rollover day, rolls over any open positions.
          */
 
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(new Date());
+        cal.setTimeZone(TimeZone.getTimeZone(Algorithm.timeZone));
+        cal.add(Calendar.DATE, -1);
+        Date priorEndDate = cal.getTime();
+        
+        if (new Date().before(this.getEndDate()) && new Date().after(priorEndDate)) {
+            Timer trigger = new Timer("Timer: " + this.getStrategy() + " RScriptProcessor");
+            trigger.schedule(RScriptRunTask, RScriptRunTime);
+        }
         Timer bodProcessing = new Timer("Timer: " + this.getStrategy() + " BODProcessing");
         bodProcessing.schedule(bodProcessingTask, 10 * 1000);
 
@@ -203,7 +216,7 @@ public class Swing extends Manager implements TradeListener {
             }
         }
     }
-    TimerTask tradeScannerTask = new TimerTask() {
+    TimerTask RScriptRunTask = new TimerTask() {
         @Override
         public void run() {
             for (BeanSymbol s : Parameters.symbol) {

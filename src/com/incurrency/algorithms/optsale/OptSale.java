@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.incurrency.optsale;
+package com.incurrency.algorithms.optsale;
 
 import com.incurrency.algorithms.manager.Manager;
 import com.incurrency.framework.Algorithm;
@@ -21,10 +21,13 @@ import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
+import java.util.TimeZone;
+import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -60,7 +63,12 @@ public class OptSale extends Manager implements TradeListener {
 
     public OptSale(MainAlgorithm m, Properties p, String parameterFile, ArrayList<String> accounts, Integer stratCount) {
         super(m, p, parameterFile, accounts, stratCount);
-        loadAdditionalParameters(p);
+        loadAdditionalParameters(p);       
+
+            Timer trigger = new Timer("Timer: " + this.getStrategy() + " RScriptProcessor");
+            trigger.schedule(RScriptRunTask, RScriptRunTime);
+        
+        
         indexid = Utilities.getIDFromDisplayName(Parameters.symbol, indexDisplayName);
         if (indexid >= 0) {
             try {
@@ -88,7 +96,7 @@ public class OptSale extends Manager implements TradeListener {
             }
         }
     }
-    public TimerTask RScriptRunTask = new TimerTask() {
+    private TimerTask RScriptRunTask = new TimerTask() {
         @Override
         public void run() {
             //Strategy

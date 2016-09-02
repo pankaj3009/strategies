@@ -428,9 +428,12 @@ public class Launch extends javax.swing.JFrame {
               algo.registerStrategy("com.incurrency.algorithms.manager.Manager");
           }
           if(input.get("optsale")!=null){
-              algo.registerStrategy("com.incurrency.optsale.OptSale");
+              algo.registerStrategy("com.incurrency.algorithms.optsale.OptSale");
           }
-        algo.postInit();
+          if(input.get("contra")!=null){
+              algo.registerStrategy("com.incurrency.algorithms.contra.Contra");
+          }
+          algo.postInit();
     }
 
     @Override

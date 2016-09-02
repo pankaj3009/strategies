@@ -68,19 +68,8 @@ public class Manager extends Strategy {
             expiry = this.expiryFarMonth;
         } else {
             expiry = this.expiryNearMonth;
-        }
-        
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(new Date());
-        cal.setTimeZone(TimeZone.getTimeZone(Algorithm.timeZone));
-        cal.add(Calendar.DATE, -1);
-        Date priorEndDate = cal.getTime();
-        
-        if (new Date().before(this.getEndDate()) && new Date().after(priorEndDate)) {
-            Timer trigger = new Timer("Timer: " + this.getStrategy() + " RScriptProcessor");
-            trigger.schedule(RScriptRunTask, RScriptRunTime);
-        }
-        
+        }     
+
         Timer monitor=new Timer("Timer: "+this.getStrategy() +" WaitForTrades");
         monitor.schedule(TradeProcessor, new Date());
     }
@@ -101,6 +90,10 @@ public class Manager extends Strategy {
         calToday.set(Calendar.MINUTE, Utilities.getInt(entryTimeComponents[1], 20));
         calToday.set(Calendar.SECOND, Utilities.getInt(entryTimeComponents[2], 0));
         RScriptRunTime = calToday.getTime();
+        if(RScriptRunTime.compareTo(this.getEndDate())>0){
+          calToday.add(Calendar.DATE, 1);
+          RScriptRunTime=calToday.getTime();
+        }
         rolloverDays = Integer.valueOf(p.getProperty("RolloverDays", "0"));
         RStrategyFile = p.getProperty("RStrategyFile", "");
         wd = p.getProperty("wd", "/home/psharma/Seafile/R");
@@ -109,26 +102,7 @@ public class Manager extends Strategy {
 
 
     }
-    public TimerTask RScriptRunTask = new TimerTask() {
-        @Override
-        public void run() {
-            if (!RStrategyFile.equals("")) {
-                logger.log(Level.INFO, "501,Scan,{0}", new Object[]{getStrategy()});
-                RConnection c = null;
-                try {
-                    c = new RConnection(rServerIP);
-                    c.eval("setwd(\"" + wd + "\")");
-                    REXP wd = c.eval("getwd()");
-                    System.out.println(wd.asString());
-                    c.eval("options(encoding = \"UTF-8\")");
-                    c.eval("source(\"" + RStrategyFile + "\")");
-                } catch (Exception e) {
-                    logger.log(Level.SEVERE, null, e);
-                }
-
-            }
-        }
-    };
+    
 
     public TimerTask TradeProcessor=new TimerTask(){
         @Override
