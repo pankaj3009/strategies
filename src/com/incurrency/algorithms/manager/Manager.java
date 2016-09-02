@@ -90,7 +90,7 @@ public class Manager extends Strategy {
         calToday.set(Calendar.MINUTE, Utilities.getInt(entryTimeComponents[1], 20));
         calToday.set(Calendar.SECOND, Utilities.getInt(entryTimeComponents[2], 0));
         RScriptRunTime = calToday.getTime();
-        if(RScriptRunTime.compareTo(this.getEndDate())>0){
+        if(this.getEndDate().compareTo(new Date())<0){
           calToday.add(Calendar.DATE, 1);
           RScriptRunTime=calToday.getTime();
         }
