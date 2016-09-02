@@ -129,10 +129,10 @@ public class Manager extends Strategy {
                 //tradetuple as symbol:size:side:sl
                 String displayName = tradetuple.get(1);
                 String symbol = displayName.split(":", -1)[0];
-                EnumOrderSide side = EnumOrderSide.valueOf(displayName.split(":")[2]);
-                int size = Integer.valueOf(displayName.split(":")[1]);
-                double stoploss = Double.valueOf(displayName.split(":")[3]);
-                int initPositionSize = Integer.valueOf(displayName.split(":")[4]);
+                EnumOrderSide side = EnumOrderSide.valueOf(displayName.split(":",-1)[2]);
+                int size = Integer.valueOf(displayName.split(":",-1)[1]);
+                double stoploss = Double.valueOf(displayName.split(":",-1)[3]);
+                int initPositionSize = Integer.valueOf(displayName.split(":",-1)[4]);
                 int actualPositionSize = initPositionSize;
                 int symbolid = Utilities.getIDFromDisplayName(Parameters.symbol, symbol);
                 if (symbolid >= 0) { //only proceed if symbolid exists in our db
@@ -281,7 +281,12 @@ public class Manager extends Strategy {
                                 for (int id : entryorderidlist) {
                                     if (id >= 0) {
                                         order.put("id", id);
-                                        int referenceid = Utilities.getReferenceID(Parameters.symbol, id, referenceCashType);
+                                        int referenceid = -1;
+                                        if (securityType.equals("OPT")) {
+                                            referenceid = Utilities.getReferenceID(Parameters.symbol, id, referenceCashType);
+                                            String tempExpiry = Parameters.symbol.get(id).getExpiry();
+                                            referenceid = this.optionPricingUsingFutures ? Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, tempExpiry) : referenceid;
+                                        }
                                         double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, id, referenceid, EnumOrderSide.BUY, "CALL", getTickSize(), this.getOrdType());
                                         order.put("limitprice", limitprice);
                                         order.put("side", EnumOrderSide.BUY);
@@ -311,7 +316,12 @@ public class Manager extends Strategy {
                                 for (int id : exitorderidlist) {
                                     if (id >= 0) {
                                         order.put("id", id);
-                                        int referenceid = Utilities.getReferenceID(Parameters.symbol, id, referenceCashType);
+                                        int referenceid = -1;
+                                        if (securityType.equals("OPT")) {
+                                            referenceid = Utilities.getReferenceID(Parameters.symbol, id, referenceCashType);
+                                            String tempExpiry = Parameters.symbol.get(id).getExpiry();
+                                            referenceid = this.optionPricingUsingFutures ? Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, tempExpiry) : referenceid;
+                                        }
                                         double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, id, referenceid, EnumOrderSide.BUY, "CALL", getTickSize(), this.getOrdType());
                                         order.put("limitprice", limitprice);
                                         order.put("side", EnumOrderSide.SELL);
@@ -333,7 +343,12 @@ public class Manager extends Strategy {
                                 for (int id : entryorderidlist) {
                                     if (id >= 0) {
                                         order.put("id", id);
-                                        int referenceid = Utilities.getReferenceID(Parameters.symbol, id, referenceCashType);
+                                        int referenceid = -1;
+                                        if (securityType.equals("OPT")) {
+                                            referenceid = Utilities.getReferenceID(Parameters.symbol, id, referenceCashType);
+                                            String tempExpiry = Parameters.symbol.get(id).getExpiry();
+                                            referenceid = this.optionPricingUsingFutures ? Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, tempExpiry) : referenceid;
+                                        }
                                         double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, id, referenceid, EnumOrderSide.BUY, "CALL", getTickSize(), this.getOrdType());
                                         order.put("limitprice", limitprice);
                                         order.put("side", EnumOrderSide.BUY);
@@ -363,7 +378,12 @@ public class Manager extends Strategy {
                                 for (int id : exitorderidlist) {
                                     if (id >= 0) {
                                         order.put("id", id);
-                                        int referenceid = Utilities.getReferenceID(Parameters.symbol, id, referenceCashType);
+                                        int referenceid = -1;
+                                        if (securityType.equals("OPT")) {
+                                            referenceid = Utilities.getReferenceID(Parameters.symbol, id, referenceCashType);
+                                            String tempExpiry = Parameters.symbol.get(id).getExpiry();
+                                            referenceid = this.optionPricingUsingFutures ? Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, tempExpiry) : referenceid;
+                                        }
                                         double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, id, referenceid, EnumOrderSide.BUY, "CALL", getTickSize(), this.getOrdType());
                                         order.put("limitprice", limitprice);
                                         order.put("side", EnumOrderSide.SELL);
