@@ -61,16 +61,10 @@ public class Swing extends Manager implements TradeListener {
          * Timertask 4: rollProcessingTask - if trading day is also a rollover day, rolls over any open positions.
          */
 
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(new Date());
-        cal.setTimeZone(TimeZone.getTimeZone(Algorithm.timeZone));
-        cal.add(Calendar.DATE, -1);
-        Date priorEndDate = cal.getTime();
+       
+        Timer trigger = new Timer("Timer: " + this.getStrategy() + " RScriptProcessor");
+        trigger.schedule(RScriptRunTask, RScriptRunTime);
         
-        if (new Date().before(this.getEndDate()) && new Date().after(priorEndDate)) {
-            Timer trigger = new Timer("Timer: " + this.getStrategy() + " RScriptProcessor");
-            trigger.schedule(RScriptRunTask, RScriptRunTime);
-        }
         Timer bodProcessing = new Timer("Timer: " + this.getStrategy() + " BODProcessing");
         bodProcessing.schedule(bodProcessingTask, 10 * 1000);
 

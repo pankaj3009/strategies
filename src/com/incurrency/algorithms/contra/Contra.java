@@ -30,16 +30,8 @@ public class Contra extends Manager {
     
     public Contra(MainAlgorithm m, Properties p, String parameterFile, ArrayList<String> accounts, Integer stratCount) {
         super(m, p, parameterFile, accounts, stratCount);
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(new Date());
-        cal.setTimeZone(TimeZone.getTimeZone(Algorithm.timeZone));
-        cal.add(Calendar.DATE, -1);
-        Date priorEndDate = cal.getTime();
-        
-        if (new Date().before(this.getEndDate()) && new Date().after(priorEndDate)) {
-            Timer trigger = new Timer("Timer: " + this.getStrategy() + " RScriptProcessor");
-            trigger.schedule(RScriptRunTask, RScriptRunTime);
-        }
+        Timer trigger = new Timer("Timer: " + this.getStrategy() + " RScriptProcessor");
+        trigger.schedule(RScriptRunTask, RScriptRunTime);
     }
 
     private TimerTask RScriptRunTask = new TimerTask() {

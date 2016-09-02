@@ -65,9 +65,9 @@ public class OptSale extends Manager implements TradeListener {
         super(m, p, parameterFile, accounts, stratCount);
         loadAdditionalParameters(p);       
 
-            Timer trigger = new Timer("Timer: " + this.getStrategy() + " RScriptProcessor");
-            trigger.schedule(RScriptRunTask, RScriptRunTime);
-        
+        Timer trigger = new Timer("Timer: " + this.getStrategy() + " RScriptProcessor");
+        trigger.schedule(RScriptRunTask, RScriptRunTime);
+
         
         indexid = Utilities.getIDFromDisplayName(Parameters.symbol, indexDisplayName);
         if (indexid >= 0) {
