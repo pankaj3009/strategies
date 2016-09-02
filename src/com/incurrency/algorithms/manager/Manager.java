@@ -40,20 +40,20 @@ public class Manager extends Strategy {
 
     public String expiryNearMonth;
     public String expiryFarMonth;
-    String referenceCashType;
-    String rServerIP;
-    private EnumOrderType ordType;
-    Date monitoringStart;
-    Boolean rollover;
-    int rolloverDays;
-    String expiry;
-    String RStrategyFile;
-    String wd;
-    String securityType;
-    boolean optionPricingUsingFutures = true;
-    String optionSystem;
-    private Boolean scaleEntry = Boolean.FALSE;
-    private Boolean scaleExit = Boolean.FALSE;
+    public String referenceCashType;
+    public String rServerIP;
+    public EnumOrderType ordType;
+    public Date RScriptRunTime;
+    public Boolean rollover;
+    public int rolloverDays;
+    public String expiry;
+    public String RStrategyFile;
+    public String wd;
+    public String securityType;
+    public boolean optionPricingUsingFutures = true;
+    public String optionSystem;
+    public Boolean scaleEntry = Boolean.FALSE;
+    public Boolean scaleExit = Boolean.FALSE;
     private static final Logger logger = Logger.getLogger(Manager.class.getName());
 
     public Manager(MainAlgorithm m, Properties p, String parameterFile, ArrayList<String> accounts, Integer stratCount) {
@@ -69,8 +69,20 @@ public class Manager extends Strategy {
         } else {
             expiry = this.expiryNearMonth;
         }
-        Timer monitor = new Timer("Timer: " + this.getStrategy() + " TradeScanner");
-        monitor.schedule(tradeScannerTask, monitoringStart);
+        
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(new Date());
+        cal.setTimeZone(TimeZone.getTimeZone(Algorithm.timeZone));
+        cal.add(Calendar.DATE, -1);
+        Date priorEndDate = cal.getTime();
+        
+        if (new Date().before(this.getEndDate()) && new Date().after(priorEndDate)) {
+            Timer trigger = new Timer("Timer: " + this.getStrategy() + " RScriptProcessor");
+            trigger.schedule(RScriptRunTask, RScriptRunTime);
+        }
+        
+        Timer monitor=new Timer("Timer: "+this.getStrategy() +" WaitForTrades");
+        monitor.schedule(TradeProcessor, new Date());
     }
 
     private void loadParameters(Properties p) {
@@ -88,7 +100,7 @@ public class Manager extends Strategy {
         calToday.set(Calendar.HOUR_OF_DAY, Utilities.getInt(entryTimeComponents[0], 15));
         calToday.set(Calendar.MINUTE, Utilities.getInt(entryTimeComponents[1], 20));
         calToday.set(Calendar.SECOND, Utilities.getInt(entryTimeComponents[2], 0));
-        monitoringStart = calToday.getTime();
+        RScriptRunTime = calToday.getTime();
         rolloverDays = Integer.valueOf(p.getProperty("RolloverDays", "0"));
         RStrategyFile = p.getProperty("RStrategyFile", "");
         wd = p.getProperty("wd", "/home/psharma/Seafile/R");
@@ -97,7 +109,7 @@ public class Manager extends Strategy {
 
 
     }
-    TimerTask tradeScannerTask = new TimerTask() {
+    public TimerTask RScriptRunTask = new TimerTask() {
         @Override
         public void run() {
             if (!RStrategyFile.equals("")) {
@@ -115,13 +127,19 @@ public class Manager extends Strategy {
                 }
 
             }
+        }
+    };
+
+    public TimerTask TradeProcessor=new TimerTask(){
+        @Override
+        public void run() {
             while (true) {
                 waitForTrades();
             }
         }
     };
-
-    void waitForTrades() {
+        
+    public void waitForTrades() {
         try {
             List<String> tradetuple = db.blpop("trades:" + this.getStrategy(), "", 60);
             if (tradetuple != null) {
@@ -268,7 +286,12 @@ public class Manager extends Strategy {
                             this.initSymbol(i);
                         }
                     }
-
+                    /*
+                     * IF initpositionsize = 100, actual positionsize=0, we get a buy of 100. comp=100, size=200
+                     * IF initpositionsize=0, actualpositionsize=100, we get buy of 100, comp=-100, size=0, probably a duplicate trade
+                     * IF initpositionsize=-100,actualpositionsize=0, we get a short of 100,should be short, but are not, comp=-100,size=abs(-100-100)=200
+                     * IF initpositionsize=200, actualpositionsize=100, we set a SELL of 200, comp=100, size=abs(-200+100)=100
+                     */
                     int compensation = initPositionSize - actualPositionSize;
                     size = (side == EnumOrderSide.BUY || side == EnumOrderSide.COVER) ? size + compensation : Math.abs(-size + compensation);
                     /*

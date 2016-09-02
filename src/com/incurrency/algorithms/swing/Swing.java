@@ -4,9 +4,7 @@
  */
 package com.incurrency.algorithms.swing;
 
-import com.incurrency.RatesClient.Subscribe;
-import com.incurrency.framework.Algorithm;
-import com.incurrency.framework.BeanConnection;
+import com.incurrency.algorithms.manager.Manager;
 import com.incurrency.framework.BeanPosition;
 import com.incurrency.framework.BeanSymbol;
 import com.incurrency.framework.DateUtil;
@@ -14,15 +12,10 @@ import com.incurrency.framework.EnumOrderReason;
 import com.incurrency.framework.EnumOrderSide;
 import com.incurrency.framework.EnumOrderStage;
 import com.incurrency.framework.EnumOrderType;
-import com.incurrency.framework.EnumStopMode;
-import com.incurrency.framework.EnumStopType;
-import com.incurrency.framework.Index;
 import com.incurrency.framework.Mail;
 import com.incurrency.framework.MainAlgorithm;
 import com.incurrency.framework.Parameters;
-import com.incurrency.framework.SimulationTimer;
 import com.incurrency.framework.Stop;
-import com.incurrency.framework.Strategy;
 import com.incurrency.framework.Trade;
 import com.incurrency.framework.TradeEvent;
 import com.incurrency.framework.TradeListener;
@@ -30,13 +23,11 @@ import com.incurrency.framework.Utilities;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.TimeZone;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
@@ -48,126 +39,39 @@ import org.rosuda.REngine.Rserve.RConnection;
  *
  * @author pankaj
  */
-public class Swing extends Strategy implements TradeListener {
+public class Swing extends Manager implements TradeListener {
 
     private static final Logger logger = Logger.getLogger(Swing.class.getName());
-    String expiryNearMonth;
-    String expiryFarMonth;
-    String referenceCashType;
-    String rServerIP;
-    Date entryScanDate;
-    Timer eodProcessing;
     int testingTimer = 0;
     private final Object lockTradeReceived_1 = new Object();
-    private String RStrategyFile;
     SimpleDateFormat sdf_default = new SimpleDateFormat("yyyy-MM-dd");
     SimpleDateFormat sdtf_default = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    private boolean rollover;
-    int rolloverDays;
-    private String expiry;
-    private String wd;
-    private Boolean optionTrades = Boolean.FALSE;
-    private EnumOrderType ordType = EnumOrderType.LMT;
 
     public Swing(MainAlgorithm m, Properties p, String parameterFile, ArrayList<String> accounts, Integer stratCount) {
-        super(m, "swing", "FUT", p, parameterFile, accounts, stratCount);
-        loadParameters(p);
-        String[] tempStrategyArray = parameterFile.split("\\.")[0].split("-|_");
-        for (BeanConnection c : Parameters.connection) {
-            c.getWrapper().addTradeListener(this);
-            c.initializeConnection(tempStrategyArray[tempStrategyArray.length - 1], -1);
-        }
-        if (Subscribe.tes != null) {
-            Subscribe.tes.addTradeListener(this);
-        }
-        MainAlgorithm.tes.addTradeListener(this);
-        if (testingTimer > 0) {
-            Calendar tmpCalendar = Calendar.getInstance(TimeZone.getTimeZone(Algorithm.timeZone));
-            tmpCalendar.add(Calendar.MINUTE, testingTimer);
-            entryScanDate = tmpCalendar.getTime();
-        }
-        rollover = Utilities.rolloverDay(rolloverDays,this.getStartDate(),this.expiryNearMonth);
-
-        if (rollover) {
-            expiry = this.expiryFarMonth;
-        } else {
-            expiry = this.expiryNearMonth;
-        }
-
-        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Entry Scan Time" + delimiter + entryScanDate});
-        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Testing Timer Duration" + delimiter + testingTimer});
+        super(m, p, parameterFile, accounts, stratCount);
 
         /*
-         * Strategy has 4 timer tasks
+         * Swing has 4 timer tasks
          * Timertask 1: eodProcessingTask - scans at the specified time for entry signals
          * Timertask 2: bodProcessingTask - scans at the start of program and updates stop levels
-         * Timertask 3: tradeProcessingTask - scans for trades every 60 seconds.
+         * Timertask 3: tradeProcessingTask - scans for trades every 60 seconds. - uses manager implementation
          * Timertask 4: rollProcessingTask - if trading day is also a rollover day, rolls over any open positions.
          */
-        if (MainAlgorithm.isUseForSimulation()) {
-            String entryScanTime = p.getProperty("EntryScanTime");
-            // *********** SECTION USED FOR SIMULATING TRADES *************
-            String algorithmEndDate = Algorithm.globalProperties.getProperty("BackTestEndDate");
-            Calendar c = Calendar.getInstance(TimeZone.getTimeZone(Algorithm.timeZone));
-            Date algoDate = DateUtil.getFormattedDate(algorithmEndDate, "yyyyMMddHHmmss", Algorithm.timeZone);
-            c.setTime(algoDate);
-            String[] entryTimeComponents = entryScanTime.split(":");
-            c.set(Calendar.HOUR_OF_DAY, Utilities.getInt(entryTimeComponents[0], 15));
-            c.set(Calendar.MINUTE, Utilities.getInt(entryTimeComponents[1], 20));
-            c.set(Calendar.SECOND, Utilities.getInt(entryTimeComponents[2], 0));
-            entryScanDate = c.getTime();
-            Thread s = new Thread(new SimulationTimer(entryScanDate, eodProcessingTask));
-            s.start();
-            //*************************************************************
-        } else {
-            Calendar cal = Calendar.getInstance();
-            cal.setTime(new Date());
-            cal.setTimeZone(TimeZone.getTimeZone(Algorithm.timeZone));
-            cal.add(Calendar.DATE, -1);
-            Date priorEndDate = cal.getTime();
-            if (new Date().before(this.getEndDate()) && new Date().after(priorEndDate)) {
-                logger.log(Level.INFO, "Set EODProcessing Task at {0}", new Object[]{sdtf_default.format(entryScanDate)});
-                eodProcessing = new Timer("Timer: " + this.getStrategy() + " EODProcessing");
-                eodProcessing.schedule(eodProcessingTask, entryScanDate);
-            }
-        }
+
         Timer bodProcessing = new Timer("Timer: " + this.getStrategy() + " BODProcessing");
         bodProcessing.schedule(bodProcessingTask, 10 * 1000);
 
-        Timer signals = new Timer("Timer: " + this.getStrategy() + " TradeProcessing");
-        signals.schedule(tradeProcessingTask, 1 * 1000);
         if (rollover) {
             Timer rollProcessing = new Timer("Timer: " + this.getStrategy() + " RollProcessing");
-            rollProcessing.schedule(rollProcessingTask, DateUtil.addSeconds(entryScanDate, 60));
+            rollProcessing.schedule(rollProcessingTask, DateUtil.addSeconds(RScriptRunTime, 60));
         }
-    }
-
-    private void loadParameters(Properties p) {
-        expiryNearMonth = p.getProperty("NearMonthExpiry").toString().trim();
-        expiryFarMonth = p.getProperty("FarMonthExpiry").toString().trim();
-        referenceCashType = p.getProperty("ReferenceCashType", "STK").toString().trim();
-        rServerIP = p.getProperty("RServerIP").toString().trim();
-        String entryScanTime = p.getProperty("EntryScanTime");
-        Calendar calToday = Calendar.getInstance(TimeZone.getTimeZone(Algorithm.timeZone));
-        calToday.setTime(this.getEndDate());
-        String[] entryTimeComponents = entryScanTime.split(":");
-        calToday.set(Calendar.HOUR_OF_DAY, Utilities.getInt(entryTimeComponents[0], 15));
-        calToday.set(Calendar.MINUTE, Utilities.getInt(entryTimeComponents[1], 20));
-        calToday.set(Calendar.SECOND, Utilities.getInt(entryTimeComponents[2], 0));
-        entryScanDate = calToday.getTime();
-        testingTimer = Utilities.getInt(p.getProperty("TestingTimer"), 0);
-        RStrategyFile = p.getProperty("RStrategyFile", "");
-        wd = p.getProperty("wd", "/home/psharma/Seafile/R");
-        optionTrades = Boolean.parseBoolean(p.getProperty("UseOptions", "FALSE"));
-        ordType = EnumOrderType.valueOf(p.getProperty("OrderType", "LMT"));
-        rolloverDays = Integer.valueOf(p.getProperty("RolloverDays", "0"));
     }
 
     @Override
     public void tradeReceived(TradeEvent event) {
         synchronized (lockTradeReceived_1) {
             Integer id = event.getSymbolID();
-            if (this.getStrategySymbols().contains(id) && !Parameters.symbol.get(id).getType().equals(referenceCashType)) {
+            if (getStrategySymbols().contains(id) && !Parameters.symbol.get(id).getType().equals(referenceCashType)) {
                 if (this.getPosition().get(id).getPosition() > 0 && this.getPosition().get(id).getStrategy().equalsIgnoreCase(this.getStrategy())) {
                     int referenceid = Utilities.getReferenceID(Parameters.symbol, id, referenceCashType);
                     int futureid = Utilities.getFutureIDFromExchangeSymbol(Parameters.symbol, referenceid, expiry);
@@ -179,10 +83,7 @@ public class Swing extends Strategy implements TradeListener {
                     double slDistance = 0D;
                     double sl = Double.MIN_VALUE;
                     double tp = Double.MAX_VALUE;
-                    if (!optionTrades && stops == null && Parameters.symbol.get(id).getLastPrice() != 0) { //Set SL and TP at 5%
-                        slTrigger = tradePrice > 0 && Parameters.symbol.get(id).getLastPrice() != 0 && (Parameters.symbol.get(id).getLastPrice() <= tradePrice * (1 - 5 / 100));
-                        tpTrigger = tradePrice > 0 && Parameters.symbol.get(id).getLastPrice() != 0 && (Parameters.symbol.get(id).getLastPrice() >= tradePrice * (1 + 5 / 100));
-                    } else if (stops != null && Parameters.symbol.get(id).getLastPrice() != 0) {
+                    if (stops != null && Parameters.symbol.get(id).getLastPrice() != 0) {
                         for (Stop stop : stops) {
                             switch (stop.stopType) {
                                 case TAKEPROFIT:
@@ -302,7 +203,7 @@ public class Swing extends Strategy implements TradeListener {
             }
         }
     }
-    TimerTask eodProcessingTask = new TimerTask() {
+    TimerTask tradeScannerTask = new TimerTask() {
         @Override
         public void run() {
             for (BeanSymbol s : Parameters.symbol) {
@@ -345,171 +246,7 @@ public class Swing extends Strategy implements TradeListener {
         }
         }
     }
-    TimerTask tradeProcessingTask = new TimerTask() {
-        @Override
-        public void run() {
-            while (true) {
-                waitForTrades();
-            }
-        }
-    };
 
-    /**
-     * Blocks on Redis and waits for trades to be reported.
-     */
-    void waitForTrades() {
-        try {
-            List<String> tradetuple = db.blpop("trades:" + this.getStrategy(), "", 60);
-            if (tradetuple != null) {
-                logger.log(Level.INFO, "Received Trade:{0} for strategy {1}", new Object[]{tradetuple.get(1), tradetuple.get(0)});
-                //tradetuple as symbol:size:side:sl
-                String symbol = tradetuple.get(1).split(":")[0];
-                int symbolid = Utilities.getIDFromDisplayName(Parameters.symbol, symbol);
-                int futureid = Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, symbolid, expiry);
-                int nearfutureid = futureid;
-                int size = Integer.valueOf(tradetuple.get(1).split(":")[1]);
-                EnumOrderSide side = EnumOrderSide.valueOf(tradetuple.get(1).split(":")[2]);
-                double sl = Double.valueOf(tradetuple.get(1).split(":")[3]);
-                sl = Utilities.round(sl, getTickSize(), 2);
-                HashMap<String, Object> order = new HashMap<>();
-                ArrayList<Integer> orderidlist = new ArrayList<>();
-                ArrayList<Integer> nearorderidlist = new ArrayList<>();
-                orderidlist = Utilities.getOrInsertOptionIDForPaySystem(Parameters.symbol, this.getPosition(), futureid, side, expiry);
-                nearorderidlist = orderidlist;
-
-                if (this.optionTrades) {
-                    if (rollover) {
-                        nearorderidlist = Utilities.getOrInsertOptionIDForPaySystem(Parameters.symbol, this.getPosition(), symbolid, side, this.expiryNearMonth);
-                    }
-                }
-                if ((orderidlist.size() > 0 && (side.equals(EnumOrderSide.BUY)||side.equals(EnumOrderSide.SHORT))) ||
-                     (nearorderidlist.size() > 0 && (side.equals(EnumOrderSide.SELL)||side.equals(EnumOrderSide.COVER)))   ) {
-                    for (int i : orderidlist) {
-                        this.initSymbol(i);
-                    }
-                    for (int i : nearorderidlist) {
-                        this.initSymbol(i);
-                    }
-                    Thread.sleep(2000);
-                    Thread.yield();
-                    order.put("type", ordType);
-                    order.put("expiretime", getMaxOrderDuration());
-                    order.put("dynamicorderduration", getDynamicOrderDuration());
-                    order.put("maxslippage", this.getMaxSlippageEntry());
-                    int orderid;
-                    ArrayList<Stop> stops = new ArrayList<>();
-                    Stop stp = new Stop();
-                    switch (side) {
-                        case BUY:
-                            for (int id : orderidlist) {
-                                if (id >= 0) {
-                                    order.put("id", id);
-                                    double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol, id, futureid, EnumOrderSide.BUY, "CALL", getTickSize());
-                                    order.put("limitprice", limitprice);
-                                    order.put("side", EnumOrderSide.BUY);
-                                    order.put("size", size);
-                                    order.put("reason", EnumOrderReason.REGULARENTRY);
-                                    order.put("orderstage", EnumOrderStage.INIT);
-                                    order.put("scale", "FALSE");
-                                    order.put("dynamicorderduration", this.getDynamicOrderDuration());
-                                    order.put("expiretime", 0);
-                                    order.put("log", "BUY" + delimiter + tradetuple.get(1));
-                                    if (limitprice > 0) {
-                                        logger.log(Level.INFO, "501,Strategy BUY,{0}", new Object[]{getStrategy() + delimiter + "BUY" + delimiter + Parameters.symbol.get(id).getDisplayname()});
-                                        orderid = entry(order);
-                                        stp.stopValue = sl;
-                                        stp.underlyingEntry = Parameters.symbol.get(symbolid).getLastPrice();
-                                        stp.stopType = EnumStopType.STOPLOSS;
-                                        stp.stopMode = EnumStopMode.POINT;
-                                        stp.recalculate = true;
-                                        stops.add(stp);
-                                        Trade.setStop(db, this.getStrategy() + ":" + orderid + ":" + "Order", "opentrades", stops);
-                                    }
-                                }
-                            }
-                            break;
-                        case SELL:
-                            for (int nearid : nearorderidlist) {
-                                if (nearid >= 0) {
-                                    order.put("id", nearid);
-                                    double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol, nearid, nearfutureid, EnumOrderSide.SELL, "CALL", getTickSize());
-                                    order.put("limitprice", limitprice);
-                                    order.put("side", EnumOrderSide.SELL);
-                                    order.put("size", size);
-                                    order.put("reason", EnumOrderReason.REGULAREXIT);
-                                    order.put("orderstage", EnumOrderStage.INIT);
-                                    order.put("scale", "FALSE");
-                                    order.put("dynamicorderduration", this.getDynamicOrderDuration());
-                                    order.put("expiretime", 0);
-                                    order.put("log", "SELL" + delimiter + tradetuple.get(1));
-                                    if (limitprice > 0) {
-                                        logger.log(Level.INFO, "501,Strategy SELL,{0}", new Object[]{getStrategy() + delimiter + "SELL" + delimiter + Parameters.symbol.get(nearid).getDisplayname()});
-                                        exit(order);
-                                    }
-                                }
-                            }
-                            break;
-                        case SHORT:
-                            for (int id : orderidlist) {
-                                if (id >= 0) {
-                                    order.put("id", id);
-                                    double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol, id, futureid, EnumOrderSide.BUY, "PUT", getTickSize());
-                                    order.put("limitprice", limitprice);
-                                    order.put("side", EnumOrderSide.BUY);
-                                    order.put("size", size);
-                                    order.put("reason", EnumOrderReason.REGULARENTRY);
-                                    order.put("scale", "FALSE");
-                                    order.put("orderstage", EnumOrderStage.INIT);
-                                    order.put("dynamicorderduration", this.getDynamicOrderDuration());
-                                    order.put("expiretime", 0);
-                                    order.put("log", "SHORT" + delimiter + tradetuple.get(1));
-                                    if (limitprice > 0) {
-                                        logger.log(Level.INFO, "501,Strategy SHORT,{0}", new Object[]{getStrategy() + delimiter + "SHORT" + delimiter + Parameters.symbol.get(id).getDisplayname()});
-                                        orderid = entry(order);
-                                        Trade.setStop(db, this.getStrategy() + ":" + orderid + ":" + "Order", "opentrades", stops);
-                                        stp.stopValue = sl;
-                                        stp.underlyingEntry = Parameters.symbol.get(symbolid).getLastPrice();
-                                        stp.stopType = EnumStopType.STOPLOSS;
-                                        stp.stopMode = EnumStopMode.POINT;
-                                        stp.recalculate = true;
-                                        stops.add(stp);
-                                        Trade.setStop(db, this.getStrategy() + ":" + orderid + ":" + "Order", "opentrades", stops);
-                                    }
-                                }
-                            }
-                            break;
-                        case COVER:
-                            for (int nearid : nearorderidlist) {
-                                if (nearid >= 0) {
-                                    order.put("id", nearid);
-                                    double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol, nearid, nearfutureid, EnumOrderSide.SELL, "PUT", getTickSize());
-                                    order.put("limitprice", limitprice);
-                                    order.put("side", EnumOrderSide.SELL);
-                                    order.put("size", size);
-                                    order.put("reason", EnumOrderReason.REGULAREXIT);
-                                    order.put("scale", "FALSE");
-                                    order.put("orderstage", EnumOrderStage.INIT);
-                                    order.put("dynamicorderduration", this.getDynamicOrderDuration());
-                                    order.put("expiretime", 0);
-                                    order.put("log", "COVER" + delimiter + tradetuple.get(1));
-                                    if (limitprice > 0) {
-                                        logger.log(Level.INFO, "501,Strategy COVER,{0}", new Object[]{getStrategy() + delimiter + "COVER" + delimiter + Parameters.symbol.get(nearid).getDisplayname()});
-                                        exit(order);
-                                    }
-                                }
-                            }
-                            break;
-                        default:
-                            break;
-                    }
-                }
-
-
-            }
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, null, e);
-        }
-    }
     TimerTask rollProcessingTask = new TimerTask() {
         @Override
         public void run() {
@@ -626,9 +363,6 @@ public class Swing extends Strategy implements TradeListener {
         if (orderid >= 0) {
             Trade.setStop(db, this.getStrategy() + ":" + orderid + ":" + "Order", "opentrades", stops);
         }
-    }
-
-    public void displayStrategyValues() {
     }
 
     /**
