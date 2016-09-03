@@ -217,8 +217,8 @@ public class Manager extends Strategy {
                                 int referenceid = Utilities.getReferenceID(Parameters.symbol, symbolid, referenceCashType);
                                 int futureid = Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, expiry);
                                 entryorderidlist.add(futureid);
+                                actualPositionSize = Utilities.getNetPosition(Parameters.symbol, this.getPosition(), entryorderidlist.get(0), "OPT");
                             }
-                            actualPositionSize = Utilities.getNetPosition(Parameters.symbol, this.getPosition(), entryorderidlist.get(0), "OPT");
                         } else { //symbolid needs to be derived
                             int referenceid = Utilities.getReferenceID(Parameters.symbol, symbolid, referenceCashType);
                             if (side.equals(EnumOrderSide.SELL) || side.equals(EnumOrderSide.COVER)) {
@@ -232,8 +232,8 @@ public class Manager extends Strategy {
                                     int futureid = Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, expiry);
                                     entryorderidlist.add(futureid);
                                 }
+                                actualPositionSize = Utilities.getNetPosition(Parameters.symbol, this.getPosition(), entryorderidlist.get(0), "OPT");
                             }
-                            actualPositionSize = Utilities.getNetPosition(Parameters.symbol, this.getPosition(), entryorderidlist.get(0), "OPT");
                         }
                     }
 
@@ -288,7 +288,7 @@ public class Manager extends Strategy {
                                     if (id >= 0) {
                                         order.put("id", id);
                                         int referenceid = -1;
-                                        if (securityType.equals("OPT")) {
+                                        if (Parameters.symbol.get(id).getType().equals("OPT")) {
                                             referenceid = Utilities.getReferenceID(Parameters.symbol, id, referenceCashType);
                                             String tempExpiry = Parameters.symbol.get(id).getExpiry();
                                             referenceid = this.optionPricingUsingFutures ? Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, tempExpiry) : referenceid;
@@ -323,7 +323,7 @@ public class Manager extends Strategy {
                                     if (id >= 0) {
                                         order.put("id", id);
                                         int referenceid = -1;
-                                        if (securityType.equals("OPT")) {
+                                        if (Parameters.symbol.get(id).getType().equals("OPT")) {
                                             referenceid = Utilities.getReferenceID(Parameters.symbol, id, referenceCashType);
                                             String tempExpiry = Parameters.symbol.get(id).getExpiry();
                                             referenceid = this.optionPricingUsingFutures ? Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, tempExpiry) : referenceid;
@@ -350,7 +350,7 @@ public class Manager extends Strategy {
                                     if (id >= 0) {
                                         order.put("id", id);
                                         int referenceid = -1;
-                                        if (securityType.equals("OPT")) {
+                                        if (Parameters.symbol.get(id).getType().equals("OPT")) {
                                             referenceid = Utilities.getReferenceID(Parameters.symbol, id, referenceCashType);
                                             String tempExpiry = Parameters.symbol.get(id).getExpiry();
                                             referenceid = this.optionPricingUsingFutures ? Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, tempExpiry) : referenceid;
@@ -385,7 +385,7 @@ public class Manager extends Strategy {
                                     if (id >= 0) {
                                         order.put("id", id);
                                         int referenceid = -1;
-                                        if (securityType.equals("OPT")) {
+                                        if (Parameters.symbol.get(id).getType().equals("OPT")) {
                                             referenceid = Utilities.getReferenceID(Parameters.symbol, id, referenceCashType);
                                             String tempExpiry = Parameters.symbol.get(id).getExpiry();
                                             referenceid = this.optionPricingUsingFutures ? Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, tempExpiry) : referenceid;
@@ -412,9 +412,7 @@ public class Manager extends Strategy {
                         }
                     }
                 }
-
             }
-
         } catch (Exception e) {
             logger.log(Level.SEVERE, null, e);
         }
