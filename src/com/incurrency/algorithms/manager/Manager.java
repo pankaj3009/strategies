@@ -260,6 +260,10 @@ public class Manager extends Strategy {
                             this.initSymbol(i);
                         }
                     }
+                    
+                       // Thread.sleep(4000); //wait for 4 seconds
+                       // Thread.yield();
+            
                     /*
                      * IF initpositionsize = 100, actual positionsize=0, we get a buy of 100. comp=100, size=200
                      * IF initpositionsize=0, actualpositionsize=100, we get buy of 100, comp=-100, size=0, probably a duplicate trade
