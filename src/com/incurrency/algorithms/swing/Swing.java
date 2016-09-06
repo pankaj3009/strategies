@@ -4,8 +4,10 @@
  */
 package com.incurrency.algorithms.swing;
 
+import com.incurrency.RatesClient.Subscribe;
 import com.incurrency.algorithms.manager.Manager;
 import com.incurrency.framework.Algorithm;
+import com.incurrency.framework.BeanConnection;
 import com.incurrency.framework.BeanPosition;
 import com.incurrency.framework.BeanSymbol;
 import com.incurrency.framework.DateUtil;
@@ -52,6 +54,15 @@ public class Swing extends Manager implements TradeListener {
 
     public Swing(MainAlgorithm m, Properties p, String parameterFile, ArrayList<String> accounts, Integer stratCount) {
         super(m, p, parameterFile, accounts, stratCount);
+        
+        // Add Trade Listeners
+        for (BeanConnection c : Parameters.connection) {
+            c.getWrapper().addTradeListener(this);
+        }
+        if (Subscribe.tes != null) {
+            Subscribe.tes.addTradeListener(this);
+        }
+        MainAlgorithm.tes.addTradeListener(this);
 
         /*
          * Swing has 4 timer tasks

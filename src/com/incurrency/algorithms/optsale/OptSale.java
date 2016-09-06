@@ -4,8 +4,10 @@
  */
 package com.incurrency.algorithms.optsale;
 
+import com.incurrency.RatesClient.Subscribe;
 import com.incurrency.algorithms.manager.Manager;
 import com.incurrency.framework.Algorithm;
+import com.incurrency.framework.BeanConnection;
 import com.incurrency.framework.BeanSymbol;
 import com.incurrency.framework.EnumOrderReason;
 import com.incurrency.framework.EnumOrderSide;
@@ -65,6 +67,15 @@ public class OptSale extends Manager implements TradeListener {
         super(m, p, parameterFile, accounts, stratCount);
         loadAdditionalParameters(p);       
 
+        // Add Trade Listeners
+        for (BeanConnection c : Parameters.connection) {
+            c.getWrapper().addTradeListener(this);
+        }
+        if (Subscribe.tes != null) {
+            Subscribe.tes.addTradeListener(this);
+        }
+        MainAlgorithm.tes.addTradeListener(this);
+  
         Timer trigger = new Timer("Timer: " + this.getStrategy() + " RScriptProcessor");
         trigger.schedule(RScriptRunTask, RScriptRunTime);
 

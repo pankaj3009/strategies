@@ -297,7 +297,7 @@ public class Manager extends Strategy {
                                             String tempExpiry = Parameters.symbol.get(id).getExpiry();
                                             referenceid = this.optionPricingUsingFutures ? Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, tempExpiry) : referenceid;
                                         }
-                                        double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, id, referenceid, EnumOrderSide.BUY, "CALL", getTickSize(), this.getOrdType());
+                                        double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, id, referenceid, side, getTickSize(), this.getOrdType());
                                         order.put("limitprice", limitprice);
                                         order.put("side", EnumOrderSide.BUY);
                                         order.put("size", size);
@@ -332,7 +332,7 @@ public class Manager extends Strategy {
                                             String tempExpiry = Parameters.symbol.get(id).getExpiry();
                                             referenceid = this.optionPricingUsingFutures ? Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, tempExpiry) : referenceid;
                                         }
-                                        double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, id, referenceid, EnumOrderSide.BUY, "CALL", getTickSize(), this.getOrdType());
+                                        double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, id, referenceid, side, getTickSize(), this.getOrdType());
                                         order.put("limitprice", limitprice);
                                         order.put("side", EnumOrderSide.SELL);
                                         order.put("size", size);
@@ -359,7 +359,7 @@ public class Manager extends Strategy {
                                             String tempExpiry = Parameters.symbol.get(id).getExpiry();
                                             referenceid = this.optionPricingUsingFutures ? Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, tempExpiry) : referenceid;
                                         }
-                                        double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, id, referenceid, EnumOrderSide.BUY, "CALL", getTickSize(), this.getOrdType());
+                                        double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, id, referenceid, side, getTickSize(), this.getOrdType());
                                         order.put("limitprice", limitprice);
                                         order.put("side", EnumOrderSide.BUY);
                                         order.put("size", size);
@@ -394,7 +394,7 @@ public class Manager extends Strategy {
                                             String tempExpiry = Parameters.symbol.get(id).getExpiry();
                                             referenceid = this.optionPricingUsingFutures ? Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, tempExpiry) : referenceid;
                                         }
-                                        double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, id, referenceid, EnumOrderSide.BUY, "CALL", getTickSize(), this.getOrdType());
+                                        double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, id, referenceid, side, getTickSize(), this.getOrdType());
                                         order.put("limitprice", limitprice);
                                         order.put("side", EnumOrderSide.SELL);
                                         order.put("size", size);
