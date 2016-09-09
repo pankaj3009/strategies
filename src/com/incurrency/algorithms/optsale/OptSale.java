@@ -206,7 +206,7 @@ public class OptSale extends Manager implements TradeListener {
                         }
 
                         for (int i : allOrderList) {
-                            initSymbol(i);
+                            initSymbol(i,optionPricingUsingFutures,referenceCashType);
                         }
 
                         Thread.sleep(4000); //wait for 4 seconds
@@ -302,7 +302,7 @@ public class OptSale extends Manager implements TradeListener {
                     switch (right) {
                         case "CALL":
                             if ((optionReturn < thresholdReturnExit || (strikePrice - (Math.sqrt(optionDte) *historicalVol* avgMovePerDayExit * indexPrice / 100)) < futurePrice) && optionReturn > 0) {
-                                order.put("type", ordType);
+                                order.put("type", this.getOrdType());
                                 order.put("expiretime", getMaxOrderDuration());
                                 order.put("dynamicorderduration", getDynamicOrderDuration());
                                 order.put("maxslippage", this.getMaxSlippageEntry());
@@ -324,7 +324,7 @@ public class OptSale extends Manager implements TradeListener {
                             break;
                         case "PUT":
                             if ((optionReturn < thresholdReturnExit || (strikePrice + (Math.sqrt(optionDte) *historicalVol* avgMovePerDayExit * indexPrice) / 100) > futurePrice) && optionReturn > 0) {
-                                order.put("type", ordType);
+                                order.put("type", this.getOrdType());
                                 order.put("expiretime", getMaxOrderDuration());
                                 order.put("dynamicorderduration", getDynamicOrderDuration());
                                 order.put("maxslippage", this.getMaxSlippageEntry());

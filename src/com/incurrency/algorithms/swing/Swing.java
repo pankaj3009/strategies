@@ -91,7 +91,7 @@ public class Swing extends Manager implements TradeListener {
             Integer id = event.getSymbolID();
             if (getStrategySymbols().contains(id) && !Parameters.symbol.get(id).getType().equals(referenceCashType)) {
                 if (this.getPosition().get(id).getPosition() > 0 && this.getPosition().get(id).getStrategy().equalsIgnoreCase(this.getStrategy())) {
-                    int referenceid = Utilities.getReferenceID(Parameters.symbol, id, referenceCashType);
+                    int referenceid = Utilities.getCashReferenceID(Parameters.symbol, id, referenceCashType);
                     int futureid = Utilities.getFutureIDFromExchangeSymbol(Parameters.symbol, referenceid, expiry);
                     Double tradePrice = this.getPosition().get(id).getPrice();
                     ArrayList<Stop> stops = Trade.getStop(db, this.getStrategy() + ":" + this.getFirstInternalOpenOrder(id, EnumOrderSide.SELL, "Order").iterator().next() + ":Order");
@@ -295,7 +295,7 @@ public class Swing extends Manager implements TradeListener {
                 stops = Trade.getStop(db, this.getStrategy() + ":" + this.getFirstInternalOpenOrder(initID, EnumOrderSide.SELL, "Order").iterator().next() + ":Order");
                 HashMap<String, Object> order = new HashMap<>();
                 order.put("id", initID);
-                order.put("type", ordType);
+                order.put("type", this.getOrdType());
                 order.put("side", EnumOrderSide.SELL);
                 order.put("size", size);
                 order.put("limitprice", Parameters.symbol.get(initID).getLastPrice());
@@ -312,7 +312,7 @@ public class Swing extends Manager implements TradeListener {
                 stops = Trade.getStop(db, this.getStrategy() + ":" + this.getFirstInternalOpenOrder(initID, EnumOrderSide.COVER, "Order").iterator().next() + ":Order");
                 order = new HashMap<>();
                 order.put("id", initID);
-                order.put("type", ordType);
+                order.put("type", this.getOrdType());
                 order.put("side", EnumOrderSide.COVER);
                 order.put("size", size);
                 order.put("limitprice", Parameters.symbol.get(initID).getLastPrice());
@@ -341,7 +341,7 @@ public class Swing extends Manager implements TradeListener {
                     order.put("id", targetID);
                     order.put("side", EnumOrderSide.BUY);
                     order.put("size", newSize);
-                    order.put("type", ordType);
+                    order.put("type", this.getOrdType());
                     order.put("limitprice", Parameters.symbol.get(targetID).getLastPrice());
                     order.put("reason", EnumOrderReason.REGULARENTRY);
                     order.put("orderstage", EnumOrderStage.INIT);
@@ -361,7 +361,7 @@ public class Swing extends Manager implements TradeListener {
                     order.put("id", targetID);
                     order.put("side", EnumOrderSide.SHORT);
                     order.put("size", newSize);
-                    order.put("type", ordType);
+                    order.put("type", this.getOrdType());
                     order.put("limitprice", Parameters.symbol.get(targetID).getLastPrice());
                     order.put("reason", EnumOrderReason.REGULARENTRY);
                     order.put("orderstage", EnumOrderStage.INIT);

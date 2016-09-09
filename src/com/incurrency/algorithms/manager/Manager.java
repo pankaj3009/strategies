@@ -42,7 +42,6 @@ public class Manager extends Strategy {
     public String expiryFarMonth;
     public String referenceCashType;
     public String rServerIP;
-    public EnumOrderType ordType;
     public Date RScriptRunTime;
     public Boolean rollover;
     public int rolloverDays;
@@ -54,6 +53,7 @@ public class Manager extends Strategy {
     public String optionSystem;
     public Boolean scaleEntry = Boolean.FALSE;
     public Boolean scaleExit = Boolean.FALSE;
+
     private static final Logger logger = Logger.getLogger(Manager.class.getName());
 
     public Manager(MainAlgorithm m, Properties p, String parameterFile, ArrayList<String> accounts, Integer stratCount) {
@@ -79,7 +79,6 @@ public class Manager extends Strategy {
         expiryFarMonth = p.getProperty("FarMonthExpiry").toString().trim();
         referenceCashType = p.getProperty("ReferenceCashType", "STK").toString().trim();
         rServerIP = p.getProperty("RServerIP").toString().trim();
-        ordType = EnumOrderType.valueOf(p.getProperty("OrderType", "LMT"));
         securityType = p.getProperty("SecurityType", "PASSTHROUGH");
         optionPricingUsingFutures = Boolean.valueOf(p.getProperty("OptionPricingUsingFutures", "TRUE"));
         optionSystem = p.getProperty("OptionSystem", "PAY");
@@ -141,7 +140,7 @@ public class Manager extends Strategy {
                                 exitorderidlist.add(symbolid);
                                 actualPositionSize = Utilities.getNetPosition(Parameters.symbol, this.getPosition(), exitorderidlist.get(0), "OPT");
                             } else if (side.equals(EnumOrderSide.BUY) || side.equals(EnumOrderSide.SHORT)) {
-                                int referenceid = Utilities.getReferenceID(Parameters.symbol, symbolid, referenceCashType);
+                                int referenceid = Utilities.getCashReferenceID(Parameters.symbol, symbolid, referenceCashType);
                                 if (optionPricingUsingFutures) {
                                     int futureid = Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, expiry);
                                     if (futureid >= 0) { //future exists in db
@@ -159,7 +158,7 @@ public class Manager extends Strategy {
                                 }
                             }
                         } else { //symbolid needs to be derived
-                            int referenceid = Utilities.getReferenceID(Parameters.symbol, symbolid, referenceCashType);
+                            int referenceid = Utilities.getCashReferenceID(Parameters.symbol, symbolid, referenceCashType);
                             if (side.equals(EnumOrderSide.SELL) || side.equals(EnumOrderSide.COVER)) {
                                 if (optionPricingUsingFutures) {
                                     int futureid = Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, expiryNearMonth);
@@ -225,13 +224,13 @@ public class Manager extends Strategy {
                                 exitorderidlist.add(symbolid);
                                 actualPositionSize = Utilities.getNetPosition(Parameters.symbol, this.getPosition(), exitorderidlist.get(0), "OPT");
                             } else if (side.equals(EnumOrderSide.BUY) || side.equals(EnumOrderSide.SHORT)) {
-                                int referenceid = Utilities.getReferenceID(Parameters.symbol, symbolid, referenceCashType);
+                                int referenceid = Utilities.getCashReferenceID(Parameters.symbol, symbolid, referenceCashType);
                                 int futureid = Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, expiry);
                                 entryorderidlist.add(futureid);
                                 actualPositionSize = Utilities.getNetPosition(Parameters.symbol, this.getPosition(), entryorderidlist.get(0), "OPT");
                             }
                         } else { //symbolid needs to be derived
-                            int referenceid = Utilities.getReferenceID(Parameters.symbol, symbolid, referenceCashType);
+                            int referenceid = Utilities.getCashReferenceID(Parameters.symbol, symbolid, referenceCashType);
                             if (side.equals(EnumOrderSide.SELL) || side.equals(EnumOrderSide.COVER)) {
                                 int futureid = Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, expiryNearMonth);
                                 exitorderidlist.addAll(this.getFirstInternalOpenOrder(futureid, side, "Order"));
@@ -263,12 +262,12 @@ public class Manager extends Strategy {
 
                     if (entryorderidlist.size() > 0) {
                         for (int i : entryorderidlist) {
-                            this.initSymbol(i);
+                            this.initSymbol(i,optionPricingUsingFutures,referenceCashType);
                         }
                     }
                     if (exitorderidlist.size() > 0) {
                         for (int i : exitorderidlist) {
-                            this.initSymbol(i);
+                            this.initSymbol(i,optionPricingUsingFutures,referenceCashType);
                         }
                     }
                     
@@ -282,7 +281,7 @@ public class Manager extends Strategy {
                      * IF initpositionsize=200, actualpositionsize=100, we set a SELL of 200, comp=100, size=abs(-200+100)=100
                      */
                     int compensation = initPositionSize - actualPositionSize;
-                    size = (side == EnumOrderSide.BUY || side == EnumOrderSide.COVER) ? size + compensation : Math.abs(-size + compensation);
+                    size = (derivedSide == EnumOrderSide.BUY || derivedSide == EnumOrderSide.COVER) ? size + compensation : Math.abs(-size + compensation);
                     /*
                      * IF initpositionsize = 100, actual positionsize=0, we get a buy of 100. comp=100, size=200
                      * IF initpositionsize=0, actualpositionsize=100, we get buy of 100, comp=-100, size=0, probably a duplicate trade
@@ -304,7 +303,7 @@ public class Manager extends Strategy {
                                         order.put("id", id);
                                         int referenceid = -1;
                                         if (Parameters.symbol.get(id).getType().equals("OPT")) {
-                                            referenceid = Utilities.getReferenceID(Parameters.symbol, id, referenceCashType);
+                                            referenceid = Utilities.getCashReferenceID(Parameters.symbol, id, referenceCashType);
                                             String tempExpiry = Parameters.symbol.get(id).getExpiry();
                                             referenceid = this.optionPricingUsingFutures ? Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, tempExpiry) : referenceid;
                                         }
@@ -319,6 +318,9 @@ public class Manager extends Strategy {
                                         order.put("expiretime", 0);
                                         order.put("disclosedsize", Parameters.symbol.get(id).getMinsize());
                                         order.put("log", "BUY" + delimiter + tradetuple.get(1));
+                                        HashMap<String,Object>tmpOrderAttributes=new HashMap<>();
+                                        tmpOrderAttributes.putAll(this.getOrderAttributes());
+                                        order.put ("orderattributes",tmpOrderAttributes);
                                         if ((this.getOrdType() != EnumOrderType.MKT && limitprice > 0) || this.getOrdType().equals(EnumOrderType.MKT)) {
                                             logger.log(Level.INFO, "501,Strategy BUY,{0}", new Object[]{getStrategy() + delimiter + "BUY" + delimiter + Parameters.symbol.get(id).getDisplayname()});
                                             orderid = entry(order);
@@ -339,7 +341,7 @@ public class Manager extends Strategy {
                                         order.put("id", id);
                                         int referenceid = -1;
                                         if (Parameters.symbol.get(id).getType().equals("OPT")) {
-                                            referenceid = Utilities.getReferenceID(Parameters.symbol, id, referenceCashType);
+                                            referenceid = Utilities.getCashReferenceID(Parameters.symbol, id, referenceCashType);
                                             String tempExpiry = Parameters.symbol.get(id).getExpiry();
                                             referenceid = this.optionPricingUsingFutures ? Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, tempExpiry) : referenceid;
                                         }
@@ -353,7 +355,9 @@ public class Manager extends Strategy {
                                         order.put("dynamicorderduration", this.getDynamicOrderDuration());
                                         order.put("expiretime", 0);
                                         order.put("log", "SELL" + delimiter + tradetuple.get(1));
-                                        if ((this.getOrdType() != EnumOrderType.MKT && limitprice > 0) || this.getOrdType().equals(EnumOrderType.MKT)) {
+                                        HashMap<String,Object>tmpOrderAttributes=new HashMap<>();
+                                        tmpOrderAttributes.putAll(this.getOrderAttributes());
+                                        order.put ("orderattributes",tmpOrderAttributes);                                      if ((this.getOrdType() != EnumOrderType.MKT && limitprice > 0) || this.getOrdType().equals(EnumOrderType.MKT)) {
                                             logger.log(Level.INFO, "501,Strategy SELL,{0}", new Object[]{getStrategy() + delimiter + "SELL" + delimiter + Parameters.symbol.get(id).getDisplayname()});
                                             exit(order);
                                         }
@@ -366,7 +370,7 @@ public class Manager extends Strategy {
                                         order.put("id", id);
                                         int referenceid = -1;
                                         if (Parameters.symbol.get(id).getType().equals("OPT")) {
-                                            referenceid = Utilities.getReferenceID(Parameters.symbol, id, referenceCashType);
+                                            referenceid = Utilities.getCashReferenceID(Parameters.symbol, id, referenceCashType);
                                             String tempExpiry = Parameters.symbol.get(id).getExpiry();
                                             referenceid = this.optionPricingUsingFutures ? Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, tempExpiry) : referenceid;
                                         }
@@ -380,7 +384,9 @@ public class Manager extends Strategy {
                                         order.put("dynamicorderduration", this.getDynamicOrderDuration());
                                         order.put("expiretime", 0);
                                         order.put("log", "SHORT" + delimiter + tradetuple.get(1));
-                                        if ((this.getOrdType() != EnumOrderType.MKT && limitprice > 0) || this.getOrdType().equals(EnumOrderType.MKT)) {
+                                        HashMap<String,Object>tmpOrderAttributes=new HashMap<>();
+                                        tmpOrderAttributes.putAll(this.getOrderAttributes());
+                                        order.put ("orderattributes",tmpOrderAttributes);                                      if ((this.getOrdType() != EnumOrderType.MKT && limitprice > 0) || this.getOrdType().equals(EnumOrderType.MKT)) {
                                             logger.log(Level.INFO, "501,Strategy SHORT,{0}", new Object[]{getStrategy() + delimiter + "SHORT" + delimiter + Parameters.symbol.get(id).getDisplayname()});
                                             orderid = entry(order);
                                             Trade.setStop(db, this.getStrategy() + ":" + orderid + ":" + "Order", "opentrades", stops);
@@ -401,7 +407,7 @@ public class Manager extends Strategy {
                                         order.put("id", id);
                                         int referenceid = -1;
                                         if (Parameters.symbol.get(id).getType().equals("OPT")) {
-                                            referenceid = Utilities.getReferenceID(Parameters.symbol, id, referenceCashType);
+                                            referenceid = Utilities.getCashReferenceID(Parameters.symbol, id, referenceCashType);
                                             String tempExpiry = Parameters.symbol.get(id).getExpiry();
                                             referenceid = this.optionPricingUsingFutures ? Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, tempExpiry) : referenceid;
                                         }
@@ -415,7 +421,9 @@ public class Manager extends Strategy {
                                         order.put("dynamicorderduration", this.getDynamicOrderDuration());
                                         order.put("expiretime", 0);
                                         order.put("log", "COVER" + delimiter + tradetuple.get(1));
-                                        if ((this.getOrdType() != EnumOrderType.MKT && limitprice > 0) || this.getOrdType().equals(EnumOrderType.MKT)) {
+                                        HashMap<String,Object>tmpOrderAttributes=new HashMap<>();
+                                        tmpOrderAttributes.putAll(this.getOrderAttributes());
+                                        order.put ("orderattributes",tmpOrderAttributes);                                     if ((this.getOrdType() != EnumOrderType.MKT && limitprice > 0) || this.getOrdType().equals(EnumOrderType.MKT)) {
                                             logger.log(Level.INFO, "501,Strategy COVER,{0}", new Object[]{getStrategy() + delimiter + "COVER" + delimiter + Parameters.symbol.get(id).getDisplayname()});
                                             exit(order);
                                         }
@@ -433,12 +441,7 @@ public class Manager extends Strategy {
         }
     }
 
-    /**
-     * @return the ordType
-     */
-    public EnumOrderType getOrdType() {
-        return ordType;
-    }
+
 
     /**
      * @return the scaleEntry
