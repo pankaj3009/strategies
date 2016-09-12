@@ -147,6 +147,7 @@ public class Swing extends Manager implements TradeListener {
                         order.put("expiretime", this.getMaxOrderDuration());
                         order.put("dynamicorderduration", getDynamicOrderDuration());
                         order.put("maxslippage", this.getMaxSlippageExit());
+                        order.put("orderattributes",this.getOrderAttributes());
                         order.put("log", "SLTPExit" + delimiter + slTrigger + delimiter + tpTrigger + delimiter + Parameters.symbol.get(id).getLastPrice() + delimiter + slDistance + delimiter + sl + delimiter + tpDistance + delimiter + tp);
                         this.exit(order);
                     }
@@ -304,6 +305,7 @@ public class Swing extends Manager implements TradeListener {
                 order.put("expiretime", this.getMaxOrderDuration());
                 order.put("dynamicorderduration", getDynamicOrderDuration());
                 order.put("maxslippage", this.getMaxSlippageExit());
+                order.put("orderattributes",this.getOrderAttributes());
                 order.put("log", "ROLLOVERSQUAREOFF");
                 this.exit(order);
                 break;
@@ -321,6 +323,7 @@ public class Swing extends Manager implements TradeListener {
                 order.put("expiretime", this.getMaxOrderDuration());
                 order.put("dynamicorderduration", getDynamicOrderDuration());
                 order.put("maxslippage", this.getMaxSlippageExit());
+                order.put("orderattributes", this.getOrderAttributes());
                 order.put("log", "ROLLOVERSQUAREOFF");
                 this.exit(order);
                 break;
@@ -348,6 +351,7 @@ public class Swing extends Manager implements TradeListener {
                     order.put("expiretime", this.getMaxOrderDuration());
                     order.put("dynamicorderduration", getDynamicOrderDuration());
                     order.put("maxslippage", this.getMaxSlippageExit());
+                    order.put("orderattributes",this.getOrderAttributes());
                     order.put("log", "ROLLOVERENTRY");
                     orderid = this.entry(order);
                     //orderid = this.getFirstInternalOpenOrder(initID, EnumOrderSide.SELL, "Order");
@@ -368,6 +372,7 @@ public class Swing extends Manager implements TradeListener {
                     order.put("expiretime", this.getMaxOrderDuration());
                     order.put("dynamicorderduration", getDynamicOrderDuration());
                     order.put("maxslippage", this.getMaxSlippageExit());
+                    order.put("orderattributes", this.getOrderAttributes());
                     order.put("log", "ROLLOVERENTRY");
                     orderid = this.entry(order);
                     //orderid = this.getFirstInternalOpenOrder(initID, EnumOrderSide.COVER, "Order");

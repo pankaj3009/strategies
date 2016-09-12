@@ -316,6 +316,7 @@ public class OptSale extends Manager implements TradeListener {
                                 order.put("scale", this.scaleExit);
                                 order.put("dynamicorderduration", this.getDynamicOrderDuration());
                                 order.put("expiretime", 0);
+                                order.put("orderattributes",this.getOrderAttributes());
                                 if (limitprice > 0) {
                                     logger.log(Level.INFO, "501,Strategy BUY,{0},", new Object[]{getStrategy() + delimiter + "BUY" + delimiter + Parameters.symbol.get(id).getDisplayname() + delimiter + optionReturn});
                                     exit(order);
@@ -338,6 +339,7 @@ public class OptSale extends Manager implements TradeListener {
                                 order.put("scale", scaleExit);
                                 order.put("dynamicorderduration", this.getDynamicOrderDuration());
                                 order.put("expiretime", 0);
+                                order.put("orderattributes",this.getOrderAttributes());
                                 if (limitprice > 0) {
                                     logger.log(Level.INFO, "501,Strategy BUY,{0}", new Object[]{getStrategy() + delimiter + "BUY" + delimiter + Parameters.symbol.get(id).getDisplayname() + delimiter + optionReturn});
                                     exit(order);
