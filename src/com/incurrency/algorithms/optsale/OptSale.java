@@ -230,8 +230,9 @@ public class OptSale extends Manager implements TradeListener {
                                     + Utilities.formatDouble(calcPremium, df));
 
                             if (annualizedRet > thresholdReturnEntry ) {
-                                //if(true){
+                                if(filteredOrderList.isEmpty()){
                                 filteredOrderList.add(i);
+                                }
                             }
                         }
 
