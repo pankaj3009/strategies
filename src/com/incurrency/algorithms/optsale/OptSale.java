@@ -23,20 +23,16 @@ import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
-import java.util.TimeZone;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jquantlib.time.JDate;
 import org.rosuda.REngine.REXP;
-import org.rosuda.REngine.REXPMismatchException;
-import org.rosuda.REngine.REngineException;
 import org.rosuda.REngine.Rserve.RConnection;
 
 /**
@@ -244,8 +240,8 @@ public class OptSale extends Manager implements TradeListener {
                         for (int i : filteredOrderList) {
                             int actualPositionSize = Math.abs(Utilities.getNetPosition(Parameters.symbol, getPosition(), i,"OPT"));
                             if (actualPositionSize < maxPositionSize) {
-                                int position = getPosition().get(i).getPosition();
-                                db.lpush("trades:" + getStrategy(), Parameters.symbol.get(i).getDisplayname() + ":" + getNumberOfContracts() + ":SHORT" + ":0:" + position);
+                                //int position = getPosition().get(i).getPosition();
+                                db.lpush("trades:" + getStrategy(), Parameters.symbol.get(i).getDisplayname() + ":" + getNumberOfContracts() + ":SHORT" + ":0:" + actualPositionSize);
                             } else {
                                 logger.log(Level.INFO, "501,{0},{1},{2},{3},{4},{5},Position Limit Hit. No Order Placed. Current Position Size: {6}",
                                         new Object[]{getStrategy(), "Order",
