@@ -6,7 +6,6 @@ package com.incurrency.algorithms.swing;
 
 import com.incurrency.RatesClient.Subscribe;
 import com.incurrency.algorithms.manager.Manager;
-import com.incurrency.framework.Algorithm;
 import com.incurrency.framework.BeanConnection;
 import com.incurrency.framework.BeanPosition;
 import com.incurrency.framework.BeanSymbol;
@@ -26,13 +25,11 @@ import com.incurrency.framework.Utilities;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.TimeZone;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
@@ -51,7 +48,8 @@ public class Swing extends Manager implements TradeListener {
     private final Object lockTradeReceived_1 = new Object();
     SimpleDateFormat sdf_default = new SimpleDateFormat("yyyy-MM-dd");
     SimpleDateFormat sdtf_default = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
+    private final Object lockScan=new Object();
+    
     public Swing(MainAlgorithm m, Properties p, String parameterFile, ArrayList<String> accounts, Integer stratCount) {
         super(m, p, parameterFile, accounts, stratCount);
         
@@ -235,34 +233,36 @@ public class Swing extends Manager implements TradeListener {
     };
 
     private void scan(int symbolid, boolean today) {
-        if(!getRStrategyFile().equals("")){
-        logger.log(Level.INFO, "501,Scan,{0}", new Object[]{this.getStrategy()});
-        RConnection c = null;
-        try {
-            c = new RConnection(rServerIP);
-            c.eval("setwd(\"" + wd + "\")");
-            REXP wd = c.eval("getwd()");
-            System.out.println(wd.asString());
-            c.eval("options(encoding = \"UTF-8\")");
-            String[] args = new String[1];
-            if (today) {
-                String open = String.valueOf(Parameters.symbol.get(symbolid).getOpenPrice());
-                String high = String.valueOf(Parameters.symbol.get(symbolid).getHighPrice());
-                String low = String.valueOf(Parameters.symbol.get(symbolid).getLowPrice());
-                String close = String.valueOf(Parameters.symbol.get(symbolid).getLastPrice());
-                String volume = String.valueOf(Parameters.symbol.get(symbolid).getVolume());
-                String date = sdf_default.format(new Date());
-                args = new String[]{"1", this.getStrategy(), this.getRedisDatabaseID(),
-                    Parameters.symbol.get(symbolid).getDisplayname(), date, open, high, low, close, volume};
-            } else {
-                args = new String[]{"1", this.getStrategy(), this.getRedisDatabaseID(), Parameters.symbol.get(symbolid).getDisplayname()};
+        synchronized (lockScan) {
+            if (!getRStrategyFile().equals("")) {
+                logger.log(Level.INFO, "501,Scan,{0}", new Object[]{this.getStrategy()});
+                RConnection c = null;
+                try {
+                    c = new RConnection(rServerIP);
+                    c.eval("setwd(\"" + wd + "\")");
+                    REXP wd = c.eval("getwd()");
+                    System.out.println(wd.asString());
+                    c.eval("options(encoding = \"UTF-8\")");
+                    String[] args = new String[1];
+                    if (today) {
+                        String open = String.valueOf(Parameters.symbol.get(symbolid).getOpenPrice());
+                        String high = String.valueOf(Parameters.symbol.get(symbolid).getHighPrice());
+                        String low = String.valueOf(Parameters.symbol.get(symbolid).getLowPrice());
+                        String close = String.valueOf(Parameters.symbol.get(symbolid).getLastPrice());
+                        String volume = String.valueOf(Parameters.symbol.get(symbolid).getVolume());
+                        String date = sdf_default.format(new Date());
+                        args = new String[]{"1", this.getStrategy(), this.getRedisDatabaseID(),
+                            Parameters.symbol.get(symbolid).getDisplayname(), date, open, high, low, close, volume};
+                    } else {
+                        args = new String[]{"1", this.getStrategy(), this.getRedisDatabaseID(), Parameters.symbol.get(symbolid).getDisplayname()};
+                    }
+                    logger.log(Level.INFO, "Invoking R. Strategy:{0},args: {1}", new Object[]{getStrategy(), Arrays.toString(args)});
+                    c.assign("args", args);
+                    c.eval("source(\"" + this.getRStrategyFile() + "\")");
+                } catch (Exception e) {
+                    logger.log(Level.SEVERE, null, e);
+                }
             }
-            logger.log(Level.INFO, "Invoking R. Strategy:{0},args: {1}", new Object[]{getStrategy(),Arrays.toString(args)});
-            c.assign("args", args);
-            c.eval("source(\"" + this.getRStrategyFile() + "\")");
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, null, e);
-        }
         }
     }
 

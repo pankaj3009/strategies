@@ -58,7 +58,8 @@ public class OptSale extends Manager implements TradeListener {
     double margin;
     double maxPositionSize;
     String[] args = new String[1];
-
+    private final Object lockScan=new Object();
+    
     public OptSale(MainAlgorithm m, Properties p, String parameterFile, ArrayList<String> accounts, Integer stratCount) {
         super(m, p, parameterFile, accounts, stratCount);
         loadAdditionalParameters(p);       
@@ -141,18 +142,20 @@ public class OptSale extends Manager implements TradeListener {
                         Parameters.symbol.get(indexid).getDisplayname(), date, open, high, low, close, volume};
                     if (!RStrategyFile.equals("")) {
                         logger.log(Level.INFO, "501,Scan,{0}", new Object[]{getStrategy()});
-                        RConnection c;
-                        try {
-                            c = new RConnection(rServerIP);
-                            c.eval("setwd(\"" + wd + "\")");
-                            REXP wd = c.eval("getwd()");
-                            System.out.println(wd.asString());
-                            c.eval("options(encoding = \"UTF-8\")");
-                            c.assign("args", args);
-                             logger.log(Level.INFO, "Invoking R. Strategy:{0}, args: {1}", new Object[]{getStrategy(),Arrays.toString(args)});
-                            c.eval("source(\"" + RStrategyFile + "\")");
-                        } catch (Exception e) {
-                            logger.log(Level.SEVERE, null, e);
+                        synchronized (lockScan) {
+                            RConnection c;
+                            try {
+                                c = new RConnection(rServerIP);
+                                c.eval("setwd(\"" + wd + "\")");
+                                REXP wd = c.eval("getwd()");
+                                System.out.println(wd.asString());
+                                c.eval("options(encoding = \"UTF-8\")");
+                                c.assign("args", args);
+                                logger.log(Level.INFO, "Invoking R. Strategy:{0}, args: {1}", new Object[]{getStrategy(), Arrays.toString(args)});
+                                c.eval("source(\"" + RStrategyFile + "\")");
+                            } catch (Exception e) {
+                                logger.log(Level.SEVERE, null, e);
+                            }
                         }
                         List<String> tradetuple = db.blpop("signals:" + getStrategy(), "", 60);
                         if (tradetuple != null) {
