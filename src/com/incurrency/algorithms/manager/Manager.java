@@ -175,10 +175,10 @@ public class Manager extends Strategy {
                                     }
                                 } else {
                                     if (optionSystem.equals("PAY")) {
-                                        exitorderidlist = Utilities.getOrInsertOptionIDForPaySystem(Parameters.symbol, this.getPosition(), referenceid, side, this.expiryNearMonth);
+                                        //exitorderidlist = Utilities.getOrInsertOptionIDForPaySystem(Parameters.symbol, this.getPosition(), referenceid, side, this.expiryNearMonth);
                                         exitorderidlist.addAll(Utilities.getOrInsertOptionIDForPaySystem(Parameters.symbol, this.getPosition(), referenceid, side, this.expiryFarMonth));
                                     } else {
-                                        exitorderidlist = Utilities.getOrInsertOptionIDForReceiveSystem(Parameters.symbol, this.getPosition(), referenceid, side, this.expiryNearMonth);
+                                        //exitorderidlist = Utilities.getOrInsertOptionIDForReceiveSystem(Parameters.symbol, this.getPosition(), referenceid, side, this.expiryNearMonth);
                                         exitorderidlist.addAll(Utilities.getOrInsertOptionIDForReceiveSystem(Parameters.symbol, this.getPosition(), referenceid, side, this.expiryFarMonth));
                                     }
                                 }
