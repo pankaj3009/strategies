@@ -244,8 +244,9 @@ public class OptSale extends Manager implements TradeListener {
                         for (int i : filteredOrderList) {
                             int actualPositionSize = Math.abs(Utilities.getNetPosition(Parameters.symbol, getPosition(), i,"OPT"));
                             if (actualPositionSize < maxPositionSize) {
-                                //int position = getPosition().get(i).getPosition();
-                                db.lpush("trades:" + getStrategy(), Parameters.symbol.get(i).getDisplayname() + ":" + getNumberOfContracts() + ":SHORT" + ":0:" + actualPositionSize);
+                                String redisOut=Parameters.symbol.get(i).getDisplayname() + ":" + getNumberOfContracts() + ":SHORT" + ":0:" + actualPositionSize;
+                                logger.log(Level.INFO, "Generated Trade for strategy {0}. Redis Output:{2}", new Object[]{tradetuple.get(1), redisOut});
+                                db.lpush("trades:" + getStrategy(), redisOut);
                             } else {
                                 logger.log(Level.INFO, "501,{0},{1},{2},{3},{4},{5},Position Limit Hit. No Order Placed. Current Position Size: {6}",
                                         new Object[]{getStrategy(), "Order",
