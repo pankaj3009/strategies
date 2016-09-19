@@ -208,7 +208,7 @@ public class Swing extends Manager implements TradeListener {
                             logger.log(Level.INFO, "Updated Trade Stop. Symbol:{0}, Underlying value:{1},StopPoints:{2}", new Object[]{symbol, stop.underlyingEntry, stop.stopValue});
                         } else {
                             //alert we have an incorrect side
-                            Thread t = new Thread(new Mail("psharma@incurrency.com", "Symbol has incorrect side: " + entrysymbol + " for strategy: " + this.getStrategy() + ".Expected trade direction: " + side + " Actual side in trade:" + entryside, "Algorithm ALERT"));
+                            Thread t = new Thread(new Mail("psharma@incurrency.com", "Symbol has incorrect side: " + entrysymbol + " for strategy: " + this.getStrategy() + ".Expected trade direction: " + side, "Algorithm ALERT"));
                             t.start();
                         }
                     } else {
