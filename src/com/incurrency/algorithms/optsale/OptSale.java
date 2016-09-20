@@ -312,7 +312,11 @@ public class OptSale extends Manager implements TradeListener {
                                 order.put("limitprice", limitprice);
                                 order.put("side", EnumOrderSide.COVER);
                                 order.put("size", position);
-                                order.put("reason", EnumOrderReason.REGULARENTRY);
+                                if (optionReturn < thresholdReturnExit) {
+                                    order.put("reason", EnumOrderReason.TP);
+                                } else {
+                                    order.put("reason", EnumOrderReason.SL);
+                                }
                                 order.put("orderstage", EnumOrderStage.INIT);
                                 order.put("scale", this.scaleExit);
                                 order.put("dynamicorderduration", this.getDynamicOrderDuration());
@@ -335,7 +339,11 @@ public class OptSale extends Manager implements TradeListener {
                                 order.put("limitprice", limitprice);
                                 order.put("side", EnumOrderSide.COVER);
                                 order.put("size", position);
-                                order.put("reason", EnumOrderReason.REGULARENTRY);
+                                if (optionReturn < thresholdReturnExit) {
+                                    order.put("reason", EnumOrderReason.TP);
+                                } else {
+                                    order.put("reason", EnumOrderReason.SL);
+                                }
                                 order.put("orderstage", EnumOrderStage.INIT);
                                 order.put("scale", scaleExit);
                                 order.put("dynamicorderduration", this.getDynamicOrderDuration());
