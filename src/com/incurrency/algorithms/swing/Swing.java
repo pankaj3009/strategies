@@ -87,9 +87,9 @@ public class Swing extends Manager implements TradeListener {
     public void tradeReceived(TradeEvent event) {
         synchronized (lockTradeReceived_1) {
             Integer id = event.getSymbolID();
-            if (getStrategySymbols().contains(id) && !Parameters.symbol.get(id).getType().equals(getReferenceCashType())) {
+            if (getStrategySymbols().contains(id) && !Parameters.symbol.get(id).getType().equals(referenceCashType)) {
                 if (this.getPosition().get(id).getPosition() > 0 && this.getPosition().get(id).getStrategy().equalsIgnoreCase(this.getStrategy())) {
-                    int referenceid = Utilities.getCashReferenceID(Parameters.symbol, id, getReferenceCashType());
+                    int referenceid = Utilities.getCashReferenceID(Parameters.symbol, id, referenceCashType);
                     int futureid = Utilities.getFutureIDFromExchangeSymbol(Parameters.symbol, referenceid, expiry);
                     Double tradePrice = this.getPosition().get(id).getPrice();
                     ArrayList<Stop> stops = Trade.getStop(db, this.getStrategy() + ":" + this.getFirstInternalOpenOrder(id, EnumOrderSide.SELL, "Order").iterator().next() + ":Order");
@@ -145,19 +145,6 @@ public class Swing extends Manager implements TradeListener {
                         order.put("expiretime", this.getMaxOrderDuration());
                         order.put("dynamicorderduration", getDynamicOrderDuration());
                         order.put("maxslippage", this.getMaxSlippageExit());
-                        //Set minimium size for order.
-                        if(Parameters.symbol.get(id).getMinsize()==0){
-                        int underlying=-1;
-                        int minsize=0;
-                        if(this.optionPricingUsingFutures){
-                            underlying=Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, id, Parameters.symbol.get(id).getExpiry());
-                            minsize=Parameters.symbol.get(underlying).getMinsize();
-                        }else{
-                            underlying=Utilities.getCashReferenceID(Parameters.symbol, id, getReferenceCashType());
-                            minsize=Parameters.symbol.get(underlying).getMinsize();
-                        }
-                        Parameters.symbol.get(id).setMinsize(minsize);
-                        }                    
                         order.put("orderattributes",this.getOrderAttributes());
                         order.put("log", "SLTPExit" + delimiter + slTrigger + delimiter + tpTrigger + delimiter + Parameters.symbol.get(id).getLastPrice() + delimiter + slDistance + delimiter + sl + delimiter + tpDistance + delimiter + tp);
                         this.exit(order);
@@ -173,7 +160,7 @@ public class Swing extends Manager implements TradeListener {
     TimerTask bodProcessingTask = new TimerTask() {
         public void run() {
             for (BeanSymbol s : Parameters.symbol) {
-                if (s.getType().equals(getReferenceCashType()) && s.getStrategy().toLowerCase().contains("swing")) {
+                if (s.getType().equals(referenceCashType) && s.getStrategy().toLowerCase().contains("swing")) {
                     int symbolid = s.getSerialno() - 1;
                     scan(symbolid, false);
                     bodtasks();
@@ -237,7 +224,7 @@ public class Swing extends Manager implements TradeListener {
         @Override
         public void run() {
             for (BeanSymbol s : Parameters.symbol) {
-                if (s.getType().equals(getReferenceCashType()) && s.getStrategy().toLowerCase().contains("swing")) {
+                if (s.getType().equals(referenceCashType) && s.getStrategy().toLowerCase().contains("swing")) {
                     int symbolid = s.getSerialno() - 1;
                     scan(symbolid, true);
                 }
