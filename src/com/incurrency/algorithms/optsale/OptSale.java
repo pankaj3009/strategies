@@ -205,7 +205,7 @@ public class OptSale extends Manager implements TradeListener {
                         }
 
                         for (int i : allOrderList) {
-                            initSymbol(i,optionPricingUsingFutures,referenceCashType);
+                            initSymbol(i,optionPricingUsingFutures,getReferenceCashType());
                         }
 
                         Thread.sleep(4000); //wait for 4 seconds
