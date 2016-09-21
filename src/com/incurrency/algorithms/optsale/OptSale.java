@@ -41,7 +41,6 @@ import org.rosuda.REngine.Rserve.RConnection;
  */
 public class OptSale extends Manager implements TradeListener {
 
-   
     int indexid;
     int futureid = -1;
     SimpleDateFormat sdtf_default = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -58,11 +57,11 @@ public class OptSale extends Manager implements TradeListener {
     double margin;
     double maxPositionSize;
     String[] args = new String[1];
-    private final Object lockScan=new Object();
-    
+    private final Object lockScan = new Object();
+
     public OptSale(MainAlgorithm m, Properties p, String parameterFile, ArrayList<String> accounts, Integer stratCount) {
         super(m, p, parameterFile, accounts, stratCount);
-        loadAdditionalParameters(p);       
+        loadAdditionalParameters(p);
 
         // Add Trade Listeners
         for (BeanConnection c : Parameters.connection) {
@@ -72,11 +71,11 @@ public class OptSale extends Manager implements TradeListener {
             Subscribe.tes.addTradeListener(this);
         }
         MainAlgorithm.tes.addTradeListener(this);
-  
+
         Timer trigger = new Timer("Timer: " + this.getStrategy() + " RScriptProcessor");
         trigger.schedule(RScriptRunTask, RScriptRunTime);
 
-        
+
         indexid = Utilities.getIDFromDisplayName(Parameters.symbol, indexDisplayName);
         if (indexid >= 0) {
             try {
@@ -141,7 +140,6 @@ public class OptSale extends Manager implements TradeListener {
                     args = new String[]{"1", getStrategy(), getRedisDatabaseID(),
                         Parameters.symbol.get(indexid).getDisplayname(), date, open, high, low, close, volume};
                     if (!RStrategyFile.equals("")) {
-                        logger.log(Level.INFO, "501,Scan,{0}", new Object[]{getStrategy()});
                         synchronized (lockScan) {
                             RConnection c;
                             try {
@@ -151,15 +149,17 @@ public class OptSale extends Manager implements TradeListener {
                                 System.out.println(wd.asString());
                                 c.eval("options(encoding = \"UTF-8\")");
                                 c.assign("args", args);
-                                logger.log(Level.INFO, "Invoking R. Strategy:{0}, args: {1}", new Object[]{getStrategy(), Arrays.toString(args)});
+                                logger.log(Level.INFO, "502,Invoking R Strategy,{0}:{1}:{2}:{3}:{4},args={1}",
+                                        new Object[]{getStrategy(), "Order", "unknown", -1, -1, Arrays.toString(args)});
                                 c.eval("source(\"" + RStrategyFile + "\")");
                             } catch (Exception e) {
                                 logger.log(Level.SEVERE, null, e);
                             }
                         }
                         List<String> tradetuple = db.blpop("signals:" + getStrategy(), "", 60);
-                        if (tradetuple != null) {
-                            logger.log(Level.INFO, "Received Trade:{0} for strategy {1}", new Object[]{tradetuple.get(1), tradetuple.get(0)});
+                        if (tradetuple != null && tradetuple.size() == 2) {
+                            logger.log(Level.INFO, "102,Received Trade Direction from Redis,{0}:{1}:{2}:{3}:{4}, Direction={5}",
+                                    new Object[]{getStrategy(), "Order", "unknown", -1, -1, tradetuple.get(1)});
                             switch (tradetuple.get(1)) {
                                 case "BUY":
                                     buy = true;
@@ -175,8 +175,11 @@ public class OptSale extends Manager implements TradeListener {
                                     break;
 
                             }
+                        } else {
+                            logger.log(Level.INFO, "102, Trade Record either null or is of incorrect dimension, {0}:{1}:{2}:{3}:{4},TradeTuple={5}",
+                                    new Object[]{getStrategy(), "Order", -1, -1, -1, Arrays.toString(tradetuple.toArray())});
                         }
-                        double cushion = Math.sqrt(dte) * historicalVol* avgMovePerDayEntry;
+                        double cushion = Math.sqrt(dte) * historicalVol * avgMovePerDayEntry;
                         double futurePrice = Parameters.symbol.get(indexid).getLastPrice();
                         double highestFloor = Utilities.roundTo((futurePrice - cushion * futurePrice / 100), Parameters.symbol.get(futureid).getStrikeDistance());
                         double lowestCeiling = Utilities.roundTo((futurePrice + cushion * futurePrice / 100), Parameters.symbol.get(futureid).getStrikeDistance());
@@ -192,20 +195,20 @@ public class OptSale extends Manager implements TradeListener {
 
                         if (buy) {
                             for (double str : callLevels) {
-                                int id = Utilities.insertStrike(Parameters.symbol, futureid, expiry, "CALL", Utilities.formatDouble(str,  new DecimalFormat("#.##")));
+                                int id = Utilities.insertStrike(Parameters.symbol, futureid, expiry, "CALL", Utilities.formatDouble(str, new DecimalFormat("#.##")));
                                 allOrderList.add(id);
                             }
                         }
 
                         if (shrt) {
                             for (double str : putLevels) {
-                                int id = Utilities.insertStrike(Parameters.symbol, futureid, expiry, "PUT", Utilities.formatDouble(str,  new DecimalFormat("#.##")));
+                                int id = Utilities.insertStrike(Parameters.symbol, futureid, expiry, "PUT", Utilities.formatDouble(str, new DecimalFormat("#.##")));
                                 allOrderList.add(id);
                             }
                         }
 
                         for (int i : allOrderList) {
-                            initSymbol(i,optionPricingUsingFutures,referenceCashType);
+                            initSymbol(i, optionPricingUsingFutures, referenceCashType);
                         }
 
                         Thread.sleep(4000); //wait for 4 seconds
@@ -215,36 +218,38 @@ public class OptSale extends Manager implements TradeListener {
                         for (int i : allOrderList) {
                             BeanSymbol s = Parameters.symbol.get(i);
                             double annualizedRet = s.getLastPrice() * 365 / (s.getCdte() * futurePrice * margin);
-                            double calcPremium = s.getOptionProcess().NPV();
-                            double theta = s.getOptionProcess().theta();
-                            double vega = s.getOptionProcess().vega();
-                            double metric = theta / vega;
-                            DecimalFormat df = new DecimalFormat("#.##");
-                            TradingUtil.writeToFile(getStrategy() + ".csv", s.getDisplayname() + ","
-                                    + s.getBdte() + "," + s.getLastPrice() + "," + annualizedRet + ","
-                                    + Utilities.formatDouble(theta, df) + ","
-                                    + Utilities.formatDouble(vega, df) + ","
-                                    + Utilities.formatDouble(metric, df) + ","
-                                    + Utilities.formatDouble(s.getLastVol(), df) + ","
-                                    + Utilities.formatDouble(calcPremium, df));
+                            if (underlyingTradePriceExists(s, 30)) {
+                                double calcPremium = s.getOptionProcess().NPV();
+                                double theta = s.getOptionProcess().theta();
+                                double vega = s.getOptionProcess().vega();
+                                double metric = theta / vega;
+                                DecimalFormat df = new DecimalFormat("#.##");
+                                TradingUtil.writeToFile(getStrategy() + ".csv", s.getDisplayname() + ","
+                                        + s.getBdte() + "," + s.getLastPrice() + "," + annualizedRet + ","
+                                        + Utilities.formatDouble(theta, df) + ","
+                                        + Utilities.formatDouble(vega, df) + ","
+                                        + Utilities.formatDouble(metric, df) + ","
+                                        + Utilities.formatDouble(s.getLastVol(), df) + ","
+                                        + Utilities.formatDouble(calcPremium, df));
 
-                            if (annualizedRet > thresholdReturnEntry ) {
-                                if(filteredOrderList.isEmpty()){
-                                filteredOrderList.add(i);
+                                if (annualizedRet > thresholdReturnEntry) {
+                                    if (filteredOrderList.isEmpty()) {
+                                        filteredOrderList.add(i);
+                                    }
                                 }
                             }
                         }
 
                         //write orders to redis
                         if (filteredOrderList.isEmpty()) {
-                            logger.log(Level.INFO, "501,{0},{1},{2},{3},{4}, No Orders Generated",
+                            logger.log(Level.INFO, "102, No Orders Generated in Scan,{0}:{1}:{2}:{3}:{4}",
                                     new Object[]{getStrategy(), "Order", Parameters.symbol.get(indexid).getDisplayname(),
                                 -1, -1});
                         }
                         for (int i : filteredOrderList) {
-                            int actualPositionSize = Utilities.getNetPosition(Parameters.symbol, getPosition(), i,"OPT");
+                            int actualPositionSize = Utilities.getNetPosition(Parameters.symbol, getPosition(), i, "OPT");
                             if (Math.abs(actualPositionSize) < maxPositionSize) {
-                                String redisOut=Parameters.symbol.get(i).getDisplayname() + ":" + getNumberOfContracts() + ":SHORT" + ":0:" + actualPositionSize;
+                                String redisOut = Parameters.symbol.get(i).getDisplayname() + ":" + getNumberOfContracts() + ":SHORT" + ":0:" + actualPositionSize;
                                 logger.log(Level.INFO, "Generated Trade for strategy {0}. Redis Output:{1}", new Object[]{tradetuple.get(1), redisOut});
                                 db.lpush("trades:" + getStrategy(), redisOut);
                             } else {
@@ -255,14 +260,41 @@ public class OptSale extends Manager implements TradeListener {
                         }
 
                     } else {
-                        logger.log(Level.INFO, "501, {0},{1},{2},{3},{4} No Index ID Found. Index:{5}", new Object[]{getStrategy(), "Order", -1, -1, -1, indexDisplayName});
+                        logger.log(Level.INFO, "102, R Strategy File Not Specified, {0}:{1}:{2}:{3}:{4}",
+                                new Object[]{getStrategy(), "Order", -1, -1, -1});
                     }
+                } else {
+                    logger.log(Level.INFO, "102, Index Not Found in Symbol File, {0}:{1}:{2}:{3}:{4},IndexExpectedInFile={5}",
+                            new Object[]{getStrategy(), "Order", -1, -1, -1, indexDisplayName});
                 }
             } catch (Exception e) {
                 logger.log(Level.SEVERE, null, e);
             }
         }
     };
+
+    public boolean underlyingTradePriceExists(BeanSymbol s, int waitSeconds) {
+        int underlying = s.getUnderlyingID();
+        if (underlying == -1) {
+            return false;
+        } else {
+            int i = 0;
+            while (s.getUnderlying().value() <= 0) {
+                if (i < waitSeconds) {
+                    try {
+                        Thread.sleep(1000);
+                    } catch (Exception e) {
+                        logger.log(Level.SEVERE, null, e);
+                    }
+                    Thread.yield();
+                    i++;
+                } else {
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
 
     private void loadAdditionalParameters(Properties p) {
         indexDisplayName = p.getProperty("IndexDisplayName", "NSENIFTY_IND___");
@@ -287,22 +319,22 @@ public class OptSale extends Manager implements TradeListener {
             double futurePrice;
             double indexPrice;
             double strikePrice;
-            int underlyingid=Parameters.symbol.get(id).getUnderlyingID();
-            if (Parameters.symbol.get(id).getCdte() > 0 && underlyingid >= 0 ) {
+            int underlyingid = Parameters.symbol.get(id).getUnderlyingID();
+            if (Parameters.symbol.get(id).getCdte() > 0 && underlyingid >= 0) {
                 futurePrice = Parameters.symbol.get(underlyingid).getLastPrice();
                 indexPrice = Parameters.symbol.get(indexid).getLastPrice();
                 strikePrice = Utilities.getDouble(Parameters.symbol.get(id).getOption(), 0);
                 optionReturn = Parameters.symbol.get(id).getLastPrice() * 365 / (Parameters.symbol.get(id).getCdte() * futurePrice * margin);
-                if (optionReturn == 0 || futurePrice == 0 ||strikePrice==0) {
-                    logger.log(Level.INFO, "Option Return for Symbol:{0}, lastPrice:{1}, DTE: {2} is {3}",
-                            new Object[]{Parameters.symbol.get(id).getDisplayname(), Parameters.symbol.get(id).getLastPrice(), Parameters.symbol.get(id).getCdte(), optionReturn});
+                if (optionReturn == 0 || futurePrice == 0 || strikePrice == 0) {
+                    logger.log(Level.FINE, "102,Flagging Calculated Option Return,{0}:{1}:{2}:{3}:{4},OptionReturn={5}:FuturePrice={6}:StrikePrice={7},DTE={8}",
+                            new Object[]{getStrategy(), "Order", Parameters.symbol.get(id).getDisplayname(), -1, -1, optionReturn, futurePrice, strikePrice, Parameters.symbol.get(id).getCdte()});
                     return;
                 }
-                if (optionReturn > 0 && futurePrice > 0 && strikePrice > 0 && optionDte>=0) {
+                if (optionReturn > 0 && futurePrice > 0 && strikePrice > 0 && optionDte >= 0) {
                     HashMap<String, Object> order = new HashMap<>();
                     switch (right) {
                         case "CALL":
-                            if ((optionReturn < thresholdReturnExit || (strikePrice - (Math.sqrt(optionDte) *historicalVol* avgMovePerDayExit * indexPrice / 100)) < futurePrice) && optionReturn > 0) {
+                            if ((optionReturn < thresholdReturnExit || (strikePrice - (Math.sqrt(optionDte) * historicalVol * avgMovePerDayExit * indexPrice / 100)) < futurePrice) && optionReturn > 0) {
                                 order.put("type", this.getOrdType());
                                 order.put("expiretime", getMaxOrderDuration());
                                 order.put("dynamicorderduration", getDynamicOrderDuration());
@@ -321,15 +353,16 @@ public class OptSale extends Manager implements TradeListener {
                                 order.put("scale", this.scaleExit);
                                 order.put("dynamicorderduration", this.getDynamicOrderDuration());
                                 order.put("expiretime", 0);
-                                order.put("orderattributes",this.getOrderAttributes());
+                                order.put("orderattributes", this.getOrderAttributes());
                                 if (limitprice > 0) {
-                                    logger.log(Level.INFO, "501,Strategy BUY,{0},", new Object[]{getStrategy() + delimiter + "BUY" + delimiter + Parameters.symbol.get(id).getDisplayname() + delimiter + optionReturn});
+                                    logger.log(Level.INFO, "101,Strategy COVER,{0}:{1}:{2}:{3}:{4},OptionReturn={5}",
+                                            new Object[]{getStrategy(), "Order", Parameters.symbol.get(id).getDisplayname(), -1, -1, optionReturn});
                                     exit(order);
                                 }
                             }
                             break;
                         case "PUT":
-                            if ((optionReturn < thresholdReturnExit || (strikePrice + (Math.sqrt(optionDte) *historicalVol* avgMovePerDayExit * indexPrice) / 100) > futurePrice) && optionReturn > 0) {
+                            if ((optionReturn < thresholdReturnExit || (strikePrice + (Math.sqrt(optionDte) * historicalVol * avgMovePerDayExit * indexPrice) / 100) > futurePrice) && optionReturn > 0) {
                                 order.put("type", this.getOrdType());
                                 order.put("expiretime", getMaxOrderDuration());
                                 order.put("dynamicorderduration", getDynamicOrderDuration());
@@ -348,9 +381,10 @@ public class OptSale extends Manager implements TradeListener {
                                 order.put("scale", scaleExit);
                                 order.put("dynamicorderduration", this.getDynamicOrderDuration());
                                 order.put("expiretime", 0);
-                                order.put("orderattributes",this.getOrderAttributes());
+                                order.put("orderattributes", this.getOrderAttributes());
                                 if (limitprice > 0) {
-                                    logger.log(Level.INFO, "501,Strategy BUY,{0}", new Object[]{getStrategy() + delimiter + "BUY" + delimiter + Parameters.symbol.get(id).getDisplayname() + delimiter + optionReturn});
+                                    logger.log(Level.INFO, "101,Strategy COVER,{0}:{1}:{2}:{3}:{4},OptionReturn={5}",
+                                            new Object[]{getStrategy(), "Order", Parameters.symbol.get(id).getDisplayname(), -1, -1, optionReturn});
                                     exit(order);
                                 }
                             }
