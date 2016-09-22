@@ -149,7 +149,7 @@ public class OptSale extends Manager implements TradeListener {
                                 System.out.println(wd.asString());
                                 c.eval("options(encoding = \"UTF-8\")");
                                 c.assign("args", args);
-                                logger.log(Level.INFO, "502,Invoking R Strategy,{0}:{1}:{2}:{3}:{4},args={1}",
+                                logger.log(Level.INFO, "102,Invoking R Strategy,{0}:{1}:{2}:{3}:{4},args={1}",
                                         new Object[]{getStrategy(), "Order", "unknown", -1, -1, Arrays.toString(args)});
                                 c.eval("source(\"" + RStrategyFile + "\")");
                             } catch (Exception e) {
@@ -250,10 +250,11 @@ public class OptSale extends Manager implements TradeListener {
                             int actualPositionSize = Utilities.getNetPosition(Parameters.symbol, getPosition(), i, "OPT");
                             if (Math.abs(actualPositionSize) < maxPositionSize) {
                                 String redisOut = Parameters.symbol.get(i).getDisplayname() + ":" + getNumberOfContracts() + ":SHORT" + ":0:" + actualPositionSize;
-                                logger.log(Level.INFO, "Generated Trade for strategy {0}. Redis Output:{1}", new Object[]{tradetuple.get(1), redisOut});
+                                logger.log(Level.INFO, "102,Trades published to Redis,{0}:{1}:{2}:{3}:{4},StringPublishedToRedis:{5}", 
+                                        new Object[]{getStrategy(), "Order",Parameters.symbol.get(i).getDisplayname(), -1, -1,redisOut});
                                 db.lpush("trades:" + getStrategy(), redisOut);
                             } else {
-                                logger.log(Level.INFO, "501,{0},{1},{2},{3},{4},{5},Position Limit Hit. No Order Placed. Current Position Size: {6}",
+                                logger.log(Level.INFO, "101,Position Limit. No Orders Placed,{0}:{1}:{2}:{3}:{4},PositionSize:{5}",
                                         new Object[]{getStrategy(), "Order",
                                     Parameters.symbol.get(i).getDisplayname(), -1, -1, actualPositionSize});
                             }
