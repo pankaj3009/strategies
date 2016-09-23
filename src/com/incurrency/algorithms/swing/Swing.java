@@ -172,11 +172,13 @@ public class Swing extends Manager implements TradeListener {
     };
 
     private void bodtasks() {
-        logger.log(Level.INFO, "501,BODProcess,{0}", new Object[]{this.getStrategy()});
+        logger.log(Level.INFO, "102,BODProcess Initiated,{0}:{1};{2}:{3}:{4}", 
+                new Object[]{this.getStrategy(),"Order","Unknown",-1,-1});
         List<String> tradetuple = db.brpop("recontrades:" + this.getStrategy(), "", 1); //pick trades for prior trading day
         List<String> expectedTrades = new ArrayList<>();
         while (tradetuple != null) {
-            logger.log(Level.INFO, "Received BOD Position: {0} for strategy: {1}", new Object[]{tradetuple.get(1), tradetuple.get(0)});
+            logger.log(Level.INFO, "102, Received BOD Position,{0}:{1};{2}:{3}:{4},RedisValue={5}", 
+                    new Object[]{this.getStrategy(),"Order","Unknown",-1,-1,Arrays.toString(tradetuple.toArray())});
             if(tradetuple.get(1).contains("BUY")||tradetuple.get(1).contains("SHORT")){
                 expectedTrades.add(tradetuple.get(1));
             }
@@ -207,7 +209,8 @@ public class Swing extends Manager implements TradeListener {
                             stop.recalculate = false;
                             stop.underlyingEntry = Double.valueOf(expectedTrades.get(stopindex).split(":")[4]);
                             Trade.setStop(db, key, "opentrades", tradestops);
-                            logger.log(Level.INFO, "Updated Trade Stop. Symbol:{0}, Underlying value:{1},StopPoints:{2}", new Object[]{symbol, stop.underlyingEntry, stop.stopValue});
+                            logger.log(Level.INFO, "102,Updated Trade Stop, {0}:{1};{2}:{3}:{4},UnderlyingValue={5}:StopPoints:{6}", 
+                                    new Object[]{getStrategy(),"Order",symbol,-1,-1, stop.underlyingEntry, stop.stopValue});
                         } else {
                             //alert we have an incorrect side
                             Thread t = new Thread(new Mail("psharma@incurrency.com", "Symbol has incorrect side: " + entrysymbol + " for strategy: " + this.getStrategy() + ".Expected trade direction: " + side, "Algorithm ALERT"));
@@ -237,7 +240,8 @@ public class Swing extends Manager implements TradeListener {
     private void scan(int symbolid, boolean today) {
         synchronized (lockScan) {
             if (!getRStrategyFile().equals("")) {
-                logger.log(Level.INFO, "501,Scan,{0}", new Object[]{this.getStrategy()});
+                logger.log(Level.INFO, "102,Scan Initiated,{0}:{1};{2}:{3}:{4}", 
+                        new Object[]{this.getStrategy(),"Order","Unknown",-1,-1});
                 RConnection c = null;
                 try {
                     c = new RConnection(rServerIP);
@@ -258,7 +262,8 @@ public class Swing extends Manager implements TradeListener {
                     } else {
                         args = new String[]{"1", this.getStrategy(), this.getRedisDatabaseID(), Parameters.symbol.get(symbolid).getDisplayname()};
                     }
-                    logger.log(Level.INFO, "Invoking R. Strategy:{0},args: {1}", new Object[]{getStrategy(), Arrays.toString(args)});
+                    logger.log(Level.INFO, "102,Invoking R Strategy,{0}:{1}:{2}:{3}:{4},args={5}", 
+                            new Object[]{getStrategy(),"Order","Unknown",-1,-1, Arrays.toString(args)});
                     c.assign("args", args);
                     c.eval("source(\"" + this.getRStrategyFile() + "\")");
                 } catch (Exception e) {
@@ -294,7 +299,8 @@ public class Swing extends Manager implements TradeListener {
 
         switch (origSide) {
             case BUY:
-                logger.log(Level.INFO, "501,Strategy Rollover EXIT BUY,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(initID).getExchangeSymbol()});
+                logger.log(Level.INFO, "101,Strategy Rollover EXIT BUY,{0}:{1}:{2}:{3}:{4}", 
+                        new Object[]{getStrategy(),"Order", Parameters.symbol.get(initID).getDisplayname(),-1,-1});
                 stops = Trade.getStop(db, this.getStrategy() + ":" + this.getFirstInternalOpenOrder(initID, EnumOrderSide.SELL, "Order").iterator().next() + ":Order");
                 HashMap<String, Object> order = new HashMap<>();
                 order.put("id", initID);
@@ -312,7 +318,8 @@ public class Swing extends Manager implements TradeListener {
                 this.exit(order);
                 break;
             case SHORT:
-                logger.log(Level.INFO, "501,Strategy Rollover EXIT SHORT,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(initID).getExchangeSymbol()});
+                logger.log(Level.INFO, "101,Strategy Rollover EXIT SHORT,{0}:{1}:{2}:{3}:{4}", 
+                        new Object[]{getStrategy(),"Order",Parameters.symbol.get(initID).getDisplayname(),-1,-1});
                 stops = Trade.getStop(db, this.getStrategy() + ":" + this.getFirstInternalOpenOrder(initID, EnumOrderSide.COVER, "Order").iterator().next() + ":Order");
                 order = new HashMap<>();
                 order.put("id", initID);
@@ -341,7 +348,8 @@ public class Swing extends Manager implements TradeListener {
         switch (origSide) {
             case BUY:
                 if (this.getLongOnly()) {
-                    logger.log(Level.INFO, "501,Strategy Rollover ENTER BUY,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(targetID).getExchangeSymbol() + delimiter + newSize});
+                    logger.log(Level.INFO, "101,Strategy Rollover ENTER BUY,{0}:{1}:{2}:{3}:{4},NewPositionSize={5}", 
+                            new Object[]{getStrategy(),"Order",Parameters.symbol.get(targetID).getDisplayname(),-1,-1,newSize});
                     HashMap<String, Object> order = new HashMap<>();
                     order.put("id", targetID);
                     order.put("side", EnumOrderSide.BUY);
@@ -361,7 +369,8 @@ public class Swing extends Manager implements TradeListener {
                 break;
             case SHORT:
                 if (this.getShortOnly()) {
-                    logger.log(Level.INFO, "501,Strategy Rollover ENTER SHORT,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(targetID).getExchangeSymbol() + delimiter + newSize});
+                    logger.log(Level.INFO, "101,Strategy Rollover ENTER SHORT,{0}:{1}:{2}:{3}:{4},NewPositionSize={5}",
+                            new Object[]{getStrategy(),"Order",Parameters.symbol.get(targetID).getDisplayname(),-1,-1, newSize});
                     HashMap<String, Object> order = new HashMap<>();
                     order = new HashMap<>();
                     order.put("id", targetID);
@@ -384,7 +393,8 @@ public class Swing extends Manager implements TradeListener {
                 break;
         }
         //update stop information
-        logger.log(Level.INFO, "501,Strategy Rollover Stop Update,{0}", new Object[]{getStrategy() + delimiter + Parameters.symbol.get(targetID).getExchangeSymbol() + delimiter + newSize + delimiter + orderid + delimiter + stops});
+        logger.log(Level.INFO, "102,Strategy Rollover Stop Update,{0}:{1}:{2}:{3}:{4},NewPositionSize={5},StopArray={6}", 
+                new Object[]{getStrategy(),"Order",Parameters.symbol.get(targetID).getDisplayname(),orderid,-1,newSize, Arrays.toString(stops.toArray())});
         if (orderid >= 0) {
             Trade.setStop(db, this.getStrategy() + ":" + orderid + ":" + "Order", "opentrades", stops);
         }
