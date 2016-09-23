@@ -200,12 +200,7 @@ public class OptSale extends Manager implements TradeListener {
                         buy = false;
                         shrt = false;
                         break;
-
                 }
-            } else {
-                logger.log(Level.INFO, "102, Trade Record either null or is of incorrect dimension, {0}:{1}:{2}:{3}:{4},TradeTuple={5}",
-                        new Object[]{getStrategy(), "Order", -1, -1, -1, Arrays.toString(tradetuple.toArray())});
-            }
             double cushion = Math.sqrt(dte) * historicalVol * avgMovePerDayEntry;
             if (tradePriceExists(Parameters.symbol.get(futureid), 15)) {
                 double futurePrice = Parameters.symbol.get(futureid).getLastPrice();
@@ -306,6 +301,11 @@ public class OptSale extends Manager implements TradeListener {
                         new Object[]{getStrategy(), "Order",
                     Parameters.symbol.get(futureid).getDisplayname(), -1, -1});
             }
+            } else if (tradetuple!=null) {
+                logger.log(Level.INFO, "102, Trade Record is of incorrect dimension, {0}:{1}:{2}:{3}:{4},TradeTuple={5}",
+                        new Object[]{getStrategy(), "Order", -1, -1, -1, Arrays.toString(tradetuple.toArray())});
+            }
+            
         } catch (Exception e) {
             logger.log(Level.SEVERE, null, e);
         }
