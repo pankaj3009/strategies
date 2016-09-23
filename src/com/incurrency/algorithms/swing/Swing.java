@@ -126,7 +126,9 @@ public class Swing extends Manager implements TradeListener {
                         }
                     }
                     if (!this.isStopOrders() && (slTrigger || tpTrigger)) {
-                        logger.log(Level.INFO, "501,Long SLTP Exit,{0}", new Object[]{this.getStrategy() + delimiter + Parameters.symbol.get(id).getDisplayname() + delimiter + slTrigger + delimiter + tpTrigger + delimiter + Parameters.symbol.get(id).getLastPrice() + delimiter + slDistance + delimiter + tpDistance + delimiter + sl + delimiter + tp});
+                        logger.log(Level.INFO, "101,Long SLTP Exit,{0}:{1}:{2}:{3}:{4},sltrigger={5},tptrigger={6},lastprice={7},sl={8},distancefromsl={9},tp={10},distancefromtp={11}", 
+                                new Object[]{this.getStrategy(),"Order",Parameters.symbol.get(id).getDisplayname(),-1,-1,
+                                    slTrigger,tpTrigger ,Parameters.symbol.get(id).getLastPrice(),sl,slDistance, tp, tpDistance});
                         int size = this.getPosition().get(id).getPosition();
                         HashMap<String, Object> order = new HashMap<>();
                         order.put("id", id);
