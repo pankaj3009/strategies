@@ -48,11 +48,11 @@ public class Swing extends Manager implements TradeListener {
     private final Object lockTradeReceived_1 = new Object();
     SimpleDateFormat sdf_default = new SimpleDateFormat("yyyy-MM-dd");
     SimpleDateFormat sdtf_default = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    private final Object lockScan=new Object();
-    
+    private final Object lockScan = new Object();
+
     public Swing(MainAlgorithm m, Properties p, String parameterFile, ArrayList<String> accounts, Integer stratCount) {
         super(m, p, parameterFile, accounts, stratCount);
-        
+
         // Add Trade Listeners
         for (BeanConnection c : Parameters.connection) {
             c.getWrapper().addTradeListener(this);
@@ -70,10 +70,10 @@ public class Swing extends Manager implements TradeListener {
          * Timertask 4: rollProcessingTask - if trading day is also a rollover day, rolls over any open positions.
          */
 
-       
+
         Timer trigger = new Timer("Timer: " + this.getStrategy() + " RScriptProcessor");
         trigger.schedule(RScriptRunTask, RScriptRunTime);
-        
+
         Timer bodProcessing = new Timer("Timer: " + this.getStrategy() + " BODProcessing");
         bodProcessing.schedule(bodProcessingTask, 10 * 1000);
 
@@ -126,9 +126,9 @@ public class Swing extends Manager implements TradeListener {
                         }
                     }
                     if (!this.isStopOrders() && (slTrigger || tpTrigger)) {
-                        logger.log(Level.INFO, "101,Long SLTP Exit,{0}:{1}:{2}:{3}:{4},sltrigger={5},tptrigger={6},lastprice={7},sl={8},distancefromsl={9},tp={10},distancefromtp={11}", 
-                                new Object[]{this.getStrategy(),"Order",Parameters.symbol.get(id).getDisplayname(),-1,-1,
-                                    slTrigger,tpTrigger ,Parameters.symbol.get(id).getLastPrice(),sl,slDistance, tp, tpDistance});
+                        logger.log(Level.INFO, "101,Long SLTP Exit,{0}:{1}:{2}:{3}:{4},sltrigger={5},tptrigger={6},lastprice={7},sl={8},distancefromsl={9},tp={10},distancefromtp={11}",
+                                new Object[]{this.getStrategy(), "Order", Parameters.symbol.get(id).getDisplayname(), -1, -1,
+                            slTrigger, tpTrigger, Parameters.symbol.get(id).getLastPrice(), sl, slDistance, tp, tpDistance});
                         int size = this.getPosition().get(id).getPosition();
                         HashMap<String, Object> order = new HashMap<>();
                         order.put("id", id);
@@ -147,7 +147,7 @@ public class Swing extends Manager implements TradeListener {
                         order.put("expiretime", this.getMaxOrderDuration());
                         order.put("dynamicorderduration", getDynamicOrderDuration());
                         order.put("maxslippage", this.getMaxSlippageExit());
-                        order.put("orderattributes",this.getOrderAttributes());
+                        order.put("orderattributes", this.getOrderAttributes());
                         order.put("log", "SLTPExit" + delimiter + slTrigger + delimiter + tpTrigger + delimiter + Parameters.symbol.get(id).getLastPrice() + delimiter + slDistance + delimiter + sl + delimiter + tpDistance + delimiter + tp);
                         this.exit(order);
                     }
@@ -172,14 +172,14 @@ public class Swing extends Manager implements TradeListener {
     };
 
     private void bodtasks() {
-        logger.log(Level.INFO, "102,BODProcess Initiated,{0}:{1};{2}:{3}:{4}", 
-                new Object[]{this.getStrategy(),"Order","Unknown",-1,-1});
+        logger.log(Level.INFO, "102,BODProcess Initiated,{0}:{1};{2}:{3}:{4}",
+                new Object[]{this.getStrategy(), "Order", "Unknown", -1, -1});
         List<String> tradetuple = db.brpop("recontrades:" + this.getStrategy(), "", 1); //pick trades for prior trading day
         List<String> expectedTrades = new ArrayList<>();
         while (tradetuple != null) {
-            logger.log(Level.INFO, "102, Received BOD Position,{0}:{1};{2}:{3}:{4},RedisValue={5}", 
-                    new Object[]{this.getStrategy(),"Order","Unknown",-1,-1,Arrays.toString(tradetuple.toArray())});
-            if(tradetuple.get(1).contains("BUY")||tradetuple.get(1).contains("SHORT")){
+            logger.log(Level.INFO, "102, Received BOD Position,{0}:{1};{2}:{3}:{4},RedisValue={5}",
+                    new Object[]{this.getStrategy(), "Order", "Unknown", -1, -1, Arrays.toString(tradetuple.toArray())});
+            if (tradetuple.get(1).contains("BUY") || tradetuple.get(1).contains("SHORT")) {
                 expectedTrades.add(tradetuple.get(1));
             }
             tradetuple = db.brpop("recontrades:" + this.getStrategy(), "", 1);
@@ -192,36 +192,36 @@ public class Swing extends Manager implements TradeListener {
             int stopindex = -1;
             if (tradestops != null && tradestops.size() == 1) {
                 Stop stop = tradestops.get(0);
-               // if (stop.recalculate == Boolean.TRUE) {
-                    for (int i = 0; i < expectedTrades.size(); i++) {
-                        if (expectedTrades.get(i).contains(symbol)) {
-                            stopindex = i;
-                            break;
-                        }
+                // if (stop.recalculate == Boolean.TRUE) {
+                for (int i = 0; i < expectedTrades.size(); i++) {
+                    if (expectedTrades.get(i).contains(symbol)) {
+                        stopindex = i;
+                        break;
                     }
-                    if (stopindex >= 0) {
-                        String side = expectedTrades.get(stopindex).split(":")[2];
-                        if ((side.equals("BUY") && entryside.equals("BUY") && entrysymbol.contains("CALL"))
-                                || (side.equals("SHORT") && entryside.equals("BUY") && entrysymbol.contains("PUT"))) {
-                            //update stop
-                            stop.stopValue = Double.valueOf(expectedTrades.get(stopindex).split(":")[3]);
-                            stop.stopValue = Utilities.roundTo(stop.stopValue, getTickSize());
-                            stop.recalculate = false;
-                            stop.underlyingEntry = Double.valueOf(expectedTrades.get(stopindex).split(":")[4]);
-                            Trade.setStop(db, key, "opentrades", tradestops);
-                            logger.log(Level.INFO, "102,Updated Trade Stop, {0}:{1};{2}:{3}:{4},UnderlyingValue={5}:StopPoints:{6}", 
-                                    new Object[]{getStrategy(),"Order",symbol,-1,-1, stop.underlyingEntry, stop.stopValue});
-                        } else {
-                            //alert we have an incorrect side
-                            Thread t = new Thread(new Mail("psharma@incurrency.com", "Symbol has incorrect side: " + entrysymbol + " for strategy: " + this.getStrategy() + ".Expected trade direction: " + side, "Algorithm ALERT"));
-                            t.start();
-                        }
+                }
+                if (stopindex >= 0) {
+                    String side = expectedTrades.get(stopindex).split(":")[2];
+                    if ((side.equals("BUY") && entryside.equals("BUY") && entrysymbol.contains("CALL"))
+                            || (side.equals("SHORT") && entryside.equals("BUY") && entrysymbol.contains("PUT"))) {
+                        //update stop
+                        stop.stopValue = Double.valueOf(expectedTrades.get(stopindex).split(":")[3]);
+                        stop.stopValue = Utilities.roundTo(stop.stopValue, getTickSize());
+                        stop.recalculate = false;
+                        stop.underlyingEntry = Double.valueOf(expectedTrades.get(stopindex).split(":")[4]);
+                        Trade.setStop(db, key, "opentrades", tradestops);
+                        logger.log(Level.INFO, "102,Updated Trade Stop, {0}:{1};{2}:{3}:{4},UnderlyingValue={5}:StopPoints:{6}",
+                                new Object[]{getStrategy(), "Order", symbol, -1, -1, stop.underlyingEntry, stop.stopValue});
                     } else {
-                        //alert dont have trades in strategy
-                        Thread t = new Thread(new Mail("psharma@incurrency.com", "Opening position where none expected for: " + entrysymbol + " for strategy: " + this.getStrategy() + ".Please review strategy results", "Algorithm ALERT"));
+                        //alert we have an incorrect side
+                        Thread t = new Thread(new Mail("psharma@incurrency.com", "Symbol has incorrect side: " + entrysymbol + " for strategy: " + this.getStrategy() + ".Expected trade direction: " + side, "Algorithm ALERT"));
                         t.start();
                     }
-               // }
+                } else {
+                    //alert dont have trades in strategy
+                    Thread t = new Thread(new Mail("psharma@incurrency.com", "Opening position where none expected for: " + entrysymbol + " for strategy: " + this.getStrategy() + ".Please review strategy results", "Algorithm ALERT"));
+                    t.start();
+                }
+                // }
             }
         }
     }
@@ -240,8 +240,8 @@ public class Swing extends Manager implements TradeListener {
     private void scan(int symbolid, boolean today) {
         synchronized (lockScan) {
             if (!getRStrategyFile().equals("")) {
-                logger.log(Level.INFO, "102,Scan Initiated,{0}:{1};{2}:{3}:{4}", 
-                        new Object[]{this.getStrategy(),"Order","Unknown",-1,-1});
+                logger.log(Level.INFO, "102,Scan Initiated,{0}:{1};{2}:{3}:{4}",
+                        new Object[]{this.getStrategy(), "Order", "Unknown", -1, -1});
                 RConnection c = null;
                 try {
                     c = new RConnection(rServerIP);
@@ -262,8 +262,8 @@ public class Swing extends Manager implements TradeListener {
                     } else {
                         args = new String[]{"1", this.getStrategy(), this.getRedisDatabaseID(), Parameters.symbol.get(symbolid).getDisplayname()};
                     }
-                    logger.log(Level.INFO, "102,Invoking R Strategy,{0}:{1}:{2}:{3}:{4},args={5}", 
-                            new Object[]{getStrategy(),"Order","Unknown",-1,-1, Arrays.toString(args)});
+                    logger.log(Level.INFO, "102,Invoking R Strategy,{0}:{1}:{2}:{3}:{4},args={5}",
+                            new Object[]{getStrategy(), "Order", "Unknown", -1, -1, Arrays.toString(args)});
                     c.assign("args", args);
                     c.eval("source(\"" + this.getRStrategyFile() + "\")");
                 } catch (Exception e) {
@@ -272,131 +272,159 @@ public class Swing extends Manager implements TradeListener {
             }
         }
     }
-
     TimerTask rollProcessingTask = new TimerTask() {
         @Override
         public void run() {
-            for (Map.Entry<Integer, BeanPosition> entry : getPosition().entrySet()) {
-                if (entry.getValue().getPosition() != 0) {
-                    String expiry = Parameters.symbol.get(entry.getKey()).getExpiry();
-                    if (expiry.equals(expiryNearMonth)) {
-                        int initID = entry.getKey();
-                        int targetID = Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, initID, expiryFarMonth);
-                        positionRollover(initID, targetID);
+            try {
+                for (Map.Entry<Integer, BeanPosition> entry : getPosition().entrySet()) {
+                    if (entry.getValue().getPosition() != 0) {
+                        String expiry = Parameters.symbol.get(entry.getKey()).getExpiry();
+                        if (expiry.equals(expiryNearMonth)) {
+                            ArrayList<Integer> entryorderidlist = new ArrayList<>();
+                            int initID = entry.getKey();
+                            EnumOrderSide side = entry.getValue().getPosition() > 0 ? EnumOrderSide.BUY : EnumOrderSide.SHORT;
+                            if (optionPricingUsingFutures) {
+                                int futureid = Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, initID, expiryFarMonth);
+                                if (optionSystem.equals("PAY")) {
+                                    entryorderidlist = Utilities.getOrInsertOptionIDForPaySystem(Parameters.symbol, getPosition(), futureid, side, expiryFarMonth);
+                                } else {
+                                    entryorderidlist = Utilities.getOrInsertOptionIDForReceiveSystem(Parameters.symbol, getPosition(), futureid, side, expiryFarMonth);
+                                }
+                            } else {
+                                int symbolid = Utilities.getCashReferenceID(Parameters.symbol, initID, referenceCashType);
+                                int referenceid = Utilities.getCashReferenceID(Parameters.symbol, symbolid, referenceCashType);
+                                if (optionSystem.equals("PAY")) {
+                                    entryorderidlist = Utilities.getOrInsertOptionIDForPaySystem(Parameters.symbol, getPosition(), referenceid, side, expiryFarMonth);
+                                } else {
+                                    entryorderidlist = Utilities.getOrInsertOptionIDForReceiveSystem(Parameters.symbol, getPosition(), referenceid, side, expiryFarMonth);
+                                }
+                            }
+                            if (optionSystem.equals("RECEIVE")) {
+                                side = EnumOrderSide.SHORT;
+                            } else {
+                                side = EnumOrderSide.BUY;
+                            }
+                            if (!entryorderidlist.isEmpty()) {
+                                positionRollover(initID, entryorderidlist.get(0));
+                            }
+                        }
                     }
                 }
+            } catch (Exception e) {
+                logger.log(Level.SEVERE, null, e);
             }
         }
     };
 
-
     public void positionRollover(int initID, int targetID) {
-        //get side, size of position
-        EnumOrderSide origSide = this.getPosition().get(initID).getPosition() > 0 ? EnumOrderSide.BUY : this.getPosition().get(initID).getPosition() < 0 ? EnumOrderSide.SHORT : EnumOrderSide.UNDEFINED;
-        int size = Math.abs(this.getPosition().get(initID).getPosition());
-        ArrayList<Stop> stops = null;
-        //square off position        
+        if (optionSystem.equals("PAY")) {
+            //get side, size of position
+            EnumOrderSide origSide = this.getPosition().get(initID).getPosition() > 0 ? EnumOrderSide.BUY : this.getPosition().get(initID).getPosition() < 0 ? EnumOrderSide.SHORT : EnumOrderSide.UNDEFINED;
+            int size = Math.abs(this.getPosition().get(initID).getPosition());
+            ArrayList<Stop> stops = null;
+            //square off position        
 
-        switch (origSide) {
-            case BUY:
-                logger.log(Level.INFO, "101,Strategy Rollover EXIT BUY,{0}:{1}:{2}:{3}:{4}", 
-                        new Object[]{getStrategy(),"Order", Parameters.symbol.get(initID).getDisplayname(),-1,-1});
-                stops = Trade.getStop(db, this.getStrategy() + ":" + this.getFirstInternalOpenOrder(initID, EnumOrderSide.SELL, "Order").iterator().next() + ":Order");
-                HashMap<String, Object> order = new HashMap<>();
-                order.put("id", initID);
-                order.put("type", this.getOrdType());
-                order.put("side", EnumOrderSide.SELL);
-                order.put("size", size);
-                order.put("limitprice", Parameters.symbol.get(initID).getLastPrice());
-                order.put("reason", EnumOrderReason.REGULAREXIT);
-                order.put("orderstage", EnumOrderStage.INIT);
-                order.put("expiretime", this.getMaxOrderDuration());
-                order.put("dynamicorderduration", getDynamicOrderDuration());
-                order.put("maxslippage", this.getMaxSlippageExit());
-                order.put("orderattributes",this.getOrderAttributes());
-                order.put("log", "ROLLOVERSQUAREOFF");
-                this.exit(order);
-                break;
-            case SHORT:
-                logger.log(Level.INFO, "101,Strategy Rollover EXIT SHORT,{0}:{1}:{2}:{3}:{4}", 
-                        new Object[]{getStrategy(),"Order",Parameters.symbol.get(initID).getDisplayname(),-1,-1});
-                stops = Trade.getStop(db, this.getStrategy() + ":" + this.getFirstInternalOpenOrder(initID, EnumOrderSide.COVER, "Order").iterator().next() + ":Order");
-                order = new HashMap<>();
-                order.put("id", initID);
-                order.put("type", this.getOrdType());
-                order.put("side", EnumOrderSide.COVER);
-                order.put("size", size);
-                order.put("limitprice", Parameters.symbol.get(initID).getLastPrice());
-                order.put("reason", EnumOrderReason.REGULAREXIT);
-                order.put("orderstage", EnumOrderStage.INIT);
-                order.put("expiretime", this.getMaxOrderDuration());
-                order.put("dynamicorderduration", getDynamicOrderDuration());
-                order.put("maxslippage", this.getMaxSlippageExit());
-                order.put("orderattributes", this.getOrderAttributes());
-                order.put("log", "ROLLOVERSQUAREOFF");
-                this.exit(order);
-                break;
-            default:
-                break;
-        }
-
-        //enter new position
-        int orderid = -1;
-        double targetContracts = size / Parameters.symbol.get(targetID).getMinsize();
-        int newSize = Math.max((int) Math.round(targetContracts), 1);//size/Parameters.symbol.get(targetID).getMinsize() + ((size % Parameters.symbol.get(targetID).getMinsize() == 0) ? 0 : 1); 
-        newSize = newSize * Parameters.symbol.get(targetID).getMinsize();
-        switch (origSide) {
-            case BUY:
-                if (this.getLongOnly()) {
-                    logger.log(Level.INFO, "101,Strategy Rollover ENTER BUY,{0}:{1}:{2}:{3}:{4},NewPositionSize={5}", 
-                            new Object[]{getStrategy(),"Order",Parameters.symbol.get(targetID).getDisplayname(),-1,-1,newSize});
+            switch (origSide) {
+                case BUY:
+                    logger.log(Level.INFO, "101,Strategy Rollover EXIT BUY,{0}:{1}:{2}:{3}:{4}",
+                            new Object[]{getStrategy(), "Order", Parameters.symbol.get(initID).getDisplayname(), -1, -1});
+                    stops = Trade.getStop(db, this.getStrategy() + ":" + this.getFirstInternalOpenOrder(initID, EnumOrderSide.SELL, "Order").iterator().next() + ":Order");
                     HashMap<String, Object> order = new HashMap<>();
-                    order.put("id", targetID);
-                    order.put("side", EnumOrderSide.BUY);
-                    order.put("size", newSize);
+                    order.put("id", initID);
                     order.put("type", this.getOrdType());
-                    order.put("limitprice", Parameters.symbol.get(targetID).getLastPrice());
-                    order.put("reason", EnumOrderReason.REGULARENTRY);
-                    order.put("orderstage", EnumOrderStage.INIT);
-                    order.put("expiretime", this.getMaxOrderDuration());
-                    order.put("dynamicorderduration", getDynamicOrderDuration());
-                    order.put("maxslippage", this.getMaxSlippageExit());
-                    order.put("orderattributes",this.getOrderAttributes());
-                    order.put("log", "ROLLOVERENTRY");
-                    orderid = this.entry(order);
-                    //orderid = this.getFirstInternalOpenOrder(initID, EnumOrderSide.SELL, "Order");
-                }
-                break;
-            case SHORT:
-                if (this.getShortOnly()) {
-                    logger.log(Level.INFO, "101,Strategy Rollover ENTER SHORT,{0}:{1}:{2}:{3}:{4},NewPositionSize={5}",
-                            new Object[]{getStrategy(),"Order",Parameters.symbol.get(targetID).getDisplayname(),-1,-1, newSize});
-                    HashMap<String, Object> order = new HashMap<>();
-                    order = new HashMap<>();
-                    order.put("id", targetID);
-                    order.put("side", EnumOrderSide.SHORT);
-                    order.put("size", newSize);
-                    order.put("type", this.getOrdType());
-                    order.put("limitprice", Parameters.symbol.get(targetID).getLastPrice());
-                    order.put("reason", EnumOrderReason.REGULARENTRY);
+                    order.put("side", EnumOrderSide.SELL);
+                    order.put("size", size);
+                    order.put("limitprice", Parameters.symbol.get(initID).getLastPrice());
+                    order.put("reason", EnumOrderReason.REGULAREXIT);
                     order.put("orderstage", EnumOrderStage.INIT);
                     order.put("expiretime", this.getMaxOrderDuration());
                     order.put("dynamicorderduration", getDynamicOrderDuration());
                     order.put("maxslippage", this.getMaxSlippageExit());
                     order.put("orderattributes", this.getOrderAttributes());
-                    order.put("log", "ROLLOVERENTRY");
-                    orderid = this.entry(order);
-                    //orderid = this.getFirstInternalOpenOrder(initID, EnumOrderSide.COVER, "Order");
-                }
-                break;
-            default:
-                break;
-        }
-        //update stop information
-        logger.log(Level.INFO, "102,Strategy Rollover Stop Update,{0}:{1}:{2}:{3}:{4},NewPositionSize={5},StopArray={6}", 
-                new Object[]{getStrategy(),"Order",Parameters.symbol.get(targetID).getDisplayname(),orderid,-1,newSize, Arrays.toString(stops.toArray())});
-        if (orderid >= 0) {
-            Trade.setStop(db, this.getStrategy() + ":" + orderid + ":" + "Order", "opentrades", stops);
+                    order.put("log", "ROLLOVERSQUAREOFF");
+                    this.exit(order);
+                    break;
+                case SHORT:
+                    logger.log(Level.INFO, "101,Strategy Rollover EXIT SHORT,{0}:{1}:{2}:{3}:{4}",
+                            new Object[]{getStrategy(), "Order", Parameters.symbol.get(initID).getDisplayname(), -1, -1});
+                    stops = Trade.getStop(db, this.getStrategy() + ":" + this.getFirstInternalOpenOrder(initID, EnumOrderSide.COVER, "Order").iterator().next() + ":Order");
+                    order = new HashMap<>();
+                    order.put("id", initID);
+                    order.put("type", this.getOrdType());
+                    order.put("side", EnumOrderSide.COVER);
+                    order.put("size", size);
+                    order.put("limitprice", Parameters.symbol.get(initID).getLastPrice());
+                    order.put("reason", EnumOrderReason.REGULAREXIT);
+                    order.put("orderstage", EnumOrderStage.INIT);
+                    order.put("expiretime", this.getMaxOrderDuration());
+                    order.put("dynamicorderduration", getDynamicOrderDuration());
+                    order.put("maxslippage", this.getMaxSlippageExit());
+                    order.put("orderattributes", this.getOrderAttributes());
+                    order.put("log", "ROLLOVERSQUAREOFF");
+                    this.exit(order);
+                    break;
+                default:
+                    break;
+            }
+
+            //enter new position
+            int orderid = -1;
+            double targetContracts = size / Parameters.symbol.get(targetID).getMinsize();
+            int newSize = Math.max((int) Math.round(targetContracts), 1);//size/Parameters.symbol.get(targetID).getMinsize() + ((size % Parameters.symbol.get(targetID).getMinsize() == 0) ? 0 : 1); 
+            newSize = newSize * Parameters.symbol.get(targetID).getMinsize();
+            switch (origSide) {
+                case BUY:
+                    if (this.getLongOnly()) {
+                        logger.log(Level.INFO, "101,Strategy Rollover ENTER BUY,{0}:{1}:{2}:{3}:{4},NewPositionSize={5}",
+                                new Object[]{getStrategy(), "Order", Parameters.symbol.get(targetID).getDisplayname(), -1, -1, newSize});
+                        HashMap<String, Object> order = new HashMap<>();
+                        order.put("id", targetID);
+                        order.put("side", EnumOrderSide.BUY);
+                        order.put("size", newSize);
+                        order.put("type", this.getOrdType());
+                        order.put("limitprice", Parameters.symbol.get(targetID).getLastPrice());
+                        order.put("reason", EnumOrderReason.REGULARENTRY);
+                        order.put("orderstage", EnumOrderStage.INIT);
+                        order.put("expiretime", this.getMaxOrderDuration());
+                        order.put("dynamicorderduration", getDynamicOrderDuration());
+                        order.put("maxslippage", this.getMaxSlippageExit());
+                        order.put("orderattributes", this.getOrderAttributes());
+                        order.put("log", "ROLLOVERENTRY");
+                        orderid = this.entry(order);
+                        //orderid = this.getFirstInternalOpenOrder(initID, EnumOrderSide.SELL, "Order");
+                    }
+                    break;
+                case SHORT:
+                    if (this.getShortOnly()) {
+                        logger.log(Level.INFO, "101,Strategy Rollover ENTER SHORT,{0}:{1}:{2}:{3}:{4},NewPositionSize={5}",
+                                new Object[]{getStrategy(), "Order", Parameters.symbol.get(targetID).getDisplayname(), -1, -1, newSize});
+                        HashMap<String, Object> order = new HashMap<>();
+                        order = new HashMap<>();
+                        order.put("id", targetID);
+                        order.put("side", EnumOrderSide.SHORT);
+                        order.put("size", newSize);
+                        order.put("type", this.getOrdType());
+                        order.put("limitprice", Parameters.symbol.get(targetID).getLastPrice());
+                        order.put("reason", EnumOrderReason.REGULARENTRY);
+                        order.put("orderstage", EnumOrderStage.INIT);
+                        order.put("expiretime", this.getMaxOrderDuration());
+                        order.put("dynamicorderduration", getDynamicOrderDuration());
+                        order.put("maxslippage", this.getMaxSlippageExit());
+                        order.put("orderattributes", this.getOrderAttributes());
+                        order.put("log", "ROLLOVERENTRY");
+                        orderid = this.entry(order);
+                        //orderid = this.getFirstInternalOpenOrder(initID, EnumOrderSide.COVER, "Order");
+                    }
+                    break;
+                default:
+                    break;
+            }
+            //update stop information
+            logger.log(Level.INFO, "102,Strategy Rollover Stop Update,{0}:{1}:{2}:{3}:{4},NewPositionSize={5},StopArray={6}",
+                    new Object[]{getStrategy(), "Order", Parameters.symbol.get(targetID).getDisplayname(), orderid, -1, newSize, Arrays.toString(stops.toArray())});
+            if (orderid >= 0) {
+                Trade.setStop(db, this.getStrategy() + ":" + orderid + ":" + "Order", "opentrades", stops);
+            }
         }
     }
 
