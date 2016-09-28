@@ -70,7 +70,7 @@ public class Manager extends Strategy {
             expiry = this.expiryNearMonth;
         }
         logger.log(Level.INFO,"102,ExpiryDate For EntryTrades Set,{0}:{1}:{2}:{3}:{4},ExpiryDate={5}",
-                new Object[]{this.getStrategy(),"Order","Unknown","-1","-1","expiry"});
+                new Object[]{this.getStrategy(),"Order","Unknown","-1","-1",expiry});
 
         Timer monitor=new Timer("Timer: "+this.getStrategy() +" WaitForTrades");
         monitor.schedule(TradeProcessor, new Date());
