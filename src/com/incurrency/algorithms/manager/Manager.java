@@ -6,6 +6,7 @@ package com.incurrency.algorithms.manager;
 
 import com.incurrency.framework.Algorithm;
 import com.incurrency.framework.BeanConnection;
+import com.incurrency.framework.DateUtil;
 import com.incurrency.framework.EnumOrderReason;
 import com.incurrency.framework.EnumOrderSide;
 import com.incurrency.framework.EnumOrderStage;
@@ -18,6 +19,7 @@ import com.incurrency.framework.Stop;
 import com.incurrency.framework.Strategy;
 import com.incurrency.framework.Trade;
 import com.incurrency.framework.Utilities;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -77,8 +79,13 @@ public class Manager extends Strategy {
     }
 
     private void loadParameters(Properties p) {
-        expiryNearMonth = p.getProperty("NearMonthExpiry").toString().trim();
-        expiryFarMonth = p.getProperty("FarMonthExpiry").toString().trim();
+        //expiryNearMonth = p.getProperty("NearMonthExpiry").toString().trim();
+        //expiryFarMonth = p.getProperty("FarMonthExpiry").toString().trim();
+        String today=DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone));
+        expiryNearMonth=Utilities.getNextExpiry(today);
+        Date dtExpiry=DateUtil.parseDate("yyyyMMdd", expiryNearMonth, timeZone);
+        String expiryplus=DateUtil.getFormatedDate("yyyyMMdd", DateUtil.addDays(dtExpiry, 1).getTime(), TimeZone.getTimeZone(Algorithm.timeZone));
+        expiryFarMonth=Utilities.getNextExpiry(expiryplus);
         referenceCashType = p.getProperty("ReferenceCashType", "STK").toString().trim();
         rServerIP = p.getProperty("RServerIP").toString().trim();
         securityType = p.getProperty("SecurityType", "PASSTHROUGH");
