@@ -79,7 +79,7 @@ public class Swing extends Manager implements TradeListener {
 
         if (rollover) {
             Timer rollProcessing = new Timer("Timer: " + this.getStrategy() + " RollProcessing");
-            rollProcessing.schedule(rollProcessingTask, DateUtil.addSeconds(RScriptRunTime, 60));
+            rollProcessing.schedule(rollProcessingTask, DateUtil.addSeconds(new Date(), 60));
         }
     }
 
@@ -305,6 +305,7 @@ public class Swing extends Manager implements TradeListener {
                                 side = EnumOrderSide.BUY;
                             }
                             if (!entryorderidlist.isEmpty()) {
+                                initSymbol(entryorderidlist.get(0),optionPricingUsingFutures,referenceCashType);
                                 positionRollover(initID, entryorderidlist.get(0));
                             }
                         }
