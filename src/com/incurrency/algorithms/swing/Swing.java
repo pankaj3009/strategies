@@ -51,7 +51,7 @@ public class Swing extends Manager implements TradeListener {
     private final Object lockScan = new Object();
 
     public Swing(MainAlgorithm m, Properties p, String parameterFile, ArrayList<String> accounts, Integer stratCount) {
-        super(m, p, parameterFile, accounts, stratCount);
+        super(m, p, parameterFile, accounts, stratCount,"swing");
 
         // Add Trade Listeners
         for (BeanConnection c : Parameters.connection) {

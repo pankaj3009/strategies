@@ -61,7 +61,7 @@ public class OptSale extends Manager implements TradeListener {
     private final Object lockScan = new Object();
 
     public OptSale(MainAlgorithm m, Properties p, String parameterFile, ArrayList<String> accounts, Integer stratCount) {
-        super(m, p, parameterFile, accounts, stratCount);
+        super(m, p, parameterFile, accounts, stratCount,"optsale");
         loadAdditionalParameters(p);
 
         // Add Trade Listeners

@@ -24,7 +24,7 @@ public class Contra extends Manager {
     private final Object lockScan=new Object();
     
     public Contra(MainAlgorithm m, Properties p, String parameterFile, ArrayList<String> accounts, Integer stratCount) {
-        super(m, p, parameterFile, accounts, stratCount);
+        super(m, p, parameterFile, accounts, stratCount,"contra");
         Timer trigger = new Timer("Timer: " + this.getStrategy() + " RScriptProcessor");
         trigger.schedule(RScriptRunTask, RScriptRunTime);
     }

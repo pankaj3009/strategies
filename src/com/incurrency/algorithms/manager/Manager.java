@@ -58,8 +58,8 @@ public class Manager extends Strategy {
 
     private static final Logger logger = Logger.getLogger(Manager.class.getName());
 
-    public Manager(MainAlgorithm m, Properties p, String parameterFile, ArrayList<String> accounts, Integer stratCount) {
-        super(m, "manager", "FUT", p, parameterFile, accounts, stratCount);
+    public Manager(MainAlgorithm m, Properties p, String parameterFile, ArrayList<String> accounts, Integer stratCount,String strategy) {
+        super(m, strategy, "FUT", p, parameterFile, accounts, stratCount);
         loadParameters(p);
         String[] tempStrategyArray = parameterFile.split("\\.")[0].split("-|_");
         for (BeanConnection c : Parameters.connection) {
