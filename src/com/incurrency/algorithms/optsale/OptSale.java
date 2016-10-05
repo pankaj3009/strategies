@@ -61,7 +61,7 @@ public class OptSale extends Manager implements TradeListener {
     private final Object lockScan = new Object();
 
     public OptSale(MainAlgorithm m, Properties p, String parameterFile, ArrayList<String> accounts, Integer stratCount) {
-        super(m, p, parameterFile, accounts, stratCount,"optsale");
+        super(m, p, parameterFile, accounts, stratCount, "optsale");
         loadAdditionalParameters(p);
 
         // Add Trade Listeners
@@ -201,113 +201,113 @@ public class OptSale extends Manager implements TradeListener {
                         shrt = false;
                         break;
                 }
-            double cushion = Math.sqrt(dte) * historicalVol * avgMovePerDayEntry;
-            if (tradePriceExists(Parameters.symbol.get(futureid), 15)) {
-                double futurePrice = Parameters.symbol.get(futureid).getLastPrice();
-                double highestFloor = Utilities.roundTo((futurePrice - cushion * futurePrice / 100), Parameters.symbol.get(futureid).getStrikeDistance());
-                double lowestCeiling = Utilities.roundTo((futurePrice + cushion * futurePrice / 100), Parameters.symbol.get(futureid).getStrikeDistance());
-                //Get 2 strikes
-                double[] putLevels = new double[2];
-                putLevels[0] = highestFloor;
-                putLevels[1] = highestFloor - Parameters.symbol.get(futureid).getStrikeDistance();
+                double cushion = Math.sqrt(dte) * historicalVol * avgMovePerDayEntry;
+                if (tradePriceExists(Parameters.symbol.get(futureid), 15)) {
+                    double futurePrice = Parameters.symbol.get(futureid).getLastPrice();
+                    double highestFloor = Utilities.roundTo((futurePrice - cushion * futurePrice / 100), Parameters.symbol.get(futureid).getStrikeDistance());
+                    double lowestCeiling = Utilities.roundTo((futurePrice + cushion * futurePrice / 100), Parameters.symbol.get(futureid).getStrikeDistance());
+                    //Get 2 strikes
+                    double[] putLevels = new double[2];
+                    putLevels[0] = highestFloor;
+                    putLevels[1] = highestFloor - Parameters.symbol.get(futureid).getStrikeDistance();
 
-                double[] callLevels = new double[2];
-                callLevels[0] = lowestCeiling;
-                callLevels[1] = lowestCeiling + Parameters.symbol.get(futureid).getStrikeDistance();
+                    double[] callLevels = new double[2];
+                    callLevels[0] = lowestCeiling;
+                    callLevels[1] = lowestCeiling + Parameters.symbol.get(futureid).getStrikeDistance();
 
-                if (buy) {
-                    for (double str : callLevels) {
-                        int id = Utilities.insertStrike(Parameters.symbol, futureid, expiry, "CALL", Utilities.formatDouble(str, new DecimalFormat("#.##")));
-                        allOrderList.add(id);
+                    if (buy) {
+                        for (double str : callLevels) {
+                            int id = Utilities.insertStrike(Parameters.symbol, futureid, expiry, "CALL", Utilities.formatDouble(str, new DecimalFormat("#.##")));
+                            allOrderList.add(id);
+                        }
                     }
-                }
 
-                if (shrt) {
-                    for (double str : putLevels) {
-                        int id = Utilities.insertStrike(Parameters.symbol, futureid, expiry, "PUT", Utilities.formatDouble(str, new DecimalFormat("#.##")));
-                        allOrderList.add(id);
+                    if (shrt) {
+                        for (double str : putLevels) {
+                            int id = Utilities.insertStrike(Parameters.symbol, futureid, expiry, "PUT", Utilities.formatDouble(str, new DecimalFormat("#.##")));
+                            allOrderList.add(id);
+                        }
                     }
-                }
 
-                for (int i : allOrderList) {
-                    initSymbol(i, optionPricingUsingFutures, referenceCashType);
-                }
-                Thread.sleep(4000); //wait for 4 seconds
-                Thread.yield();
-                ArrayList<Integer> filteredOrderList = new ArrayList<>();
-                //Place Orders
-                for (int i : allOrderList) {
-                    BeanSymbol s = Parameters.symbol.get(i);
-                    double annualizedRet = s.getLastPrice() * 365 / (s.getCdte() * futurePrice * margin);
-                    if (underlyingTradePriceExists(s, 30)) {
-                        double calcPremium = s.getOptionProcess().NPV();
-                        double theta = s.getOptionProcess().theta();
-                        double vega = s.getOptionProcess().vega();
-                        double metric = theta / vega;
-                        DecimalFormat df = new DecimalFormat("#.##");
-                        TradingUtil.writeToFile(getStrategy() + ".csv", s.getDisplayname() + ","
-                                + s.getBdte() + "," + s.getLastPrice() + "," + annualizedRet + ","
-                                + Utilities.formatDouble(theta, df) + ","
-                                + Utilities.formatDouble(vega, df) + ","
-                                + Utilities.formatDouble(metric, df) + ","
-                                + Utilities.formatDouble(s.getLastVol(), df) + ","
-                                + Utilities.formatDouble(calcPremium, df));
+                    for (int i : allOrderList) {
+                        initSymbol(i, optionPricingUsingFutures, referenceCashType);
+                    }
+                    Thread.sleep(4000); //wait for 4 seconds
+                    Thread.yield();
+                    ArrayList<Integer> filteredOrderList = new ArrayList<>();
+                    //Place Orders
+                    for (int i : allOrderList) {
+                        BeanSymbol s = Parameters.symbol.get(i);
+                        double annualizedRet = s.getLastPrice() * 365 / (s.getCdte() * futurePrice * margin);
+                        if (underlyingTradePriceExists(s, 30)) {
+                            double calcPremium = s.getOptionProcess().NPV();
+                            double theta = s.getOptionProcess().theta();
+                            double vega = s.getOptionProcess().vega();
+                            double metric = theta / vega;
+                            DecimalFormat df = new DecimalFormat("#.##");
+                            TradingUtil.writeToFile(getStrategy() + ".csv", s.getDisplayname() + ","
+                                    + s.getBdte() + "," + s.getLastPrice() + "," + annualizedRet + ","
+                                    + Utilities.formatDouble(theta, df) + ","
+                                    + Utilities.formatDouble(vega, df) + ","
+                                    + Utilities.formatDouble(metric, df) + ","
+                                    + Utilities.formatDouble(s.getLastVol(), df) + ","
+                                    + Utilities.formatDouble(calcPremium, df));
 
-                        if (annualizedRet > thresholdReturnEntry) {
-                            if (filteredOrderList.isEmpty()) {
-                                filteredOrderList.add(i);
+                            if (annualizedRet > thresholdReturnEntry) {
+                                if (filteredOrderList.isEmpty()) {
+                                    filteredOrderList.add(i);
+                                }
                             }
                         }
                     }
-                }
 
-                //write orders to redis
-                if (filteredOrderList.isEmpty()) {
-                    logger.log(Level.INFO, "102, No Orders Generated in Scan,{0}:{1}:{2}:{3}:{4}",
-                            new Object[]{getStrategy(), "Order", Parameters.symbol.get(indexid).getDisplayname(),
-                        -1, -1});
-                    //Add 50% positions redis
-                    int i = allOrderList.get(0);
-                    int actualPositionSize = Utilities.getNetPosition(Parameters.symbol, getPosition(), i, "OPT");
-                    if (Math.abs(actualPositionSize) < maxPositionSize) {
-                        int contracts = (int) getNumberOfContracts() / 2;
-                        contracts=(int)contracts/Parameters.symbol.get(i).getMinsize();
-                        contracts=contracts*Parameters.symbol.get(i).getMinsize();
-                        if (contracts>=Parameters.symbol.get(i).getMinsize()) {
-                            String redisOut = Parameters.symbol.get(i).getDisplayname() + ":" + contracts + ":SHORT" + ":0:" + actualPositionSize;
-                            logger.log(Level.INFO, "102,50% Trades published to Redis,{0}:{1}:{2}:{3}:{4},StringPublishedToRedis:{5}",
+                    //write orders to redis
+                    if (filteredOrderList.isEmpty()) {
+                        logger.log(Level.INFO, "102, No Orders Generated in Scan,{0}:{1}:{2}:{3}:{4}",
+                                new Object[]{getStrategy(), "Order", Parameters.symbol.get(indexid).getDisplayname(),
+                            -1, -1});
+                        //Add 50% positions redis
+                        int i = allOrderList.get(0);
+                        int actualPositionSize = Utilities.getNetPosition(Parameters.symbol, getPosition(), i, "OPT");
+                        if (Math.abs(actualPositionSize) < maxPositionSize) {
+                            int contracts = (int) getNumberOfContracts() / 2;
+                            contracts = (int) contracts / Parameters.symbol.get(i).getMinsize();
+                            contracts = contracts * Parameters.symbol.get(i).getMinsize();
+                            if (contracts >= Parameters.symbol.get(i).getMinsize()) {
+                                String redisOut = Parameters.symbol.get(i).getDisplayname() + ":" + contracts + ":SHORT" + ":0:" + actualPositionSize;
+                                logger.log(Level.INFO, "102,50% Trades published to Redis,{0}:{1}:{2}:{3}:{4},StringPublishedToRedis:{5}",
+                                        new Object[]{getStrategy(), "Order", Parameters.symbol.get(i).getDisplayname(), -1, -1, redisOut});
+                                db.lpush("trades:" + getStrategy(), redisOut);
+                            }
+                        } else {
+                            logger.log(Level.INFO, "101,Position Limit. No Orders Placed,{0}:{1}:{2}:{3}:{4},PositionSize:{5}",
+                                    new Object[]{getStrategy(), "Order",
+                                Parameters.symbol.get(i).getDisplayname(), -1, -1, actualPositionSize});
+                        }
+                    }
+                    for (int i : filteredOrderList) {
+                        int actualPositionSize = Utilities.getNetPosition(Parameters.symbol, getPosition(), i, "OPT");
+                        if (Math.abs(actualPositionSize) < maxPositionSize) {
+                            String redisOut = Parameters.symbol.get(i).getDisplayname() + ":" + getNumberOfContracts() + ":SHORT" + ":0:" + actualPositionSize;
+                            logger.log(Level.INFO, "102,Trades published to Redis,{0}:{1}:{2}:{3}:{4},StringPublishedToRedis:{5}",
                                     new Object[]{getStrategy(), "Order", Parameters.symbol.get(i).getDisplayname(), -1, -1, redisOut});
                             db.lpush("trades:" + getStrategy(), redisOut);
+                        } else {
+                            logger.log(Level.INFO, "101,Position Limit. No Orders Placed,{0}:{1}:{2}:{3}:{4},PositionSize:{5}",
+                                    new Object[]{getStrategy(), "Order",
+                                Parameters.symbol.get(i).getDisplayname(), -1, -1, actualPositionSize});
                         }
-                    } else {
-                        logger.log(Level.INFO, "101,Position Limit. No Orders Placed,{0}:{1}:{2}:{3}:{4},PositionSize:{5}",
-                                new Object[]{getStrategy(), "Order",
-                            Parameters.symbol.get(i).getDisplayname(), -1, -1, actualPositionSize});
                     }
+                } else {
+                    logger.log(Level.INFO, "102, Future Price Not Available,{0}:{1}:{2}:{3}:{4}",
+                            new Object[]{getStrategy(), "Order",
+                        Parameters.symbol.get(futureid).getDisplayname(), -1, -1});
                 }
-                for (int i : filteredOrderList) {
-                    int actualPositionSize = Utilities.getNetPosition(Parameters.symbol, getPosition(), i, "OPT");
-                    if (Math.abs(actualPositionSize) < maxPositionSize) {
-                        String redisOut = Parameters.symbol.get(i).getDisplayname() + ":" + getNumberOfContracts() + ":SHORT" + ":0:" + actualPositionSize;
-                        logger.log(Level.INFO, "102,Trades published to Redis,{0}:{1}:{2}:{3}:{4},StringPublishedToRedis:{5}",
-                                new Object[]{getStrategy(), "Order", Parameters.symbol.get(i).getDisplayname(), -1, -1, redisOut});
-                        db.lpush("trades:" + getStrategy(), redisOut);
-                    } else {
-                        logger.log(Level.INFO, "101,Position Limit. No Orders Placed,{0}:{1}:{2}:{3}:{4},PositionSize:{5}",
-                                new Object[]{getStrategy(), "Order",
-                            Parameters.symbol.get(i).getDisplayname(), -1, -1, actualPositionSize});
-                    }
-                }
-            } else {
-                logger.log(Level.INFO, "102, Future Price Not Available,{0}:{1}:{2}:{3}:{4}",
-                        new Object[]{getStrategy(), "Order",
-                    Parameters.symbol.get(futureid).getDisplayname(), -1, -1});
-            }
-            } else if (tradetuple!=null) {
+            } else if (tradetuple != null) {
                 logger.log(Level.INFO, "102, Trade Record is of incorrect dimension, {0}:{1}:{2}:{3}:{4},TradeTuple={5}",
                         new Object[]{getStrategy(), "Order", -1, -1, -1, Arrays.toString(tradetuple.toArray())});
             }
-            
+
         } catch (Exception e) {
             logger.log(Level.SEVERE, null, e);
         }
@@ -373,87 +373,89 @@ public class OptSale extends Manager implements TradeListener {
 
     @Override
     public void tradeReceived(TradeEvent event) {
-        Integer id = event.getSymbolID();
-        if (getStrategySymbols().contains(id) && getPosition().get(id).getPosition() != 0) {
-            int position = getPosition().get(id).getPosition();
-            long optionDte = Parameters.symbol.get(id).getBdte();
-            String right = Parameters.symbol.get(id).getRight();
-            double optionReturn;
-            double futurePrice;
-            double indexPrice;
-            double strikePrice;
-            int underlyingid = Parameters.symbol.get(id).getUnderlyingID();
-            if (Parameters.symbol.get(id).getCdte() > 0 && underlyingid >= 0) {
-                futurePrice = Parameters.symbol.get(underlyingid).getLastPrice();
-                indexPrice = Parameters.symbol.get(indexid).getLastPrice();
-                strikePrice = Utilities.getDouble(Parameters.symbol.get(id).getOption(), 0);
-                optionReturn = Parameters.symbol.get(id).getLastPrice() * 365 / (Parameters.symbol.get(id).getCdte() * futurePrice * margin);
-                if (optionReturn == 0 || futurePrice == 0 || strikePrice == 0) {
-                    logger.log(Level.FINE, "102,Flagging Calculated Option Return,{0}:{1}:{2}:{3}:{4},OptionReturn={5}:FuturePrice={6}:StrikePrice={7},DTE={8}",
-                            new Object[]{getStrategy(), "Order", Parameters.symbol.get(id).getDisplayname(), -1, -1, optionReturn, futurePrice, strikePrice, Parameters.symbol.get(id).getCdte()});
-                    return;
-                }
-                if (optionReturn > 0 && futurePrice > 0 && strikePrice > 0 && optionDte >= 0) {
-                    HashMap<String, Object> order = new HashMap<>();
-                    switch (right) {
-                        case "CALL":
-                            if ((optionReturn < thresholdReturnExit || (strikePrice - (Math.sqrt(optionDte) * historicalVol * avgMovePerDayExit * indexPrice / 100)) < futurePrice) && optionReturn > 0) {
-                                order.put("type", this.getOrdType());
-                                order.put("expiretime", getMaxOrderDuration());
-                                order.put("dynamicorderduration", getDynamicOrderDuration());
-                                order.put("maxslippage", this.getMaxSlippageEntry());
-                                order.put("id", id);
-                                double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol, id, futureid, EnumOrderSide.COVER, "CALL", getTickSize());
-                                order.put("limitprice", limitprice);
-                                order.put("side", EnumOrderSide.COVER);
-                                order.put("size", position);
-                                if (optionReturn < thresholdReturnExit) {
-                                    order.put("reason", EnumOrderReason.TP);
-                                } else {
-                                    order.put("reason", EnumOrderReason.SL);
+        if (this.tradingWindow.get()) {
+            Integer id = event.getSymbolID();
+            if (getStrategySymbols().contains(id) && getPosition().get(id).getPosition() != 0) {
+                int position = getPosition().get(id).getPosition();
+                long optionDte = Parameters.symbol.get(id).getBdte();
+                String right = Parameters.symbol.get(id).getRight();
+                double optionReturn;
+                double futurePrice;
+                double indexPrice;
+                double strikePrice;
+                int underlyingid = Parameters.symbol.get(id).getUnderlyingID();
+                if (Parameters.symbol.get(id).getCdte() > 0 && underlyingid >= 0) {
+                    futurePrice = Parameters.symbol.get(underlyingid).getLastPrice();
+                    indexPrice = Parameters.symbol.get(indexid).getLastPrice();
+                    strikePrice = Utilities.getDouble(Parameters.symbol.get(id).getOption(), 0);
+                    optionReturn = Parameters.symbol.get(id).getLastPrice() * 365 / (Parameters.symbol.get(id).getCdte() * futurePrice * margin);
+                    if (optionReturn == 0 || futurePrice == 0 || strikePrice == 0) {
+                        logger.log(Level.FINE, "102,Flagging Calculated Option Return,{0}:{1}:{2}:{3}:{4},OptionReturn={5}:FuturePrice={6}:StrikePrice={7},DTE={8}",
+                                new Object[]{getStrategy(), "Order", Parameters.symbol.get(id).getDisplayname(), -1, -1, optionReturn, futurePrice, strikePrice, Parameters.symbol.get(id).getCdte()});
+                        return;
+                    }
+                    if (optionReturn > 0 && futurePrice > 0 && strikePrice > 0 && optionDte >= 0) {
+                        HashMap<String, Object> order = new HashMap<>();
+                        switch (right) {
+                            case "CALL":
+                                if ((optionReturn < thresholdReturnExit || (strikePrice - (Math.sqrt(optionDte) * historicalVol * avgMovePerDayExit * indexPrice / 100)) < futurePrice) && optionReturn > 0) {
+                                    order.put("type", this.getOrdType());
+                                    order.put("expiretime", getMaxOrderDuration());
+                                    order.put("dynamicorderduration", getDynamicOrderDuration());
+                                    order.put("maxslippage", this.getMaxSlippageEntry());
+                                    order.put("id", id);
+                                    double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol, id, futureid, EnumOrderSide.COVER, "CALL", getTickSize());
+                                    order.put("limitprice", limitprice);
+                                    order.put("side", EnumOrderSide.COVER);
+                                    order.put("size", position);
+                                    if (optionReturn < thresholdReturnExit) {
+                                        order.put("reason", EnumOrderReason.TP);
+                                    } else {
+                                        order.put("reason", EnumOrderReason.SL);
+                                    }
+                                    order.put("orderstage", EnumOrderStage.INIT);
+                                    order.put("scale", this.scaleExit);
+                                    order.put("dynamicorderduration", this.getDynamicOrderDuration());
+                                    order.put("expiretime", 0);
+                                    order.put("orderattributes", this.getOrderAttributes());
+                                    if (limitprice > 0) {
+                                        logger.log(Level.INFO, "101,Strategy COVER,{0}:{1}:{2}:{3}:{4},OptionReturn={5}",
+                                                new Object[]{getStrategy(), "Order", Parameters.symbol.get(id).getDisplayname(), -1, -1, optionReturn});
+                                        exit(order);
+                                    }
                                 }
-                                order.put("orderstage", EnumOrderStage.INIT);
-                                order.put("scale", this.scaleExit);
-                                order.put("dynamicorderduration", this.getDynamicOrderDuration());
-                                order.put("expiretime", 0);
-                                order.put("orderattributes", this.getOrderAttributes());
-                                if (limitprice > 0) {
-                                    logger.log(Level.INFO, "101,Strategy COVER,{0}:{1}:{2}:{3}:{4},OptionReturn={5}",
-                                            new Object[]{getStrategy(), "Order", Parameters.symbol.get(id).getDisplayname(), -1, -1, optionReturn});
-                                    exit(order);
+                                break;
+                            case "PUT":
+                                if ((optionReturn < thresholdReturnExit || (strikePrice + (Math.sqrt(optionDte) * historicalVol * avgMovePerDayExit * indexPrice) / 100) > futurePrice) && optionReturn > 0) {
+                                    order.put("type", this.getOrdType());
+                                    order.put("expiretime", getMaxOrderDuration());
+                                    order.put("dynamicorderduration", getDynamicOrderDuration());
+                                    order.put("maxslippage", this.getMaxSlippageEntry());
+                                    order.put("id", id);
+                                    double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol, id, futureid, EnumOrderSide.COVER, "PUT", getTickSize());
+                                    order.put("limitprice", limitprice);
+                                    order.put("side", EnumOrderSide.COVER);
+                                    order.put("size", position);
+                                    if (optionReturn < thresholdReturnExit) {
+                                        order.put("reason", EnumOrderReason.TP);
+                                    } else {
+                                        order.put("reason", EnumOrderReason.SL);
+                                    }
+                                    order.put("orderstage", EnumOrderStage.INIT);
+                                    order.put("scale", scaleExit);
+                                    order.put("dynamicorderduration", this.getDynamicOrderDuration());
+                                    order.put("expiretime", 0);
+                                    order.put("orderattributes", this.getOrderAttributes());
+                                    if (limitprice > 0) {
+                                        logger.log(Level.INFO, "101,Strategy COVER,{0}:{1}:{2}:{3}:{4},OptionReturn={5}",
+                                                new Object[]{getStrategy(), "Order", Parameters.symbol.get(id).getDisplayname(), -1, -1, optionReturn});
+                                        exit(order);
+                                    }
                                 }
-                            }
-                            break;
-                        case "PUT":
-                            if ((optionReturn < thresholdReturnExit || (strikePrice + (Math.sqrt(optionDte) * historicalVol * avgMovePerDayExit * indexPrice) / 100) > futurePrice) && optionReturn > 0) {
-                                order.put("type", this.getOrdType());
-                                order.put("expiretime", getMaxOrderDuration());
-                                order.put("dynamicorderduration", getDynamicOrderDuration());
-                                order.put("maxslippage", this.getMaxSlippageEntry());
-                                order.put("id", id);
-                                double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol, id, futureid, EnumOrderSide.COVER, "PUT", getTickSize());
-                                order.put("limitprice", limitprice);
-                                order.put("side", EnumOrderSide.COVER);
-                                order.put("size", position);
-                                if (optionReturn < thresholdReturnExit) {
-                                    order.put("reason", EnumOrderReason.TP);
-                                } else {
-                                    order.put("reason", EnumOrderReason.SL);
-                                }
-                                order.put("orderstage", EnumOrderStage.INIT);
-                                order.put("scale", scaleExit);
-                                order.put("dynamicorderduration", this.getDynamicOrderDuration());
-                                order.put("expiretime", 0);
-                                order.put("orderattributes", this.getOrderAttributes());
-                                if (limitprice > 0) {
-                                    logger.log(Level.INFO, "101,Strategy COVER,{0}:{1}:{2}:{3}:{4},OptionReturn={5}",
-                                            new Object[]{getStrategy(), "Order", Parameters.symbol.get(id).getDisplayname(), -1, -1, optionReturn});
-                                    exit(order);
-                                }
-                            }
-                            break;
-                        default:
+                                break;
+                            default:
 
+                        }
                     }
                 }
             }

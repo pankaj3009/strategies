@@ -51,7 +51,7 @@ public class Swing extends Manager implements TradeListener {
     private final Object lockScan = new Object();
 
     public Swing(MainAlgorithm m, Properties p, String parameterFile, ArrayList<String> accounts, Integer stratCount) {
-        super(m, p, parameterFile, accounts, stratCount,"swing");
+        super(m, p, parameterFile, accounts, stratCount, "swing");
 
         // Add Trade Listeners
         for (BeanConnection c : Parameters.connection) {
@@ -86,75 +86,77 @@ public class Swing extends Manager implements TradeListener {
     @Override
     public void tradeReceived(TradeEvent event) {
         synchronized (lockTradeReceived_1) {
-            Integer id = event.getSymbolID();
-            if (getStrategySymbols().contains(id) && !Parameters.symbol.get(id).getType().equals(referenceCashType)) {
-                if (this.getPosition().get(id).getPosition() > 0 && this.getPosition().get(id).getStrategy().equalsIgnoreCase(this.getStrategy())) {
-                    int referenceid = Utilities.getCashReferenceID(Parameters.symbol, id, referenceCashType);
-                    int futureid = Utilities.getFutureIDFromExchangeSymbol(Parameters.symbol, referenceid, expiry);
-                    Double tradePrice = this.getPosition().get(id).getPrice();
-                    ArrayList<Stop> stops = Trade.getStop(db, this.getStrategy() + ":" + this.getFirstInternalOpenOrder(id, EnumOrderSide.SELL, "Order").iterator().next() + ":Order");
-                    boolean tpTrigger = false;
-                    boolean slTrigger = false;
-                    double tpDistance = 0D;
-                    double slDistance = 0D;
-                    double sl = Double.MIN_VALUE;
-                    double tp = Double.MAX_VALUE;
-                    if (stops != null && Parameters.symbol.get(id).getLastPrice() != 0) {
-                        for (Stop stop : stops) {
-                            switch (stop.stopType) {
-                                case TAKEPROFIT:
-                                    tpDistance = Parameters.symbol.get(id).getLastPrice() - tradePrice;
-                                    tp = stop.stopValue;
-                                    tpTrigger = tp != 0 && Parameters.symbol.get(id).getLastPrice() != 0 && tpDistance >= tp;
-                                    break;
-                                case STOPLOSS:
-                                    if (stop.underlyingEntry != 0) {
-                                        if (Parameters.symbol.get(id).getDisplayname().contains("PUT")) {
-                                            slDistance = Parameters.symbol.get(referenceid).getLastPrice() - stop.underlyingEntry;
+            if (this.tradingWindow.get()) {
+                Integer id = event.getSymbolID();
+                if (getStrategySymbols().contains(id) && !Parameters.symbol.get(id).getType().equals(referenceCashType)) {
+                    if (this.getPosition().get(id).getPosition() > 0 && this.getPosition().get(id).getStrategy().equalsIgnoreCase(this.getStrategy())) {
+                        int referenceid = Utilities.getCashReferenceID(Parameters.symbol, id, referenceCashType);
+                        int futureid = Utilities.getFutureIDFromExchangeSymbol(Parameters.symbol, referenceid, expiry);
+                        Double tradePrice = this.getPosition().get(id).getPrice();
+                        ArrayList<Stop> stops = Trade.getStop(db, this.getStrategy() + ":" + this.getFirstInternalOpenOrder(id, EnumOrderSide.SELL, "Order").iterator().next() + ":Order");
+                        boolean tpTrigger = false;
+                        boolean slTrigger = false;
+                        double tpDistance = 0D;
+                        double slDistance = 0D;
+                        double sl = Double.MIN_VALUE;
+                        double tp = Double.MAX_VALUE;
+                        if (stops != null && Parameters.symbol.get(id).getLastPrice() != 0) {
+                            for (Stop stop : stops) {
+                                switch (stop.stopType) {
+                                    case TAKEPROFIT:
+                                        tpDistance = Parameters.symbol.get(id).getLastPrice() - tradePrice;
+                                        tp = stop.stopValue;
+                                        tpTrigger = tp != 0 && Parameters.symbol.get(id).getLastPrice() != 0 && tpDistance >= tp;
+                                        break;
+                                    case STOPLOSS:
+                                        if (stop.underlyingEntry != 0) {
+                                            if (Parameters.symbol.get(id).getDisplayname().contains("PUT")) {
+                                                slDistance = Parameters.symbol.get(referenceid).getLastPrice() - stop.underlyingEntry;
 
-                                        } else {
-                                            slDistance = stop.underlyingEntry - Parameters.symbol.get(referenceid).getLastPrice();
+                                            } else {
+                                                slDistance = stop.underlyingEntry - Parameters.symbol.get(referenceid).getLastPrice();
 
+                                            }
+                                            sl = stop.stopValue;
+                                            slTrigger = sl != 0 && Parameters.symbol.get(id).getLastPrice() != 0 && Parameters.symbol.get(referenceid).getLastPrice() != 0 && slDistance >= sl;
                                         }
-                                        sl = stop.stopValue;
-                                        slTrigger = sl != 0 && Parameters.symbol.get(id).getLastPrice() != 0 && Parameters.symbol.get(referenceid).getLastPrice() != 0 && slDistance >= sl;
-                                    }
-                                    break;
-                                default:
-                                    break;
+                                        break;
+                                    default:
+                                        break;
+                                }
                             }
                         }
-                    }
-                    if (!this.isStopOrders() && (slTrigger || tpTrigger)) {
-                        logger.log(Level.INFO, "101,Long SLTP Exit,{0}:{1}:{2}:{3}:{4},sltrigger={5},tptrigger={6},lastprice={7},sl={8},distancefromsl={9},tp={10},distancefromtp={11}",
-                                new Object[]{this.getStrategy(), "Order", Parameters.symbol.get(id).getDisplayname(), -1, -1,
-                            slTrigger, tpTrigger, Parameters.symbol.get(id).getLastPrice(), sl, slDistance, tp, tpDistance});
-                        int size = this.getPosition().get(id).getPosition();
-                        HashMap<String, Object> order = new HashMap<>();
-                        order.put("id", id);
-                        order.put("side", EnumOrderSide.SELL);
-                        order.put("size", size);
-                        order.put("type", EnumOrderType.CUSTOMREL);
-                        String right = Parameters.symbol.get(id).getDisplayname().contains("CALL") ? "CALL" : "PUT";
-                        double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol, id, futureid, EnumOrderSide.SELL, right, getTickSize());
-                        order.put("limitprice", limitprice);
-                        if (slTrigger) {
-                            order.put("reason", EnumOrderReason.SL);
-                        } else {
-                            order.put("reason", EnumOrderReason.TP);
+                        if (!this.isStopOrders() && (slTrigger || tpTrigger)) {
+                            logger.log(Level.INFO, "101,Long SLTP Exit,{0}:{1}:{2}:{3}:{4},sltrigger={5},tptrigger={6},lastprice={7},sl={8},distancefromsl={9},tp={10},distancefromtp={11}",
+                                    new Object[]{this.getStrategy(), "Order", Parameters.symbol.get(id).getDisplayname(), -1, -1,
+                                slTrigger, tpTrigger, Parameters.symbol.get(id).getLastPrice(), sl, slDistance, tp, tpDistance});
+                            int size = this.getPosition().get(id).getPosition();
+                            HashMap<String, Object> order = new HashMap<>();
+                            order.put("id", id);
+                            order.put("side", EnumOrderSide.SELL);
+                            order.put("size", size);
+                            order.put("type", EnumOrderType.CUSTOMREL);
+                            String right = Parameters.symbol.get(id).getDisplayname().contains("CALL") ? "CALL" : "PUT";
+                            double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol, id, futureid, EnumOrderSide.SELL, right, getTickSize());
+                            order.put("limitprice", limitprice);
+                            if (slTrigger) {
+                                order.put("reason", EnumOrderReason.SL);
+                            } else {
+                                order.put("reason", EnumOrderReason.TP);
+                            }
+                            order.put("orderstage", EnumOrderStage.INIT);
+                            order.put("expiretime", this.getMaxOrderDuration());
+                            order.put("dynamicorderduration", getDynamicOrderDuration());
+                            order.put("maxslippage", this.getMaxSlippageExit());
+                            order.put("orderattributes", this.getOrderAttributes());
+                            order.put("log", "SLTPExit" + delimiter + slTrigger + delimiter + tpTrigger + delimiter + Parameters.symbol.get(id).getLastPrice() + delimiter + slDistance + delimiter + sl + delimiter + tpDistance + delimiter + tp);
+                            this.exit(order);
                         }
-                        order.put("orderstage", EnumOrderStage.INIT);
-                        order.put("expiretime", this.getMaxOrderDuration());
-                        order.put("dynamicorderduration", getDynamicOrderDuration());
-                        order.put("maxslippage", this.getMaxSlippageExit());
-                        order.put("orderattributes", this.getOrderAttributes());
-                        order.put("log", "SLTPExit" + delimiter + slTrigger + delimiter + tpTrigger + delimiter + Parameters.symbol.get(id).getLastPrice() + delimiter + slDistance + delimiter + sl + delimiter + tpDistance + delimiter + tp);
-                        this.exit(order);
+                    } else if (this.getPosition().get(id).getPosition() < 0 && this.getPosition().get(id).getStrategy().equalsIgnoreCase(this.getStrategy())) {
+                        //We do not expect a short position. This is an error. Email
+                        Thread t = new Thread(new Mail("psharma@incurrency.com", "Unexpected Short Position encountered: " + Parameters.symbol.get(id).getDisplayname() + " for strategy: " + this.getStrategy() + ".Please review strategy results", "Algorithm ALERT"));
+                        t.start();
                     }
-                } else if (this.getPosition().get(id).getPosition() < 0 && this.getPosition().get(id).getStrategy().equalsIgnoreCase(this.getStrategy())) {
-                    //We do not expect a short position. This is an error. Email
-                    Thread t = new Thread(new Mail("psharma@incurrency.com", "Unexpected Short Position encountered: " + Parameters.symbol.get(id).getDisplayname() + " for strategy: " + this.getStrategy() + ".Please review strategy results", "Algorithm ALERT"));
-                    t.start();
                 }
             }
         }
@@ -305,7 +307,7 @@ public class Swing extends Manager implements TradeListener {
                                 side = EnumOrderSide.BUY;
                             }
                             if (!entryorderidlist.isEmpty()) {
-                                initSymbol(entryorderidlist.get(0),optionPricingUsingFutures,referenceCashType);
+                                initSymbol(entryorderidlist.get(0), optionPricingUsingFutures, referenceCashType);
                                 positionRollover(initID, entryorderidlist.get(0));
                             }
                         }
