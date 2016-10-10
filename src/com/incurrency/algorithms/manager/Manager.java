@@ -136,6 +136,11 @@ public class Manager extends Strategy {
                 int initPositionSize = Integer.valueOf(displayName.split(":",-1)[4]);
                 int actualPositionSize = initPositionSize;
                 int symbolid = Utilities.getIDFromDisplayName(Parameters.symbol, symbol);
+                if(symbolid==-1 && securityType.equals("PASSTHROUGH") && (side.equals(EnumOrderSide.BUY)||side.equals(EnumOrderSide.SHORT))){
+                    //insert symbol into database
+                    insertSymbol(Parameters.symbol,displayName,optionPricingUsingFutures,referenceCashType);
+                    symbolid = Utilities.getIDFromDisplayName(Parameters.symbol, symbol);
+                }                
                 if (securityType.equals("OPT") || displayName.contains("OPT")|| symbolid >= 0) { //only proceed if symbolid exists in our db
                     ArrayList<Integer> entryorderidlist = new ArrayList<>();
                     ArrayList<Integer> exitorderidlist = new ArrayList<>();
