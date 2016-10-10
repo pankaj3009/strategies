@@ -433,6 +433,9 @@ public class Launch extends javax.swing.JFrame {
           if(input.get("contra")!=null){
               algo.registerStrategy("com.incurrency.algorithms.contra.Contra");
           }
+          if(input.get("value")!=null){
+              algo.registerStrategy("com.incurrency.algorithms.value.Value");
+          }
           algo.postInit();
     }
 
