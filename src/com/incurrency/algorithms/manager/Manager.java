@@ -138,7 +138,7 @@ public class Manager extends Strategy {
                 int symbolid = Utilities.getIDFromDisplayName(Parameters.symbol, symbol);
                 if(symbolid==-1 && securityType.equals("PASSTHROUGH") && (side.equals(EnumOrderSide.BUY)||side.equals(EnumOrderSide.SHORT))){
                     //insert symbol into database
-                    insertSymbol(Parameters.symbol,displayName,optionPricingUsingFutures,referenceCashType);
+                    insertSymbol(Parameters.symbol,symbol,optionPricingUsingFutures,referenceCashType);
                     symbolid = Utilities.getIDFromDisplayName(Parameters.symbol, symbol);
                 }                
                 if (securityType.equals("OPT") || displayName.contains("OPT")|| symbolid >= 0) { //only proceed if symbolid exists in our db
@@ -264,10 +264,10 @@ public class Manager extends Strategy {
                     if (securityType.equals("PASSTHROUGH")) {
                         if (side.equals(EnumOrderSide.SELL) || side.equals(EnumOrderSide.COVER)) {
                             exitorderidlist.add(symbolid);
-                            actualPositionSize = Utilities.getNetPosition(Parameters.symbol, this.getPosition(), exitorderidlist.get(0), "OPT");
+                            actualPositionSize = Utilities.getNetPosition(Parameters.symbol, this.getPosition(), exitorderidlist.get(0),Parameters.symbol.get(symbolid).getType());
                         } else if (side.equals(EnumOrderSide.BUY) || side.equals(EnumOrderSide.SHORT)) {
                             entryorderidlist.add(symbolid);
-                            actualPositionSize = Utilities.getNetPosition(Parameters.symbol, this.getPosition(), entryorderidlist.get(0), "OPT");
+                            actualPositionSize = Utilities.getNetPosition(Parameters.symbol, this.getPosition(), entryorderidlist.get(0), Parameters.symbol.get(symbolid).getType());
                         }
                     }
 
