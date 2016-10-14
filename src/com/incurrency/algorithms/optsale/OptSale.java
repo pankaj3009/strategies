@@ -386,7 +386,7 @@ public class OptSale extends Manager implements TradeListener {
                 int underlyingid = Parameters.symbol.get(id).getUnderlyingID();
                 if (Parameters.symbol.get(id).getCdte() > 0 && underlyingid >= 0) {
                     futurePrice = Parameters.symbol.get(underlyingid).getLastPrice();
-                    indexPrice = Parameters.symbol.get(indexid).getLastPrice();
+                    //indexPrice = Parameters.symbol.get(indexid).getLastPrice();
                     strikePrice = Utilities.getDouble(Parameters.symbol.get(id).getOption(), 0);
                     optionReturn = Parameters.symbol.get(id).getLastPrice() * 365 / (Parameters.symbol.get(id).getCdte() * futurePrice * margin);
                     if (optionReturn == 0 || futurePrice == 0 || strikePrice == 0) {
@@ -398,7 +398,7 @@ public class OptSale extends Manager implements TradeListener {
                         HashMap<String, Object> order = new HashMap<>();
                         switch (right) {
                             case "CALL":
-                                if ((optionReturn < thresholdReturnExit || (strikePrice - (Math.sqrt(optionDte) * historicalVol * avgMovePerDayExit * indexPrice / 100)) < futurePrice) && optionReturn > 0) {
+                                if ((optionReturn < thresholdReturnExit || (strikePrice - (Math.sqrt(optionDte) * historicalVol * avgMovePerDayExit * futurePrice / 100)) < futurePrice) && optionReturn > 0) {
                                     order.put("type", this.getOrdType());
                                     order.put("expiretime", getMaxOrderDuration());
                                     order.put("dynamicorderduration", getDynamicOrderDuration());
@@ -426,7 +426,7 @@ public class OptSale extends Manager implements TradeListener {
                                 }
                                 break;
                             case "PUT":
-                                if ((optionReturn < thresholdReturnExit || (strikePrice + (Math.sqrt(optionDte) * historicalVol * avgMovePerDayExit * indexPrice) / 100) > futurePrice) && optionReturn > 0) {
+                                if ((optionReturn < thresholdReturnExit || (strikePrice + (Math.sqrt(optionDte) * historicalVol * avgMovePerDayExit * futurePrice) / 100) > futurePrice) && optionReturn > 0) {
                                     order.put("type", this.getOrdType());
                                     order.put("expiretime", getMaxOrderDuration());
                                     order.put("dynamicorderduration", getDynamicOrderDuration());
