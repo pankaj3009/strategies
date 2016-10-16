@@ -201,7 +201,7 @@ public class EODMaintenance {
                                             jedis.hset("contractsize:" + expiry.substring(0, 6), exchangesymbol, String.valueOf(minsize));
                                         }
                                     } else {
-                                        logger.log(Level.SEVERE, "Exchange Symbol {} not found in IB database", new Object[]{exchangesymbol});
+                                        logger.log(Level.SEVERE, "Exchange Symbol {0} not found in IB database", new Object[]{exchangesymbol});
                                     }
                                 }
                             }
@@ -376,7 +376,7 @@ public class EODMaintenance {
                                         s1.setSerialno(out.size() + 1);
                                         interimout.add(s1);
                                     } else {
-                                        logger.log(Level.SEVERE, "Exchange Symbol {} not found in IB database", new Object[]{exchangeSymbol});
+                                        logger.log(Level.SEVERE, "Exchange Symbol {0} not found in IB database", new Object[]{exchangeSymbol});
                                     }
                      }
                 }
