@@ -191,7 +191,8 @@ public class EODMaintenance {
                         } else if (columnNumber >= 0) {
                             if (input[1].trim().length() > 0) {//not an empty row
                                 String exchangesymbol = input[1].trim().toUpperCase();
-                                String displayName = input[1].trim().toUpperCase().replaceAll("[^A-Za-z0-9]", "");
+//                                String displayName = input[1].trim().toUpperCase().replaceAll("[^A-Za-z0-9]", "");
+                                String displayName = input[1].trim().toUpperCase();
                                 int minsize = Utilities.getInt(input[columnNumber], 0);
                                 if (minsize > 0) {
                                     int id = Utilities.getIDFromExchangeSymbol(symbols, exchangesymbol, "STK", "", "", "");
@@ -618,7 +619,9 @@ public class EODMaintenance {
         out.add(s);
         out.addAll(cnx500);
         for(int i=0;i<cnx500.size();i++){
-           cnx500.get(i).setDisplayname(cnx500.get(i).getExchangeSymbol().replaceAll("[^A-Za-z0-9]", ""));
+//           cnx500.get(i).setDisplayname(cnx500.get(i).getExchangeSymbol().replaceAll("[^A-Za-z0-9]", ""));
+             cnx500.get(i).setDisplayname(cnx500.get(i).getExchangeSymbol());
+
         }
         printToFile(out, this.f_HistoricalStocks, true);
     }
@@ -635,7 +638,8 @@ public class EODMaintenance {
         out.add(s);
         out.addAll(fno);
         for (int i = 0; i < out.size(); i++) {
-            out.get(i).setDisplayname(out.get(i).getExchangeSymbol().replaceAll("[^A-Za-z0-9]", ""));
+ //           out.get(i).setDisplayname(out.get(i).getExchangeSymbol().replaceAll("[^A-Za-z0-9]", ""));
+            out.get(i).setDisplayname(out.get(i).getExchangeSymbol());
         }
         printToFile(out, this.f_HistoricalFutures, true);
     }
@@ -654,7 +658,8 @@ public class EODMaintenance {
         ArrayList<BeanSymbol> fwdout = loadFutures(this.fnolotsizeurl, this.f_Strikes, expiry);
         out.addAll(fwdout);
         for (int i = 0; i < out.size(); i++) {
-            out.get(i).setDisplayname(out.get(i).getExchangeSymbol().replaceAll("[^A-Za-z0-9]", ""));
+           // out.get(i).setDisplayname(out.get(i).getExchangeSymbol().replaceAll("[^A-Za-z0-9]", ""));
+            out.get(i).setDisplayname(out.get(i).getExchangeSymbol());
         }
         printToFile(out, this.f_HistoricalFuturesFwd, true);
     }
