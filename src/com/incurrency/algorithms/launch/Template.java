@@ -4,7 +4,7 @@
  */
 package com.incurrency.algorithms.launch;
 
-import com.incurrency.RatesClient.Subscribe;
+import com.incurrency.RatesClient.ZMQSubscribe;
 import com.incurrency.framework.BeanConnection;
 import com.incurrency.framework.BeanPosition;
 import com.incurrency.framework.BeanSymbol;
@@ -40,8 +40,8 @@ public class Template extends Strategy implements TradeListener {
             c.getWrapper().addTradeListener(this);
             c.initializeConnection(tempStrategyArray[tempStrategyArray.length - 1],-1);
         }
-        if (Subscribe.tes != null) {
-            Subscribe.tes.addTradeListener(this);
+        if (ZMQSubscribe.tes != null) {
+            ZMQSubscribe.tes.addTradeListener(this);
         }
     }
 

@@ -5,7 +5,7 @@
 package com.incurrency.algorithms.turtle;
 
 import com.incurrency.algorithms.launch.Launch;
-import com.incurrency.RatesClient.Subscribe;
+import com.incurrency.RatesClient.ZMQSubscribe;
 import com.incurrency.framework.*;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -155,8 +155,8 @@ public class IDT extends Strategy implements Serializable, HistoricalBarListener
             c.getWrapper().addTradeListener(this);
             c.initializeConnection(tempStrategyArray[tempStrategyArray.length - 1],-1);
         }
-        if (Subscribe.tes != null) {
-            Subscribe.tes.addTradeListener(this);
+        if (ZMQSubscribe.tes != null) {
+            ZMQSubscribe.tes.addTradeListener(this);
         }
 //        populateLastTradePrice();
             closePositions = new Timer("Timer: Close Positions");

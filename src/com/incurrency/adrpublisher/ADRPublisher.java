@@ -4,7 +4,7 @@
  */
 package com.incurrency.adrpublisher;
 
-import com.incurrency.RatesClient.Subscribe;
+import com.incurrency.RatesClient.ZMQSubscribe;
 import com.espertech.esper.client.EventBean;
 import com.espertech.esper.client.UpdateListener;
 import com.incurrency.framework.MainAlgorithm;
@@ -35,7 +35,7 @@ import java.util.regex.Pattern;
 public class ADRPublisher extends Strategy implements TradeListener, UpdateListener {
 
     public ADRPublisherEventProcessor mEsperEvtProcessor = null;
-    static com.incurrency.framework.rateserver.ServerPubSub adrServer = new com.incurrency.framework.rateserver.ServerPubSub(5557);
+    static com.incurrency.framework.rateserver.ZMQPubSub adrServer = new com.incurrency.framework.rateserver.ZMQPubSub(5557);
     private static final Logger logger = Logger.getLogger(ADRPublisher.class.getName());
     private final String delimiter = "_";
     //----- updated by ADRListener and TickListener, were earlier static methods
@@ -104,8 +104,8 @@ public class ADRPublisher extends Strategy implements TradeListener, UpdateListe
             c.getWrapper().removeOrderStatusListener(getOms()); //is this needed? Why would i receive orderstatus on this ?
         }
 
-            if (Subscribe.tes != null) {
-                Subscribe.tes.addTradeListener(this);
+            if (ZMQSubscribe.tes != null) {
+                ZMQSubscribe.tes.addTradeListener(this);
             }
         }
     

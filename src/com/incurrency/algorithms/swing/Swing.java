@@ -4,7 +4,8 @@
  */
 package com.incurrency.algorithms.swing;
 
-import com.incurrency.RatesClient.Subscribe;
+import com.incurrency.RatesClient.RedisSubscribe;
+import com.incurrency.RatesClient.ZMQSubscribe;
 import com.incurrency.algorithms.manager.Manager;
 import com.incurrency.framework.BeanConnection;
 import com.incurrency.framework.BeanPosition;
@@ -57,8 +58,8 @@ public class Swing extends Manager implements TradeListener {
         for (BeanConnection c : Parameters.connection) {
             c.getWrapper().addTradeListener(this);
         }
-        if (Subscribe.tes != null) {
-            Subscribe.tes.addTradeListener(this);
+        if (RedisSubscribe.tes != null) {
+            RedisSubscribe.tes.addTradeListener(this);
         }
         MainAlgorithm.tes.addTradeListener(this);
 

@@ -5,7 +5,7 @@
 package com.incurrency.algorithms.fundamental;
 
 import com.incurrency.algorithms.pairs.Pairs;
-import com.incurrency.RatesClient.Subscribe;
+import com.incurrency.RatesClient.ZMQSubscribe;
 import com.incurrency.framework.BeanConnection;
 import com.incurrency.framework.EnumRequestType;
 import com.incurrency.framework.Parameters;
@@ -32,8 +32,8 @@ public class Fundamental implements TradeListener {
             c.getWrapper().addTradeListener(this);
             c.initializeConnection(tempStrategyArray[tempStrategyArray.length - 1],-1);
         }
-        if (Subscribe.tes != null) {
-            Subscribe.tes.addTradeListener(this);
+        if (ZMQSubscribe.tes != null) {
+            ZMQSubscribe.tes.addTradeListener(this);
         }
         EnumRequestType[]request=new EnumRequestType[]{EnumRequestType.ESTIMATES,EnumRequestType.SNAPSHOT,EnumRequestType.FINSTAT};
         Thread t=new Thread(new FundamentalData(request) );

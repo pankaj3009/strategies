@@ -4,7 +4,7 @@
  */
 package com.incurrency.algorithms.pairs;
 
-import com.incurrency.RatesClient.Subscribe;
+import com.incurrency.RatesClient.ZMQSubscribe;
 import com.incurrency.framework.BeanConnection;
 import com.incurrency.framework.BidAskEvent;
 import com.incurrency.framework.BidAskListener;
@@ -62,7 +62,7 @@ public class Pairs extends Strategy {
 //            c.getWrapper().addBidAskListener(this);
             c.initializeConnection(tempStrategyArray[tempStrategyArray.length - 1],-1);
         }
-        if (Subscribe.tes != null) {
+        if (ZMQSubscribe.tes != null) {
   //          Subscribe.tes.addBidAskListener(this);
         }
         Timer TradeReader = new Timer("Timer: " + getStrategy() + " TradeReader");

@@ -4,7 +4,7 @@
  */
 package com.incurrency.algorithms.adr;
 
-import com.incurrency.RatesClient.Subscribe;
+import com.incurrency.RatesClient.ZMQSubscribe;
 import com.espertech.esper.client.EventBean;
 import com.espertech.esper.client.UpdateListener;
 import com.espertech.esper.client.time.CurrentTimeEvent;
@@ -165,8 +165,8 @@ public class ADR extends Strategy implements TradeListener, UpdateListener {
                 c.initializeConnection(tempStrategyArray[tempStrategyArray.length - 1],-1);
             }
         }
-        if (Subscribe.tes != null) {
-            Subscribe.tes.addTradeListener(this);
+        if (ZMQSubscribe.tes != null) {
+            ZMQSubscribe.tes.addTradeListener(this);
         }
         comparator = DateTimeComparator.getTimeOnlyInstance();
         sdf = new SimpleDateFormat("yyyyMMdd");
