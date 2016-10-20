@@ -17,6 +17,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.HashMap;
+import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
@@ -251,10 +252,14 @@ public class Launch extends javax.swing.JFrame {
     }//GEN-LAST:event_cmdOrderLogsActionPerformed
 
     private void radioFinerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioFinerActionPerformed
-     //   Logger incurrency = Logger.getLogger("com.incurrency");
+        //   Logger incurrency = Logger.getLogger("com.incurrency");
         Logger console = Logger.getLogger("java.util.logging.ConsoleHandler");
         console.setLevel(Level.FINER);
         incurrency.setLevel(Level.FINER);
+        Handler[] handlers = Logger.getLogger("").getHandlers();
+        for (int index = 0; index < handlers.length; index++) {
+            handlers[index].setLevel(Level.FINER);
+        }
     }//GEN-LAST:event_radioFinerActionPerformed
 
     private void radioFineActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioFineActionPerformed
@@ -262,6 +267,10 @@ public class Launch extends javax.swing.JFrame {
         Logger console = Logger.getLogger("java.util.logging.ConsoleHandler");
         console.setLevel(Level.FINE);
         incurrency.setLevel(Level.FINE);
+        Handler[] handlers = Logger.getLogger("").getHandlers();
+        for (int index = 0; index < handlers.length; index++) {
+            handlers[index].setLevel(Level.FINE);
+        }
     }//GEN-LAST:event_radioFineActionPerformed
 
     private void radioInfoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioInfoActionPerformed
@@ -269,6 +278,10 @@ public class Launch extends javax.swing.JFrame {
         Logger console = Logger.getLogger("java.util.logging.ConsoleHandler");
         console.setLevel(Level.INFO);
         incurrency.setLevel(Level.INFO);
+        Handler[] handlers = Logger.getLogger("").getHandlers();
+        for (int index = 0; index < handlers.length; index++) {
+            handlers[index].setLevel(Level.INFO);
+        }
 
     }//GEN-LAST:event_radioInfoActionPerformed
 
@@ -277,6 +290,10 @@ public class Launch extends javax.swing.JFrame {
         Logger console = Logger.getLogger("java.util.logging.ConsoleHandler");
         console.setLevel(Level.SEVERE);
         incurrency.setLevel(Level.SEVERE);
+        Handler[] handlers = Logger.getLogger("").getHandlers();
+        for (int index = 0; index < handlers.length; index++) {
+            handlers[index].setLevel(Level.SEVERE);
+        }
     }//GEN-LAST:event_radioErrorActionPerformed
 
     private void btnViewVariablesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnViewVariablesActionPerformed
