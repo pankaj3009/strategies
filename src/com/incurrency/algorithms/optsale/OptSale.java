@@ -269,7 +269,9 @@ public class OptSale extends Manager implements TradeListener {
                         //Add 50% positions redis
                         int i = allOrderList.get(0);
                         int actualPositionSize = Utilities.getNetPosition(Parameters.symbol, getPosition(), i, "OPT");
-                        if (Math.abs(actualPositionSize) < maxPositionSize) {
+                        BeanSymbol s=Parameters.symbol.get(i);
+                        double annualizedRet = s.getLastPrice() * 365 / (s.getCdte() * futurePrice * margin);
+                        if (Math.abs(actualPositionSize) < maxPositionSize && annualizedRet>thresholdReturnEntry/2) {
                             int contracts = (int) getNumberOfContracts() / 2;
                             contracts = (int) contracts / Parameters.symbol.get(i).getMinsize();
                             contracts = contracts * Parameters.symbol.get(i).getMinsize();
