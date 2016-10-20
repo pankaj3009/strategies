@@ -36,7 +36,7 @@ public class Launch extends javax.swing.JFrame {
     public static HashMap<String, String> input = new HashMap();
     static private int level;
     static PrintStream printStream;
-
+    Logger incurrency;
     /**
      * Creates new form Launch
      */
@@ -251,21 +251,21 @@ public class Launch extends javax.swing.JFrame {
     }//GEN-LAST:event_cmdOrderLogsActionPerformed
 
     private void radioFinerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioFinerActionPerformed
-        Logger incurrency = Logger.getLogger("com.incurrency");
+     //   Logger incurrency = Logger.getLogger("com.incurrency");
         Logger console = Logger.getLogger("java.util.logging.ConsoleHandler");
         console.setLevel(Level.FINER);
         incurrency.setLevel(Level.FINER);
     }//GEN-LAST:event_radioFinerActionPerformed
 
     private void radioFineActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioFineActionPerformed
-        Logger incurrency = Logger.getLogger("com.incurrency");
+       // Logger incurrency = Logger.getLogger("com.incurrency");
         Logger console = Logger.getLogger("java.util.logging.ConsoleHandler");
         console.setLevel(Level.FINE);
         incurrency.setLevel(Level.FINE);
     }//GEN-LAST:event_radioFineActionPerformed
 
     private void radioInfoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioInfoActionPerformed
-        Logger incurrency = Logger.getLogger("com.incurrency");
+     //   Logger incurrency = Logger.getLogger("com.incurrency");
         Logger console = Logger.getLogger("java.util.logging.ConsoleHandler");
         console.setLevel(Level.INFO);
         incurrency.setLevel(Level.INFO);
@@ -273,7 +273,7 @@ public class Launch extends javax.swing.JFrame {
     }//GEN-LAST:event_radioInfoActionPerformed
 
     private void radioErrorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioErrorActionPerformed
-        Logger incurrency = Logger.getLogger("com.incurrency");
+   //     Logger incurrency = Logger.getLogger("com.incurrency");
         Logger console = Logger.getLogger("java.util.logging.ConsoleHandler");
         console.setLevel(Level.SEVERE);
         incurrency.setLevel(Level.SEVERE);
@@ -319,7 +319,7 @@ public class Launch extends javax.swing.JFrame {
         if (new File("logging.properties").exists()) {
             configFile = new FileInputStream("logging.properties");
             LogManager.getLogManager().readConfiguration(configFile);
-            Logger incurrency = Logger.getLogger("com.incurrency");
+            incurrency = Logger.getLogger("com.incurrency");
             Level loggingLevel = incurrency.getLevel();
             level = loggingLevel.intValue();
         }
