@@ -4,7 +4,6 @@
  */
 package com.incurrency.algorithms.fundamental;
 
-import com.incurrency.algorithms.pairs.Pairs;
 import com.incurrency.RatesClient.ZMQSubscribe;
 import com.incurrency.framework.BeanConnection;
 import com.incurrency.framework.EnumRequestType;
@@ -23,7 +22,7 @@ import java.util.logging.Logger;
  */
 public class Fundamental implements TradeListener {
 
-    private static final Logger logger = Logger.getLogger(Pairs.class.getName());
+    private static final Logger logger = Logger.getLogger(Fundamental.class.getName());
 
     public Fundamental(String parameterFile) {
        
