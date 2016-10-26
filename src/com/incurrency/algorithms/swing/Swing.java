@@ -285,15 +285,30 @@ public class Swing extends Manager implements TradeListener {
                         if (expiry.equals(expiryNearMonth)) {
                             ArrayList<Integer> entryorderidlist = new ArrayList<>();
                             int initID = entry.getKey();
-                            EnumOrderSide side = entry.getValue().getPosition() > 0 ? EnumOrderSide.BUY : EnumOrderSide.SHORT;
-                            if (optionPricingUsingFutures) {
+                            EnumOrderSide side=EnumOrderSide.UNDEFINED;
+                           
+                            if (Parameters.symbol.get(initID).getType().equals("OPT")) {//Calculate Side for option
+                                if (optionSystem.equals("RECEIVE")) {
+                                    if (entry.getValue().getPosition() < 0) {
+                                        side = Parameters.symbol.get(initID).getRight().equals("CALL") ? EnumOrderSide.SHORT : EnumOrderSide.BUY;
+                                    }
+                                } else if (optionSystem.equals("PAY")) {
+                                    if (entry.getValue().getPosition() > 0) {
+                                        side = entry.getValue().getPosition() > 0 ? EnumOrderSide.BUY : EnumOrderSide.SHORT;
+                                    }
+                                }
+                            } else { //calculate side for future
+                                side = Parameters.symbol.get(initID).getRight().equals("CALL") ? EnumOrderSide.BUY : EnumOrderSide.SHORT;
+                            }
+
+                            if (Parameters.symbol.get(initID).getType().equals("OPT") && optionPricingUsingFutures) { //calculate targetID for option
                                 int futureid = Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, initID, expiryFarMonth);
-                                if (optionSystem.equals("PAY")) {
+                                if (optionSystem.equals("PAY")) { 
                                     entryorderidlist = Utilities.getOrInsertOptionIDForPaySystem(Parameters.symbol, getPosition(), futureid, side, expiryFarMonth);
                                 } else {
                                     entryorderidlist = Utilities.getOrInsertOptionIDForReceiveSystem(Parameters.symbol, getPosition(), futureid, side, expiryFarMonth);
                                 }
-                            } else {
+                            } else if (Parameters.symbol.get(initID).getType().equals("OPT") && !optionPricingUsingFutures){
                                 int symbolid = Utilities.getCashReferenceID(Parameters.symbol, initID, referenceCashType);
                                 int referenceid = Utilities.getCashReferenceID(Parameters.symbol, symbolid, referenceCashType);
                                 if (optionSystem.equals("PAY")) {
@@ -301,15 +316,16 @@ public class Swing extends Manager implements TradeListener {
                                 } else {
                                     entryorderidlist = Utilities.getOrInsertOptionIDForReceiveSystem(Parameters.symbol, getPosition(), referenceid, side, expiryFarMonth);
                                 }
+                            } else if (Parameters.symbol.get(initID).getType().equals("FUT")){ //calculate targetID for futures
+                                entryorderidlist.add(Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol,initID, expiryFarMonth));
                             }
-                            if (optionSystem.equals("RECEIVE")) {
-                                side = EnumOrderSide.SHORT;
-                            } else {
-                                side = EnumOrderSide.BUY;
-                            }
-                            if (!entryorderidlist.isEmpty()) {
+                            
+                            if (!entryorderidlist.isEmpty()&& entryorderidlist.get(0)!=-1) {
                                 initSymbol(entryorderidlist.get(0), optionPricingUsingFutures, referenceCashType);
                                 positionRollover(initID, entryorderidlist.get(0));
+                            }else{
+                                logger.log(Level.INFO,"100,Rollover not completed as invalid Target symbol,{0}:{1}:{2}:{3}:{4}"
+                                        ,new Object[]{getStrategy(),"Order",Parameters.symbol.get(initID).getDisplayname(),-1,-1});
                             }
                         }
                     }
