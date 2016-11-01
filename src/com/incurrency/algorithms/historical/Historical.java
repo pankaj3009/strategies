@@ -639,6 +639,7 @@ public class Historical {
     }
 
     public static long getLastTime(String kairosIP,int kairosPort, BeanSymbol s, String metric) throws IOException {
+    try{
         List<String> out = new ArrayList<>();
         HashMap<String, Object> param = new HashMap();
         param.put("TYPE", Boolean.FALSE);
@@ -678,10 +679,13 @@ public class Historical {
                     }.getType();
         response=gson.fromJson(response_json, QueryResponse.class);
         //long time=response.getQueries().get(querysize-1).getResults().get(resultsize-1).getValues().get(valuesize-1).get(datapoints-1).longValue();
-        long time=Utilities.getLong(response.getQueries().get(0).getResults().get(0).getDataPoints().get(0).get(0),0);
+        long time=Double.valueOf(response.getQueries().get(0).getResults().get(0).getDataPoints().get(0).get(0).toString()).longValue();
         //long time=response.queries[0].results[0].values[0].time;
         return time;
+        }catch (Exception e){
+            return 0;
         } 
+    }
 
     /*
     private static Date getLastTime(String url, String metric, BeanSymbol s) throws MalformedURLException, ParseException, IOException, URISyntaxException {
