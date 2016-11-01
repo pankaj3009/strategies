@@ -11,7 +11,9 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
 import com.incurrency.framework.*;
-import com.incurrency.kairosresponse.KairosResponse;
+import com.incurrency.kairosresponse.GroupResult;
+import com.incurrency.kairosresponse.QueryResponse;
+import com.incurrency.kairosresponse.Results;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -670,11 +672,14 @@ public class Historical {
         //        String json_string = JsonWriter.objectToJson(request, param);
         Gson gson = new GsonBuilder().create();
         String json_string = gson.toJson(request);
-        String response_json=Utilities.getJsonUsingPut("http://" + kairosIP + ":"+kairosPort+"/api/v1/datapoints/query/tags", 0, json_string);
-        KairosResponse response;   
-        response=gson.fromJson(response_json, KairosResponse.class);
+        String response_json=Utilities.getJsonUsingPut("http://" + kairosIP + ":"+kairosPort+"/api/v1/datapoints/query", 0, json_string);
+        QueryResponse response;   
+        Type type = new com.google.common.reflect.TypeToken<QueryResponse>() {
+                    }.getType();
+        response=gson.fromJson(response_json, QueryResponse.class);
         //long time=response.getQueries().get(querysize-1).getResults().get(resultsize-1).getValues().get(valuesize-1).get(datapoints-1).longValue();
-        long time=response.queries[0].results[0].values[0].time;
+        long time=Utilities.getLong(response.getQueries().get(0).getResults().get(0).getDataPoints().get(0).get(0),0);
+        //long time=response.queries[0].results[0].values[0].time;
         return time;
         } 
 
