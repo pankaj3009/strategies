@@ -5,7 +5,6 @@
 package com.incurrency.algorithms.optsale;
 
 import com.incurrency.RatesClient.RedisSubscribe;
-import com.incurrency.RatesClient.ZMQSubscribe;
 import com.incurrency.algorithms.manager.Manager;
 import com.incurrency.framework.Algorithm;
 import com.incurrency.framework.BeanConnection;

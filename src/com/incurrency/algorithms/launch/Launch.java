@@ -214,9 +214,7 @@ public class Launch extends javax.swing.JFrame {
     private void cmdTerminateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdTerminateActionPerformed
 
         if (input.containsKey("datasource")) { //use jeromq connector
-            MainAlgorithm.socketListener.getSubs().getSubscriber().disconnect("tcp://" + input.get("datasource") + ":" + "5556");
-            MainAlgorithm.socketListener.getSubs().close();
-        }
+                 }
 
         int dialogResult = JOptionPane.showConfirmDialog(null, "Do you want to terminate all running algorithms?", "Warning", JOptionPane.YES_NO_OPTION);
         if (dialogResult == JOptionPane.YES_OPTION) {
