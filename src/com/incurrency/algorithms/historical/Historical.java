@@ -176,7 +176,7 @@ public class Historical {
                                 long minutesToClose = (shutdownDate.getTime() - new Date().getTime()) / (1000);
                                 long estimatedTime;
                                 HistoricalBarsAll bar;
-                                lastUpdateDate.put(s.getDisplayname().replace("&", ""), startDate);
+                                lastUpdateDate.put(s.getDisplayname().trim(), startDate);
                                 t = new Thread(bar = new HistoricalBarsAll(barSize, startDate, endDate, s, tradingMinutes, openTime, closeTime, timeZone, Algorithm.holidays));
                                 t.setName("Historical Bars:" + s.getDisplayname());
                                 estimatedTime = bar.estimatedTime();
@@ -204,7 +204,7 @@ public class Historical {
                             //get start date
                             if (!done) {
                                 startDate=new Date(getLastTime(kairosIP,Utilities.getInt(kairosPort,8085),s, cassandraBarSize.get(b) + ".close"));
-                                lastUpdateDate.put(s.getDisplayname().replace("&", ""), startDate);
+                                lastUpdateDate.put(s.getDisplayname().trim(), startDate);
                                 if (s.getType().equals("FUT") || s.getType().equals("OPT")) {
                                     SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
                                     Date expiration = sdf.parse(s.getExpiry());
