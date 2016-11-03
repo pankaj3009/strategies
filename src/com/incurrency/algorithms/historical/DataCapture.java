@@ -54,7 +54,7 @@ public class DataCapture implements HistoricalBarListener {
     @Override
     public synchronized void barsReceived(HistoricalBarEvent event) {
         try {
-            String name=event.getSymbol().getDisplayname().replace("&", "");
+            String name=event.getSymbol().getDisplayname().trim();
             String expiry=event.getSymbol().getExpiry();
             switch (event.getOhlc().getPeriodicity()) {
                 case DAILY:
