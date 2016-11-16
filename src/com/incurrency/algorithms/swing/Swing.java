@@ -6,6 +6,7 @@ package com.incurrency.algorithms.swing;
 
 import com.incurrency.RatesClient.RedisSubscribe;
 import com.incurrency.algorithms.manager.Manager;
+import com.incurrency.framework.Algorithm;
 import com.incurrency.framework.BeanConnection;
 import com.incurrency.framework.BeanPosition;
 import com.incurrency.framework.BeanSymbol;
@@ -30,6 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.TimeZone;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
@@ -127,30 +129,34 @@ public class Swing extends Manager implements TradeListener {
                             }
                         }
                         if (!this.isStopOrders() && (slTrigger || tpTrigger)) {
-                            logger.log(Level.INFO, "101,Long SLTP Exit,{0}:{1}:{2}:{3}:{4},sltrigger={5},tptrigger={6},lastprice={7},sl={8},distancefromsl={9},tp={10},distancefromtp={11}",
-                                    new Object[]{this.getStrategy(), "Order", Parameters.symbol.get(id).getDisplayname(), -1, -1,
-                                slTrigger, tpTrigger, Parameters.symbol.get(id).getLastPrice(), sl, slDistance, tp, tpDistance});
-                            int size = this.getPosition().get(id).getPosition();
-                            HashMap<String, Object> order = new HashMap<>();
-                            order.put("id", id);
-                            order.put("side", EnumOrderSide.SELL);
-                            order.put("size", size);
-                            order.put("type", EnumOrderType.CUSTOMREL);
-                            String right = Parameters.symbol.get(id).getDisplayname().contains("CALL") ? "CALL" : "PUT";
-                            double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol, id, futureid, EnumOrderSide.SELL, right, getTickSize());
-                            order.put("limitprice", limitprice);
-                            if (slTrigger) {
-                                order.put("reason", EnumOrderReason.SL);
-                            } else {
-                                order.put("reason", EnumOrderReason.TP);
+                            String entryTime = Trade.getEntryTime(db, this.getStrategy() + ":" + this.getFirstInternalOpenOrder(id, EnumOrderSide.BUY, "Order").iterator().next() + ":Order");
+                            String today = DateUtil.getFormatedDate("yyyy-MM-dd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone));
+                            if (!entryTime.contains(today)) {
+                                logger.log(Level.INFO, "101,Long SLTP Exit,{0}:{1}:{2}:{3}:{4},sltrigger={5},tptrigger={6},lastprice={7},sl={8},distancefromsl={9},tp={10},distancefromtp={11}",
+                                        new Object[]{this.getStrategy(), "Order", Parameters.symbol.get(id).getDisplayname(), -1, -1,
+                                    slTrigger, tpTrigger, Parameters.symbol.get(id).getLastPrice(), sl, slDistance, tp, tpDistance});
+                                int size = this.getPosition().get(id).getPosition();
+                                HashMap<String, Object> order = new HashMap<>();
+                                order.put("id", id);
+                                order.put("side", EnumOrderSide.SELL);
+                                order.put("size", size);
+                                order.put("type", EnumOrderType.CUSTOMREL);
+                                String right = Parameters.symbol.get(id).getDisplayname().contains("CALL") ? "CALL" : "PUT";
+                                double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol, id, futureid, EnumOrderSide.SELL, right, getTickSize());
+                                order.put("limitprice", limitprice);
+                                if (slTrigger) {
+                                    order.put("reason", EnumOrderReason.SL);
+                                } else {
+                                    order.put("reason", EnumOrderReason.TP);
+                                }
+                                order.put("orderstage", EnumOrderStage.INIT);
+                                order.put("expiretime", this.getMaxOrderDuration());
+                                order.put("dynamicorderduration", getDynamicOrderDuration());
+                                order.put("maxslippage", this.getMaxSlippageExit());
+                                order.put("orderattributes", this.getOrderAttributes());
+                                order.put("log", "SLTPExit" + delimiter + slTrigger + delimiter + tpTrigger + delimiter + Parameters.symbol.get(id).getLastPrice() + delimiter + slDistance + delimiter + sl + delimiter + tpDistance + delimiter + tp);
+                                this.exit(order);
                             }
-                            order.put("orderstage", EnumOrderStage.INIT);
-                            order.put("expiretime", this.getMaxOrderDuration());
-                            order.put("dynamicorderduration", getDynamicOrderDuration());
-                            order.put("maxslippage", this.getMaxSlippageExit());
-                            order.put("orderattributes", this.getOrderAttributes());
-                            order.put("log", "SLTPExit" + delimiter + slTrigger + delimiter + tpTrigger + delimiter + Parameters.symbol.get(id).getLastPrice() + delimiter + slDistance + delimiter + sl + delimiter + tpDistance + delimiter + tp);
-                            this.exit(order);
                         }
                     } else if (this.getPosition().get(id).getPosition() < 0 && this.getPosition().get(id).getStrategy().equalsIgnoreCase(this.getStrategy())) {
                         //We do not expect a short position. This is an error. Email
@@ -284,8 +290,8 @@ public class Swing extends Manager implements TradeListener {
                         if (expiry.equals(expiryNearMonth)) {
                             ArrayList<Integer> entryorderidlist = new ArrayList<>();
                             int initID = entry.getKey();
-                            EnumOrderSide side=EnumOrderSide.UNDEFINED;
-                           
+                            EnumOrderSide side = EnumOrderSide.UNDEFINED;
+
                             if (Parameters.symbol.get(initID).getType().equals("OPT")) {//Calculate Side for option
                                 if (optionSystem.equals("RECEIVE")) {
                                     if (entry.getValue().getPosition() < 0) {
@@ -302,12 +308,12 @@ public class Swing extends Manager implements TradeListener {
 
                             if (Parameters.symbol.get(initID).getType().equals("OPT") && optionPricingUsingFutures) { //calculate targetID for option
                                 int futureid = Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, initID, expiryFarMonth);
-                                if (optionSystem.equals("PAY")) { 
+                                if (optionSystem.equals("PAY")) {
                                     entryorderidlist = Utilities.getOrInsertOptionIDForPaySystem(Parameters.symbol, getPosition(), futureid, side, expiryFarMonth);
                                 } else {
                                     entryorderidlist = Utilities.getOrInsertOptionIDForReceiveSystem(Parameters.symbol, getPosition(), futureid, side, expiryFarMonth);
                                 }
-                            } else if (Parameters.symbol.get(initID).getType().equals("OPT") && !optionPricingUsingFutures){
+                            } else if (Parameters.symbol.get(initID).getType().equals("OPT") && !optionPricingUsingFutures) {
                                 int symbolid = Utilities.getCashReferenceID(Parameters.symbol, initID, referenceCashType);
                                 int referenceid = Utilities.getCashReferenceID(Parameters.symbol, symbolid, referenceCashType);
                                 if (optionSystem.equals("PAY")) {
@@ -315,16 +321,15 @@ public class Swing extends Manager implements TradeListener {
                                 } else {
                                     entryorderidlist = Utilities.getOrInsertOptionIDForReceiveSystem(Parameters.symbol, getPosition(), referenceid, side, expiryFarMonth);
                                 }
-                            } else if (Parameters.symbol.get(initID).getType().equals("FUT")){ //calculate targetID for futures
-                                entryorderidlist.add(Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol,initID, expiryFarMonth));
+                            } else if (Parameters.symbol.get(initID).getType().equals("FUT")) { //calculate targetID for futures
+                                entryorderidlist.add(Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, initID, expiryFarMonth));
                             }
-                            
-                            if (!entryorderidlist.isEmpty()&& entryorderidlist.get(0)!=-1) {
+
+                            if (!entryorderidlist.isEmpty() && entryorderidlist.get(0) != -1) {
                                 initSymbol(entryorderidlist.get(0), optionPricingUsingFutures, referenceCashType);
                                 positionRollover(initID, entryorderidlist.get(0));
-                            }else{
-                                logger.log(Level.INFO,"100,Rollover not completed as invalid Target symbol,{0}:{1}:{2}:{3}:{4}"
-                                        ,new Object[]{getStrategy(),"Order",Parameters.symbol.get(initID).getDisplayname(),-1,-1});
+                            } else {
+                                logger.log(Level.INFO, "100,Rollover not completed as invalid Target symbol,{0}:{1}:{2}:{3}:{4}", new Object[]{getStrategy(), "Order", Parameters.symbol.get(initID).getDisplayname(), -1, -1});
                             }
                         }
                     }
