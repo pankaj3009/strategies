@@ -198,7 +198,8 @@ public class EODMaintenance {
                                     int id = Utilities.getIDFromExchangeSymbol(symbols, exchangesymbol, "STK", "", "", "");
                                     if (id >= 0) {
                                         try (Jedis jedis = jPool.getResource()) {
-                                            jedis.hset("contractsize:" + expiry.substring(0, 6), exchangesymbol, String.valueOf(minsize));
+                                            jedis.hset("contractsize:" + expiry, exchangesymbol, String.valueOf(minsize));
+//                                            jedis.hset("contractsize:" + expiry.substring(0, 6), exchangesymbol, String.valueOf(minsize));
                                         }
                                     } else {
                                         logger.log(Level.SEVERE, "Exchange Symbol {0} not found in IB database", new Object[]{exchangesymbol});
