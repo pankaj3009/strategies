@@ -4,22 +4,29 @@
  */
 package com.incurrency.eodmaintenance;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.incurrency.framework.Algorithm;
 import com.incurrency.framework.BeanSymbol;
 import com.incurrency.framework.MainAlgorithm;
 import com.incurrency.framework.Utilities;
+import com.incurrency.kairosresponse.DataPoint;
+import com.incurrency.kairosresponse.QueryResponse;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -30,6 +37,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jsoup.Jsoup;
@@ -67,10 +75,10 @@ public class EODMaintenance {
     private JedisPool jPool;
     private String redisurl;
 
-        public static JedisPool RedisConnect(String uri, Integer port, Integer database) {
-        return new JedisPool(new JedisPoolConfig(),uri, port,2000,null,database);
+    public static JedisPool RedisConnect(String uri, Integer port, Integer database) {
+        return new JedisPool(new JedisPoolConfig(), uri, port, 2000, null, database);
     }
-    
+
     /**
      * @param args the command line arguments
      */
@@ -89,11 +97,12 @@ public class EODMaintenance {
         f_RateServer = properties.getProperty("filenamerateserver");
         f_IBSymbol = properties.getProperty("fileibsymbol");
         ibsymbolurl = properties.getProperty("ibsymbolurl");
-        redisurl = properties.getProperty("redisurl","127.0.0.1:6379:2");
-        jPool=RedisConnect(redisurl.split(":")[0], Integer.valueOf(redisurl.split(":")[1]), Integer.valueOf(redisurl.split(":")[2]));
-                
+        redisurl = properties.getProperty("redisurl", "127.0.0.1:6379:2");
+        jPool = RedisConnect(redisurl.split(":")[0], Integer.valueOf(redisurl.split(":")[1]), Integer.valueOf(redisurl.split(":")[2]));
+
         String nextExpiry = getNextExpiry(currentDay);
         File outputfile = new File("logs", f_IBSymbol);
+        createFNOContractSizeRecords(0,new Date().getTime());
         if (!outputfile.exists()) {
             extractSymbolsFromIB(ibsymbolurl, f_IBSymbol, symbols);
             saveToRedis(fnolotsizeurl, f_Strikes, nextExpiry);
@@ -111,11 +120,11 @@ public class EODMaintenance {
         swing();
         //contra();
         allsymbols();
-        
+
         MainAlgorithm.setCloseDate(new Date());
     }
 
-    public void saveToRedis(String url, String f_strike, String expiry)  {
+    public void saveToRedis(String url, String f_strike, String expiry) {
         try {
             ArrayList<BeanSymbol> out = new ArrayList<>();
             ArrayList<BeanSymbol> interimout = new ArrayList<>();
@@ -224,10 +233,10 @@ public class EODMaintenance {
                 if (j > 1) {//skip first row
                     String[] input = line.split(",");
                     String exchangeSymbol = input[0].trim().toUpperCase();//2nd column of nse file                        
-                        try (Jedis jedis = jPool.getResource()) {
-                            jedis.hset("strikedistance:" + expiry.substring(0, 6), exchangeSymbol, String.valueOf(input[1].trim()));
-                        }
-                    
+                    try (Jedis jedis = jPool.getResource()) {
+                        jedis.hset("strikedistance:" + expiry.substring(0, 6), exchangeSymbol, String.valueOf(input[1].trim()));
+                    }
+
                 }
             }
 
@@ -235,6 +244,30 @@ public class EODMaintenance {
             logger.log(Level.SEVERE, null, e);
         }
 
+    }
+
+    public void createFNOContractSizeRecords(long startdate,long enddate) {
+        List<String> symbols=getSymbolsFromKDB("91.121.168.138",8085,startdate,enddate,"india.nse.option.s4.daily.volume");
+        for(String s:symbols){
+            //get expiration dates for each symbol
+            List<String>expiries=getExpiriesFromKDB("91.121.168.138",8085,s,startdate,enddate,"india.nse.option.s4.daily.volume");
+            for(String expiry:expiries){
+                //get volume and calculate min.
+                //get oi and calculate min
+            TreeMap<Long,Double>volume=this.getPricesFromKDB("91.121.168.138",8085, s, expiry, null, null, startdate, enddate, "india.nse.option.s4.daily.volume");
+            TreeMap<Long,Double>oi=this.getPricesFromKDB("91.121.168.138",8085, s, expiry, null, null, startdate, enddate, "india.nse.option.s4.daily.oi");
+            int fnosize1=Utilities.getInt(Collections.min(volume.values()), Integer.MAX_VALUE);
+            int fnosize2=Utilities.getInt(Collections.min(oi.values()), Integer.MAX_VALUE);
+            int fnosize=Math.min(fnosize1, fnosize2);
+            //insert to redis
+            if(fnosize>0){
+                try (Jedis jedis = jPool.getResource()) {
+                    jedis.hset("contractsize:" + expiry, s, String.valueOf(fnosize));
+                }
+            }
+                
+            }
+        }
     }
 
     public ArrayList<BeanSymbol> loadNifty50Stocks(String url, String f_strike) {
@@ -295,7 +328,7 @@ public class EODMaintenance {
                             } else {
                                 int date = Integer.valueOf(shortlistedkey.split(":")[1]);
                                 int newdate = Integer.valueOf(key.toString().split(":")[1]);
-                                if (newdate > date && newdate <= Integer.valueOf(getNextExpiry(currentDay).substring(0,6))) {
+                                if (newdate > date && newdate <= Integer.valueOf(getNextExpiry(currentDay).substring(0, 6))) {
                                     shortlistedkey = key.toString();//replace with latest nifty setup
                                 }
                             }
@@ -323,7 +356,6 @@ public class EODMaintenance {
 
     }
 
-    
     /**
      * Loads FNO stocks in ArrayList comprising BeanSymbols .Expiration date and
      * contract sizes are set.
@@ -350,7 +382,7 @@ public class EODMaintenance {
                             } else {
                                 int date = Integer.valueOf(shortlistedkey.split(":")[1]);
                                 int newdate = Integer.valueOf(key.toString().split(":")[1]);
-                                if (newdate > date && newdate <= Integer.valueOf(expiry.substring(0,6))) {
+                                if (newdate > date && newdate <= Integer.valueOf(expiry.substring(0, 6))) {
                                     shortlistedkey = key.toString();//replace with latest nifty setup
                                 }
                             }
@@ -358,37 +390,37 @@ public class EODMaintenance {
                     }
                 }
             }
-             Map<String, String> contractSizes = new HashMap<>();
+            Map<String, String> contractSizes = new HashMap<>();
             try (Jedis jedis = jPool.getResource()) {
                 contractSizes = jedis.hgetAll(shortlistedkey);
                 for (Map.Entry<String, String> entry : contractSizes.entrySet()) {
                     String exchangeSymbol = entry.getKey().trim().toUpperCase();
-                     int minsize = Utilities.getInt(entry.getValue().trim(),0);
-                     if(minsize>0){
-                         int id = Utilities.getIDFromExchangeSymbol(symbols, exchangeSymbol, "STK", "", "", "");
-                                    if (id >= 0) {
-                                        BeanSymbol s = symbols.get(id);
-                                        BeanSymbol s1 = s.clone(s);
-                                        s1.setType("FUT");
-                                        s1.setExpiry(expiry);
-                                        s1.setMinsize(minsize);
-                                        s1.setStrategy("DATA");
-                                        s1.setStreamingpriority(2);
-                                        s1.setSerialno(out.size() + 1);
-                                        interimout.add(s1);
-                                    } else {
-                                        logger.log(Level.SEVERE, "Exchange Symbol {0} not found in IB database", new Object[]{exchangeSymbol});
-                                    }
-                     }
+                    int minsize = Utilities.getInt(entry.getValue().trim(), 0);
+                    if (minsize > 0) {
+                        int id = Utilities.getIDFromExchangeSymbol(symbols, exchangeSymbol, "STK", "", "", "");
+                        if (id >= 0) {
+                            BeanSymbol s = symbols.get(id);
+                            BeanSymbol s1 = s.clone(s);
+                            s1.setType("FUT");
+                            s1.setExpiry(expiry);
+                            s1.setMinsize(minsize);
+                            s1.setStrategy("DATA");
+                            s1.setStreamingpriority(2);
+                            s1.setSerialno(out.size() + 1);
+                            interimout.add(s1);
+                        } else {
+                            logger.log(Level.SEVERE, "Exchange Symbol {0} not found in IB database", new Object[]{exchangeSymbol});
+                        }
+                    }
                 }
             }
-            
+
             //Fix sequential serial numbers
             for (int i = 0; i < interimout.size(); i++) {
                 interimout.get(i).setSerialno(i + 1);
             }
-            
-          //Capture Strike levels
+
+            //Capture Strike levels
             cursor = "";
             shortlistedkey = "";
             while (!cursor.equals("0")) {
@@ -403,7 +435,7 @@ public class EODMaintenance {
                             } else {
                                 int date = Integer.valueOf(shortlistedkey.split(":")[1]);
                                 int newdate = Integer.valueOf(key.toString().split(":")[1]);
-                                if (newdate > date && newdate <= Integer.valueOf(getNextExpiry(currentDay).substring(0,6))) {
+                                if (newdate > date && newdate <= Integer.valueOf(getNextExpiry(currentDay).substring(0, 6))) {
                                     shortlistedkey = key.toString();//replace with latest nifty setup
                                 }
                             }
@@ -437,7 +469,7 @@ public class EODMaintenance {
     }
 
     public ArrayList<BeanSymbol> loadCNX500Stocks(String url, String f_strike) {
-         ArrayList<BeanSymbol> out = new ArrayList<>();
+        ArrayList<BeanSymbol> out = new ArrayList<>();
         try {
             String cursor = "";
             String shortlistedkey = "";
@@ -494,7 +526,7 @@ public class EODMaintenance {
                             } else {
                                 int date = Integer.valueOf(shortlistedkey.split(":")[1]);
                                 int newdate = Integer.valueOf(key.toString().split(":")[1]);
-                                if (newdate > date && newdate <= Integer.valueOf(getNextExpiry(currentDay).substring(0,6))) {
+                                if (newdate > date && newdate <= Integer.valueOf(getNextExpiry(currentDay).substring(0, 6))) {
                                     shortlistedkey = key.toString();//replace with latest nifty setup
                                 }
                             }
@@ -518,7 +550,7 @@ public class EODMaintenance {
         } catch (Exception e) {
             logger.log(Level.SEVERE, null, e);
         }
-        return out;          
+        return out;
     }
 
     public void rateserver() throws MalformedURLException, IOException, ParseException {
@@ -619,9 +651,9 @@ public class EODMaintenance {
         s.setDisplayname("NSENIFTY");
         out.add(s);
         out.addAll(cnx500);
-        for(int i=0;i<cnx500.size();i++){
+        for (int i = 0; i < cnx500.size(); i++) {
 //           cnx500.get(i).setDisplayname(cnx500.get(i).getExchangeSymbol().replaceAll("[^A-Za-z0-9]", ""));
-             cnx500.get(i).setDisplayname(cnx500.get(i).getExchangeSymbol());
+            cnx500.get(i).setDisplayname(cnx500.get(i).getExchangeSymbol());
 
         }
         printToFile(out, this.f_HistoricalStocks, true);
@@ -639,7 +671,7 @@ public class EODMaintenance {
         out.add(s);
         out.addAll(fno);
         for (int i = 0; i < out.size(); i++) {
- //           out.get(i).setDisplayname(out.get(i).getExchangeSymbol().replaceAll("[^A-Za-z0-9]", ""));
+            //           out.get(i).setDisplayname(out.get(i).getExchangeSymbol().replaceAll("[^A-Za-z0-9]", ""));
             out.get(i).setDisplayname(out.get(i).getExchangeSymbol());
         }
         printToFile(out, this.f_HistoricalFutures, true);
@@ -659,7 +691,7 @@ public class EODMaintenance {
         ArrayList<BeanSymbol> fwdout = loadFutures(this.fnolotsizeurl, this.f_Strikes, expiry);
         out.addAll(fwdout);
         for (int i = 0; i < out.size(); i++) {
-           // out.get(i).setDisplayname(out.get(i).getExchangeSymbol().replaceAll("[^A-Za-z0-9]", ""));
+            // out.get(i).setDisplayname(out.get(i).getExchangeSymbol().replaceAll("[^A-Za-z0-9]", ""));
             out.get(i).setDisplayname(out.get(i).getExchangeSymbol());
         }
         printToFile(out, this.f_HistoricalFuturesFwd, true);
@@ -690,15 +722,15 @@ public class EODMaintenance {
         s.setMinsize(75);
         s.setStrikeDistance(100);
         out.add(s);
-        
+
         ArrayList<BeanSymbol> out2 = new ArrayList<>();
-       for(int i=0;i<nifty50.size();i++){
-           s=nifty50.get(i);
-           s.setStrategy("MANAGER");
-           out2.add(s);
-       }
-        fno= loadFutures(this.fnolotsizeurl, this.f_Strikes, expiry);
-        for(int i=0;i<fno.size();i++){
+        for (int i = 0; i < nifty50.size(); i++) {
+            s = nifty50.get(i);
+            s.setStrategy("MANAGER");
+            out2.add(s);
+        }
+        fno = loadFutures(this.fnolotsizeurl, this.f_Strikes, expiry);
+        for (int i = 0; i < fno.size(); i++) {
             String exchangesymbol = fno.get(i).getExchangeSymbol();
             int id = Utilities.getIDFromExchangeSymbol(nifty50, exchangesymbol, "STK", "", "", "");
             if (id >= 0) {
@@ -711,7 +743,7 @@ public class EODMaintenance {
             }
         }
         ArrayList<BeanSymbol> fwdout = loadFutures(this.fnolotsizeurl, this.f_Strikes, getNextExpiry(expiry));
-        for(int i=0;i<fno.size();i++){
+        for (int i = 0; i < fno.size(); i++) {
             String exchangesymbol = fno.get(i).getExchangeSymbol();
             int id = Utilities.getIDFromExchangeSymbol(nifty50, exchangesymbol, "STK", "", "", "");
             if (id >= 0) {
@@ -742,13 +774,13 @@ public class EODMaintenance {
 
     }
 
-    public void allsymbols(){
-        printToFile(symbols,"symbols-inr.csv",true);
+    public void allsymbols() {
+        printToFile(symbols, "symbols-inr.csv", true);
     }
-    
+
     public void extractSymbolsFromIB(String urlName, String fileName, List<BeanSymbol> symbols) throws IOException {
         String constant = "&page=";
-        String today=new SimpleDateFormat("yyyyMMdd").format(new Date());
+        String today = new SimpleDateFormat("yyyyMMdd").format(new Date());
         if (urlName != null) {
             String exchange = urlName.split("&")[1].split("=")[1].toUpperCase();
             String type = urlName.split("&")[2].split("=")[1].toUpperCase();
@@ -770,11 +802,11 @@ public class EODMaintenance {
                     //tbl = stockList.getElementsByClass("comm_table_background").get(4); //Todo: Check for 404 error
                     Elements rows = tbl.select("tr");
                     int i = 0;
-                    if(rows.size()==1){
+                    if (rows.size() == 1) {
                         break;
                     }
                     for (Element stockRow : rows) {
-                        if (i >= 2) {                           
+                        if (i >= 2) {
                             //if (stockRow.attr("class").equals("linebottom")) {
                             BeanSymbol tempContract = new BeanSymbol();
                             String tempIBSymbol = stockRow.getElementsByTag("td").get(0).text().toUpperCase().trim();
@@ -792,10 +824,10 @@ public class EODMaintenance {
                             tempContract.setExchange(exchange);
                             tempContract.setType(type);
                             symbols.add(tempContract);
-                         try (Jedis jedis = jPool.getResource()) {
-                            jedis.hset("ibsymbols:"+today,tempExchangeSymbol,tempIBSymbol);
-                            
-                        }
+                            try (Jedis jedis = jPool.getResource()) {
+                                jedis.hset("ibsymbols:" + today, tempExchangeSymbol, tempIBSymbol);
+
+                            }
                             System.out.println(tempContract.getExchangeSymbol());
                         }
                         i++;
@@ -928,4 +960,173 @@ public class EODMaintenance {
             }
         }
     }
+
+    public static long getLastTimeFromKDB(String kairosIP, int kairosPort, BeanSymbol s, String metric) throws IOException {
+        try {
+            List<String> out = new ArrayList<>();
+            HashMap<String, Object> param = new HashMap();
+            param.put("TYPE", Boolean.FALSE);
+            String[] names;
+            if (s.getRight() != null) {
+                names = new String[]{"symbol", "expiry", "strike", "option"};
+            } else if (s.getExpiry() != null) {
+                names = new String[]{"symbol", "expiry"};
+            } else {
+                names = new String[]{"symbol"};
+            }
+            String[] values;
+            if (s.getRight() != null) {
+                String formattedStrike = Utilities.formatDouble(Utilities.getDouble(s.getOption(), 0), new DecimalFormat("#.##"));
+                values = new String[]{s.getExchangeSymbol().trim().toLowerCase(), s.getExpiry(), formattedStrike, s.getRight()};
+            } else if (s.getExpiry() != null) {
+                values = new String[]{s.getExchangeSymbol().trim().toLowerCase(), s.getExpiry()};
+            } else {
+                values = new String[]{s.getExchangeSymbol().trim().toLowerCase()};
+            }
+
+            HistoricalRequestJson request = new HistoricalRequestJson(metric,
+                    names,
+                    values,
+                    null,
+                    null,
+                    null,
+                    String.valueOf(0),
+                    String.valueOf(new Date().getTime()), 1, "desc");
+            //http://stackoverflow.com/questions/7181534/http-post-using-json-in-java
+            //        String json_string = JsonWriter.objectToJson(request, param);
+            Gson gson = new GsonBuilder().create();
+            String json_string = gson.toJson(request);
+            String response_json = Utilities.getJsonUsingPut("http://" + kairosIP + ":" + kairosPort + "/api/v1/datapoints/query", 0, json_string);
+            QueryResponse response;
+            Type type = new com.google.common.reflect.TypeToken<QueryResponse>() {
+            }.getType();
+            response = gson.fromJson(response_json, QueryResponse.class);
+            //long time=response.getQueries().get(querysize-1).getResults().get(resultsize-1).getValues().get(valuesize-1).get(datapoints-1).longValue();
+            long time = Double.valueOf(response.getQueries().get(0).getResults().get(0).getDataPoints().get(0).get(0).toString()).longValue();
+            //long time=response.queries[0].results[0].values[0].time;
+            return time;
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    public List<String> getSymbolsFromKDB(String kairosIP, int kairosPort, long startTime, long endTime, String metric) {
+        Object[] out = new Object[1];
+        HashMap<String, Object> param = new HashMap();
+        param.put("TYPE", Boolean.FALSE);
+        String strike = null;
+        String expiry = null;
+        HistoricalRequestJson request = new HistoricalRequestJson(metric,
+                null,
+                null,
+                null,
+                null,
+                null,
+                String.valueOf(startTime),
+                String.valueOf(endTime), -1, null);
+        Gson gson = new GsonBuilder().create();
+        String json_string = gson.toJson(request);
+        String response_json = Utilities.getJsonUsingPut("http://" + kairosIP + ":" + kairosPort + "/api/v1/datapoints/query", 0, json_string);
+        QueryResponse response;
+        Type type = new com.google.common.reflect.TypeToken<QueryResponse>() {
+        }.getType();
+        response = gson.fromJson(response_json, QueryResponse.class);
+        List<String> symbols = response.getQueries().get(0).getResults().get(0).getTags().get("symbol");
+        return symbols;
+    }
+
+    public List<String> getExpiriesFromKDB(String kairosIP, int kairosPort,String symbol,long startTime, long endTime, String metric){
+        HashMap<String, Object> param = new HashMap();
+        param.put("TYPE", Boolean.FALSE);
+        String strike=null;
+        String expiry=null;
+        HistoricalRequestJson request = new HistoricalRequestJson(metric,
+                new String[]{"symbol"},
+                new String[]{symbol},
+                null,
+                null,
+                null,
+                String.valueOf(startTime),
+                String.valueOf(endTime),-1,null);
+
+        Gson gson = new GsonBuilder().create();
+        String json_string = gson.toJson(request);
+        String response_json = Utilities.getJsonUsingPut("http://" + kairosIP + ":" + kairosPort + "/api/v1/datapoints/query", 0, json_string);
+        QueryResponse response;
+        Type type = new com.google.common.reflect.TypeToken<QueryResponse>() {
+        }.getType();
+        response = gson.fromJson(response_json, QueryResponse.class);
+        List<String>expiries=response.getQueries().get(0).getResults().get(0).getTags().get("expiry");
+        return expiries;
+    }
+   
+    public List<String> getOptionStrikesFromKDB(String kairosIP,int kairosPort,String symbol,String expiry,long startTime, long endTime, String metric){
+        Object[] out=new Object[1];
+        HashMap<String, Object> param = new HashMap();
+        param.put("TYPE", Boolean.FALSE);
+        HistoricalRequestJson request = new HistoricalRequestJson(metric,
+                new String[]{"symbol", "expiry"},
+                new String[]{symbol, expiry},
+                null,
+                null,
+                null,
+                String.valueOf(startTime),
+                String.valueOf(endTime),-1,null);
+           Gson gson = new GsonBuilder().create();
+        String json_string = gson.toJson(request);
+        String response_json = Utilities.getJsonUsingPut("http://" + kairosIP + ":" + kairosPort + "/api/v1/datapoints/query", 0, json_string);
+        QueryResponse response;
+        Type type = new com.google.common.reflect.TypeToken<QueryResponse>() {
+        }.getType();
+        response = gson.fromJson(response_json, QueryResponse.class);
+        List<String>strikes=response.getQueries().get(0).getResults().get(0).getTags().get("strike");
+        return strikes;
+    }
+
+    public TreeMap<Long, Double> getPricesFromKDB(String kairosIP, int kairosPort, String symbol, String expiry, String right, String strike, long startTime, long endTime, String metric) {
+        TreeMap<Long, Double> out = new TreeMap<>();
+        HashMap<String, Object> param = new HashMap();
+        param.put("TYPE", Boolean.FALSE);
+        String[] names;
+        if (right != null) {
+            names = new String[]{"symbol", "expiry", "strike", "option"};
+        } else if (expiry != null) {
+            names = new String[]{"symbol", "expiry"};
+        } else {
+            names = new String[]{"symbol"};
+        }
+        String[] values;
+        if (right != null) {
+            String formattedStrike = Utilities.formatDouble(Utilities.getDouble(strike, 0), new DecimalFormat("#.##"));
+            values = new String[]{symbol.trim().toLowerCase(), expiry, formattedStrike, right};
+        } else if (expiry != null) {
+            values = new String[]{symbol.trim().toLowerCase(), expiry};
+        } else {
+            values = new String[]{symbol.trim().toLowerCase()};
+        }
+
+        HistoricalRequestJson request = new HistoricalRequestJson(metric,
+                names,
+                values,
+                null,
+                null,
+                null,
+                String.valueOf(0),
+                String.valueOf(new Date().getTime()), -1, null);
+        Gson gson = new GsonBuilder().create();
+        String json_string = gson.toJson(request);
+        String response_json = Utilities.getJsonUsingPut("http://" + kairosIP + ":" + kairosPort + "/api/v1/datapoints/query", 0, json_string);
+        QueryResponse response;
+        Type type = new com.google.common.reflect.TypeToken<QueryResponse>() {
+        }.getType();
+        response = gson.fromJson(response_json, QueryResponse.class);
+        List<List<Object>> dataPoints = response.getQueries().get(0).getResults().get(0).getDataPoints();
+        for (List<Object> d : dataPoints) {
+            if (Utilities.getDouble(d.get(1), 0) > 0) {
+                out.put(Utilities.getLong(d.get(0), 0), Utilities.getDouble(d.get(1), 0));
+            }
+        }
+        return out;
+    }
+
 }
