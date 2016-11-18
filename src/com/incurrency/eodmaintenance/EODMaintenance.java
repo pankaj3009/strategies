@@ -208,7 +208,6 @@ public class EODMaintenance {
                                     if (id >= 0) {
                                         try (Jedis jedis = jPool.getResource()) {
                                             jedis.hset("contractsize:" + expiry, exchangesymbol, String.valueOf(minsize));
-//                                            jedis.hset("contractsize:" + expiry.substring(0, 6), exchangesymbol, String.valueOf(minsize));
                                         }
                                     } else {
                                         logger.log(Level.SEVERE, "Exchange Symbol {0} not found in IB database", new Object[]{exchangesymbol});
@@ -800,13 +799,18 @@ public class EODMaintenance {
                         }
                     }
                     //tbl = stockList.getElementsByClass("comm_table_background").get(4); //Todo: Check for 404 error
-                    Elements rows = tbl.select("tr");
+                    Elements body=tbl.select("tbody");
+                    if(body.size()==0){
+                        break;
+                    }
+                    
+                    Elements rows = body.select("tr");
                     int i = 0;
-                    if (rows.size() == 1) {
+                    if(rows.size()==0){
                         break;
                     }
                     for (Element stockRow : rows) {
-                        if (i >= 2) {
+                        if (i >= 0) {                           
                             //if (stockRow.attr("class").equals("linebottom")) {
                             BeanSymbol tempContract = new BeanSymbol();
                             String tempIBSymbol = stockRow.getElementsByTag("td").get(0).text().toUpperCase().trim();
