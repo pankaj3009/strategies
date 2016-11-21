@@ -8,6 +8,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.incurrency.framework.Algorithm;
 import com.incurrency.framework.BeanSymbol;
+import com.incurrency.framework.DateUtil;
 import com.incurrency.framework.MainAlgorithm;
 import com.incurrency.framework.Utilities;
 import com.incurrency.kairosresponse.DataPoint;
@@ -102,7 +103,10 @@ public class EODMaintenance {
 
         String nextExpiry = getNextExpiry(currentDay);
         File outputfile = new File("logs", f_IBSymbol);
-        createFNOContractSizeRecords(0,new Date().getTime());
+        /*
+         * Commented out the ability to create contractsize records
+         */
+        //createFNOContractSizeRecords(0,new Date().getTime());
         if (!outputfile.exists()) {
             extractSymbolsFromIB(ibsymbolurl, f_IBSymbol, symbols);
             saveToRedis(fnolotsizeurl, f_Strikes, nextExpiry);
@@ -247,24 +251,28 @@ public class EODMaintenance {
 
     public void createFNOContractSizeRecords(long startdate,long enddate) {
         List<String> symbols=getSymbolsFromKDB("91.121.168.138",8085,startdate,enddate,"india.nse.option.s4.daily.volume");
+        boolean proceed=false;
         for(String s:symbols){
-            //get expiration dates for each symbol
+            proceed=true;
+           
+            if(proceed){
             List<String>expiries=getExpiriesFromKDB("91.121.168.138",8085,s,startdate,enddate,"india.nse.option.s4.daily.volume");
             for(String expiry:expiries){
                 //get volume and calculate min.
                 //get oi and calculate min
-            TreeMap<Long,Double>volume=this.getPricesFromKDB("91.121.168.138",8085, s, expiry, null, null, startdate, enddate, "india.nse.option.s4.daily.volume");
-            TreeMap<Long,Double>oi=this.getPricesFromKDB("91.121.168.138",8085, s, expiry, null, null, startdate, enddate, "india.nse.option.s4.daily.oi");
-            int fnosize1=Utilities.getInt(Collections.min(volume.values()), Integer.MAX_VALUE);
-            int fnosize2=Utilities.getInt(Collections.min(oi.values()), Integer.MAX_VALUE);
-            int fnosize=Math.min(fnosize1, fnosize2);
+            //TreeMap<Long,Double>volume=this.getPricesFromKDB("91.121.168.138",8085, s, expiry, null, null, startdate, enddate, "india.nse.option.s4.daily.volume");
+            System.out.println("Processing:"+s+":"+expiry);
+                long fnosize=this.getMinOIFromKDB("91.121.168.138",8085, s, expiry, null, null, "india.nse.option.s4.daily.oi");
+            //int fnosize1=Utilities.getInt(Collections.min(volume.values()), Integer.MAX_VALUE);
+            //int fnosize=Math.min(fnosize1, fnosize2);
             //insert to redis
             if(fnosize>0){
                 try (Jedis jedis = jPool.getResource()) {
-                    jedis.hset("contractsize:" + expiry, s, String.valueOf(fnosize));
+                    jedis.hset("contractsize:" + expiry, s.toUpperCase(), String.valueOf(fnosize));
                 }
             }
                 
+            }
             }
         }
     }
@@ -1030,7 +1038,7 @@ public class EODMaintenance {
                 String.valueOf(endTime), -1, null);
         Gson gson = new GsonBuilder().create();
         String json_string = gson.toJson(request);
-        String response_json = Utilities.getJsonUsingPut("http://" + kairosIP + ":" + kairosPort + "/api/v1/datapoints/query", 0, json_string);
+        String response_json = Utilities.getJsonUsingPut("http://" + kairosIP + ":" + kairosPort + "/api/v1/datapoints/query/tags", 0, json_string);
         QueryResponse response;
         Type type = new com.google.common.reflect.TypeToken<QueryResponse>() {
         }.getType();
@@ -1055,7 +1063,7 @@ public class EODMaintenance {
 
         Gson gson = new GsonBuilder().create();
         String json_string = gson.toJson(request);
-        String response_json = Utilities.getJsonUsingPut("http://" + kairosIP + ":" + kairosPort + "/api/v1/datapoints/query", 0, json_string);
+        String response_json = Utilities.getJsonUsingPut("http://" + kairosIP + ":" + kairosPort + "/api/v1/datapoints/query/tags", 0, json_string);
         QueryResponse response;
         Type type = new com.google.common.reflect.TypeToken<QueryResponse>() {
         }.getType();
@@ -1078,7 +1086,7 @@ public class EODMaintenance {
                 String.valueOf(endTime),-1,null);
            Gson gson = new GsonBuilder().create();
         String json_string = gson.toJson(request);
-        String response_json = Utilities.getJsonUsingPut("http://" + kairosIP + ":" + kairosPort + "/api/v1/datapoints/query", 0, json_string);
+        String response_json = Utilities.getJsonUsingPut("http://" + kairosIP + ":" + kairosPort + "/api/v1/datapoints/query/tags", 0, json_string);
         QueryResponse response;
         Type type = new com.google.common.reflect.TypeToken<QueryResponse>() {
         }.getType();
@@ -1125,12 +1133,83 @@ public class EODMaintenance {
         }.getType();
         response = gson.fromJson(response_json, QueryResponse.class);
         List<List<Object>> dataPoints = response.getQueries().get(0).getResults().get(0).getDataPoints();
-        for (List<Object> d : dataPoints) {
+                  DecimalFormat df = new DecimalFormat("#");
+                df.setMaximumFractionDigits(0);
+                for (List<Object> d : dataPoints) {
             if (Utilities.getDouble(d.get(1), 0) > 0) {
-                out.put(Utilities.getLong(d.get(0), 0), Utilities.getDouble(d.get(1), 0));
+                out.put(Utilities.getLong(df.format(d.get(0)), 0), Utilities.getDouble(d.get(1), 0));
             }
         }
         return out;
     }
 
+     public long getMinOIFromKDB(String kairosIP, int kairosPort, String symbol, String expiry, String right, String strike, String metric) {
+         if(leadingZerosCount(expiry)>0){
+             return 0L;
+         }
+         HashSet<Long> out = new HashSet<>();
+        HashMap<String, Object> param = new HashMap();
+        param.put("TYPE", Boolean.FALSE);
+        String[] names;
+        if (right != null) {
+            names = new String[]{"symbol", "expiry", "strike", "option"};
+        } else if (expiry != null) {
+            names = new String[]{"symbol", "expiry"};
+        } else {
+            names = new String[]{"symbol"};
+        }
+        String[] values;
+        if (right != null) {
+            String formattedStrike = Utilities.formatDouble(Utilities.getDouble(strike, 0), new DecimalFormat("#.##"));
+            values = new String[]{symbol.trim().toLowerCase(), expiry, formattedStrike, right};
+        } else if (expiry != null) {
+            values = new String[]{symbol.trim().toLowerCase(), expiry};
+        } else {
+            values = new String[]{symbol.trim().toLowerCase()};
+        }
+        long endTime=DateUtil.getFormattedDate(expiry, "yyyyMMdd", Algorithm.timeZone).getTime();
+        endTime=endTime+24*60*60*1000;
+        HistoricalRequestJson request = new HistoricalRequestJson(metric,
+                names,
+                values,
+                null,
+                null,
+                null,
+                String.valueOf(endTime-120*24*60*60*1000),
+                String.valueOf(endTime), -1, null);
+        Gson gson = new GsonBuilder().create();
+        String json_string = gson.toJson(request);
+        String response_json = Utilities.getJsonUsingPut("http://" + kairosIP + ":" + kairosPort + "/api/v1/datapoints/query", 0, json_string);
+        QueryResponse response;
+        Type type = new com.google.common.reflect.TypeToken<QueryResponse>() {
+        }.getType();
+        if(response_json!=null){
+        response = gson.fromJson(response_json, QueryResponse.class);
+        List<List<Object>> dataPoints = response.getQueries().get(0).getResults().get(0).getDataPoints();
+                  DecimalFormat df = new DecimalFormat("#");
+                df.setMaximumFractionDigits(0);
+                for (List<Object> d : dataPoints) {
+            if (Utilities.getLong(df.format(d.get(1)), 0) > 0) {
+                out.add(Utilities.getLong(df.format(d.get(1)), 0));
+            }
+        }
+         if (out.size() > 0) {
+             return Collections.min(out);
+         } else {
+             return 0L;
+         }
+        }else return 0L;
+        }
+
+     public int leadingZerosCount(String s){
+   int zeros=0;
+   for(int i=0;i<1 && i<s.length();i++) {
+      if(s.charAt(i)=='0')
+        zeros++;
+      else
+        break;
+   }
+   return zeros;
+}
+           
 }
