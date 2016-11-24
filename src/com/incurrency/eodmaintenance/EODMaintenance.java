@@ -4,6 +4,9 @@
  */
 package com.incurrency.eodmaintenance;
 
+import com.google.common.collect.MapDifference;
+import com.google.common.collect.MapDifference.ValueDifference;
+import com.google.common.collect.Sets.SetView;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.incurrency.framework.Algorithm;
@@ -26,6 +29,7 @@ import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
@@ -102,7 +106,8 @@ public class EODMaintenance {
         redisurl = properties.getProperty("redisurl", "127.0.0.1:6379:2");
         jPool = RedisConnect(redisurl.split(":")[0], Integer.valueOf(redisurl.split(":")[1]), Integer.valueOf(redisurl.split(":")[2]));
 
-        String nextExpiry = getNextExpiry(currentDay);
+        String nextExpiry = Utilities.getLastThursday(currentDay,"yyyyMMdd",0);
+        String secondExpiry=Utilities.getLastThursday(nextExpiry,"yyyyMMdd",1);
         File outputfile = new File("logs", f_IBSymbol);
         /*
          * Commented out the ability to create contractsize records
@@ -120,6 +125,8 @@ public class EODMaintenance {
         saveCNX500ToRedis();
         saveContractSizeToRedis(nextExpiry);
         saveStrikeDifferenceToRedis(nextExpiry);
+        saveContractSizeToRedis(secondExpiry);
+        saveStrikeDifferenceToRedis(secondExpiry);
 
 
         MainAlgorithm.setCloseDate(new Date());
@@ -178,6 +185,20 @@ public class EODMaintenance {
             }
             if (symbols.size() > 1000) {//Minimum threshold to confirm the IB website is up
                 if (!Utilities.equalMaps(symbols, allStocks)) {
+                    MapDifference<String,String> difference = com.google.common.collect.Maps.difference(symbols, allStocks);
+                    for(Map.Entry<String,String> entry:difference.entriesOnlyOnLeft().entrySet()){
+                       logger.log(Level.INFO,"All Symbols Entries in New Data,Key:{0},Value:{1}",new Object[]{entry.getKey(),entry.getValue()});
+                         
+                    }
+                    for(Map.Entry<String,String> entry:difference.entriesOnlyOnRight().entrySet()){
+                       logger.log(Level.INFO,"All Symbols Entries in Old Data,Key:{0},Value:{1}",new Object[]{entry.getKey(),entry.getValue()});
+                         
+                    }
+                    for(Map.Entry<String,ValueDifference<String>> entry:difference.entriesDiffering().entrySet()){
+                       logger.log(Level.INFO,"All Symbols ValueDifference,Key:{0},Value:{1}",new Object[]{entry.getValue().leftValue(),entry.getValue().rightValue()});
+                         
+                    }
+                    
                     for (Map.Entry<String, String> s : symbols.entrySet()) {
                         try (Jedis jedis = jPool.getResource()) {
                             jedis.hset("ibsymbols:" + today, s.getKey(), s.getValue());
@@ -207,6 +228,10 @@ public class EODMaintenance {
         }
         if (!newNifty.equals(nifty50)) {
             SimpleDateFormat sdf_yyyyMMdd = new SimpleDateFormat("yyyyMMdd");
+            SetView<String> difference = com.google.common.collect.Sets.difference(nifty50, newNifty);
+            logger.log(Level.INFO,"Nifty50 Entries in old data,{0}",new Object[]{Arrays.toString(difference.toArray())});
+            difference = com.google.common.collect.Sets.difference(newNifty,nifty50);
+            logger.log(Level.INFO,"Nifty50 Entries in new data,{0}",new Object[]{Arrays.toString(difference.toArray())});
             for (Object s : newNifty.toArray()) {
                 try (Jedis jedis = jPool.getResource()) {
                     jedis.sadd("nifty50:" + sdf_yyyyMMdd.format(new Date()), s.toString());
@@ -236,6 +261,10 @@ public class EODMaintenance {
         }
 
         if (!newCNX500.equals(cnx500)) {
+            SetView<String> difference = com.google.common.collect.Sets.difference(cnx500, newCNX500);
+            logger.log(Level.INFO,"CNX500 Entries in Old Data,{0}",new Object[]{Arrays.toString(difference.toArray())});
+            difference = com.google.common.collect.Sets.difference(newCNX500, cnx500);
+            logger.log(Level.INFO,"CNX500 Entries in New Data,{0}",new Object[]{Arrays.toString(difference.toArray())});
             SimpleDateFormat sdf_yyyyMMdd = new SimpleDateFormat("yyyyMMdd");
             for (Object s : newCNX500.toArray()) {
                 try (Jedis jedis = jPool.getResource()) {
@@ -295,6 +324,19 @@ public class EODMaintenance {
             }
         }
         if (!Utilities.equalMaps(newContractSize, contactSize)) {
+                      MapDifference<String,String> difference = com.google.common.collect.Maps.difference(newContractSize, contactSize);
+                    for(Map.Entry<String,String> entry:difference.entriesOnlyOnLeft().entrySet()){
+                       logger.log(Level.INFO,"ContractSize Entries in New Data,Key:{0},Value:{1}",new Object[]{entry.getKey(),entry.getValue()});
+                         
+                    }
+                    for(Map.Entry<String,String> entry:difference.entriesOnlyOnRight().entrySet()){
+                       logger.log(Level.INFO,"ContractSize Entries in Old Data,Key:{0},Value:{1}",new Object[]{entry.getKey(),entry.getValue()});
+                         
+                    }
+                    for(Map.Entry<String,ValueDifference<String>> entry:difference.entriesDiffering().entrySet()){
+                       logger.log(Level.INFO,"ContractSize ValueDifference,Key: {0},NewValue:{0},OldValue:{1}",new Object[]{entry.getKey(),entry.getValue().leftValue(),entry.getValue().rightValue()});
+                         
+                    }
             for (Map.Entry<String, String> entry : newContractSize.entrySet()) {
                 try (Jedis jedis = jPool.getResource()) {
                     jedis.hset("contractsize:" + expiry, entry.getKey(), entry.getValue());
@@ -309,19 +351,38 @@ public class EODMaintenance {
         Map<String, String> newStrikeDistance = new HashMap<>();
         long endTime = DateUtil.getFormattedDate(expiry, "yyyyMMdd", Algorithm.timeZone).getTime();
         endTime = endTime + 24 * 60 * 60 * 1000;
-        long startTime = endTime - 120 * 24 * 60 * 60 * 1000;
+        long diff=120L * 24 * 60 * 60 * 1000;
+        long startTime = endTime - diff;
 
         for (Map.Entry<String, String> fnosymbol : fnoSymbols.entrySet()) {
             //get strikes for expiry
-            List<String> strikes = getOptionStrikesFromKDB("91.121.168.138", 8085, fnosymbol.getKey(), expiry, startTime, endTime, "india.nse.option.s4.daily.settle");
-            if (strikes.size() >= 2) {
-                double distance = Utilities.getDouble(strikes.get(1), 0) - Utilities.getDouble(strikes.get(0), 0);
-                strikeDistance.put(fnosymbol.getKey(), Utilities.formatDouble(distance, new DecimalFormat("#.##")));
+            List<String> strikes = getOptionStrikesFromKDB("91.121.168.138", 8085, fnosymbol.getKey().toLowerCase(), expiry, startTime, endTime, "india.nse.option.s4.daily.settle");
+            if (strikes!=null && strikes.size() >= 3) {
+                List<Double>dstrikes=new ArrayList<>();
+                for(String s:strikes){
+                    dstrikes.add(Utilities.getDouble(s, 0));
+                }
+                Collections.sort(dstrikes);
+                double distance = dstrikes.get(2) - dstrikes.get(1);
+                newStrikeDistance.put(fnosymbol.getKey(), Utilities.formatDouble(distance, new DecimalFormat("#.##")));
             }
         }
 
         if (!Utilities.equalMaps(strikeDistance, newStrikeDistance)) {
-            for (Map.Entry<String, String> entry : strikeDistance.entrySet()) {
+                                 MapDifference<String,String> difference = com.google.common.collect.Maps.difference(newStrikeDistance, strikeDistance);
+                    for(Map.Entry<String,String> entry:difference.entriesOnlyOnLeft().entrySet()){
+                       logger.log(Level.INFO,"StrikeDistance Entries in New Data,Key:{0},Value:{1}",new Object[]{entry.getKey(),entry.getValue()});
+                         
+                    }
+                    for(Map.Entry<String,String> entry:difference.entriesOnlyOnRight().entrySet()){
+                       logger.log(Level.INFO,"StrikeDistance Entries in Old Data,Key:{0},Value:{1}",new Object[]{entry.getKey(),entry.getValue()});
+                         
+                    }
+                    for(Map.Entry<String,ValueDifference<String>> entry:difference.entriesDiffering().entrySet()){
+                       logger.log(Level.INFO,"StrikeDistance ValueDifference,Key:{0},Value:{1}",new Object[]{entry.getValue().leftValue(),entry.getValue().rightValue()});
+                         
+                    }
+            for (Map.Entry<String, String> entry : newStrikeDistance.entrySet()) {
                 try (Jedis jedis = jPool.getResource()) {
                     jedis.hset("strikedistance:" + expiry, entry.getKey(), entry.getValue());
                 }
@@ -337,6 +398,7 @@ public class EODMaintenance {
         return huc.getResponseCode();
     }
 
+   
     /**
      * Returns the next expiration date, given today's date.It assumes that the
      * program is run EOD, so the next expiration date is calculated after the
@@ -345,6 +407,7 @@ public class EODMaintenance {
      * @param currentDay
      * @return
      */
+    /*
     public String getNextExpiry(String currentDay) throws IOException, ParseException {
         SimpleDateFormat sdf_yyyMMdd = new SimpleDateFormat("yyyyMMdd");
         Date today = sdf_yyyMMdd.parse(currentDay);
@@ -353,7 +416,7 @@ public class EODMaintenance {
         int year = Utilities.getInt(currentDay.substring(0, 4), 0);
         int month = Utilities.getInt(currentDay.substring(4, 6), 0) - 1;//calendar month starts at 0
         Date expiry = getLastThursday(month, year);
-        expiry = Utilities.nextGoodDay(expiry, 0, Algorithm.timeZone, Algorithm.openHour, Algorithm.openMinute, Algorithm.closeHour, Algorithm.closeMinute, null, true);
+        expiry = Utilities.previousGoodDay(expiry, 0, Algorithm.timeZone, Algorithm.openHour, Algorithm.openMinute, Algorithm.closeHour, Algorithm.closeMinute, Algorithm.holidays, true);
         Calendar cal_expiry = Calendar.getInstance(TimeZone.getTimeZone(Algorithm.timeZone));
         cal_expiry.setTime(expiry);
         if (cal_expiry.get(Calendar.DAY_OF_MONTH) > cal_today.get(Calendar.DAY_OF_MONTH)) {
@@ -362,16 +425,16 @@ public class EODMaintenance {
             if (month == 11) {//we are in decemeber
                 //expiry will be at BOD, so we get the next month, till new month==0
                 while (month != 0) {
-                    expiry = Utilities.nextGoodDay(expiry, 24 * 60, Algorithm.timeZone, Algorithm.openHour, Algorithm.openMinute, Algorithm.closeHour, Algorithm.closeMinute, null, true);
+                    expiry = Utilities.nextGoodDay(expiry, 24 * 60, Algorithm.timeZone, Algorithm.openHour, Algorithm.openMinute, Algorithm.closeHour, Algorithm.closeMinute, Algorithm.holidays, true);
                     year = Utilities.getInt(sdf_yyyMMdd.format(expiry).substring(0, 4), 0);
                     month = Utilities.getInt(sdf_yyyMMdd.format(expiry).substring(4, 6), 0) - 1;//calendar month starts at 0
                 }
                 expiry = getLastThursday(month, year);
-                expiry = Utilities.nextGoodDay(expiry, 0, Algorithm.timeZone, Algorithm.openHour, Algorithm.openMinute, Algorithm.closeHour, Algorithm.closeMinute, null, true);
+                expiry = Utilities.previousGoodDay(expiry, 0, Algorithm.timeZone, Algorithm.openHour, Algorithm.openMinute, Algorithm.closeHour, Algorithm.closeMinute, Algorithm.holidays, true);
                 return sdf_yyyMMdd.format(expiry);
             } else {
                 expiry = getLastThursday(month + 1, year);
-                expiry = Utilities.nextGoodDay(expiry, 0, Algorithm.timeZone, Algorithm.openHour, Algorithm.openMinute, Algorithm.closeHour, Algorithm.closeMinute, null, true);
+                expiry = Utilities.previousGoodDay(expiry, 0, Algorithm.timeZone, Algorithm.openHour, Algorithm.openMinute, Algorithm.closeHour, Algorithm.closeMinute, Algorithm.holidays, true);
                 return sdf_yyyMMdd.format(expiry);
             }
         }
@@ -389,7 +452,7 @@ public class EODMaintenance {
         cal.set(GregorianCalendar.DAY_OF_WEEK_IN_MONTH, -1);
         return cal.getTime();
     }
-
+*/
     public void printToFile(List<BeanSymbol> symbolList, String fileName, boolean printLastLine) {
         for (int i = 0; i < symbolList.size(); i++) {
             symbolList.get(i).setSerialno(i + 1);
@@ -642,7 +705,7 @@ public class EODMaintenance {
                 null,
                 null,
                 null,
-                String.valueOf(endTime - 120 * 24 * 60 * 60 * 1000),
+                String.valueOf(endTime - 120L * 24 * 60 * 60 * 1000),
                 String.valueOf(endTime), -1, null);
         Gson gson = new GsonBuilder().create();
         String json_string = gson.toJson(request);
@@ -685,6 +748,8 @@ public class EODMaintenance {
     public Map<String, String> loadContractSizesFromRedis() {
         String cursor = "";
         String shortlistedkey = "";
+         int today=Integer.valueOf(DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone)));
+         int date=0;
         while (!cursor.equals("0")) {
             cursor = cursor.equals("") ? "0" : cursor;
             try (Jedis jedis = jPool.getResource()) {
@@ -692,13 +757,13 @@ public class EODMaintenance {
                 cursor = s.getCursor();
                 for (Object key : s.getResult()) {
                     if (key.toString().contains("contractsize")) {
-                        if (shortlistedkey.equals("")) {
+                        if (shortlistedkey.equals("")&& Integer.valueOf(key.toString().split(":")[1])<today) {
                             shortlistedkey = key.toString();
                         } else {
-                            int date = Integer.valueOf(shortlistedkey.split(":")[1]);
                             int newdate = Integer.valueOf(key.toString().split(":")[1]);
-                            if (newdate < Integer.valueOf(DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone)))) {
+                            if (newdate>date && newdate < Integer.valueOf(DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone)))) {
                                 shortlistedkey = key.toString();//replace with latest nifty setup
+                                date = Integer.valueOf(shortlistedkey.split(":")[1]);
                             }
                         }
                     }
@@ -715,20 +780,23 @@ public class EODMaintenance {
     public Map<String, String> loadStrikeDistanceFromRedis() {
         String cursor = "";
         String shortlistedkey = "";
-        while (!cursor.equals("0")) {
+         int today=Integer.valueOf(DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone)));
+        int date=0;
+         while (!cursor.equals("0")) {
             cursor = cursor.equals("") ? "0" : cursor;
             try (Jedis jedis = jPool.getResource()) {
                 ScanResult s = jedis.scan(cursor);
                 cursor = s.getCursor();
                 for (Object key : s.getResult()) {
                     if (key.toString().contains("strikedistance")) {
-                        if (shortlistedkey.equals("")) {
+                        if (shortlistedkey.equals("")&& Integer.valueOf(key.toString().split(":")[1])<today) {
                             shortlistedkey = key.toString();
                         } else {
-                            int date = Integer.valueOf(shortlistedkey.split(":")[1]);
                             int newdate = Integer.valueOf(key.toString().split(":")[1]);
-                            if (newdate < Integer.valueOf(DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone)))) {
+                            if (newdate>date && newdate < Integer.valueOf(DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone)))) {
                                 shortlistedkey = key.toString();//replace with latest nifty setup
+                                date = Integer.valueOf(shortlistedkey.split(":")[1]);
+                            
                             }
                         }
                     }
@@ -745,6 +813,8 @@ public class EODMaintenance {
     public Set<String> loadCNX500StocksFromRedis() {
         String cursor = "";
         String shortlistedkey = "";
+        int today=Integer.valueOf(DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone)));
+        int date=0;
         while (!cursor.equals("0")) {
             cursor = cursor.equals("") ? "0" : cursor;
             try (Jedis jedis = jPool.getResource()) {
@@ -752,13 +822,13 @@ public class EODMaintenance {
                 cursor = s.getCursor();
                 for (Object key : s.getResult()) {
                     if (key.toString().contains("cnx500")) {
-                        if (shortlistedkey.equals("")) {
+                        if (shortlistedkey.equals("")&& Integer.valueOf(key.toString().split(":")[1])<today) {
                             shortlistedkey = key.toString();
                         } else {
-                            int date = Integer.valueOf(shortlistedkey.split(":")[1]);
                             int newdate = Integer.valueOf(key.toString().split(":")[1]);
-                            if (newdate <= Integer.valueOf(DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone)))) {
+                            if (newdate>date && newdate < Integer.valueOf(DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone)))) {
                                 shortlistedkey = key.toString();//replace with latest nifty setup
+                               date = Integer.valueOf(shortlistedkey.split(":")[1]);
                             }
                         }
                     }
@@ -775,20 +845,22 @@ public class EODMaintenance {
     public Set<String> loadNifty50StocksFromRedis() {
         String cursor = "";
         String shortlistedkey = "";
-        while (!cursor.equals("0")) {
+         int today=Integer.valueOf(DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone)));
+        int date=0;
+         while (!cursor.equals("0")) {
             cursor = cursor.equals("") ? "0" : cursor;
             try (Jedis jedis = jPool.getResource()) {
                 ScanResult s = jedis.scan(cursor);
                 cursor = s.getCursor();
                 for (Object key : s.getResult()) {
                     if (key.toString().contains("nifty50")) {
-                        if (shortlistedkey.equals("")) {
+                        if (shortlistedkey.equals("")&& Integer.valueOf(key.toString().split(":")[1])<today) {
                             shortlistedkey = key.toString();
                         } else {
-                            int date = Integer.valueOf(shortlistedkey.split(":")[1]);
                             int newdate = Integer.valueOf(key.toString().split(":")[1]);
-                            if (newdate < Integer.valueOf(DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone)))) {
+                            if (newdate>date && newdate < Integer.valueOf(DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone)))) {
                                 shortlistedkey = key.toString();//replace with latest nifty setup
+                            date = Integer.valueOf(shortlistedkey.split(":")[1]);
                             }
                         }
                     }
@@ -806,20 +878,22 @@ public class EODMaintenance {
     public Map<String, String> loadAllStocksFromRedis() {
         String cursor = "";
         String shortlistedkey = "";
-        while (!cursor.equals("0")) {
+         int today=Integer.valueOf(DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone)));
+        int date=0;
+         while (!cursor.equals("0")) {
             cursor = cursor.equals("") ? "0" : cursor;
             try (Jedis jedis = jPool.getResource()) {
                 ScanResult s = jedis.scan(cursor);
                 cursor = s.getCursor();
                 for (Object key : s.getResult()) {
                     if (key.toString().contains("ibsymbols")) {
-                        if (shortlistedkey.equals("")) {
+                        if (shortlistedkey.equals("")&& Integer.valueOf(key.toString().split(":")[1])<today) {
                             shortlistedkey = key.toString();
                         } else {
-                            int date = Integer.valueOf(shortlistedkey.split(":")[1]);
                             int newdate = Integer.valueOf(key.toString().split(":")[1]);
-                            if (newdate <= Integer.valueOf(DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone)))) {
+                            if (newdate>date && newdate < Integer.valueOf(DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone)))) {
                                 shortlistedkey = key.toString();//replace with latest nifty setup
+                            date = Integer.valueOf(shortlistedkey.split(":")[1]);
                             }
                         }
                     }

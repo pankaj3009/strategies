@@ -82,10 +82,10 @@ public class Manager extends Strategy {
         //expiryNearMonth = p.getProperty("NearMonthExpiry").toString().trim();
         //expiryFarMonth = p.getProperty("FarMonthExpiry").toString().trim();
         String today=DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone));
-        expiryNearMonth=Utilities.getNextExpiry(today);
+        expiryNearMonth=Utilities.getLastThursday(today,"yyyyMMdd",0);
         Date dtExpiry=DateUtil.parseDate("yyyyMMdd", expiryNearMonth, timeZone);
         String expiryplus=DateUtil.getFormatedDate("yyyyMMdd", DateUtil.addDays(dtExpiry, 1).getTime(), TimeZone.getTimeZone(Algorithm.timeZone));
-        expiryFarMonth=Utilities.getNextExpiry(expiryplus);
+        expiryFarMonth=Utilities.getLastThursday(expiryplus,"yyyyMMdd",0);
         referenceCashType = p.getProperty("ReferenceCashType", "STK").toString().trim();
         rServerIP = p.getProperty("RServerIP").toString().trim();
         securityType = p.getProperty("SecurityType", "PASSTHROUGH");
