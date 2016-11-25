@@ -759,6 +759,7 @@ public class EODMaintenance {
                     if (key.toString().contains("contractsize")) {
                         if (shortlistedkey.equals("")&& Integer.valueOf(key.toString().split(":")[1])<today) {
                             shortlistedkey = key.toString();
+                            date = Integer.valueOf(shortlistedkey.split(":")[1]);
                         } else {
                             int newdate = Integer.valueOf(key.toString().split(":")[1]);
                             if (newdate>date && newdate < Integer.valueOf(DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone)))) {
@@ -791,6 +792,7 @@ public class EODMaintenance {
                     if (key.toString().contains("strikedistance")) {
                         if (shortlistedkey.equals("")&& Integer.valueOf(key.toString().split(":")[1])<today) {
                             shortlistedkey = key.toString();
+                            date = Integer.valueOf(shortlistedkey.split(":")[1]);
                         } else {
                             int newdate = Integer.valueOf(key.toString().split(":")[1]);
                             if (newdate>date && newdate < Integer.valueOf(DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone)))) {
@@ -824,6 +826,7 @@ public class EODMaintenance {
                     if (key.toString().contains("cnx500")) {
                         if (shortlistedkey.equals("")&& Integer.valueOf(key.toString().split(":")[1])<today) {
                             shortlistedkey = key.toString();
+                             date = Integer.valueOf(shortlistedkey.split(":")[1]);
                         } else {
                             int newdate = Integer.valueOf(key.toString().split(":")[1]);
                             if (newdate>date && newdate < Integer.valueOf(DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone)))) {
@@ -856,6 +859,7 @@ public class EODMaintenance {
                     if (key.toString().contains("nifty50")) {
                         if (shortlistedkey.equals("")&& Integer.valueOf(key.toString().split(":")[1])<today) {
                             shortlistedkey = key.toString();
+                            date = Integer.valueOf(shortlistedkey.split(":")[1]);
                         } else {
                             int newdate = Integer.valueOf(key.toString().split(":")[1]);
                             if (newdate>date && newdate < Integer.valueOf(DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone)))) {
@@ -889,6 +893,7 @@ public class EODMaintenance {
                     if (key.toString().contains("ibsymbols")) {
                         if (shortlistedkey.equals("")&& Integer.valueOf(key.toString().split(":")[1])<today) {
                             shortlistedkey = key.toString();
+                            date = Integer.valueOf(shortlistedkey.split(":")[1]);
                         } else {
                             int newdate = Integer.valueOf(key.toString().split(":")[1]);
                             if (newdate>date && newdate < Integer.valueOf(DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone)))) {
