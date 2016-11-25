@@ -63,7 +63,6 @@ public class EODMaintenance {
     private Map<String, String> symbols = new HashMap<>();
     private static final Logger logger = Logger.getLogger(EODMaintenance.class.getName());
     private Set<String> nifty50 = new HashSet<>();
-    private Map<String, String> contactSize = new HashMap<>();
     private Map<String, String> allStocks = new HashMap<>();
     private Set<String> cnx500 = new HashSet<>();
     private String fnolotsizeurl;
@@ -105,7 +104,7 @@ public class EODMaintenance {
         ibsymbolurl = properties.getProperty("ibsymbolurl");
         redisurl = properties.getProperty("redisurl", "127.0.0.1:6379:2");
         jPool = RedisConnect(redisurl.split(":")[0], Integer.valueOf(redisurl.split(":")[1]), Integer.valueOf(redisurl.split(":")[2]));
-
+        
         String nextExpiry = Utilities.getLastThursday(currentDay,"yyyyMMdd",0);
         String secondExpiry=Utilities.getLastThursday(nextExpiry,"yyyyMMdd",1);
         File outputfile = new File("logs", f_IBSymbol);
@@ -115,7 +114,6 @@ public class EODMaintenance {
         //createFNOContractSizeRecords(0,new Date().getTime());
 //        if (!outputfile.exists()) {
         nifty50 = this.loadNifty50StocksFromRedis();
-        contactSize = this.loadContractSizesFromRedis();
         cnx500 = this.loadCNX500StocksFromRedis();
         allStocks = this.loadAllStocksFromRedis();
         //save all symbols to redis
@@ -323,8 +321,9 @@ public class EODMaintenance {
                 }
             }
         }
-        if (!Utilities.equalMaps(newContractSize, contactSize)) {
-                      MapDifference<String,String> difference = com.google.common.collect.Maps.difference(newContractSize, contactSize);
+        Map<String,String>contractSize=this.loadContractSizesFromRedis(expiry);
+        if (!Utilities.equalMaps(newContractSize, contractSize)) {
+                      MapDifference<String,String> difference = com.google.common.collect.Maps.difference(newContractSize, contractSize);
                     for(Map.Entry<String,String> entry:difference.entriesOnlyOnLeft().entrySet()){
                        logger.log(Level.INFO,"ContractSize Entries in New Data,Key:{0},Value:{1}",new Object[]{entry.getKey(),entry.getValue()});
                          
@@ -346,8 +345,8 @@ public class EODMaintenance {
     }
 
     public void saveStrikeDifferenceToRedis(String expiry) throws IOException, ParseException {
-        Map<String, String> fnoSymbols = this.loadContractSizesFromRedis();
-        Map<String, String> strikeDistance = loadStrikeDistanceFromRedis();
+        Map<String, String> fnoSymbols = this.loadContractSizesFromRedis(expiry);
+        Map<String, String> strikeDistance = loadStrikeDistanceFromRedis(expiry);
         Map<String, String> newStrikeDistance = new HashMap<>();
         long endTime = DateUtil.getFormattedDate(expiry, "yyyyMMdd", Algorithm.timeZone).getTime();
         endTime = endTime + 24 * 60 * 60 * 1000;
@@ -745,32 +744,8 @@ public class EODMaintenance {
         return zeros;
     }
 
-    public Map<String, String> loadContractSizesFromRedis() {
-        String cursor = "";
-        String shortlistedkey = "";
-         int today=Integer.valueOf(DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone)));
-         int date=0;
-        while (!cursor.equals("0")) {
-            cursor = cursor.equals("") ? "0" : cursor;
-            try (Jedis jedis = jPool.getResource()) {
-                ScanResult s = jedis.scan(cursor);
-                cursor = s.getCursor();
-                for (Object key : s.getResult()) {
-                    if (key.toString().contains("contractsize")) {
-                        if (shortlistedkey.equals("")&& Integer.valueOf(key.toString().split(":")[1])<today) {
-                            shortlistedkey = key.toString();
-                            date = Integer.valueOf(shortlistedkey.split(":")[1]);
-                        } else {
-                            int newdate = Integer.valueOf(key.toString().split(":")[1]);
-                            if (newdate>date && newdate < Integer.valueOf(DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone)))) {
-                                shortlistedkey = key.toString();//replace with latest nifty setup
-                                date = Integer.valueOf(shortlistedkey.split(":")[1]);
-                            }
-                        }
-                    }
-                }
-            }
-        }
+    public Map<String, String> loadContractSizesFromRedis(String expiry) {
+        String shortlistedkey=Utilities.getShorlistedKey(jPool, "contractsize", expiry);
         Map<String, String> contractSizes = new HashMap<>();
         try (Jedis jedis = jPool.getResource()) {
             contractSizes = jedis.hgetAll(shortlistedkey);
@@ -778,33 +753,8 @@ public class EODMaintenance {
         return contractSizes;
     }
 
-    public Map<String, String> loadStrikeDistanceFromRedis() {
-        String cursor = "";
-        String shortlistedkey = "";
-         int today=Integer.valueOf(DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone)));
-        int date=0;
-         while (!cursor.equals("0")) {
-            cursor = cursor.equals("") ? "0" : cursor;
-            try (Jedis jedis = jPool.getResource()) {
-                ScanResult s = jedis.scan(cursor);
-                cursor = s.getCursor();
-                for (Object key : s.getResult()) {
-                    if (key.toString().contains("strikedistance")) {
-                        if (shortlistedkey.equals("")&& Integer.valueOf(key.toString().split(":")[1])<today) {
-                            shortlistedkey = key.toString();
-                            date = Integer.valueOf(shortlistedkey.split(":")[1]);
-                        } else {
-                            int newdate = Integer.valueOf(key.toString().split(":")[1]);
-                            if (newdate>date && newdate < Integer.valueOf(DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone)))) {
-                                shortlistedkey = key.toString();//replace with latest nifty setup
-                                date = Integer.valueOf(shortlistedkey.split(":")[1]);
-                            
-                            }
-                        }
-                    }
-                }
-            }
-        }
+    public Map<String, String> loadStrikeDistanceFromRedis(String expiry) {
+        String shortlistedkey=Utilities.getShorlistedKey(jPool, "strikedistance", expiry);
         Map<String, String> strikeDistance = new HashMap<>();
         try (Jedis jedis = jPool.getResource()) {
             strikeDistance = jedis.hgetAll(shortlistedkey);
@@ -813,31 +763,8 @@ public class EODMaintenance {
     }
 
     public Set<String> loadCNX500StocksFromRedis() {
-        String cursor = "";
-        String shortlistedkey = "";
-        int today=Integer.valueOf(DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone)));
-        int date=0;
-        while (!cursor.equals("0")) {
-            cursor = cursor.equals("") ? "0" : cursor;
-            try (Jedis jedis = jPool.getResource()) {
-                ScanResult s = jedis.scan(cursor);
-                cursor = s.getCursor();
-                for (Object key : s.getResult()) {
-                    if (key.toString().contains("cnx500")) {
-                        if (shortlistedkey.equals("")&& Integer.valueOf(key.toString().split(":")[1])<today) {
-                            shortlistedkey = key.toString();
-                             date = Integer.valueOf(shortlistedkey.split(":")[1]);
-                        } else {
-                            int newdate = Integer.valueOf(key.toString().split(":")[1]);
-                            if (newdate>date && newdate < Integer.valueOf(DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone)))) {
-                                shortlistedkey = key.toString();//replace with latest nifty setup
-                               date = Integer.valueOf(shortlistedkey.split(":")[1]);
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        String today=DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone));
+        String shortlistedkey=Utilities.getShorlistedKey(jPool, "cnx500", today);
         Set<String> niftySymbols = new HashSet<>();
         try (Jedis jedis = jPool.getResource()) {
             niftySymbols = jedis.smembers(shortlistedkey);
@@ -846,31 +773,8 @@ public class EODMaintenance {
     }
 
     public Set<String> loadNifty50StocksFromRedis() {
-        String cursor = "";
-        String shortlistedkey = "";
-         int today=Integer.valueOf(DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone)));
-        int date=0;
-         while (!cursor.equals("0")) {
-            cursor = cursor.equals("") ? "0" : cursor;
-            try (Jedis jedis = jPool.getResource()) {
-                ScanResult s = jedis.scan(cursor);
-                cursor = s.getCursor();
-                for (Object key : s.getResult()) {
-                    if (key.toString().contains("nifty50")) {
-                        if (shortlistedkey.equals("")&& Integer.valueOf(key.toString().split(":")[1])<today) {
-                            shortlistedkey = key.toString();
-                            date = Integer.valueOf(shortlistedkey.split(":")[1]);
-                        } else {
-                            int newdate = Integer.valueOf(key.toString().split(":")[1]);
-                            if (newdate>date && newdate < Integer.valueOf(DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone)))) {
-                                shortlistedkey = key.toString();//replace with latest nifty setup
-                            date = Integer.valueOf(shortlistedkey.split(":")[1]);
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        String today=DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone));
+        String shortlistedkey=Utilities.getShorlistedKey(jPool, "nifty50", today);
         Set<String> niftySymbols = new HashSet<>();
         try (Jedis jedis = jPool.getResource()) {
             niftySymbols = jedis.smembers(shortlistedkey);
@@ -880,31 +784,8 @@ public class EODMaintenance {
     }
 
     public Map<String, String> loadAllStocksFromRedis() {
-        String cursor = "";
-        String shortlistedkey = "";
-         int today=Integer.valueOf(DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone)));
-        int date=0;
-         while (!cursor.equals("0")) {
-            cursor = cursor.equals("") ? "0" : cursor;
-            try (Jedis jedis = jPool.getResource()) {
-                ScanResult s = jedis.scan(cursor);
-                cursor = s.getCursor();
-                for (Object key : s.getResult()) {
-                    if (key.toString().contains("ibsymbols")) {
-                        if (shortlistedkey.equals("")&& Integer.valueOf(key.toString().split(":")[1])<today) {
-                            shortlistedkey = key.toString();
-                            date = Integer.valueOf(shortlistedkey.split(":")[1]);
-                        } else {
-                            int newdate = Integer.valueOf(key.toString().split(":")[1]);
-                            if (newdate>date && newdate < Integer.valueOf(DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone)))) {
-                                shortlistedkey = key.toString();//replace with latest nifty setup
-                            date = Integer.valueOf(shortlistedkey.split(":")[1]);
-                            }
-                        }
-                    }
-                }
-            }
-        }
+          String today=DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone));
+        String shortlistedkey=Utilities.getShorlistedKey(jPool, "ibsymbols", today);
         Map<String, String> allSymbols = new HashMap<>();
         try (Jedis jedis = jPool.getResource()) {
             allSymbols = jedis.hgetAll(shortlistedkey);
