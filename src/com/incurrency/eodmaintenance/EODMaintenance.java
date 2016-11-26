@@ -65,9 +65,11 @@ public class EODMaintenance {
     private Set<String> nifty50 = new HashSet<>();
     private Map<String, String> allStocks = new HashMap<>();
     private Set<String> cnx500 = new HashSet<>();
+    private Set<String> sme = new HashSet<>();
     private String fnolotsizeurl;
     private String cnx500url;
     private String niftyurl;
+    private String smeurl;
     private String f_Strikes;
     private String currentDay;
     private String f_HistoricalFutures;
@@ -93,6 +95,7 @@ public class EODMaintenance {
         fnolotsizeurl = properties.getProperty("fnolotsizeurl", "http://www.nseindia.com/content/fo/fo_mktlots.csv").toString().trim();
         cnx500url = properties.getProperty("cnx500url", "https://nseindia.com/content/indices/ind_nifty500list.csv").toString().trim();
         niftyurl = properties.getProperty("niftyurl", "http://www.nseindia.com/content/indices/ind_niftylist.csv").toString().trim();
+        smeurl = properties.getProperty("smeurl", "https://www.nseindia.com/emerge/corporates/content/SME_EQUITY_L.csv").toString().trim();
         f_Strikes = properties.getProperty("filestrike", "sos_scheme.csv").toString().trim();
         currentDay = properties.getProperty("currentday", sdf_yyyyMMdd.format(Calendar.getInstance(TimeZone.getTimeZone(Algorithm.timeZone)).getTime()));
         f_HistoricalFutures = properties.getProperty("filenamehistoricalfutures");
@@ -116,7 +119,9 @@ public class EODMaintenance {
         nifty50 = this.loadNifty50StocksFromRedis();
         cnx500 = this.loadCNX500StocksFromRedis();
         allStocks = this.loadAllStocksFromRedis();
+        sme=this.loadSMEStocksFromRedis();
         //save all symbols to redis
+        this.saveSMEToRedis();
         saveAllSymbols(ibsymbolurl);
         //save nifty index data to redis
         saveNifty50ToRedis();
@@ -182,6 +187,10 @@ public class EODMaintenance {
                 }
             }
             if (symbols.size() > 1000) {//Minimum threshold to confirm the IB website is up
+                Set<String>newSME=this.loadSMEStocksFromRedis();
+                for(String s:newSME){
+                    symbols.remove(s);
+                }
                 if (!Utilities.equalMaps(symbols, allStocks)) {
                     MapDifference<String,String> difference = com.google.common.collect.Maps.difference(symbols, allStocks);
                     for(Map.Entry<String,String> entry:difference.entriesOnlyOnLeft().entrySet()){
@@ -267,6 +276,40 @@ public class EODMaintenance {
             for (Object s : newCNX500.toArray()) {
                 try (Jedis jedis = jPool.getResource()) {
                     jedis.sadd("cnx500:" + sdf_yyyyMMdd.format(new Date()), s.toString());
+                }
+            }
+
+        }
+
+    }
+    
+    public void saveSMEToRedis() throws IOException {
+        Set<String> newSME = new HashSet<>();
+        if (getResponseCode(smeurl) != 404) {
+            URL SMEURL = new URL(smeurl);
+            BufferedReader in = new BufferedReader(new InputStreamReader(SMEURL.openStream()));
+            int i = 0;
+            int j = 0;
+            String line;
+            while ((line = in.readLine()) != null) {
+                j = j + 1;
+                if (j > 1) {//skip first row
+                    String[] input = line.split(",");
+                    String exchangeSymbol = input[0].trim().toUpperCase();//1st column of nse file
+                    newSME.add(exchangeSymbol);
+                }
+            }
+        }
+
+        if (!newSME.equals(sme)) {
+            SetView<String> difference = com.google.common.collect.Sets.difference(sme, newSME);
+            logger.log(Level.INFO,"SME Entries in Old Data,{0}",new Object[]{Arrays.toString(difference.toArray())});
+            difference = com.google.common.collect.Sets.difference(newSME, sme);
+            logger.log(Level.INFO,"SME Entries in New Data,{0}",new Object[]{Arrays.toString(difference.toArray())});
+            SimpleDateFormat sdf_yyyyMMdd = new SimpleDateFormat("yyyyMMdd");
+            for (Object s : newSME.toArray()) {
+                try (Jedis jedis = jPool.getResource()) {
+                    jedis.sadd("smesymbols:" + sdf_yyyyMMdd.format(new Date()), s.toString());
                 }
             }
 
@@ -792,4 +835,16 @@ public class EODMaintenance {
         }
         return allSymbols;
     }
+    
+      public Set<String> loadSMEStocksFromRedis() {
+          String today=DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone));
+        String shortlistedkey=Utilities.getShorlistedKey(jPool, "smesymbols", today);
+        Set<String> allSymbols = new HashSet<>();
+        try (Jedis jedis = jPool.getResource()) {
+            allSymbols = jedis.smembers(shortlistedkey);
+        }
+        return allSymbols;
+    }
 }
+
+
