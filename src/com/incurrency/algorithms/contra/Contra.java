@@ -41,7 +41,9 @@ public class Contra extends Manager {
         super(m, p, parameterFile, accounts, stratCount,"contra");
         Timer trigger = new Timer("Timer: " + this.getStrategy() + " RScriptProcessor");
         trigger.schedule(RScriptRunTask, RScriptRunTime);
-            if (rollover) {
+        boolean contractRollover = Utilities.rolloverDay(Math.max(1,rolloverDays-2), this.getStartDate(), this.expiryNearMonth);
+            
+        if (contractRollover) {
             Timer rollProcessing = new Timer("Timer: " + this.getStrategy() + " RollProcessing");
             rollProcessing.schedule(rollProcessingTask, DateUtil.addSeconds(RScriptRunTime, 60));
         }
