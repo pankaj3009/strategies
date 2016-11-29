@@ -379,9 +379,9 @@ public class EODMaintenance {
                        logger.log(Level.INFO,"ContractSize ValueDifference,Key: {0},NewValue:{0},OldValue:{1}",new Object[]{entry.getKey(),entry.getValue().leftValue(),entry.getValue().rightValue()});
                          
                     }
-                    try (Jedis jedis = jPool.getResource()) {
-                        jedis.del("contractsize:"+expiry);
-                    }
+//                    try (Jedis jedis = jPool.getResource()) {
+//                        jedis.del("contractsize:"+expiry);
+//                    }
             for (Map.Entry<String, String> entry : newContractSize.entrySet()) {
                 try (Jedis jedis = jPool.getResource()) {
                     jedis.hset("contractsize:" + expiry, entry.getKey(), entry.getValue());
@@ -427,9 +427,9 @@ public class EODMaintenance {
                        logger.log(Level.INFO,"StrikeDistance ValueDifference,Key:{0},Value:{1}",new Object[]{entry.getValue().leftValue(),entry.getValue().rightValue()});
                          
                     }
-                    try (Jedis jedis = jPool.getResource()) {
-                        jedis.del("strikedistance:"+expiry);
-                    }
+//                    try (Jedis jedis = jPool.getResource()) {
+//                        jedis.del("strikedistance:"+expiry);
+//                    }
             for (Map.Entry<String, String> entry : newStrikeDistance.entrySet()) {
                 try (Jedis jedis = jPool.getResource()) {
                     jedis.hset("strikedistance:" + expiry, entry.getKey(), entry.getValue());
