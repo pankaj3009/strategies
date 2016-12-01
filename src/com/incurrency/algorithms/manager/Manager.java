@@ -295,7 +295,8 @@ public class Manager extends Strategy {
                      * IF initpositionsize=200, actualpositionsize=100, we set a SELL of 200, comp=100, size=abs(-200+100)=100
                      */
                     int compensation = initPositionSize - actualPositionSize;
-                    size = (derivedSide == EnumOrderSide.BUY || derivedSide == EnumOrderSide.COVER) ? size + compensation : Math.abs(-size + compensation);
+                  //  size = (derivedSide == EnumOrderSide.BUY || derivedSide == EnumOrderSide.COVER) ? size + compensation : Math.abs(-size + compensation);
+                    size = (derivedSide == EnumOrderSide.BUY || derivedSide == EnumOrderSide.COVER) ? size + compensation : -size + compensation;
                     /*
                      * IF initpositionsize = 100, actual positionsize=0, we get a buy of 100. comp=100, size=200
                      * IF initpositionsize=0, actualpositionsize=100, we get buy of 100, comp=-100, size=0, probably a duplicate trade
