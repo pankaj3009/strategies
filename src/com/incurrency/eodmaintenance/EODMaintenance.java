@@ -106,6 +106,7 @@ public class EODMaintenance {
         f_IBSymbol = properties.getProperty("fileibsymbol");
         ibsymbolurl = properties.getProperty("ibsymbolurl");
         redisurl = properties.getProperty("redisurl", "127.0.0.1:6379:2");
+        int rowsToSkipFNO=Integer.valueOf(properties.getProperty("RowsToSkipFNO", "12"));
         jPool = RedisConnect(redisurl.split(":")[0], Integer.valueOf(redisurl.split(":")[1]), Integer.valueOf(redisurl.split(":")[2]));
         
         String nextExpiry = Utilities.getLastThursday(currentDay,"yyyyMMdd",0);
@@ -126,9 +127,9 @@ public class EODMaintenance {
         //save nifty index data to redis
         saveNifty50ToRedis();
         saveCNX500ToRedis();
-        saveContractSizeToRedis(nextExpiry);
+        saveContractSizeToRedis(nextExpiry,rowsToSkipFNO);
         saveStrikeDifferenceToRedis(nextExpiry);
-        saveContractSizeToRedis(secondExpiry);
+        saveContractSizeToRedis(secondExpiry,rowsToSkipFNO);
         saveStrikeDifferenceToRedis(secondExpiry);
 
 
@@ -317,9 +318,8 @@ public class EODMaintenance {
 
     }
 
-    public void saveContractSizeToRedis(String expiry) throws IOException, ParseException {
+    public void saveContractSizeToRedis(String expiry,int rowsToSkipFNO) throws IOException, ParseException {
         Map<String, String> newContractSize = new HashMap<>();
-        int rowsToSkipFNO = 11;
         SimpleDateFormat sdf_formatInFile1 = new SimpleDateFormat("MMM-yy");
         SimpleDateFormat sdf_formatInFile2 = new SimpleDateFormat("yy-MMM");
         SimpleDateFormat sdf_yyyyMMdd = new SimpleDateFormat("yyyyMMdd");
