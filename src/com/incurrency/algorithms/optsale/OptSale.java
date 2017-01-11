@@ -291,13 +291,13 @@ public class OptSale extends Manager implements TradeListener {
                         int actualPositionSize = Utilities.getNetPosition(Parameters.symbol, getPosition(), i, "OPT");
                         if (Math.abs(actualPositionSize) < maxPositionSize) {
                             String redisOut = Parameters.symbol.get(i).getDisplayname() + ":" + getNumberOfContracts() + ":SHORT" + ":0:" + actualPositionSize;
-                            logger.log(Level.INFO, "102,Trades published to Redis,{0}:{1}:{2}:{3}:{4},StringPublishedToRedis:{5}",
-                                    new Object[]{getStrategy(), "Order", Parameters.symbol.get(i).getDisplayname(), -1, -1, redisOut});
+                            logger.log(Level.INFO, "102,Trades published to Redis,{0}:{1}:{2}:{3}:{4},StringPublishedToRedis:{5},MaxPositionSize:{6}",
+                                    new Object[]{getStrategy(), "Order", Parameters.symbol.get(i).getDisplayname(), -1, -1, redisOut,String.valueOf(maxPositionSize)});
                             db.lpush("trades:" + getStrategy(), redisOut);
                         } else {
-                            logger.log(Level.INFO, "101,Position Limit. No Orders Placed,{0}:{1}:{2}:{3}:{4},PositionSize:{5}",
+                            logger.log(Level.INFO, "101,Position Limit. No Orders Placed,{0}:{1}:{2}:{3}:{4},PositionSize:{5},MaxPositionSize:{6}",
                                     new Object[]{getStrategy(), "Order",
-                                Parameters.symbol.get(i).getDisplayname(), -1, -1, actualPositionSize});
+                                Parameters.symbol.get(i).getDisplayname(), -1, -1, String.valueOf(actualPositionSize),String.valueOf(maxPositionSize)});
                         }
                     }
                 } else {
@@ -370,7 +370,17 @@ public class OptSale extends Manager implements TradeListener {
         historicalVol = Utilities.getDouble(p.getProperty("HistoricalVol", "0.7"), 0.7);
         margin = Utilities.getDouble(p.getProperty("Margin", "0.10"), 0.10);
         maxPositionSize = Utilities.getInt(p.getProperty("MaxPositionSize", "0"), 0);
-
+        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "IndexDisplayName" + delimiter + indexDisplayName});
+        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "AvgMovePerDayEntry" + delimiter + avgMovePerDayEntry});
+        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "AvgMovePerDayExit" + delimiter + avgMovePerDayExit});
+        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "ThresholdReturnEntry" + delimiter + thresholdReturnEntry});
+        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "ThresholdReturnExit" + delimiter + thresholdReturnExit});
+        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "HistoricalVol" + delimiter + historicalVol});
+        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "Margin" + delimiter + margin});
+        logger.log(Level.INFO, "100,StrategyParameters,{0}", new Object[]{getStrategy() + delimiter + "MaxPositionSize" + delimiter + maxPositionSize});
+      
+        
+        
     }
 
     @Override
