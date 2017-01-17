@@ -55,6 +55,7 @@ public class Manager extends Strategy {
     public String optionSystem;
     public Boolean scaleEntry = Boolean.FALSE;
     public Boolean scaleExit = Boolean.FALSE;
+    public Boolean aggregatePositions=Boolean.TRUE;
 
     private static final Logger logger = Logger.getLogger(Manager.class.getName());
 
@@ -91,6 +92,7 @@ public class Manager extends Strategy {
         securityType = p.getProperty("SecurityType", "PASSTHROUGH");
         optionPricingUsingFutures = Boolean.valueOf(p.getProperty("OptionPricingUsingFutures", "TRUE"));
         optionSystem = p.getProperty("OptionSystem", "PAY");
+        aggregatePositions=Boolean.valueOf(p.getProperty("AggregatePositions","True"));
         String entryScanTime = p.getProperty("ScanStartTime");
         Calendar calToday = Calendar.getInstance(TimeZone.getTimeZone(Algorithm.timeZone));
         String[] entryTimeComponents = entryScanTime.split(":");
@@ -294,8 +296,20 @@ public class Manager extends Strategy {
                      * IF initpositionsize=-100,actualpositionsize=0, we get a short of 100,should be short, but are not, comp=-100,size=abs(-100-100)=200
                      * IF initpositionsize=200, actualpositionsize=100, we set a SELL of 200, comp=100, size=abs(-200+100)=100
                      */
-                    int compensation = initPositionSize - actualPositionSize;
-                    size = (derivedSide == EnumOrderSide.BUY || derivedSide == EnumOrderSide.COVER) ? size + compensation : Math.abs(-size + compensation);
+                    if(aggregatePositions){
+                        int compensation = initPositionSize - actualPositionSize;
+                        size = (derivedSide == EnumOrderSide.BUY || derivedSide == EnumOrderSide.COVER) ? size + compensation : Math.abs(-size + compensation);
+                        
+                    }else{
+                        int actualpositionsize=0;
+                        if(exitorderidlist.size()>0){
+                            actualpositionsize=this.getPosition().get(exitorderidlist.get(0)).getPosition();
+                        }else if(entryorderidlist.size()>0){
+                            actualpositionsize=this.getPosition().get(entryorderidlist.get(0)).getPosition();
+                        }
+                        int compensation=initPositionSize-actualpositionsize;
+                        size = (derivedSide == EnumOrderSide.BUY || derivedSide == EnumOrderSide.COVER) ? size + compensation : Math.abs(-size + compensation);
+                    }
                     /*
                      * IF initpositionsize = 100, actual positionsize=0, we get a buy of 100. comp=100, size=200
                      * IF initpositionsize=0, actualpositionsize=100, we get buy of 100, comp=-100, size=0, probably a duplicate trade
