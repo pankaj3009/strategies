@@ -155,7 +155,7 @@ public class Yield extends Manager implements TradeListener {
                 putLevels[1] = highestFloor;
                 putLevels[2] = highestFloor - Parameters.symbol.get(futureid).getStrikeDistance();
 
-                double[] callLevels = new double[2];
+                double[] callLevels = new double[3];
                 callLevels[0] = lowestCeiling - Parameters.symbol.get(futureid).getStrikeDistance();
                 callLevels[1] = lowestCeiling;
                 callLevels[2] = lowestCeiling + Parameters.symbol.get(futureid).getStrikeDistance();
