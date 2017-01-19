@@ -174,6 +174,8 @@ public class Yield extends Manager implements TradeListener {
                     initSymbol(i, optionPricingUsingFutures, referenceCashType);
                 }
 
+            }else{
+                logger.log(Level.INFO,"Future Price not found for strategy {0}. Exiting",new Object[]{this.getStrategy()});
             }
         } catch (Exception e) {
             logger.log(Level.SEVERE, null, e);
