@@ -141,7 +141,7 @@ public class Contra extends Manager {
 
             switch (origSide) {
                 case BUY:
-                    logger.log(Level.INFO, "101,Strategy Rollover EXIT BUY,{0}:{1}:{2}:{3}:{4}",
+                    logger.log(Level.INFO, "101,Rollover SELL,{0}:{1}:{2}:{3}:{4}",
                             new Object[]{getStrategy(), "Order", Parameters.symbol.get(initID).getDisplayname(), -1, -1});
                     stops = Trade.getStop(db, this.getStrategy() + ":" + this.getFirstInternalOpenOrder(initID, EnumOrderSide.SELL, "Order").iterator().next() + ":Order");
                     HashMap<String, Object> order = new HashMap<>();
@@ -160,7 +160,7 @@ public class Contra extends Manager {
                     this.exit(order);
                     break;
                 case SHORT:
-                    logger.log(Level.INFO, "101,Strategy Rollover EXIT SHORT,{0}:{1}:{2}:{3}:{4}",
+                    logger.log(Level.INFO, "101,Rollover COVER,{0}:{1}:{2}:{3}:{4}",
                             new Object[]{getStrategy(), "Order", Parameters.symbol.get(initID).getDisplayname(), -1, -1});
                     stops = Trade.getStop(db, this.getStrategy() + ":" + this.getFirstInternalOpenOrder(initID, EnumOrderSide.COVER, "Order").iterator().next() + ":Order");
                     order = new HashMap<>();
@@ -190,7 +190,7 @@ public class Contra extends Manager {
             switch (origSide) {
                 case BUY:
                     if (this.getLongOnly()) {
-                        logger.log(Level.INFO, "101,Strategy Rollover ENTER BUY,{0}:{1}:{2}:{3}:{4},NewPositionSize={5}",
+                        logger.log(Level.INFO, "101,Rollover BUY,{0}:{1}:{2}:{3}:{4},NewPositionSize={5}",
                                 new Object[]{getStrategy(), "Order", Parameters.symbol.get(targetID).getDisplayname(), -1, -1, newSize});
                         HashMap<String, Object> order = new HashMap<>();
                         order.put("id", targetID);
@@ -211,7 +211,7 @@ public class Contra extends Manager {
                     break;
                 case SHORT:
                     if (this.getShortOnly()) {
-                        logger.log(Level.INFO, "101,Strategy Rollover ENTER SHORT,{0}:{1}:{2}:{3}:{4},NewPositionSize={5}",
+                        logger.log(Level.INFO, "101,Rollover SHORT,{0}:{1}:{2}:{3}:{4},NewPositionSize={5}",
                                 new Object[]{getStrategy(), "Order", Parameters.symbol.get(targetID).getDisplayname(), -1, -1, newSize});
                         HashMap<String, Object> order = new HashMap<>();
                         order = new HashMap<>();
@@ -235,8 +235,8 @@ public class Contra extends Manager {
                     break;
             }
             //update stop information
-            logger.log(Level.INFO, "102,Strategy Rollover Stop Update,{0}:{1}:{2}:{3}:{4},NewPositionSize={5},StopArray={6}",
-                    new Object[]{getStrategy(), "Order", Parameters.symbol.get(targetID).getDisplayname(), orderid, -1, newSize, Arrays.toString(stops.toArray())});
+            logger.log(Level.INFO, "102,Rollover StopValue Update,{0}:{1}:{2}:{3}:{4},NewPositionSize={5},StopArray={6}",
+                    new Object[]{getStrategy(), "Order", Parameters.symbol.get(targetID).getDisplayname(), orderid, -1, newSize, Utilities.listToString(stops)});
             if (orderid >= 0) {
                 Trade.setStop(db, this.getStrategy() + ":" + orderid + ":" + "Order", "opentrades", stops);
             }
