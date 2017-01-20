@@ -350,21 +350,24 @@ public class Swing extends Manager implements TradeListener {
 
             switch (origSide) {
                 case BUY:
-                    logger.log(Level.INFO, "101,Strategy Rollover EXIT BUY,{0}:{1}:{2}:{3}:{4}",
+                    logger.log(Level.INFO, "101,Rollover SELL,{0}:{1}:{2}:{3}:{4}",
                             new Object[]{getStrategy(), "Order", Parameters.symbol.get(initID).getDisplayname(), -1, -1});
                     stops = Trade.getStop(db, this.getStrategy() + ":" + this.getFirstInternalOpenOrder(initID, EnumOrderSide.SELL, "Order").iterator().next() + ":Order");
                     HashMap<String, Object> order = new HashMap<>();
+                    int referenceid = Utilities.getCashReferenceID(Parameters.symbol, targetID, referenceCashType);
+                    double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, targetID, referenceid, EnumOrderSide.SELL, getTickSize(), this.getOrdType());
                     order.put("id", initID);
                     order.put("type", this.getOrdType());
                     order.put("side", EnumOrderSide.SELL);
                     order.put("size", size);
-                    order.put("limitprice", Parameters.symbol.get(initID).getLastPrice());
+                    order.put("limitprice", limitprice);
                     order.put("reason", EnumOrderReason.REGULAREXIT);
                     order.put("orderstage", EnumOrderStage.INIT);
                     order.put("expiretime", this.getMaxOrderDuration());
                     order.put("dynamicorderduration", getDynamicOrderDuration());
                     order.put("maxslippage", this.getMaxSlippageExit());
                     order.put("orderattributes", this.getOrderAttributes());
+                    order.put("scale", getScaleExit());
                     order.put("log", "ROLLOVERSQUAREOFF");
                     this.exit(order);
                     break;
@@ -373,17 +376,20 @@ public class Swing extends Manager implements TradeListener {
                             new Object[]{getStrategy(), "Order", Parameters.symbol.get(initID).getDisplayname(), -1, -1});
                     stops = Trade.getStop(db, this.getStrategy() + ":" + this.getFirstInternalOpenOrder(initID, EnumOrderSide.COVER, "Order").iterator().next() + ":Order");
                     order = new HashMap<>();
+                    referenceid = Utilities.getCashReferenceID(Parameters.symbol, targetID, referenceCashType);
+                    limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, targetID, referenceid, EnumOrderSide.COVER, getTickSize(), this.getOrdType());
                     order.put("id", initID);
                     order.put("type", this.getOrdType());
                     order.put("side", EnumOrderSide.COVER);
                     order.put("size", size);
-                    order.put("limitprice", Parameters.symbol.get(initID).getLastPrice());
+                    order.put("limitprice", limitprice);
                     order.put("reason", EnumOrderReason.REGULAREXIT);
                     order.put("orderstage", EnumOrderStage.INIT);
                     order.put("expiretime", this.getMaxOrderDuration());
                     order.put("dynamicorderduration", getDynamicOrderDuration());
                     order.put("maxslippage", this.getMaxSlippageExit());
                     order.put("orderattributes", this.getOrderAttributes());
+                    order.put("scale", getScaleExit());
                     order.put("log", "ROLLOVERSQUAREOFF");
                     this.exit(order);
                     break;
@@ -402,16 +408,19 @@ public class Swing extends Manager implements TradeListener {
                         logger.log(Level.INFO, "101,Strategy Rollover ENTER BUY,{0}:{1}:{2}:{3}:{4},NewPositionSize={5}",
                                 new Object[]{getStrategy(), "Order", Parameters.symbol.get(targetID).getDisplayname(), -1, -1, newSize});
                         HashMap<String, Object> order = new HashMap<>();
+                        int referenceid = Utilities.getCashReferenceID(Parameters.symbol, targetID, referenceCashType);
+                        double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, targetID, referenceid, EnumOrderSide.BUY, getTickSize(), this.getOrdType());
                         order.put("id", targetID);
                         order.put("side", EnumOrderSide.BUY);
                         order.put("size", newSize);
                         order.put("type", this.getOrdType());
-                        order.put("limitprice", Parameters.symbol.get(targetID).getLastPrice());
+                        order.put("limitprice", limitprice);
                         order.put("reason", EnumOrderReason.REGULARENTRY);
                         order.put("orderstage", EnumOrderStage.INIT);
                         order.put("expiretime", this.getMaxOrderDuration());
                         order.put("dynamicorderduration", getDynamicOrderDuration());
                         order.put("maxslippage", this.getMaxSlippageExit());
+                        order.put("scale", getScaleEntry());
                         order.put("orderattributes", this.getOrderAttributes());
                         order.put("log", "ROLLOVERENTRY");
                         orderid = this.entry(order);
@@ -424,6 +433,8 @@ public class Swing extends Manager implements TradeListener {
                                 new Object[]{getStrategy(), "Order", Parameters.symbol.get(targetID).getDisplayname(), -1, -1, newSize});
                         HashMap<String, Object> order = new HashMap<>();
                         order = new HashMap<>();
+                        int referenceid = Utilities.getCashReferenceID(Parameters.symbol, targetID, referenceCashType);
+                        double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, targetID, referenceid, EnumOrderSide.SHORT, getTickSize(), this.getOrdType());
                         order.put("id", targetID);
                         order.put("side", EnumOrderSide.SHORT);
                         order.put("size", newSize);
@@ -435,6 +446,7 @@ public class Swing extends Manager implements TradeListener {
                         order.put("dynamicorderduration", getDynamicOrderDuration());
                         order.put("maxslippage", this.getMaxSlippageExit());
                         order.put("orderattributes", this.getOrderAttributes());
+                        order.put("scale", getScaleEntry());
                         order.put("log", "ROLLOVERENTRY");
                         orderid = this.entry(order);
                         //orderid = this.getFirstInternalOpenOrder(initID, EnumOrderSide.COVER, "Order");
