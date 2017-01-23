@@ -127,7 +127,7 @@ public class Manager extends Strategy {
         try {
             List<String> tradetuple = db.blpop("trades:" + this.getStrategy(), "", 60);
             if (tradetuple != null) {
-                logger.log(Level.INFO, "Received Trade:{0} for strategy {1}", new Object[]{tradetuple.get(1), tradetuple.get(0)});
+                logger.log(Level.INFO, "101,Received Trade:{0} for strategy {1}", new Object[]{tradetuple.get(1), tradetuple.get(0)});
                 //tradetuple as symbol:size:side:sl
                 String displayName = tradetuple.get(1);
                 String symbol = displayName.split(":", -1)[0];
