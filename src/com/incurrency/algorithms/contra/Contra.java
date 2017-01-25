@@ -146,7 +146,7 @@ public class Contra extends Manager {
                     stops = Trade.getStop(db, this.getStrategy() + ":" + this.getFirstInternalOpenOrder(initID, EnumOrderSide.SELL, "Order").iterator().next() + ":Order");
                     HashMap<String, Object> order = new HashMap<>();
                     int referenceid = Utilities.getCashReferenceID(Parameters.symbol, targetID, referenceCashType);
-                    double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, targetID, referenceid, EnumOrderSide.SELL, getTickSize(), this.getOrdType());
+                    double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, initID, referenceid, EnumOrderSide.SELL, getTickSize(), this.getOrdType());
                     order.put("id", initID);
                     order.put("type", this.getOrdType());
                     order.put("side", EnumOrderSide.SELL);
@@ -168,7 +168,7 @@ public class Contra extends Manager {
                     stops = Trade.getStop(db, this.getStrategy() + ":" + this.getFirstInternalOpenOrder(initID, EnumOrderSide.COVER, "Order").iterator().next() + ":Order");
                     order = new HashMap<>();
                     referenceid = Utilities.getCashReferenceID(Parameters.symbol, targetID, referenceCashType);
-                    limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, targetID, referenceid, EnumOrderSide.COVER, getTickSize(), this.getOrdType());
+                    limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, initID, referenceid, EnumOrderSide.COVER, getTickSize(), this.getOrdType());
                     order.put("id", initID);
                     order.put("type", this.getOrdType());
                     order.put("side", EnumOrderSide.COVER);
