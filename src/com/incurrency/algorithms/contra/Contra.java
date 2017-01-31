@@ -90,7 +90,7 @@ public class Contra extends Manager {
                                     }
                                 } else if (optionSystem.equals("PAY")) {
                                     if (entry.getValue().getPosition() > 0) {
-                                        side = entry.getValue().getPosition() > 0 ? EnumOrderSide.BUY : EnumOrderSide.SHORT;
+                                        side = Parameters.symbol.get(initID).getRight().equals("CALL") ? EnumOrderSide.BUY : EnumOrderSide.SHORT;
                                     }
                                 }
                             } else { //calculate side for future
