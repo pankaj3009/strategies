@@ -275,7 +275,7 @@ public class Yield extends Manager implements TradeListener {
                         HashMap<String, Object> order = new HashMap<>();
                         switch (right) {
                             case "CALL":
-                                if ((optionReturn < thresholdReturnExit || (strikePrice - (Math.sqrt(optionDte) * historicalVol * avgMovePerDayExit * futurePrice / 100)) < futurePrice) && optionReturn > 0) {
+                                if ((optionReturn < thresholdReturnExit || (strikePrice - (Math.sqrt(optionDte) * historicalVol * avgMovePerDayExit * strikePrice / 100)) < futurePrice) && optionReturn > 0) {
                                     order.put("type", this.getOrdType());
                                     order.put("expiretime", getMaxOrderDuration());
                                     order.put("dynamicorderduration", getDynamicOrderDuration());
@@ -296,14 +296,14 @@ public class Yield extends Manager implements TradeListener {
                                     order.put("expiretime", 0);
                                     order.put("orderattributes", this.getOrderAttributes());
                                     if (limitprice > 0) {
-                                        logger.log(Level.INFO, "101,Strategy COVER,{0}:{1}:{2}:{3}:{4},OptionReturn={5}",
-                                                new Object[]{getStrategy(), "Order", Parameters.symbol.get(id).getDisplayname(), -1, -1, optionReturn});
+                                        logger.log(Level.INFO, "101,Strategy COVER,{0}:{1}:{2}:{3}:{4},OptionReturn={5},FuturePrice={6}",
+                                                new Object[]{getStrategy(), "Order", Parameters.symbol.get(id).getDisplayname(), -1, -1, optionReturn,String.valueOf(futurePrice)});
                                         exit(order);
                                     }
                                 }
                                 break;
                             case "PUT":
-                                if ((optionReturn < thresholdReturnExit || (strikePrice + (Math.sqrt(optionDte) * historicalVol * avgMovePerDayExit * futurePrice) / 100) > futurePrice) && optionReturn > 0) {
+                                if ((optionReturn < thresholdReturnExit || (strikePrice + (Math.sqrt(optionDte) * historicalVol * avgMovePerDayExit * strikePrice) / 100) > futurePrice) && optionReturn > 0) {
                                     order.put("type", this.getOrdType());
                                     order.put("expiretime", getMaxOrderDuration());
                                     order.put("dynamicorderduration", getDynamicOrderDuration());
@@ -324,8 +324,8 @@ public class Yield extends Manager implements TradeListener {
                                     order.put("expiretime", 0);
                                     order.put("orderattributes", this.getOrderAttributes());
                                     if (limitprice > 0) {
-                                        logger.log(Level.INFO, "101,Strategy COVER,{0}:{1}:{2}:{3}:{4},OptionReturn={5}",
-                                                new Object[]{getStrategy(), "Order", Parameters.symbol.get(id).getDisplayname(), -1, -1, optionReturn});
+                                        logger.log(Level.INFO, "101,Strategy COVER,{0}:{1}:{2}:{3}:{4},OptionReturn={5},FuturePrice={6}",
+                                                new Object[]{getStrategy(), "Order", Parameters.symbol.get(id).getDisplayname(), -1, -1, optionReturn,String.valueOf(futurePrice)});
                                         exit(order);
                                     }
                                 }
