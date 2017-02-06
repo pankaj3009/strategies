@@ -80,8 +80,8 @@ public class Swing extends Manager implements TradeListener {
         bodProcessing.schedule(bodProcessingTask, 10 * 1000);
 
         if (rollover) {
-            Timer rollProcessing = new Timer("Timer: " + this.getStrategy() + " RollProcessing");
-            rollProcessing.schedule(rollProcessingTask, DateUtil.addSeconds(RScriptRunTime, 60));
+            //Timer rollProcessing = new Timer("Timer: " + this.getStrategy() + " RollProcessing");
+            //rollProcessing.schedule(rollProcessingTask, DateUtil.addSeconds(RScriptRunTime, 60));
         }
     }
 
@@ -268,7 +268,7 @@ public class Swing extends Manager implements TradeListener {
                         args = new String[]{"1", this.getStrategy(), this.getRedisDatabaseID(),
                             Parameters.symbol.get(symbolid).getDisplayname(), date, open, high, low, close, volume};
                     } else {
-                        args = new String[]{"1", this.getStrategy(), this.getRedisDatabaseID(), Parameters.symbol.get(symbolid).getDisplayname()};
+                        args = new String[]{"4", this.getStrategy(), this.getRedisDatabaseID(), Parameters.symbol.get(symbolid).getDisplayname()};
                     }
                     logger.log(Level.INFO, "102,Invoking R Strategy,{0}:{1}:{2}:{3}:{4},args={5}",
                             new Object[]{getStrategy(), "Order", "Unknown", -1, -1, Arrays.toString(args)});
