@@ -130,7 +130,8 @@ public class Manager extends Strategy {
             if (tradetuple != null) {
                 logger.log(Level.INFO, "101,Received Trade:{0} for strategy {1}", new Object[]{tradetuple.get(1), tradetuple.get(0)});
                 //tradetuple as symbol:size:side:sl
-                new Mail(getIamail(),"Received Trade: "+tradetuple.get(1)+" for strategy "+tradetuple.get(0),"Received Order from [R]");
+                Thread t = new Thread(new Mail(getIamail(),"Received Trade: "+tradetuple.get(1)+" for strategy "+tradetuple.get(0),"Received Order from [R]"));
+                t.start();
                 String displayName = tradetuple.get(1);
                 String symbol = displayName.split(":", -1)[0];
                 EnumOrderSide side = EnumOrderSide.valueOf(displayName.split(":",-1)[2]);
