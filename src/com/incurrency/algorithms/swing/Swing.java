@@ -195,7 +195,7 @@ public class Swing extends Manager implements TradeListener {
         for (String key : db.getKeys("opentrades_" + this.getStrategy())) {
             ArrayList<Stop> tradestops = Trade.getStop(db, key);
             String entrysymbol = db.getValue("opentrades", key, "entrysymbol");
-            String entryside = db.getValue("opentrades", key, "entryside");
+            String actualSide = db.getValue("opentrades", key, "entryside");
             String symbol = entrysymbol.split("_")[0];
             int stopindex = -1;
             if (tradestops != null && tradestops.size() == 1) {
@@ -208,9 +208,10 @@ public class Swing extends Manager implements TradeListener {
                     }
                 }
                 if (stopindex >= 0) {
-                    String side = expectedTrades.get(stopindex).split(":")[2];
-                    if ((side.equals("BUY") && entryside.equals("BUY") && entrysymbol.contains("CALL"))
-                            || (side.equals("SHORT") && entryside.equals("BUY") && entrysymbol.contains("PUT"))) {
+                    String expectedSide = expectedTrades.get(stopindex).split(":")[2];
+                    String expectedSymbol=expectedTrades.get(stopindex).split(":")[0].trim();
+                    if ((expectedSide.equals("BUY") && actualSide.equals("BUY") && entrysymbol.equals(expectedSymbol))
+                            || (expectedSide.equals("SHORT") && actualSide.equals("SHORT") && entrysymbol.equals(expectedSymbol))) {
                         //update stop
                         stop.stopValue = Double.valueOf(expectedTrades.get(stopindex).split(":")[3]);
                         stop.stopValue = Utilities.roundTo(stop.stopValue, getTickSize());
@@ -221,7 +222,7 @@ public class Swing extends Manager implements TradeListener {
                                 new Object[]{getStrategy(), "Order", symbol, -1, -1, stop.underlyingEntry, stop.stopValue});
                     } else {
                         //alert we have an incorrect side
-                        Thread t = new Thread(new Mail("psharma@incurrency.com", "Symbol has incorrect side: " + entrysymbol + " for strategy: " + this.getStrategy() + ".Expected trade direction: " + side, "Algorithm ALERT"));
+                        Thread t = new Thread(new Mail("psharma@incurrency.com", "Symbol has incorrect side: " + entrysymbol + " for strategy: " + this.getStrategy() + ".Expected trade direction: " + expectedSide, "Algorithm ALERT"));
                         t.start();
                     }
                 } else {
