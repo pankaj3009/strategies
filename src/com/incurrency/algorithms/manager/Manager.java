@@ -355,7 +355,14 @@ public class Manager extends Strategy {
                                             logger.log(Level.INFO, "501,Strategy BUY,{0}", new Object[]{getStrategy() + delimiter + "BUY" + delimiter + Parameters.symbol.get(id).getDisplayname()});
                                             orderid = entry(order);
                                             stp.stopValue = stoploss;
+                                            if(Parameters.symbol.get(symbolid).getType().equals("STK")||Parameters.symbol.get(symbolid).getType().equals("IND")){
                                             stp.underlyingEntry = Parameters.symbol.get(symbolid).getLastPrice();
+                                            }else{
+                                                int underlyingid=Utilities.getCashReferenceID(Parameters.symbol, symbolid, referenceCashType);
+                                                if(underlyingid>=0){
+                                                 stp.underlyingEntry = Parameters.symbol.get(symbolid).getLastPrice();   
+                                                }
+                                            }
                                             stp.stopType = EnumStopType.STOPLOSS;
                                             stp.stopMode = EnumStopMode.POINT;
                                             stp.recalculate = true;
@@ -421,7 +428,14 @@ public class Manager extends Strategy {
                                             orderid = entry(order);
                                             Trade.setStop(db, this.getStrategy() + ":" + orderid + ":" + "Order", "opentrades", stops);
                                             stp.stopValue = stoploss;
-                                            stp.underlyingEntry = Parameters.symbol.get(symbolid).getLastPrice();
+                                            if (Parameters.symbol.get(symbolid).getType().equals("STK") || Parameters.symbol.get(symbolid).getType().equals("IND")) {
+                                                stp.underlyingEntry = Parameters.symbol.get(symbolid).getLastPrice();
+                                            } else {
+                                                int underlyingid = Utilities.getCashReferenceID(Parameters.symbol, symbolid, referenceCashType);
+                                                if (underlyingid >= 0) {
+                                                    stp.underlyingEntry = Parameters.symbol.get(symbolid).getLastPrice();
+                                                }
+                                            }
                                             stp.stopType = EnumStopType.STOPLOSS;
                                             stp.stopMode = EnumStopMode.POINT;
                                             stp.recalculate = true;
