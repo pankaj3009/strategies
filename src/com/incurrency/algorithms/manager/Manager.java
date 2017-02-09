@@ -299,20 +299,38 @@ public class Manager extends Strategy {
                      * IF initpositionsize=-100,actualpositionsize=0, we get a short of 100,should be short, but are not, comp=-100,size=abs(-100-100)=200
                      * IF initpositionsize=200, actualpositionsize=100, we set a SELL of 200, comp=100, size=abs(-200+100)=100
                      */
-                    if(aggregatePositions){
-                        int compensation = initPositionSize - actualPositionSize;
-                        size = (derivedSide == EnumOrderSide.BUY || derivedSide == EnumOrderSide.COVER) ? size + compensation : Math.abs(-size + compensation);
-                        
-                    }else{
-                        int actualpositionsize=0;
+                    if(!aggregatePositions){                                                
                         if(exitorderidlist.size()>0){
-                            actualpositionsize=this.getPosition().get(exitorderidlist.get(0)).getPosition();
+                            actualPositionSize=this.getPosition().get(exitorderidlist.get(0)).getPosition();
                         }else if(entryorderidlist.size()>0){
-                            actualpositionsize=this.getPosition().get(entryorderidlist.get(0)).getPosition();
-                        }
-                        int compensation=initPositionSize-actualpositionsize;
-                        size = (derivedSide == EnumOrderSide.BUY || derivedSide == EnumOrderSide.COVER) ? size + compensation : Math.abs(-size + compensation);
+                            actualPositionSize=this.getPosition().get(entryorderidlist.get(0)).getPosition();
+                        }                        
                     }
+                        int catchUpPosition=0;
+                        switch (derivedSide) {
+                            case BUY:
+                                catchUpPosition = initPositionSize - actualPositionSize;
+                                size = Math.max(size + catchUpPosition, 0);
+                                break;
+                            case SHORT:
+                                catchUpPosition = -initPositionSize - actualPositionSize;
+                                size = Math.max(size - catchUpPosition, 0);
+                                break;
+                            case SELL:
+                                catchUpPosition = initPositionSize - actualPositionSize;
+                                size = Math.max(size - catchUpPosition, 0);
+                                //if actualpositionsize is -ve, that is an error condition.
+                                break;
+                            case COVER:
+                                catchUpPosition = initPositionSize + actualPositionSize;
+                                size = Math.max(size + catchUpPosition, 0);
+                                break;
+                            default:
+                                break;
+                        }
+                        //int excessposition=initPositionSize-actualpositionsize;
+                        //size = (derivedSide == EnumOrderSide.BUY || derivedSide == EnumOrderSide.COVER) ? size + compensation : Math.abs(-size + compensation);
+                    
                     /*
                      * IF initpositionsize = 100, actual positionsize=0, we get a buy of 100. comp=100, size=200
                      * IF initpositionsize=0, actualpositionsize=100, we get buy of 100, comp=-100, size=0, probably a duplicate trade
