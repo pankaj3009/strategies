@@ -126,7 +126,7 @@ public class Manager extends Strategy {
         
     public void waitForTrades() {
         try {
-            List<String> tradetuple = db.blpop("trades:" + this.getStrategy(), "", 60);
+            List<String> tradetuple = this.getDb().blpop("trades:" + this.getStrategy(), "", 60);
             if (tradetuple != null) {
                 logger.log(Level.INFO, "101,Received Trade:{0} for strategy {1}", new Object[]{tradetuple.get(1), tradetuple.get(0)});
                 //tradetuple as symbol:size:side:sl
@@ -386,7 +386,7 @@ public class Manager extends Strategy {
                                             stp.stopMode = EnumStopMode.POINT;
                                             stp.recalculate = true;
                                             stops.add(stp);
-                                            Trade.setStop(db, this.getStrategy() + ":" + orderid + ":" + "Order", "opentrades", stops);
+                                            Trade.setStop(this.getDb(), this.getStrategy() + ":" + orderid + ":" + "Order", "opentrades", stops);
                                         }
                                     }
                                 }
@@ -445,7 +445,7 @@ public class Manager extends Strategy {
                                         order.put ("orderattributes",tmpOrderAttributes);                                      if ((this.getOrdType() != EnumOrderType.MKT && limitprice > 0) || this.getOrdType().equals(EnumOrderType.MKT)) {
                                             logger.log(Level.INFO, "501,Strategy SHORT,{0}", new Object[]{getStrategy() + delimiter + "SHORT" + delimiter + Parameters.symbol.get(id).getDisplayname()});
                                             orderid = entry(order);
-                                            Trade.setStop(db, this.getStrategy() + ":" + orderid + ":" + "Order", "opentrades", stops);
+                                            Trade.setStop(this.getDb(), this.getStrategy() + ":" + orderid + ":" + "Order", "opentrades", stops);
                                             stp.stopValue = stoploss;
                                             if (Parameters.symbol.get(symbolid).getType().equals("STK") || Parameters.symbol.get(symbolid).getType().equals("IND")) {
                                                 stp.underlyingEntry = Parameters.symbol.get(symbolid).getLastPrice();
@@ -459,7 +459,7 @@ public class Manager extends Strategy {
                                             stp.stopMode = EnumStopMode.POINT;
                                             stp.recalculate = true;
                                             stops.add(stp);
-                                            Trade.setStop(db, this.getStrategy() + ":" + orderid + ":" + "Order", "opentrades", stops);
+                                            Trade.setStop(this.getDb(), this.getStrategy() + ":" + orderid + ":" + "Order", "opentrades", stops);
                                         }
                                     }
                                 }

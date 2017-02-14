@@ -150,7 +150,7 @@ public class OptSale extends Manager implements TradeListener {
                                 REXP wd = c.eval("getwd()");
                                 System.out.println(wd.asString());
                                 c.eval("options(encoding = \"UTF-8\")");
-                                c.assign("args", args);
+                                //c.assign("args", args);
                                 logger.log(Level.INFO, "102,Invoking R Strategy,{0}:{1}:{2}:{3}:{4},args={5}",
                                         new Object[]{getStrategy(), "Order", "unknown", -1, -1, Arrays.toString(args)});
                                 c.eval("source(\"" + RStrategyFile + "\")");
@@ -181,7 +181,7 @@ public class OptSale extends Manager implements TradeListener {
     };
 
     public void waitForSignals() {
-        List<String> tradetuple = db.blpop("signals:" + getStrategy(), "", 60);
+        List<String> tradetuple = this.getDb().blpop("signals:" + getStrategy(), "", 60);
         ArrayList<Integer> allOrderList = new ArrayList<>();
         try {
             if (tradetuple != null && tradetuple.size() == 2) {
@@ -279,7 +279,7 @@ public class OptSale extends Manager implements TradeListener {
                                 String redisOut = Parameters.symbol.get(i).getDisplayname() + ":" + contracts + ":SHORT" + ":0:" + actualPositionSize;
                                 logger.log(Level.INFO, "102,50% Trades published to Redis,{0}:{1}:{2}:{3}:{4},StringPublishedToRedis:{5}",
                                         new Object[]{getStrategy(), "Order", Parameters.symbol.get(i).getDisplayname(), -1, -1, redisOut});
-                                db.lpush("trades:" + getStrategy(), redisOut);
+                                this.getDb().lpush("trades:" + getStrategy(), redisOut);
                             }
                         } else {
                             logger.log(Level.INFO, "101,Position Limit. No Orders Placed,{0}:{1}:{2}:{3}:{4},PositionSize:{5}",
@@ -293,7 +293,7 @@ public class OptSale extends Manager implements TradeListener {
                             String redisOut = Parameters.symbol.get(i).getDisplayname() + ":" + getNumberOfContracts() + ":SHORT" + ":0:" + actualPositionSize;
                             logger.log(Level.INFO, "102,Trades published to Redis,{0}:{1}:{2}:{3}:{4},StringPublishedToRedis:{5},MaxPositionSize:{6}",
                                     new Object[]{getStrategy(), "Order", Parameters.symbol.get(i).getDisplayname(), -1, -1, redisOut,String.valueOf(maxPositionSize)});
-                            db.lpush("trades:" + getStrategy(), redisOut);
+                            this.getDb().lpush("trades:" + getStrategy(), redisOut);
                         } else {
                             logger.log(Level.INFO, "101,Position Limit. No Orders Placed,{0}:{1}:{2}:{3}:{4},PositionSize:{5},MaxPositionSize:{6}",
                                     new Object[]{getStrategy(), "Order",

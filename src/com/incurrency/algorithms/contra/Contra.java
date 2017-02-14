@@ -143,7 +143,7 @@ public class Contra extends Manager {
                 case BUY:
                     logger.log(Level.INFO, "101,Rollover SELL,{0}:{1}:{2}:{3}:{4}",
                             new Object[]{getStrategy(), "Order", Parameters.symbol.get(initID).getDisplayname(), -1, -1});
-                    stops = Trade.getStop(db, this.getStrategy() + ":" + this.getFirstInternalOpenOrder(initID, EnumOrderSide.SELL, "Order").iterator().next() + ":Order");
+                    stops = Trade.getStop(this.getDb(), this.getStrategy() + ":" + this.getFirstInternalOpenOrder(initID, EnumOrderSide.SELL, "Order").iterator().next() + ":Order");
                     HashMap<String, Object> order = new HashMap<>();
                     int referenceid = Utilities.getCashReferenceID(Parameters.symbol, targetID, referenceCashType);
                     double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, initID, referenceid, EnumOrderSide.SELL, getTickSize(), this.getOrdType());
@@ -165,7 +165,7 @@ public class Contra extends Manager {
                 case SHORT:
                     logger.log(Level.INFO, "101,Rollover COVER,{0}:{1}:{2}:{3}:{4}",
                             new Object[]{getStrategy(), "Order", Parameters.symbol.get(initID).getDisplayname(), -1, -1});
-                    stops = Trade.getStop(db, this.getStrategy() + ":" + this.getFirstInternalOpenOrder(initID, EnumOrderSide.COVER, "Order").iterator().next() + ":Order");
+                    stops = Trade.getStop(this.getDb(), this.getStrategy() + ":" + this.getFirstInternalOpenOrder(initID, EnumOrderSide.COVER, "Order").iterator().next() + ":Order");
                     order = new HashMap<>();
                     referenceid = Utilities.getCashReferenceID(Parameters.symbol, targetID, referenceCashType);
                     limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, initID, referenceid, EnumOrderSide.COVER, getTickSize(), this.getOrdType());
@@ -250,7 +250,7 @@ public class Contra extends Manager {
             logger.log(Level.INFO, "102,Rollover StopValue Update,{0}:{1}:{2}:{3}:{4},NewPositionSize={5},StopArray={6}",
                     new Object[]{getStrategy(), "Order", Parameters.symbol.get(targetID).getDisplayname(), orderid, -1, newSize, Utilities.listToString(stops)});
             if (orderid >= 0) {
-                Trade.setStop(db, this.getStrategy() + ":" + orderid + ":" + "Order", "opentrades", stops);
+                Trade.setStop(this.getDb(), this.getStrategy() + ":" + orderid + ":" + "Order", "opentrades", stops);
             }
         }
     }
