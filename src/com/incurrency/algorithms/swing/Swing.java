@@ -258,7 +258,7 @@ public class Swing extends Manager implements TradeListener {
                     REXP wd = c.eval("getwd()");
                     System.out.println(wd.asString());
                     c.eval("options(encoding = \"UTF-8\")");
-                    String args;
+                    String [] args=new String[1];
                     if (today) {
                         String open = String.valueOf(Parameters.symbol.get(symbolid).getOpenPrice());
                         String high = String.valueOf(Parameters.symbol.get(symbolid).getHighPrice());
@@ -266,19 +266,16 @@ public class Swing extends Manager implements TradeListener {
                         String close = String.valueOf(Parameters.symbol.get(symbolid).getLastPrice());
                         String volume = String.valueOf(Parameters.symbol.get(symbolid).getVolume());
                         String date = sdf_default.format(new Date());
-                        args="1"+","+this.getStrategy()+","+this.getRedisDatabaseID();
-                        this.getDbParameters().setHash(this.getStrategy().toUpperCase(),"args",args);
-//                        args = new String[]{"1", this.getStrategy(), this.getRedisDatabaseID(),
- //                           Parameters.symbol.get(symbolid).getDisplayname(), date, open, high, low, close, volume};
+                          args = new String[]{"1", this.getStrategy(), this.getRedisDatabaseID(),
+                            Parameters.symbol.get(symbolid).getDisplayname(), date, open, high, low, close, volume};
                     } else {
-   //                     args = new String[]{"4", this.getStrategy(), this.getRedisDatabaseID(), Parameters.symbol.get(symbolid).getDisplayname()};
-                        args="4"+","+this.getStrategy()+","+this.getRedisDatabaseID();
-                        this.getDbParameters().setHash(this.getStrategy().toUpperCase(),"args" ,args);
+                      args = new String[]{"4", this.getStrategy(), this.getRedisDatabaseID(), Parameters.symbol.get(symbolid).getDisplayname()};
                     }
                     logger.log(Level.INFO, "102,Invoking R Strategy,{0}:{1}:{2}:{3}:{4},args={5}",
                             new Object[]{getStrategy(), "Order", "Unknown", -1, -1, args});
-                    //c.assign("args", args);
+                    c.assign("args", args);
                     c.eval("source(\"" + this.getRStrategyFile() + "\")");
+                   
                 } catch (Exception e) {
                     logger.log(Level.SEVERE, null, e);
                 }
