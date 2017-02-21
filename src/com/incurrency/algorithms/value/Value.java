@@ -43,6 +43,8 @@ public class Value extends Manager {
                         REXP wd = c.eval("getwd()");
                         System.out.println(wd.asString());
                         c.eval("options(encoding = \"UTF-8\")");
+                        String[] args=new String[]{"1",getStrategy(), getRedisDatabaseID()};
+                        c.assign("args", args);
                         c.eval("source(\"" + RStrategyFile + "\")");
                     } catch (Exception e) {
                         logger.log(Level.SEVERE, null, e);
