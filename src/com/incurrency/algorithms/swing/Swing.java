@@ -272,7 +272,7 @@ public class Swing extends Manager implements TradeListener {
                       args = new String[]{"4", this.getStrategy(), this.getRedisDatabaseID(), Parameters.symbol.get(symbolid).getDisplayname()};
                     }
                     logger.log(Level.INFO, "102,Invoking R Strategy,{0}:{1}:{2}:{3}:{4},args={5}",
-                            new Object[]{getStrategy(), "Order", "Unknown", -1, -1, args});
+                            new Object[]{getStrategy(), "Order", "Unknown", -1, -1, Arrays.toString(args)});
                     c.assign("args", args);
                     c.eval("source(\"" + this.getRStrategyFile() + "\")");
                    
