@@ -71,8 +71,6 @@ public class Swing extends Manager implements TradeListener {
          * Timertask 3: tradeProcessingTask - scans for trades every 60 seconds. - uses manager implementation
          * Timertask 4: rollProcessingTask - if trading day is also a rollover day, rolls over any open positions.
          */
-
-
         Timer trigger = new Timer("Timer: " + this.getStrategy() + " RScriptProcessor");
         trigger.schedule(RScriptRunTask, RScriptRunTime);
 
@@ -91,10 +89,9 @@ public class Swing extends Manager implements TradeListener {
             if (this.tradingWindow.get()) {
                 Integer id = event.getSymbolID();
                 if (getStrategySymbols().contains(id) && !Parameters.symbol.get(id).getType().equals(referenceCashType)) {
-                    if (this.getPosition().get(id).getPosition() > 0 && this.getPosition().get(id).getStrategy().equalsIgnoreCase(this.getStrategy())) {
-                        int referenceid = Utilities.getCashReferenceID(Parameters.symbol, id, referenceCashType);
-                        int futureid = Utilities.getFutureIDFromExchangeSymbol(Parameters.symbol, referenceid, expiry);
+                    if (this.getPosition().get(id).getPosition() != 0 && this.getPosition().get(id).getStrategy().equalsIgnoreCase(this.getStrategy())) {
                         Double tradePrice = this.getPosition().get(id).getPrice();
+                        int referenceid = Utilities.getCashReferenceID(Parameters.symbol, id, referenceCashType);
                         ArrayList<Stop> stops = Trade.getStop(this.getDb(), this.getStrategy() + ":" + this.getFirstInternalOpenOrder(id, EnumOrderSide.SELL, "Order").iterator().next() + ":Order");
                         boolean tpTrigger = false;
                         boolean slTrigger = false;
@@ -112,7 +109,7 @@ public class Swing extends Manager implements TradeListener {
                                         break;
                                     case STOPLOSS:
                                         if (stop.underlyingEntry != 0) {
-                                            if (Parameters.symbol.get(id).getDisplayname().contains("PUT")) {
+                                            if (Parameters.symbol.get(id).getDisplayname().contains("PUT") || (Parameters.symbol.get(id).getDisplayname().contains("FUT") && this.getPosition().get(id).getPosition() < 0))   {
                                                 slDistance = Parameters.symbol.get(referenceid).getLastPrice() - stop.underlyingEntry;
 
                                             } else {
@@ -129,20 +126,22 @@ public class Swing extends Manager implements TradeListener {
                             }
                         }
                         if (!this.isStopOrders() && (slTrigger || tpTrigger)) {
+                            //int futureid = Utilities.getFutureIDFromExchangeSymbol(Parameters.symbol, referenceid, expiry);
+                            EnumOrderSide derivedSide = this.getPosition().get(id).getPosition() > 0 ? EnumOrderSide.SELL : EnumOrderSide.COVER;
                             String entryTime = Trade.getEntryTime(this.getDb(), this.getStrategy() + ":" + this.getFirstInternalOpenOrder(id, EnumOrderSide.SELL, "Order").iterator().next() + ":Order");
                             String today = DateUtil.getFormatedDate("yyyy-MM-dd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone));
                             if (!entryTime.contains(today)) {
-                                logger.log(Level.INFO, "101,Long SLTP Exit,{0}:{1}:{2}:{3}:{4},sltrigger={5},tptrigger={6},lastprice={7},sl={8},distancefromsl={9},tp={10},distancefromtp={11}",
+                                logger.log(Level.INFO, "101, SLTP Exit,{0}:{1}:{2}:{3}:{4},sltrigger={5},tptrigger={6},lastprice={7},sl={8},distancefromsl={9},tp={10},distancefromtp={11}",
                                         new Object[]{this.getStrategy(), "Order", Parameters.symbol.get(id).getDisplayname(), -1, -1,
-                                    slTrigger, tpTrigger, Parameters.symbol.get(id).getLastPrice(), sl, slDistance, tp, tpDistance});
-                                int size = this.getPosition().get(id).getPosition();
+                                            slTrigger, tpTrigger, Parameters.symbol.get(id).getLastPrice(), sl, slDistance, tp, tpDistance});
+                                int size = Math.abs(this.getPosition().get(id).getPosition());
                                 HashMap<String, Object> order = new HashMap<>();
                                 order.put("id", id);
-                                order.put("side", EnumOrderSide.SELL);
+                                order.put("side", derivedSide);
                                 order.put("size", size);
                                 order.put("type", EnumOrderType.CUSTOMREL);
-                                String right = Parameters.symbol.get(id).getDisplayname().contains("CALL") ? "CALL" : "PUT";
-                                double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol, id, futureid, EnumOrderSide.SELL, right, getTickSize());
+                                double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, id, referenceid, derivedSide, getTickSize(), this.getOrdType());
+                                //double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol, id, futureid, EnumOrderSide.SELL, right, getTickSize());
                                 order.put("limitprice", limitprice);
                                 if (slTrigger) {
                                     order.put("reason", EnumOrderReason.SL);
@@ -158,15 +157,12 @@ public class Swing extends Manager implements TradeListener {
                                 this.exit(order);
                             }
                         }
-                    } else if (this.getPosition().get(id).getPosition() < 0 && this.getPosition().get(id).getStrategy().equalsIgnoreCase(this.getStrategy())) {
-                        //We do not expect a short position. This is an error. Email
-                        Thread t = new Thread(new Mail("psharma@incurrency.com", "Unexpected Short Position encountered: " + Parameters.symbol.get(id).getDisplayname() + " for strategy: " + this.getStrategy() + ".Please review strategy results", "Algorithm ALERT"));
-                        t.start();
                     }
                 }
             }
         }
     }
+
     TimerTask bodProcessingTask = new TimerTask() {
         public void run() {
             for (BeanSymbol s : Parameters.symbol) {
@@ -209,7 +205,7 @@ public class Swing extends Manager implements TradeListener {
                 }
                 if (stopindex >= 0) {
                     String expectedSide = expectedTrades.get(stopindex).split(":")[2];
-                    String expectedSymbol=expectedTrades.get(stopindex).split(":")[0].trim();
+                    String expectedSymbol = expectedTrades.get(stopindex).split(":")[0].trim();
                     if ((expectedSide.equals("BUY") && actualSide.equals("BUY") && entrysymbol.equals(expectedSymbol))
                             || (expectedSide.equals("SHORT") && actualSide.equals("SHORT") && entrysymbol.equals(expectedSymbol))) {
                         //update stop
@@ -258,7 +254,7 @@ public class Swing extends Manager implements TradeListener {
                     REXP wd = c.eval("getwd()");
                     System.out.println(wd.asString());
                     c.eval("options(encoding = \"UTF-8\")");
-                    String [] args=new String[1];
+                    String[] args = new String[1];
                     if (today) {
                         String open = String.valueOf(Parameters.symbol.get(symbolid).getOpenPrice());
                         String high = String.valueOf(Parameters.symbol.get(symbolid).getHighPrice());
@@ -266,16 +262,16 @@ public class Swing extends Manager implements TradeListener {
                         String close = String.valueOf(Parameters.symbol.get(symbolid).getLastPrice());
                         String volume = String.valueOf(Parameters.symbol.get(symbolid).getVolume());
                         String date = sdf_default.format(new Date());
-                          args = new String[]{"1", this.getStrategy(), this.getRedisDatabaseID(),
+                        args = new String[]{"1", this.getStrategy(), this.getRedisDatabaseID(),
                             Parameters.symbol.get(symbolid).getDisplayname(), date, open, high, low, close, volume};
                     } else {
-                      args = new String[]{"4", this.getStrategy(), this.getRedisDatabaseID(), Parameters.symbol.get(symbolid).getDisplayname()};
+                        args = new String[]{"4", this.getStrategy(), this.getRedisDatabaseID(), Parameters.symbol.get(symbolid).getDisplayname()};
                     }
                     logger.log(Level.INFO, "102,Invoking R Strategy,{0}:{1}:{2}:{3}:{4},args={5}",
                             new Object[]{getStrategy(), "Order", "Unknown", -1, -1, Arrays.toString(args)});
                     c.assign("args", args);
                     c.eval("source(\"" + this.getRStrategyFile() + "\")");
-                   
+
                 } catch (Exception e) {
                     logger.log(Level.SEVERE, null, e);
                 }
