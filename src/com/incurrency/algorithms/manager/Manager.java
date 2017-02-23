@@ -63,7 +63,7 @@ public class Manager extends Strategy {
     public Manager(MainAlgorithm m, Properties p, String parameterFile, ArrayList<String> accounts, Integer stratCount,String strategy) {
         super(m, strategy, "FUT", p, parameterFile, accounts, stratCount);
         loadParameters(p);
-        String[] tempStrategyArray = parameterFile.split("\\.")[0].split("-|_");
+        String[] tempStrategyArray = parameterFile.split("\\.")[0].split("_");
         for (BeanConnection c : Parameters.connection) {
             c.initializeConnection(tempStrategyArray[tempStrategyArray.length - 1], -1);
         }

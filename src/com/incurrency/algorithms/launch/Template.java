@@ -35,7 +35,7 @@ public class Template extends Strategy implements TradeListener {
         }
         TradingUtil.writeToFile(getStrategy() + ".csv","comma seperated header columns ");
         
-        String[] tempStrategyArray = parameterFile.split("\\.")[0].split("-");
+        String[] tempStrategyArray = parameterFile.split("\\.")[0].split("_");
         for (BeanConnection c : Parameters.connection) {
             c.getWrapper().addTradeListener(this);
             c.initializeConnection(tempStrategyArray[tempStrategyArray.length - 1],-1);
