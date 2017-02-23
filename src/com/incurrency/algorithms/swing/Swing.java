@@ -128,7 +128,7 @@ public class Swing extends Manager implements TradeListener {
                         }
                         if (!this.isStopOrders() && (slTrigger || tpTrigger)) {
                             //int futureid = Utilities.getFutureIDFromExchangeSymbol(Parameters.symbol, referenceid, expiry);
-                            String entryTime = Trade.getEntryTime(this.getDb(), this.getStrategy() + ":" + this.getFirstInternalOpenOrder(id, EnumOrderSide.SELL, "Order").iterator().next() + ":Order");
+                            String entryTime = Trade.getEntryTime(this.getDb(), this.getStrategy() + ":" + this.getFirstInternalOpenOrder(id, derivedSide, "Order").iterator().next() + ":Order");
                             String today = DateUtil.getFormatedDate("yyyy-MM-dd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone));
                             if (!entryTime.contains(today)) {
                                 logger.log(Level.INFO, "101, SLTP Exit,{0}:{1}:{2}:{3}:{4},sltrigger={5},tptrigger={6},lastprice={7},sl={8},distancefromsl={9},tp={10},distancefromtp={11}",
