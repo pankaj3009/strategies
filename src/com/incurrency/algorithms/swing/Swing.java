@@ -92,7 +92,8 @@ public class Swing extends Manager implements TradeListener {
                     if (this.getPosition().get(id).getPosition() != 0 && this.getPosition().get(id).getStrategy().equalsIgnoreCase(this.getStrategy())) {
                         Double tradePrice = this.getPosition().get(id).getPrice();
                         int referenceid = Utilities.getCashReferenceID(Parameters.symbol, id, referenceCashType);
-                        ArrayList<Stop> stops = Trade.getStop(this.getDb(), this.getStrategy() + ":" + this.getFirstInternalOpenOrder(id, EnumOrderSide.SELL, "Order").iterator().next() + ":Order");
+                        EnumOrderSide derivedSide = this.getPosition().get(id).getPosition() > 0 ? EnumOrderSide.SELL : EnumOrderSide.COVER;
+                        ArrayList<Stop> stops = Trade.getStop(this.getDb(), this.getStrategy() + ":" + this.getFirstInternalOpenOrder(id, derivedSide, "Order").iterator().next() + ":Order");
                         boolean tpTrigger = false;
                         boolean slTrigger = false;
                         double tpDistance = 0D;
@@ -127,7 +128,6 @@ public class Swing extends Manager implements TradeListener {
                         }
                         if (!this.isStopOrders() && (slTrigger || tpTrigger)) {
                             //int futureid = Utilities.getFutureIDFromExchangeSymbol(Parameters.symbol, referenceid, expiry);
-                            EnumOrderSide derivedSide = this.getPosition().get(id).getPosition() > 0 ? EnumOrderSide.SELL : EnumOrderSide.COVER;
                             String entryTime = Trade.getEntryTime(this.getDb(), this.getStrategy() + ":" + this.getFirstInternalOpenOrder(id, EnumOrderSide.SELL, "Order").iterator().next() + ":Order");
                             String today = DateUtil.getFormatedDate("yyyy-MM-dd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone));
                             if (!entryTime.contains(today)) {
