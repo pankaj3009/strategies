@@ -100,7 +100,7 @@ public class Swing extends Manager implements TradeListener {
                         double slDistance = 0D;
                         double sl = Double.MIN_VALUE;
                         double tp = Double.MAX_VALUE;
-                        if (stops != null && Parameters.symbol.get(id).getLastPrice() != 0) {
+                        if (stops != null && Parameters.symbol.get(id).getLastPrice() > 0) {
                             for (Stop stop : stops) {
                                 switch (stop.stopType) {
                                     case TAKEPROFIT:
