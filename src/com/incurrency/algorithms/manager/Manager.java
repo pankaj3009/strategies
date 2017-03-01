@@ -379,7 +379,7 @@ public class Manager extends Strategy {
                                             }else{
                                                 int underlyingid=Utilities.getCashReferenceID(Parameters.symbol, symbolid, referenceCashType);
                                                 if(underlyingid>=0){
-                                                 stp.underlyingEntry = Parameters.symbol.get(symbolid).getLastPrice();   
+                                                 stp.underlyingEntry = Parameters.symbol.get(underlyingid).getLastPrice();   
                                                 }
                                             }
                                             stp.stopType = EnumStopType.STOPLOSS;
@@ -452,7 +452,7 @@ public class Manager extends Strategy {
                                             } else {
                                                 int underlyingid = Utilities.getCashReferenceID(Parameters.symbol, symbolid, referenceCashType);
                                                 if (underlyingid >= 0) {
-                                                    stp.underlyingEntry = Parameters.symbol.get(symbolid).getLastPrice();
+                                                    stp.underlyingEntry = Parameters.symbol.get(underlyingid).getLastPrice();
                                                 }
                                             }
                                             stp.stopType = EnumStopType.STOPLOSS;
