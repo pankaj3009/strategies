@@ -4,12 +4,6 @@
  */
 package com.incurrency.eodmaintenance;
 
-import com.gargoylesoftware.htmlunit.BrowserVersion;
-import com.gargoylesoftware.htmlunit.ElementNotFoundException;
-import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
-import com.gargoylesoftware.htmlunit.WebClient;
-import com.gargoylesoftware.htmlunit.html.HtmlForm;
-import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.MapDifference.ValueDifference;
 import com.google.common.collect.Sets.SetView;
@@ -22,10 +16,6 @@ import com.incurrency.framework.MainAlgorithm;
 import com.incurrency.framework.Utilities;
 import com.incurrency.kairosresponse.DataPoint;
 import com.incurrency.kairosresponse.QueryResponse;
-import com.rainmatter.kiteconnect.KiteConnect;
-import com.rainmatter.kitehttp.exceptions.KiteException;
-import com.rainmatter.models.Instrument;
-import com.rainmatter.models.UserModel;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -55,8 +45,6 @@ import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
-import org.json.JSONException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -75,8 +63,7 @@ public class EODMaintenance {
     private Map<String, String> symbols = new HashMap<>();
     private static final Logger logger = Logger.getLogger(EODMaintenance.class.getName());
     private Set<String> nifty50 = new HashSet<>();
-    private Map<String, String> allIBStocks = new HashMap<>();
-    private Map<String, String> allZerodhaStocks = new HashMap<>();
+    private Map<String, String> allStocks = new HashMap<>();
     private Set<String> cnx500 = new HashSet<>();
     private Set<String> sme = new HashSet<>();
     private String fnolotsizeurl;
@@ -132,15 +119,11 @@ public class EODMaintenance {
 //        if (!outputfile.exists()) {
         nifty50 = this.loadNifty50StocksFromRedis();
         cnx500 = this.loadCNX500StocksFromRedis();
-        allIBStocks = this.loadAllStocksFromRedis("ibsymbols");
-        allZerodhaStocks = this.loadAllStocksFromRedis("zerodhasymbols");
-        
+        allStocks = this.loadAllStocksFromRedis();
         sme=this.loadSMEStocksFromRedis();
         //save all symbols to redis
-        saveAllZerodhaSymbols();
         this.saveSMEToRedis();
-        saveAllIBSymbols(ibsymbolurl);
-
+        saveAllSymbols(ibsymbolurl);
         //save nifty index data to redis
         saveNifty50ToRedis();
         saveCNX500ToRedis();
@@ -153,87 +136,7 @@ public class EODMaintenance {
         MainAlgorithm.setCloseDate(new Date());
     }
 
-    public void saveAllZerodhaSymbols() {
-        try{
-         KiteConnect kiteSdk = new com.rainmatter.kiteconnect.KiteConnect("0ik2gu1f75jbf2hi");
-        kiteSdk.setUserId("HODP0008");
-        String url = kiteSdk.getLoginUrl();
-        WebClient webClient = new WebClient(BrowserVersion.BEST_SUPPORTED);
-        webClient.getCookieManager().setCookiesEnabled(true);
-        webClient.getOptions().setUseInsecureSSL(true);
-        HtmlPage page = webClient.getPage(url);
-        System.out.println(page.asText());
-        if(page.asText().contains("Forgot password?")){
-        HtmlForm form = page.getFormByName("loginform");
-        form.getInputByName("user_id").type("DP0008");
-        form.getInputByName("password").type("abc005");
-        page=form.getButtonByName("login").click();
-        System.out.println(page.asText());
-        form=page.getFormByName("twofaform");
-        form.getInputByName("answer1").type("a");
-        form.getInputByName("answer2").type("a");
-        page=form.getButtonByName("twofa").click();
-        System.out.println(page.asText());            
-        }     
-        
-        JedisPool pool;
-        String request_token = null;
-        pool = new JedisPool("127.0.0.1", 6379);
-        try (Jedis jedis = pool.getResource()) {
-            request_token = jedis.get("requesttoken");
-        }
-        UserModel userModel = kiteSdk.requestAccessToken(request_token, "degjzz0m3y937s4e96besvzv4huze8t6");
-        kiteSdk.setAccessToken(userModel.accessToken);
-        kiteSdk.setPublicToken(userModel.publicToken);
-        List<Instrument> I= kiteSdk.getInstruments();
-        Map<String, String> symbols = new HashMap<>();
-        for(Instrument i:I){
-            if(i.exchange.equals("NSE") && i.instrument_type.equals("EQ")){
-             //   if(i.exchange.equals("NFO")){
-                String symbol=i.tradingsymbol.trim();
-                //symbol=symbol.replaceAll("-\\.{2}$", symbol);
-                if(symbol.endsWith("-BE")||symbol.endsWith("-BL")||symbol.endsWith("-IL")||symbol.endsWith("-IQ")||symbol.endsWith("-BT")||symbol.endsWith("-BZ")){
-                    symbol=symbol.substring(0, symbol.length()-3);
-                    //System.out.println(symbol+":"+i.segment);
-                }
-                if(!(i.name!=null && (Pattern.compile(Pattern.quote("bond"), Pattern.CASE_INSENSITIVE).matcher(i.name).find()||Pattern.compile(Pattern.quote("%"), Pattern.CASE_INSENSITIVE).matcher(i.name).find()))){
-                    symbols.put(symbol,symbol);
-                }
-                
-            }
-        }
-               Set<String>newSME=this.loadSMEStocksFromRedis();
-                for(String s:newSME){
-                    symbols.remove(s);
-                }
-                if (!Utilities.equalMaps(symbols, this.allZerodhaStocks)) {
-                    MapDifference<String,String> difference = com.google.common.collect.Maps.difference(symbols, allZerodhaStocks);
-                    for(Map.Entry<String,String> entry:difference.entriesOnlyOnLeft().entrySet()){
-                       logger.log(Level.INFO,"All Symbols Entries in New Data,Key:{0},Value:{1}",new Object[]{entry.getKey(),entry.getValue()});
-                         
-                    }
-                    for(Map.Entry<String,String> entry:difference.entriesOnlyOnRight().entrySet()){
-                       logger.log(Level.INFO,"All Symbols Entries in Old Data,Key:{0},Value:{1}",new Object[]{entry.getKey(),entry.getValue()});
-                         
-                    }
-                    for(Map.Entry<String,ValueDifference<String>> entry:difference.entriesDiffering().entrySet()){
-                       logger.log(Level.INFO,"All Symbols ValueDifference,Key:{0},Value:{1}",new Object[]{entry.getValue().leftValue(),entry.getValue().rightValue()});
-                         
-                    }
-                    String today = new SimpleDateFormat("yyyyMMdd").format(new Date());
-                    for (Map.Entry<String, String> s : symbols.entrySet()) {
-                        try (Jedis jedis = jPool.getResource()) {
-                            jedis.hset("zerodhasymbols:" + today, s.getKey(), s.getValue());
-                        }
-                    }
-                }
-        
-        }catch(ElementNotFoundException | FailingHttpStatusCodeException | KiteException|IOException | NullPointerException | JSONException e){
-            logger.log(Level.SEVERE,null,e);
-        } 
-    }
-    
-    public void saveAllIBSymbols(String urlName) throws IOException {
+    public void saveAllSymbols(String urlName) throws IOException {
         Map<String, String> symbols = new HashMap<>();
         String constant = "&page=";
         String today = new SimpleDateFormat("yyyyMMdd").format(new Date());
@@ -289,8 +192,8 @@ public class EODMaintenance {
                 for(String s:newSME){
                     symbols.remove(s);
                 }
-                if (!Utilities.equalMaps(symbols, allIBStocks)) {
-                    MapDifference<String,String> difference = com.google.common.collect.Maps.difference(symbols, allIBStocks);
+                if (!Utilities.equalMaps(symbols, allStocks)) {
+                    MapDifference<String,String> difference = com.google.common.collect.Maps.difference(symbols, allStocks);
                     for(Map.Entry<String,String> entry:difference.entriesOnlyOnLeft().entrySet()){
                        logger.log(Level.INFO,"All Symbols Entries in New Data,Key:{0},Value:{1}",new Object[]{entry.getKey(),entry.getValue()});
                          
@@ -929,9 +832,9 @@ public class EODMaintenance {
 
     }
 
-    public Map<String, String> loadAllStocksFromRedis(String value) {
+    public Map<String, String> loadAllStocksFromRedis() {
           String today=DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone));
-        String shortlistedkey=Utilities.getShorlistedKey(jPool, value, today);
+        String shortlistedkey=Utilities.getShorlistedKey(jPool, "ibsymbols", today);
         Map<String, String> allSymbols = new HashMap<>();
         try (Jedis jedis = jPool.getResource()) {
             allSymbols = jedis.hgetAll(shortlistedkey);
