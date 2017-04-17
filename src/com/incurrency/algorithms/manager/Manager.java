@@ -323,7 +323,7 @@ public class Manager extends Strategy {
                                 break;
                             case COVER:
                                 catchUpPosition = initPositionSize + actualPositionSize;
-                                size = Math.max(size + catchUpPosition, 0);
+                                size = Math.max(size - catchUpPosition, 0);
                                 break;
                             default:
                                 break;
