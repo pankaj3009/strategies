@@ -78,6 +78,9 @@ public class Manager extends Strategy {
 
         Timer monitor=new Timer("Timer: "+this.getStrategy() +" WaitForTrades");
         monitor.schedule(TradeProcessor, new Date());
+        Timer mdrequest=new Timer("Timer: "+this.getStrategy() +" WaitForMDRequest");
+        mdrequest.schedule(MarketDataRequestProcessor, new Date());
+        
     }
 
     private void loadParameters(Properties p) {
@@ -123,7 +126,29 @@ public class Manager extends Strategy {
             }
         }
     };
-        
+    
+        public TimerTask MarketDataRequestProcessor=new TimerTask(){
+        @Override
+        public void run() {
+            while (true) {
+                waitForMarketDataRequest();
+            }
+        }
+    };
+    
+public void waitForMarketDataRequest(){
+     List<String> tradetuple = this.getDb().blpop("mdrequest:" + this.getStrategy(), "", 60);
+     if (tradetuple != null) {
+          logger.log(Level.INFO, "101,Received MarketData Request:{0} for strategy {1}", new Object[]{tradetuple.get(1), tradetuple.get(0)});
+            String displayName = tradetuple.get(1);
+            String symbol = displayName.split(":", -1)[0];
+            int symbolid = Utilities.getIDFromDisplayName(Parameters.symbol, symbol);
+            if(symbolid==-1){
+                insertSymbol(Parameters.symbol,symbol,optionPricingUsingFutures,referenceCashType);
+            }
+     }
+}    
+    
     public void waitForTrades() {
         try {
             List<String> tradetuple = this.getDb().blpop("trades:" + this.getStrategy(), "", 60);
