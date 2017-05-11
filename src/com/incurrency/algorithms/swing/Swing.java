@@ -165,13 +165,15 @@ public class Swing extends Manager implements TradeListener {
 
     TimerTask bodProcessingTask = new TimerTask() {
         public void run() {
-            for (BeanSymbol s : Parameters.symbol) {
-                if (s.getType().equals(referenceCashType) && s.getStrategy().toLowerCase().contains("swing")) {
-                    int symbolid = s.getSerialno() - 1;
-                    scan(symbolid, false);
-                    bodtasks();
-                }
-            }
+            scan(false);
+            bodtasks();
+//            for (BeanSymbol s : Parameters.symbol) {
+//                if (s.getType().equals(referenceCashType) && s.getStrategy().toLowerCase().contains("swing")) {
+//                    int symbolid = s.getSerialno() - 1;
+//                    scan(false);
+//                    bodtasks();
+//                }
+//            }
         }
     };
 
@@ -234,16 +236,17 @@ public class Swing extends Manager implements TradeListener {
     TimerTask RScriptRunTask = new TimerTask() {
         @Override
         public void run() {
-            for (BeanSymbol s : Parameters.symbol) {
-                if (s.getType().equals(referenceCashType) && s.getStrategy().toLowerCase().contains("swing")) {
-                    int symbolid = s.getSerialno() - 1;
-                    scan(symbolid, true);
-                }
-            }
+            scan(true);
+//            for (BeanSymbol s : Parameters.symbol) {
+//                if (s.getType().equals(referenceCashType) && s.getStrategy().toLowerCase().contains("swing")) {
+//                    int symbolid = s.getSerialno() - 1;
+//                    scan(symbolid, true);
+//                }
+//            }
         }
     };
 
-    private void scan(int symbolid, boolean today) {
+    private void scan(boolean today) {
         synchronized (lockScan) {
             if (!getRStrategyFile().equals("")) {
                 logger.log(Level.INFO, "102,Scan Initiated,{0}:{1};{2}:{3}:{4}",
@@ -257,16 +260,15 @@ public class Swing extends Manager implements TradeListener {
                     c.eval("options(encoding = \"UTF-8\")");
                     String[] args = new String[1];
                     if (today) {
-                        String open = String.valueOf(Parameters.symbol.get(symbolid).getOpenPrice());
-                        String high = String.valueOf(Parameters.symbol.get(symbolid).getHighPrice());
-                        String low = String.valueOf(Parameters.symbol.get(symbolid).getLowPrice());
-                        String close = String.valueOf(Parameters.symbol.get(symbolid).getLastPrice());
-                        String volume = String.valueOf(Parameters.symbol.get(symbolid).getVolume());
-                        String date = sdf_default.format(new Date());
-                        args = new String[]{"1", this.getStrategy(), this.getRedisDatabaseID(),
-                            Parameters.symbol.get(symbolid).getDisplayname(), date, open, high, low, close, volume};
+//                        String open = String.valueOf(Parameters.symbol.get(symbolid).getOpenPrice());
+//                        String high = String.valueOf(Parameters.symbol.get(symbolid).getHighPrice());
+//                        String low = String.valueOf(Parameters.symbol.get(symbolid).getLowPrice());
+//                        String close = String.valueOf(Parameters.symbol.get(symbolid).getLastPrice());
+//                        String volume = String.valueOf(Parameters.symbol.get(symbolid).getVolume());
+//                        String date = sdf_default.format(new Date());
+                        args = new String[]{"1", this.getStrategy(), this.getRedisDatabaseID()};
                     } else {
-                        args = new String[]{"4", this.getStrategy(), this.getRedisDatabaseID(), Parameters.symbol.get(symbolid).getDisplayname()};
+                        args = new String[]{"4", this.getStrategy(), this.getRedisDatabaseID()};
                     }
                     logger.log(Level.INFO, "102,Invoking R Strategy,{0}:{1}:{2}:{3}:{4},args={5}",
                             new Object[]{getStrategy(), "Order", "Unknown", -1, -1, Arrays.toString(args)});
