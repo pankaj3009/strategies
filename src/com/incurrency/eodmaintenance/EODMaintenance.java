@@ -45,6 +45,7 @@ import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -351,7 +352,7 @@ public class EODMaintenance {
                             i = i + 1;
                         }
                     } else if (columnNumber >= 0) {
-                        if (input[1].trim().length() > 0) {//not an empty row
+                        if (input[1].trim().length() > 0 && !Pattern.compile(Pattern.quote(input[1]), Pattern.CASE_INSENSITIVE).matcher("symbol").find()) {//not an empty row
                             String exchangesymbol = input[1].trim().toUpperCase();
 //                                String displayName = input[1].trim().toUpperCase().replaceAll("[^A-Za-z0-9]", "");
                             String displayName = input[1].trim().toUpperCase();
