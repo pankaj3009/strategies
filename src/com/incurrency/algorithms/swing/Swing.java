@@ -220,7 +220,7 @@ public class Swing extends Manager implements TradeListener {
                                 new Object[]{getStrategy(), "Order", symbol, -1, -1, stop.underlyingEntry, stop.stopValue});
                     } else {
                         //alert we have an incorrect side
-                        String message = "Symbol Variance. Expected: "+expectedSide+" "+expectedSymbol+" ,Actual: "+actualSide+" "+entrysymbol;
+                        String message = "Symbol Variance. Expected: "+expectedSide+" "+expectedSymbol+" ,Actual: "+actualSide+" "+entrysymbol +" for strategy "+this.getStrategy();
                         Thread t = new Thread(new Mail("psharma@incurrency.com", message, "Algorithm ALERT"));
                         t.start();
                     }
