@@ -6,6 +6,7 @@ package com.incurrency.algorithms.manager;
 
 import com.incurrency.framework.Algorithm;
 import com.incurrency.framework.BeanConnection;
+import com.incurrency.framework.BeanPosition;
 import com.incurrency.framework.DateUtil;
 import com.incurrency.framework.EnumOrderReason;
 import com.incurrency.framework.EnumOrderSide;
@@ -328,6 +329,10 @@ public void waitForMarketDataRequest(){
                         if(exitorderidlist.size()>0){
                             actualPositionSize=this.getPosition().get(exitorderidlist.get(0)).getPosition();
                         }else if(entryorderidlist.size()>0){
+                            if(this.getPosition().get(entryorderidlist.get(0))==null){
+                                this.getPosition().put(entryorderidlist.get(0), new BeanPosition(entryorderidlist.get(0), getStrategy()));
+                                //this.initSymbol(entryorderidlist.get(0), this.optionPricingUsingFutures, referenceCashType);
+                            }
                             actualPositionSize=this.getPosition().get(entryorderidlist.get(0)).getPosition();
                         }                        
                     }
