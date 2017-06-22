@@ -13,6 +13,7 @@ import static com.incurrency.framework.EnumOrderSide.BUY;
 import static com.incurrency.framework.EnumOrderSide.SHORT;
 import com.incurrency.framework.EnumOrderStage;
 import com.incurrency.framework.MainAlgorithm;
+import com.incurrency.framework.OrderBean;
 import com.incurrency.framework.Parameters;
 import com.incurrency.framework.Stop;
 import com.incurrency.framework.Trade;
@@ -34,15 +35,16 @@ import org.rosuda.REngine.Rserve.RConnection;
  * @author psharma
  */
 public class Contra extends Manager {
+
     private static final Logger logger = Logger.getLogger(Contra.class.getName());
-    private final Object lockScan=new Object();
-    
+    private final Object lockScan = new Object();
+
     public Contra(MainAlgorithm m, Properties p, String parameterFile, ArrayList<String> accounts, Integer stratCount) {
-        super(m, p, parameterFile, accounts, stratCount,"contra");
+        super(m, p, parameterFile, accounts, stratCount, "contra");
         Timer trigger = new Timer("Timer: " + this.getStrategy() + " RScriptProcessor");
         trigger.schedule(RScriptRunTask, RScriptRunTime);
-        boolean contractRollover = Utilities.rolloverDay(Math.max(1,rolloverDays-2), this.getStartDate(), this.expiryNearMonth);
-            
+        boolean contractRollover = Utilities.rolloverDay(Math.max(1, rolloverDays - 2), this.getStartDate(), this.expiryNearMonth);
+
         if (contractRollover) {
             Timer rollProcessing = new Timer("Timer: " + this.getStrategy() + " RollProcessing");
             rollProcessing.schedule(rollProcessingTask, DateUtil.addSeconds(RScriptRunTime, 60));
@@ -62,9 +64,9 @@ public class Contra extends Manager {
                         REXP wd = c.eval("getwd()");
                         System.out.println(wd.asString());
                         c.eval("options(encoding = \"UTF-8\")");
-                         String[] args = new String[1];
-                         args = new String[]{"1", getStrategy(), getRedisDatabaseID()};
-                         c.assign("args", args);
+                        String[] args = new String[1];
+                        args = new String[]{"1", getStrategy(), getRedisDatabaseID()};
+                        c.assign("args", args);
                         c.eval("source(\"" + RStrategyFile + "\")");
                     } catch (Exception e) {
                         logger.log(Level.SEVERE, null, e);
@@ -73,8 +75,8 @@ public class Contra extends Manager {
             }
         }
     };
-    
-        TimerTask rollProcessingTask = new TimerTask() {
+
+    TimerTask rollProcessingTask = new TimerTask() {
         @Override
         public void run() {
             try {
@@ -147,44 +149,40 @@ public class Contra extends Manager {
                     logger.log(Level.INFO, "101,Rollover SELL,{0}:{1}:{2}:{3}:{4}",
                             new Object[]{getStrategy(), "Order", Parameters.symbol.get(initID).getDisplayname(), -1, -1});
                     stops = Trade.getStop(this.getDb(), this.getStrategy() + ":" + this.getFirstInternalOpenOrder(initID, EnumOrderSide.SELL, "Order").iterator().next() + ":Order");
-                    HashMap<String, Object> order = new HashMap<>();
+                    OrderBean order = new OrderBean();
                     int referenceid = Utilities.getCashReferenceID(Parameters.symbol, targetID, referenceCashType);
                     double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, initID, referenceid, EnumOrderSide.SELL, getTickSize(), this.getOrdType());
-                    order.put("id", initID);
-                    order.put("type", this.getOrdType());
-                    order.put("side", EnumOrderSide.SELL);
-                    order.put("size", size);
-                    order.put("limitprice", limitprice);
-                    order.put("reason", EnumOrderReason.REGULAREXIT);
-                    order.put("orderstage", EnumOrderStage.INIT);
-                    order.put("expiretime", this.getMaxOrderDuration());
-                    order.put("dynamicorderduration", getDynamicOrderDuration());
-                    order.put("maxslippage", this.getMaxSlippageExit());
-                    order.put("orderattributes", this.getOrderAttributes());
-                    order.put("scale", getScaleExit());
-                    order.put("log", "ROLLOVERSQUAREOFF");
+                    order.setParentDisplayName(Parameters.symbol.get(initID).getDisplayname());
+                    order.setChildDisplayName(Parameters.symbol.get(initID).getDisplayname());
+                    order.setOrderType(this.getOrdType());
+                    order.setOrderSide(EnumOrderSide.SELL);
+                    order.setOriginalOrderSize(size);
+                    order.setLimitPrice(limitprice);
+                    order.setOrderReason(EnumOrderReason.REGULAREXIT);
+                    order.setOrderStage(EnumOrderStage.INIT);
+                    order.setOrderAttributes(this.getOrderAttributes());
+                    order.setScale(getScaleExit());
+                    order.setOrderLog("ROLLOVERSQUAREOFF");
                     this.exit(order);
                     break;
                 case SHORT:
                     logger.log(Level.INFO, "101,Rollover COVER,{0}:{1}:{2}:{3}:{4}",
                             new Object[]{getStrategy(), "Order", Parameters.symbol.get(initID).getDisplayname(), -1, -1});
                     stops = Trade.getStop(this.getDb(), this.getStrategy() + ":" + this.getFirstInternalOpenOrder(initID, EnumOrderSide.COVER, "Order").iterator().next() + ":Order");
-                    order = new HashMap<>();
+                    order = new OrderBean();
                     referenceid = Utilities.getCashReferenceID(Parameters.symbol, targetID, referenceCashType);
                     limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, initID, referenceid, EnumOrderSide.COVER, getTickSize(), this.getOrdType());
-                    order.put("id", initID);
-                    order.put("type", this.getOrdType());
-                    order.put("side", EnumOrderSide.COVER);
-                    order.put("size", size);
-                    order.put("limitprice", limitprice);
-                    order.put("reason", EnumOrderReason.REGULAREXIT);
-                    order.put("orderstage", EnumOrderStage.INIT);
-                    order.put("expiretime", this.getMaxOrderDuration());
-                    order.put("dynamicorderduration", getDynamicOrderDuration());
-                    order.put("maxslippage", this.getMaxSlippageExit());
-                    order.put("orderattributes", this.getOrderAttributes());
-                    order.put("scale", getScaleExit());
-                    order.put("log", "ROLLOVERSQUAREOFF");
+                    order.setParentDisplayName(Parameters.symbol.get(initID).getDisplayname());
+                    order.setChildDisplayName(Parameters.symbol.get(initID).getDisplayname());
+                    order.setOrderType(this.getOrdType());
+                    order.setOrderSide(EnumOrderSide.COVER);
+                    order.setOriginalOrderSize(size);
+                    order.setLimitPrice(limitprice);
+                    order.setOrderReason(EnumOrderReason.REGULAREXIT);
+                    order.setOrderStage(EnumOrderStage.INIT);
+                    order.setOrderAttributes(this.getOrderAttributes());
+                    order.setScale(getScaleExit());
+                    order.setOrderLog("ROLLOVERSQUAREOFF");
                     this.exit(order);
                     break;
                 default:
@@ -201,49 +199,42 @@ public class Contra extends Manager {
                     if (this.getLongOnly()) {
                         logger.log(Level.INFO, "101,Rollover BUY,{0}:{1}:{2}:{3}:{4},NewPositionSize={5}",
                                 new Object[]{getStrategy(), "Order", Parameters.symbol.get(targetID).getDisplayname(), -1, -1, newSize});
-                        HashMap<String, Object> order = new HashMap<>();
                         int referenceid = Utilities.getCashReferenceID(Parameters.symbol, targetID, referenceCashType);
                         double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, targetID, referenceid, EnumOrderSide.BUY, getTickSize(), this.getOrdType());
-                        order.put("id", targetID);
-                        order.put("side", EnumOrderSide.BUY);
-                        order.put("size", newSize);
-                        order.put("type", this.getOrdType());
-                        order.put("limitprice", limitprice);
-                        order.put("reason", EnumOrderReason.REGULARENTRY);
-                        order.put("orderstage", EnumOrderStage.INIT);
-                        order.put("expiretime", this.getMaxOrderDuration());
-                        order.put("dynamicorderduration", getDynamicOrderDuration());
-                        order.put("maxslippage", this.getMaxSlippageExit());
-                        order.put("orderattributes", this.getOrderAttributes());
-                        order.put("scale", getScaleEntry());
-                        order.put("log", "ROLLOVERENTRY");
+                        OrderBean order = new OrderBean();
+                        order.setParentDisplayName(Parameters.symbol.get(targetID).getDisplayname());
+                        order.setChildDisplayName(Parameters.symbol.get(initID).getDisplayname());
+                        order.setOrderType(this.getOrdType());
+                        order.setOrderSide(EnumOrderSide.BUY);
+                        order.setOriginalOrderSize(newSize);
+                        order.setLimitPrice(limitprice);
+                        order.setOrderReason(EnumOrderReason.REGULARENTRY);
+                        order.setOrderStage(EnumOrderStage.INIT);
+                        order.setOrderAttributes(this.getOrderAttributes());
+                        order.setScale(getScaleEntry());
+                        order.setOrderLog("ROLLOVERENTRY");
                         orderid = this.entry(order);
-                        //orderid = this.getFirstInternalOpenOrder(initID, EnumOrderSide.SELL, "Order");
                     }
                     break;
                 case SHORT:
                     if (this.getShortOnly()) {
                         logger.log(Level.INFO, "101,Rollover SHORT,{0}:{1}:{2}:{3}:{4},NewPositionSize={5}",
                                 new Object[]{getStrategy(), "Order", Parameters.symbol.get(targetID).getDisplayname(), -1, -1, newSize});
-                        HashMap<String, Object> order = new HashMap<>();
-                        order = new HashMap<>();
+                        OrderBean order = new OrderBean();
                         int referenceid = Utilities.getCashReferenceID(Parameters.symbol, targetID, referenceCashType);
                         double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, targetID, referenceid, EnumOrderSide.SHORT, getTickSize(), this.getOrdType());
-                        order.put("id", targetID);
-                        order.put("side", EnumOrderSide.SHORT);
-                        order.put("size", newSize);
-                        order.put("type", this.getOrdType());
-                        order.put("limitprice", limitprice);
-                        order.put("reason", EnumOrderReason.REGULARENTRY);
-                        order.put("orderstage", EnumOrderStage.INIT);
-                        order.put("expiretime", this.getMaxOrderDuration());
-                        order.put("dynamicorderduration", getDynamicOrderDuration());
-                        order.put("maxslippage", this.getMaxSlippageExit());
-                        order.put("orderattributes", this.getOrderAttributes());
-                        order.put("scale", getScaleEntry());
-                        order.put("log", "ROLLOVERENTRY");
+                        order.setParentDisplayName(Parameters.symbol.get(targetID).getDisplayname());
+                        order.setChildDisplayName(Parameters.symbol.get(initID).getDisplayname());
+                        order.setOrderType(this.getOrdType());
+                        order.setOrderSide(EnumOrderSide.SHORT);
+                        order.setOriginalOrderSize(newSize);
+                        order.setLimitPrice(limitprice);
+                        order.setOrderReason(EnumOrderReason.REGULARENTRY);
+                        order.setOrderStage(EnumOrderStage.INIT);
+                        order.setOrderAttributes(this.getOrderAttributes());
+                        order.setScale(getScaleEntry());
+                        order.setOrderLog("ROLLOVERENTRY");
                         orderid = this.entry(order);
-                        //orderid = this.getFirstInternalOpenOrder(initID, EnumOrderSide.COVER, "Order");
                     }
                     break;
                 default:

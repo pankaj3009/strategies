@@ -14,6 +14,7 @@ import com.incurrency.framework.EnumOrderReason;
 import com.incurrency.framework.EnumOrderSide;
 import com.incurrency.framework.EnumOrderStage;
 import com.incurrency.framework.MainAlgorithm;
+import com.incurrency.framework.OrderBean;
 import com.incurrency.framework.Parameters;
 import com.incurrency.framework.TradeEvent;
 import com.incurrency.framework.TradeListener;
@@ -272,29 +273,25 @@ public class Yield extends Manager implements TradeListener {
                         return;
                     }
                     if (optionReturn > 0 && futurePrice > 0 && strikePrice > 0 && optionDte >= 0) {
-                        HashMap<String, Object> order = new HashMap<>();
+                        OrderBean order = new OrderBean();
                         switch (right) {
                             case "CALL":
                                 if ((optionReturn < thresholdReturnExit || (strikePrice - (Math.sqrt(optionDte) * historicalVol * avgMovePerDayExit * strikePrice / 100)) < futurePrice) && optionReturn > 0) {
-                                    order.put("type", this.getOrdType());
-                                    order.put("expiretime", getMaxOrderDuration());
-                                    order.put("dynamicorderduration", getDynamicOrderDuration());
-                                    order.put("maxslippage", this.getMaxSlippageEntry());
-                                    order.put("id", id);
+                                    order.setOrderType(this.getOrdType());
+                                    order.setParentDisplayName(Parameters.symbol.get(id).getDisplayname());
+                                    order.setChildDisplayName(Parameters.symbol.get(id).getDisplayname());
                                     double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol, id, futureid, EnumOrderSide.COVER, "CALL", getTickSize());
-                                    order.put("limitprice", limitprice);
-                                    order.put("side", EnumOrderSide.COVER);
-                                    order.put("size", position);
+                                    order.setLimitPrice(limitprice);
+                                    order.setOrderSide(EnumOrderSide.COVER);
+                                    order.setOriginalOrderSize(position);
                                     if (optionReturn < thresholdReturnExit) {
-                                        order.put("reason", EnumOrderReason.TP);
+                                        order.setOrderReason(EnumOrderReason.TP);
                                     } else {
-                                        order.put("reason", EnumOrderReason.SL);
+                                        order.setOrderReason(EnumOrderReason.SL);
                                     }
-                                    order.put("orderstage", EnumOrderStage.INIT);
-                                    order.put("scale", this.scaleExit);
-                                    order.put("dynamicorderduration", this.getDynamicOrderDuration());
-                                    order.put("expiretime", 0);
-                                    order.put("orderattributes", this.getOrderAttributes());
+                                    order.setOrderStage(EnumOrderStage.INIT);
+                                    order.setScale(this.scaleExit);
+                                    order.setOrderAttributes(this.getOrderAttributes());
                                     if (limitprice > 0) {
                                         logger.log(Level.INFO, "101,Strategy COVER,{0}:{1}:{2}:{3}:{4},OptionReturn={5},FuturePrice={6}",
                                                 new Object[]{getStrategy(), "Order", Parameters.symbol.get(id).getDisplayname(), -1, -1, optionReturn,String.valueOf(futurePrice)});
@@ -304,25 +301,21 @@ public class Yield extends Manager implements TradeListener {
                                 break;
                             case "PUT":
                                 if ((optionReturn < thresholdReturnExit || (strikePrice + (Math.sqrt(optionDte) * historicalVol * avgMovePerDayExit * strikePrice) / 100) > futurePrice) && optionReturn > 0) {
-                                    order.put("type", this.getOrdType());
-                                    order.put("expiretime", getMaxOrderDuration());
-                                    order.put("dynamicorderduration", getDynamicOrderDuration());
-                                    order.put("maxslippage", this.getMaxSlippageEntry());
-                                    order.put("id", id);
+                                    order.setOrderType(this.getOrdType());
+                                    order.setParentDisplayName(Parameters.symbol.get(id).getDisplayname());
+                                    order.setChildDisplayName(Parameters.symbol.get(id).getDisplayname());
                                     double limitprice = Utilities.getOptionLimitPriceForRel(Parameters.symbol, id, futureid, EnumOrderSide.COVER, "PUT", getTickSize());
-                                    order.put("limitprice", limitprice);
-                                    order.put("side", EnumOrderSide.COVER);
-                                    order.put("size", position);
+                                    order.setLimitPrice(limitprice);
+                                    order.setOrderSide(EnumOrderSide.COVER);
+                                    order.setOriginalOrderSize(position);
                                     if (optionReturn < thresholdReturnExit) {
-                                        order.put("reason", EnumOrderReason.TP);
+                                        order.setOrderReason(EnumOrderReason.TP);
                                     } else {
-                                        order.put("reason", EnumOrderReason.SL);
+                                        order.setOrderReason(EnumOrderReason.TP);
                                     }
-                                    order.put("orderstage", EnumOrderStage.INIT);
-                                    order.put("scale", scaleExit);
-                                    order.put("dynamicorderduration", this.getDynamicOrderDuration());
-                                    order.put("expiretime", 0);
-                                    order.put("orderattributes", this.getOrderAttributes());
+                                    order.setOrderStage(EnumOrderStage.INIT);
+                                    order.setScale(scaleExit);
+                                    order.setOrderAttributes(this.getOrderAttributes());
                                     if (limitprice > 0) {
                                         logger.log(Level.INFO, "101,Strategy COVER,{0}:{1}:{2}:{3}:{4},OptionReturn={5},FuturePrice={6}",
                                                 new Object[]{getStrategy(), "Order", Parameters.symbol.get(id).getDisplayname(), -1, -1, optionReturn,String.valueOf(futurePrice)});

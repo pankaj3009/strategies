@@ -16,6 +16,7 @@ import com.incurrency.framework.EnumStopMode;
 import com.incurrency.framework.EnumStopType;
 import com.incurrency.framework.Mail;
 import com.incurrency.framework.MainAlgorithm;
+import com.incurrency.framework.OrderBean;
 import com.incurrency.framework.Parameters;
 import com.incurrency.framework.Stop;
 import com.incurrency.framework.Strategy;
@@ -57,11 +58,11 @@ public class Manager extends Strategy {
     public String optionSystem;
     public Boolean scaleEntry = Boolean.FALSE;
     public Boolean scaleExit = Boolean.FALSE;
-    public Boolean aggregatePositions=Boolean.TRUE;
+    public Boolean aggregatePositions = Boolean.TRUE;
 
     private static final Logger logger = Logger.getLogger(Manager.class.getName());
 
-    public Manager(MainAlgorithm m, Properties p, String parameterFile, ArrayList<String> accounts, Integer stratCount,String strategy) {
+    public Manager(MainAlgorithm m, Properties p, String parameterFile, ArrayList<String> accounts, Integer stratCount, String strategy) {
         super(m, strategy, "FUT", p, parameterFile, accounts, stratCount);
         loadParameters(p);
         String[] tempStrategyArray = parameterFile.split("\\.")[0].split("_");
@@ -74,30 +75,30 @@ public class Manager extends Strategy {
         } else {
             expiry = this.expiryNearMonth;
         }
-        logger.log(Level.FINE,"102,ExpiryDate For EntryTrades Set,{0}:{1}:{2}:{3}:{4},ExpiryDate={5}",
-                new Object[]{this.getStrategy(),"Order","Unknown","-1","-1",expiry});
+        logger.log(Level.FINE, "102,ExpiryDate For EntryTrades Set,{0}:{1}:{2}:{3}:{4},ExpiryDate={5}",
+                new Object[]{this.getStrategy(), "Order", "Unknown", "-1", "-1", expiry});
 
-        Timer monitor=new Timer("Timer: "+this.getStrategy() +" WaitForTrades");
+        Timer monitor = new Timer("Timer: " + this.getStrategy() + " WaitForTrades");
         monitor.schedule(TradeProcessor, new Date());
-        Timer mdrequest=new Timer("Timer: "+this.getStrategy() +" WaitForMDRequest");
+        Timer mdrequest = new Timer("Timer: " + this.getStrategy() + " WaitForMDRequest");
         mdrequest.schedule(MarketDataRequestProcessor, new Date());
-        
+
     }
 
     private void loadParameters(Properties p) {
         //expiryNearMonth = p.getProperty("NearMonthExpiry").toString().trim();
         //expiryFarMonth = p.getProperty("FarMonthExpiry").toString().trim();
-        String today=DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone));
-        expiryNearMonth=Utilities.getLastThursday(today,"yyyyMMdd",0);
-        Date dtExpiry=DateUtil.parseDate("yyyyMMdd", expiryNearMonth, timeZone);
-        String expiryplus=DateUtil.getFormatedDate("yyyyMMdd", DateUtil.addDays(dtExpiry, 1).getTime(), TimeZone.getTimeZone(Algorithm.timeZone));
-        expiryFarMonth=Utilities.getLastThursday(expiryplus,"yyyyMMdd",0);
+        String today = DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone));
+        expiryNearMonth = Utilities.getLastThursday(today, "yyyyMMdd", 0);
+        Date dtExpiry = DateUtil.parseDate("yyyyMMdd", expiryNearMonth, timeZone);
+        String expiryplus = DateUtil.getFormatedDate("yyyyMMdd", DateUtil.addDays(dtExpiry, 1).getTime(), TimeZone.getTimeZone(Algorithm.timeZone));
+        expiryFarMonth = Utilities.getLastThursday(expiryplus, "yyyyMMdd", 0);
         referenceCashType = p.getProperty("ReferenceCashType", null);
         rServerIP = p.getProperty("RServerIP").toString().trim();
         securityType = p.getProperty("SecurityType", "PASSTHROUGH");
         optionPricingUsingFutures = Boolean.valueOf(p.getProperty("OptionPricingUsingFutures", "TRUE"));
         optionSystem = p.getProperty("OptionSystem", "PAY");
-        aggregatePositions=Boolean.valueOf(p.getProperty("AggregatePositions","True"));
+        aggregatePositions = Boolean.valueOf(p.getProperty("AggregatePositions", "True"));
         String entryScanTime = p.getProperty("ScanStartTime");
         Calendar calToday = Calendar.getInstance(TimeZone.getTimeZone(Algorithm.timeZone));
         String[] entryTimeComponents = entryScanTime.split(":");
@@ -105,9 +106,9 @@ public class Manager extends Strategy {
         calToday.set(Calendar.MINUTE, Utilities.getInt(entryTimeComponents[1], 20));
         calToday.set(Calendar.SECOND, Utilities.getInt(entryTimeComponents[2], 0));
         RScriptRunTime = calToday.getTime();
-        if(this.RScriptRunTime.compareTo(new Date())<0){
-          calToday.add(Calendar.DATE, 1);
-          RScriptRunTime=calToday.getTime();
+        if (this.RScriptRunTime.compareTo(new Date()) < 0) {
+            calToday.add(Calendar.DATE, 1);
+            RScriptRunTime = calToday.getTime();
         }
         rolloverDays = Integer.valueOf(p.getProperty("RolloverDays", "0"));
         RStrategyFile = p.getProperty("RStrategyFile", "");
@@ -115,11 +116,9 @@ public class Manager extends Strategy {
         scaleEntry = Boolean.parseBoolean(p.getProperty("ScaleEntry", "FALSE"));
         scaleExit = Boolean.parseBoolean(p.getProperty("ScaleExit", "FALSE"));
 
-
     }
-    
 
-    public TimerTask TradeProcessor=new TimerTask(){
+    public TimerTask TradeProcessor = new TimerTask() {
         @Override
         public void run() {
             while (true) {
@@ -127,8 +126,8 @@ public class Manager extends Strategy {
             }
         }
     };
-    
-        public TimerTask MarketDataRequestProcessor=new TimerTask(){
+
+    public TimerTask MarketDataRequestProcessor = new TimerTask() {
         @Override
         public void run() {
             while (true) {
@@ -136,43 +135,43 @@ public class Manager extends Strategy {
             }
         }
     };
-    
-public void waitForMarketDataRequest(){
-     List<String> tradetuple = this.getDb().blpop("mdrequest:" + this.getStrategy(), "", 60);
-     if (tradetuple != null) {
-          logger.log(Level.INFO, "101,Received MarketData Request:{0} for strategy {1}", new Object[]{tradetuple.get(1), tradetuple.get(0)});
+
+    public void waitForMarketDataRequest() {
+        List<String> tradetuple = this.getDb().blpop("mdrequest:" + this.getStrategy(), "", 60);
+        if (tradetuple != null) {
+            logger.log(Level.INFO, "101,Received MarketData Request:{0} for strategy {1}", new Object[]{tradetuple.get(1), tradetuple.get(0)});
             String displayName = tradetuple.get(1);
             String symbol = displayName.split(":", -1)[0];
             int symbolid = Utilities.getIDFromDisplayName(Parameters.symbol, symbol);
-            if(symbolid==-1){
-                insertSymbol(Parameters.symbol,symbol,optionPricingUsingFutures,referenceCashType);
+            if (symbolid == -1) {
+                insertSymbol(Parameters.symbol, symbol, optionPricingUsingFutures, referenceCashType);
             }
-     }
-}    
-    
+        }
+    }
+
     public void waitForTrades() {
         try {
             List<String> tradetuple = this.getDb().blpop("trades:" + this.getStrategy(), "", 60);
             if (tradetuple != null) {
                 logger.log(Level.INFO, "101,Received Trade:{0} for strategy {1}", new Object[]{tradetuple.get(1), tradetuple.get(0)});
                 //tradetuple as symbol:size:side:sl
-                Thread t = new Thread(new Mail(getIamail(),"Received Trade: "+tradetuple.get(1)+" for strategy "+tradetuple.get(0),"Received Order from [R]"));
+                Thread t = new Thread(new Mail(getIamail(), "Received Trade: " + tradetuple.get(1) + " for strategy " + tradetuple.get(0), "Received Order from [R]"));
                 t.start();
                 String displayName = tradetuple.get(1);
                 String symbol = displayName.split(":", -1)[0];
-                EnumOrderSide side = EnumOrderSide.valueOf(displayName.split(":",-1)[2]);
-                EnumOrderSide derivedSide=side;
-                int size = Integer.valueOf(displayName.split(":",-1)[1]);
-                double stoploss = Double.valueOf(displayName.split(":",-1)[3]);
-                int initPositionSize = Integer.valueOf(displayName.split(":",-1)[4]);
+                EnumOrderSide side = EnumOrderSide.valueOf(displayName.split(":", -1)[2]);
+                EnumOrderSide derivedSide = side;
+                int size = Integer.valueOf(displayName.split(":", -1)[1]);
+                double stoploss = Double.valueOf(displayName.split(":", -1)[3]);
+                int initPositionSize = Integer.valueOf(displayName.split(":", -1)[4]);
                 int actualPositionSize = initPositionSize;
                 int symbolid = Utilities.getIDFromDisplayName(Parameters.symbol, symbol);
-                if(symbolid==-1 && securityType.equals("PASSTHROUGH") && (side.equals(EnumOrderSide.BUY)||side.equals(EnumOrderSide.SHORT))){
+                if (symbolid == -1 && securityType.equals("PASSTHROUGH") && (side.equals(EnumOrderSide.BUY) || side.equals(EnumOrderSide.SHORT))) {
                     //insert symbol into database
-                    insertSymbol(Parameters.symbol,symbol,optionPricingUsingFutures,referenceCashType);
+                    insertSymbol(Parameters.symbol, symbol, optionPricingUsingFutures, referenceCashType);
                     symbolid = Utilities.getIDFromDisplayName(Parameters.symbol, symbol);
-                }                
-                if (securityType.equals("OPT") || displayName.contains("OPT")|| symbolid >= 0) { //only proceed if symbolid exists in our db
+                }
+                if (securityType.equals("OPT") || displayName.contains("OPT") || symbolid >= 0) { //only proceed if symbolid exists in our db
                     ArrayList<Integer> entryorderidlist = new ArrayList<>();
                     ArrayList<Integer> exitorderidlist = new ArrayList<>();
                     /*
@@ -257,9 +256,9 @@ public void waitForMarketDataRequest(){
                                 } else {
                                     derivedSide = EnumOrderSide.BUY;
                                 }
-                            actualPositionSize = Utilities.getNetPosition(Parameters.symbol, this.getPosition(), entryorderidlist.get(0), "OPT");
+                                actualPositionSize = Utilities.getNetPosition(Parameters.symbol, this.getPosition(), entryorderidlist.get(0), "OPT");
                             }
-                            
+
                         }
                     }
 
@@ -295,7 +294,7 @@ public void waitForMarketDataRequest(){
                     if (securityType.equals("PASSTHROUGH")) {
                         if (side.equals(EnumOrderSide.SELL) || side.equals(EnumOrderSide.COVER)) {
                             exitorderidlist.add(symbolid);
-                            actualPositionSize = Utilities.getNetPosition(Parameters.symbol, this.getPosition(), exitorderidlist.get(0),Parameters.symbol.get(symbolid).getType());
+                            actualPositionSize = Utilities.getNetPosition(Parameters.symbol, this.getPosition(), exitorderidlist.get(0), Parameters.symbol.get(symbolid).getType());
                         } else if (side.equals(EnumOrderSide.BUY) || side.equals(EnumOrderSide.SHORT)) {
                             entryorderidlist.add(symbolid);
                             actualPositionSize = Utilities.getNetPosition(Parameters.symbol, this.getPosition(), entryorderidlist.get(0), Parameters.symbol.get(symbolid).getType());
@@ -303,64 +302,63 @@ public void waitForMarketDataRequest(){
                     }
 
                     stoploss = Utilities.round(stoploss, getTickSize(), 2);
-                    HashMap<String, Object> order = new HashMap<>();
+                    OrderBean order = new OrderBean();
 
                     if (entryorderidlist.size() > 0) {
                         for (int i : entryorderidlist) {
-                            this.initSymbol(i,optionPricingUsingFutures,referenceCashType);
+                            this.initSymbol(i, optionPricingUsingFutures, referenceCashType);
                         }
                     }
                     if (exitorderidlist.size() > 0) {
                         for (int i : exitorderidlist) {
-                            this.initSymbol(i,optionPricingUsingFutures,referenceCashType);
+                            this.initSymbol(i, optionPricingUsingFutures, referenceCashType);
                         }
                     }
-                    
-                       // Thread.sleep(4000); //wait for 4 seconds
-                       // Thread.yield();
-            
+
+                    // Thread.sleep(4000); //wait for 4 seconds
+                    // Thread.yield();
                     /*
                      * IF initpositionsize = 100, actual positionsize=0, we get a buy of 100. comp=100, size=200
                      * IF initpositionsize=0, actualpositionsize=100, we get buy of 100, comp=-100, size=0, probably a duplicate trade
                      * IF initpositionsize=-100,actualpositionsize=0, we get a short of 100,should be short, but are not, comp=-100,size=abs(-100-100)=200
                      * IF initpositionsize=200, actualpositionsize=100, we set a SELL of 200, comp=100, size=abs(-200+100)=100
                      */
-                    if(!aggregatePositions){                                                
-                        if(exitorderidlist.size()>0){
-                            actualPositionSize=this.getPosition().get(exitorderidlist.get(0)).getPosition();
-                        }else if(entryorderidlist.size()>0){
-                            if(this.getPosition().get(entryorderidlist.get(0))==null){
+                    if (!aggregatePositions) {
+                        if (exitorderidlist.size() > 0) {
+                            actualPositionSize = this.getPosition().get(exitorderidlist.get(0)).getPosition();
+                        } else if (entryorderidlist.size() > 0) {
+                            if (this.getPosition().get(entryorderidlist.get(0)) == null) {
                                 this.getPosition().put(entryorderidlist.get(0), new BeanPosition(entryorderidlist.get(0), getStrategy()));
                                 //this.initSymbol(entryorderidlist.get(0), this.optionPricingUsingFutures, referenceCashType);
                             }
-                            actualPositionSize=this.getPosition().get(entryorderidlist.get(0)).getPosition();
-                        }                        
-                    }
-                        int catchUpPosition=0;
-                        switch (derivedSide) {
-                            case BUY:
-                                catchUpPosition = initPositionSize - actualPositionSize;
-                                size = Math.max(size + catchUpPosition, 0);
-                                break;
-                            case SHORT:
-                                catchUpPosition = -initPositionSize - actualPositionSize;
-                                size = Math.max(size - catchUpPosition, 0);
-                                break;
-                            case SELL:
-                                catchUpPosition = initPositionSize - actualPositionSize;
-                                size = Math.max(size - catchUpPosition, 0);
-                                //if actualpositionsize is -ve, that is an error condition.
-                                break;
-                            case COVER:
-                                catchUpPosition = initPositionSize + actualPositionSize;
-                                size = Math.max(size - catchUpPosition, 0);
-                                break;
-                            default:
-                                break;
+                            actualPositionSize = this.getPosition().get(entryorderidlist.get(0)).getPosition();
                         }
-                        //int excessposition=initPositionSize-actualpositionsize;
-                        //size = (derivedSide == EnumOrderSide.BUY || derivedSide == EnumOrderSide.COVER) ? size + compensation : Math.abs(-size + compensation);
-                    
+                    }
+                    int catchUpPosition = 0;
+                    switch (derivedSide) {
+                        case BUY:
+                            catchUpPosition = initPositionSize - actualPositionSize;
+                            size = Math.max(size + catchUpPosition, 0);
+                            break;
+                        case SHORT:
+                            catchUpPosition = -initPositionSize - actualPositionSize;
+                            size = Math.max(size - catchUpPosition, 0);
+                            break;
+                        case SELL:
+                            catchUpPosition = initPositionSize - actualPositionSize;
+                            size = Math.max(size - catchUpPosition, 0);
+                            //if actualpositionsize is -ve, that is an error condition.
+                            break;
+                        case COVER:
+                            catchUpPosition = initPositionSize + actualPositionSize;
+                            size = Math.max(size - catchUpPosition, 0);
+                            break;
+                        default:
+                            break;
+                    }
+                    //int excessposition=initPositionSize-actualpositionsize;
+                    //size = (derivedSide == EnumOrderSide.BUY || derivedSide == EnumOrderSide.COVER) ? size + compensation : Math.abs(-size + compensation);
+
                     /*
                      * IF initpositionsize = 100, actual positionsize=0, we get a buy of 100. comp=100, size=200
                      * IF initpositionsize=0, actualpositionsize=100, we get buy of 100, comp=-100, size=0, probably a duplicate trade
@@ -368,10 +366,7 @@ public void waitForMarketDataRequest(){
                      * IF initpositionsize=200, actualpositionsize=100, we set a SELL of 200, comp=100, size=abs(-200+100)=100
                      */
                     if (size > 0) {
-                        order.put("type", getOrdType());
-                        order.put("expiretime", getMaxOrderDuration());
-                        order.put("dynamicorderduration", getDynamicOrderDuration());
-                        order.put("maxslippage", this.getMaxSlippageEntry());
+                        order.setOrderType(getOrdType());
                         int orderid;
                         ArrayList<Stop> stops = new ArrayList<>();
                         Stop stp = new Stop();
@@ -379,7 +374,8 @@ public void waitForMarketDataRequest(){
                             case BUY:
                                 for (int id : entryorderidlist) {
                                     if (id >= 0) {
-                                        order.put("id", id);
+                                        order.setParentDisplayName(Parameters.symbol.get(id).getDisplayname());
+                                        order.setChildDisplayName(Parameters.symbol.get(id).getDisplayname());
                                         int referenceid = -1;
                                         if (Parameters.symbol.get(id).getType().equals("OPT")) {
                                             referenceid = Utilities.getCashReferenceID(Parameters.symbol, id, referenceCashType);
@@ -387,36 +383,20 @@ public void waitForMarketDataRequest(){
                                             referenceid = this.optionPricingUsingFutures ? Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, tempExpiry) : referenceid;
                                         }
                                         double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, id, referenceid, derivedSide, getTickSize(), this.getOrdType());
-                                        order.put("limitprice", limitprice);
-                                        order.put("side", derivedSide);
-                                        order.put("size", size);
-                                        order.put("reason", EnumOrderReason.REGULARENTRY);
-                                        order.put("orderstage", EnumOrderStage.INIT);
-                                        order.put("scale", getScaleEntry());
-                                        order.put("dynamicorderduration", this.getDynamicOrderDuration());
-                                        order.put("expiretime", 0);
-                                        order.put("disclosedsize", Parameters.symbol.get(id).getMinsize());
-                                        order.put("log", "BUY" + delimiter + tradetuple.get(1));
-                                        HashMap<String,Object>tmpOrderAttributes=new HashMap<>();
+                                        order.setLimitPrice(limitprice);
+                                        order.setOrderSide(derivedSide);
+                                        order.setOriginalOrderSize(size);
+                                        order.setOrderReason(EnumOrderReason.REGULARENTRY);
+                                        order.setOrderStage(EnumOrderStage.INIT);
+                                        order.setScale(getScaleEntry());
+                                        order.setOrderLog("BUY" + delimiter + tradetuple.get(1));
+                                        HashMap<String, Object> tmpOrderAttributes = new HashMap<>();
                                         tmpOrderAttributes.putAll(this.getOrderAttributes());
-                                        order.put ("orderattributes",tmpOrderAttributes);
+                                        order.setOrderAttributes(tmpOrderAttributes);
+                                        order.setStopLoss(stoploss);
                                         if ((this.getOrdType() != EnumOrderType.MKT && limitprice > 0) || this.getOrdType().equals(EnumOrderType.MKT)) {
                                             logger.log(Level.INFO, "501,Strategy BUY,{0}", new Object[]{getStrategy() + delimiter + "BUY" + delimiter + Parameters.symbol.get(id).getDisplayname()});
                                             orderid = entry(order);
-                                            stp.stopValue = stoploss;
-                                            if(Parameters.symbol.get(symbolid).getType().equals("STK")||Parameters.symbol.get(symbolid).getType().equals("IND")){
-                                            stp.underlyingEntry = Parameters.symbol.get(symbolid).getLastPrice();
-                                            }else{
-                                                int underlyingid=Utilities.getCashReferenceID(Parameters.symbol, symbolid, referenceCashType);
-                                                if(underlyingid>=0){
-                                                 stp.underlyingEntry = Parameters.symbol.get(underlyingid).getLastPrice();   
-                                                }
-                                            }
-                                            stp.stopType = EnumStopType.STOPLOSS;
-                                            stp.stopMode = EnumStopMode.POINT;
-                                            stp.recalculate = true;
-                                            stops.add(stp);
-                                            Trade.setStop(this.getDb(), this.getStrategy() + ":" + orderid + ":" + "Order", "opentrades", stops);
                                         }
                                     }
                                 }
@@ -424,7 +404,8 @@ public void waitForMarketDataRequest(){
                             case SELL:
                                 for (int id : exitorderidlist) {
                                     if (id >= 0) {
-                                        order.put("id", id);
+                                        order.setParentDisplayName(Parameters.symbol.get(id).getDisplayname());
+                                        order.setChildDisplayName(Parameters.symbol.get(id).getDisplayname());
                                         int referenceid = -1;
                                         if (Parameters.symbol.get(id).getType().equals("OPT")) {
                                             referenceid = Utilities.getCashReferenceID(Parameters.symbol, id, referenceCashType);
@@ -432,18 +413,17 @@ public void waitForMarketDataRequest(){
                                             referenceid = this.optionPricingUsingFutures ? Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, tempExpiry) : referenceid;
                                         }
                                         double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, id, referenceid, derivedSide, getTickSize(), this.getOrdType());
-                                        order.put("limitprice", limitprice);
-                                        order.put("side", derivedSide);
-                                        order.put("size", size);
-                                        order.put("reason", EnumOrderReason.REGULAREXIT);
-                                        order.put("orderstage", EnumOrderStage.INIT);
-                                        order.put("scale", getScaleExit());
-                                        order.put("dynamicorderduration", this.getDynamicOrderDuration());
-                                        order.put("expiretime", 0);
-                                        order.put("log", "SELL" + delimiter + tradetuple.get(1));
-                                        HashMap<String,Object>tmpOrderAttributes=new HashMap<>();
+                                        order.setLimitPrice(limitprice);
+                                        order.setOrderSide(derivedSide);
+                                        order.setOriginalOrderSize(size);
+                                        order.setOrderReason(EnumOrderReason.REGULARENTRY);
+                                        order.setOrderStage(EnumOrderStage.INIT);
+                                        order.setScale(getScaleExit());
+                                        order.setOrderLog("SELL" + delimiter + tradetuple.get(1));
+                                        HashMap<String, Object> tmpOrderAttributes = new HashMap<>();
                                         tmpOrderAttributes.putAll(this.getOrderAttributes());
-                                        order.put ("orderattributes",tmpOrderAttributes);                                      if ((this.getOrdType() != EnumOrderType.MKT && limitprice > 0) || this.getOrdType().equals(EnumOrderType.MKT)) {
+                                        order.setOrderAttributes(tmpOrderAttributes);
+                                        if ((this.getOrdType() != EnumOrderType.MKT && limitprice > 0) || this.getOrdType().equals(EnumOrderType.MKT)) {
                                             logger.log(Level.INFO, "501,Strategy SELL,{0}", new Object[]{getStrategy() + delimiter + "SELL" + delimiter + Parameters.symbol.get(id).getDisplayname()});
                                             exit(order);
                                         }
@@ -453,7 +433,8 @@ public void waitForMarketDataRequest(){
                             case SHORT:
                                 for (int id : entryorderidlist) {
                                     if (id >= 0) {
-                                        order.put("id", id);
+                                        order.setParentDisplayName(Parameters.symbol.get(id).getDisplayname());
+                                        order.setChildDisplayName(Parameters.symbol.get(id).getDisplayname());
                                         int referenceid = -1;
                                         if (Parameters.symbol.get(id).getType().equals("OPT")) {
                                             referenceid = Utilities.getCashReferenceID(Parameters.symbol, id, referenceCashType);
@@ -461,35 +442,20 @@ public void waitForMarketDataRequest(){
                                             referenceid = this.optionPricingUsingFutures ? Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, tempExpiry) : referenceid;
                                         }
                                         double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, id, referenceid, derivedSide, getTickSize(), this.getOrdType());
-                                        order.put("limitprice", limitprice);
-                                        order.put("side", derivedSide);
-                                        order.put("size", size);
-                                        order.put("reason", EnumOrderReason.REGULARENTRY);
-                                        order.put("scale", getScaleEntry());
-                                        order.put("orderstage", EnumOrderStage.INIT);
-                                        order.put("dynamicorderduration", this.getDynamicOrderDuration());
-                                        order.put("expiretime", 0);
-                                        order.put("log", "SHORT" + delimiter + tradetuple.get(1));
-                                        HashMap<String,Object>tmpOrderAttributes=new HashMap<>();
+                                        order.setLimitPrice(limitprice);
+                                        order.setOrderSide(derivedSide);
+                                        order.setOriginalOrderSize(size);
+                                        order.setOrderReason(EnumOrderReason.REGULARENTRY);
+                                        order.setOrderStage(EnumOrderStage.INIT);
+                                        order.setScale(getScaleEntry());
+                                        order.setOrderLog("SHORT" + delimiter + tradetuple.get(1));
+                                        HashMap<String, Object> tmpOrderAttributes = new HashMap<>();
                                         tmpOrderAttributes.putAll(this.getOrderAttributes());
-                                        order.put ("orderattributes",tmpOrderAttributes);                                      if ((this.getOrdType() != EnumOrderType.MKT && limitprice > 0) || this.getOrdType().equals(EnumOrderType.MKT)) {
+                                        order.setOrderAttributes(tmpOrderAttributes);
+                                        order.setStopLoss(stoploss);
+                                        if ((this.getOrdType() != EnumOrderType.MKT && limitprice > 0) || this.getOrdType().equals(EnumOrderType.MKT)) {
                                             logger.log(Level.INFO, "501,Strategy SHORT,{0}", new Object[]{getStrategy() + delimiter + "SHORT" + delimiter + Parameters.symbol.get(id).getDisplayname()});
                                             orderid = entry(order);
-                                            Trade.setStop(this.getDb(), this.getStrategy() + ":" + orderid + ":" + "Order", "opentrades", stops);
-                                            stp.stopValue = stoploss;
-                                            if (Parameters.symbol.get(symbolid).getType().equals("STK") || Parameters.symbol.get(symbolid).getType().equals("IND")) {
-                                                stp.underlyingEntry = Parameters.symbol.get(symbolid).getLastPrice();
-                                            } else {
-                                                int underlyingid = Utilities.getCashReferenceID(Parameters.symbol, symbolid, referenceCashType);
-                                                if (underlyingid >= 0) {
-                                                    stp.underlyingEntry = Parameters.symbol.get(underlyingid).getLastPrice();
-                                                }
-                                            }
-                                            stp.stopType = EnumStopType.STOPLOSS;
-                                            stp.stopMode = EnumStopMode.POINT;
-                                            stp.recalculate = true;
-                                            stops.add(stp);
-                                            Trade.setStop(this.getDb(), this.getStrategy() + ":" + orderid + ":" + "Order", "opentrades", stops);
                                         }
                                     }
                                 }
@@ -497,7 +463,8 @@ public void waitForMarketDataRequest(){
                             case COVER:
                                 for (int id : exitorderidlist) {
                                     if (id >= 0) {
-                                        order.put("id", id);
+                                        order.setParentDisplayName(Parameters.symbol.get(id).getDisplayname());
+                                        order.setChildDisplayName(Parameters.symbol.get(id).getDisplayname());
                                         int referenceid = -1;
                                         if (Parameters.symbol.get(id).getType().equals("OPT")) {
                                             referenceid = Utilities.getCashReferenceID(Parameters.symbol, id, referenceCashType);
@@ -505,18 +472,17 @@ public void waitForMarketDataRequest(){
                                             referenceid = this.optionPricingUsingFutures ? Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, tempExpiry) : referenceid;
                                         }
                                         double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, id, referenceid, derivedSide, getTickSize(), this.getOrdType());
-                                        order.put("limitprice", limitprice);
-                                        order.put("side", derivedSide);
-                                        order.put("size", size);
-                                        order.put("reason", EnumOrderReason.REGULAREXIT);
-                                        order.put("scale", getScaleExit());
-                                        order.put("orderstage", EnumOrderStage.INIT);
-                                        order.put("dynamicorderduration", this.getDynamicOrderDuration());
-                                        order.put("expiretime", 0);
-                                        order.put("log", "COVER" + delimiter + tradetuple.get(1));
-                                        HashMap<String,Object>tmpOrderAttributes=new HashMap<>();
+                                        order.setLimitPrice(limitprice);
+                                        order.setOrderSide(derivedSide);
+                                        order.setOriginalOrderSize(size);
+                                        order.setOrderReason(EnumOrderReason.REGULARENTRY);
+                                        order.setOrderStage(EnumOrderStage.INIT);
+                                        order.setScale(getScaleExit());
+                                        order.setOrderLog("SELL" + delimiter + tradetuple.get(1));
+                                        HashMap<String, Object> tmpOrderAttributes = new HashMap<>();
                                         tmpOrderAttributes.putAll(this.getOrderAttributes());
-                                        order.put ("orderattributes",tmpOrderAttributes);                                     if ((this.getOrdType() != EnumOrderType.MKT && limitprice > 0) || this.getOrdType().equals(EnumOrderType.MKT)) {
+                                        order.setOrderAttributes(tmpOrderAttributes);
+                                        if ((this.getOrdType() != EnumOrderType.MKT && limitprice > 0) || this.getOrdType().equals(EnumOrderType.MKT)) {
                                             logger.log(Level.INFO, "501,Strategy COVER,{0}", new Object[]{getStrategy() + delimiter + "COVER" + delimiter + Parameters.symbol.get(id).getDisplayname()});
                                             exit(order);
                                         }
@@ -533,8 +499,6 @@ public void waitForMarketDataRequest(){
             logger.log(Level.SEVERE, null, e);
         }
     }
-
-
 
     /**
      * @return the scaleEntry
