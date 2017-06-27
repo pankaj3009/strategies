@@ -9,11 +9,12 @@ package com.incurrency.algorithms.historical;
  * @author pankaj
  */
 public class SplitInformation {
+
     String symbol;
     String expectedDate;
     int oldShares;
     int newShares;
     String actualDate;
     double expectedNewShares;
-    
+
 }

@@ -19,8 +19,6 @@ import com.incurrency.framework.Stop;
 import com.incurrency.framework.Trade;
 import com.incurrency.framework.Utilities;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Timer;
@@ -148,7 +146,7 @@ public class Contra extends Manager {
                 case BUY:
                     logger.log(Level.INFO, "101,Rollover SELL,{0}:{1}:{2}:{3}:{4}",
                             new Object[]{getStrategy(), "Order", Parameters.symbol.get(initID).getDisplayname(), -1, -1});
-                    stops = Trade.getStop(this.getDb(), this.getStrategy() + ":" + this.getFirstInternalOpenOrder(initID, EnumOrderSide.SELL, "Order").iterator().next() + ":Order");
+                    //stops = Trade.getStop(this.getDb(), this.getStrategy() + ":" + this.ParentInternalOrderIDForSquareOff("Order", ob) this.getFirstInternalOpenOrder(initID, EnumOrderSide.SELL, "Order").iterator().next() + ":Order");
                     OrderBean order = new OrderBean();
                     int referenceid = Utilities.getCashReferenceID(Parameters.symbol, targetID, referenceCashType);
                     double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, initID, referenceid, EnumOrderSide.SELL, getTickSize(), this.getOrdType());
@@ -168,7 +166,7 @@ public class Contra extends Manager {
                 case SHORT:
                     logger.log(Level.INFO, "101,Rollover COVER,{0}:{1}:{2}:{3}:{4}",
                             new Object[]{getStrategy(), "Order", Parameters.symbol.get(initID).getDisplayname(), -1, -1});
-                    stops = Trade.getStop(this.getDb(), this.getStrategy() + ":" + this.getFirstInternalOpenOrder(initID, EnumOrderSide.COVER, "Order").iterator().next() + ":Order");
+                    // stops = Trade.getStop(this.getDb(), this.getStrategy() + ":" + this.getFirstInternalOpenOrder(initID, EnumOrderSide.COVER, "Order").iterator().next() + ":Order");
                     order = new OrderBean();
                     referenceid = Utilities.getCashReferenceID(Parameters.symbol, targetID, referenceCashType);
                     limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, initID, referenceid, EnumOrderSide.COVER, getTickSize(), this.getOrdType());

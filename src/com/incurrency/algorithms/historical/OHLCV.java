@@ -101,5 +101,4 @@ public class OHLCV {
         this.volume = volume;
     }
 
-   
 }

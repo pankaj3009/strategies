@@ -9,7 +9,6 @@ import com.incurrency.algorithms.manager.Manager;
 import com.incurrency.framework.Algorithm;
 import com.incurrency.framework.BeanConnection;
 import com.incurrency.framework.BeanSymbol;
-import com.incurrency.framework.DateUtil;
 import com.incurrency.framework.EnumOrderReason;
 import com.incurrency.framework.EnumOrderSide;
 import com.incurrency.framework.EnumOrderStage;
@@ -26,8 +25,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -175,8 +172,8 @@ public class Yield extends Manager implements TradeListener {
                     initSymbol(i, optionPricingUsingFutures, referenceCashType);
                 }
 
-            }else{
-                logger.log(Level.INFO,"Future Price not found for strategy {0}. Exiting",new Object[]{this.getStrategy()});
+            } else {
+                logger.log(Level.INFO, "Future Price not found for strategy {0}. Exiting", new Object[]{this.getStrategy()});
             }
         } catch (Exception e) {
             logger.log(Level.SEVERE, null, e);
@@ -207,7 +204,7 @@ public class Yield extends Manager implements TradeListener {
     }
 
     public boolean tradePriceExists(BeanSymbol s, int waitSeconds) {
-        int id = s.getSerialno() - 1;
+        int id = s.getSerialno();
         if (id == -1) {
             return false;
         } else {
@@ -294,7 +291,7 @@ public class Yield extends Manager implements TradeListener {
                                     order.setOrderAttributes(this.getOrderAttributes());
                                     if (limitprice > 0) {
                                         logger.log(Level.INFO, "101,Strategy COVER,{0}:{1}:{2}:{3}:{4},OptionReturn={5},FuturePrice={6}",
-                                                new Object[]{getStrategy(), "Order", Parameters.symbol.get(id).getDisplayname(), -1, -1, optionReturn,String.valueOf(futurePrice)});
+                                                new Object[]{getStrategy(), "Order", Parameters.symbol.get(id).getDisplayname(), -1, -1, optionReturn, String.valueOf(futurePrice)});
                                         exit(order);
                                     }
                                 }
@@ -318,7 +315,7 @@ public class Yield extends Manager implements TradeListener {
                                     order.setOrderAttributes(this.getOrderAttributes());
                                     if (limitprice > 0) {
                                         logger.log(Level.INFO, "101,Strategy COVER,{0}:{1}:{2}:{3}:{4},OptionReturn={5},FuturePrice={6}",
-                                                new Object[]{getStrategy(), "Order", Parameters.symbol.get(id).getDisplayname(), -1, -1, optionReturn,String.valueOf(futurePrice)});
+                                                new Object[]{getStrategy(), "Order", Parameters.symbol.get(id).getDisplayname(), -1, -1, optionReturn, String.valueOf(futurePrice)});
                                         exit(order);
                                     }
                                 }

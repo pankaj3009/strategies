@@ -25,17 +25,17 @@ public class Fundamental implements TradeListener {
     private static final Logger logger = Logger.getLogger(Fundamental.class.getName());
 
     public Fundamental(String parameterFile) {
-       
+
         String[] tempStrategyArray = parameterFile.split("\\.")[0].split("_");
         for (BeanConnection c : Parameters.connection) {
             c.getWrapper().addTradeListener(this);
-            c.initializeConnection(tempStrategyArray[tempStrategyArray.length - 1],-1);
+            c.initializeConnection(tempStrategyArray[tempStrategyArray.length - 1], -1);
         }
         if (RedisSubscribe.tes != null) {
             RedisSubscribe.tes.addTradeListener(this);
         }
-        EnumRequestType[]request=new EnumRequestType[]{EnumRequestType.ESTIMATES,EnumRequestType.SNAPSHOT,EnumRequestType.FINSTAT};
-        Thread t=new Thread(new FundamentalData(request) );
+        EnumRequestType[] request = new EnumRequestType[]{EnumRequestType.ESTIMATES, EnumRequestType.SNAPSHOT, EnumRequestType.FINSTAT};
+        Thread t = new Thread(new FundamentalData(request));
         t.setName("Strategy: FundamentalData");
         t.start();
     }

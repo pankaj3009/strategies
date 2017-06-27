@@ -14,10 +14,8 @@ import com.incurrency.framework.Strategy;
 import com.incurrency.framework.TradeEvent;
 import com.incurrency.framework.TradeListener;
 import com.incurrency.framework.TradingUtil;
-import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.Properties;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -25,20 +23,21 @@ import java.util.logging.Logger;
  * @author pankaj
  */
 public class Template extends Strategy implements TradeListener {
+
     private static final Logger logger = Logger.getLogger(Template.class.getName());
 
-    public Template(MainAlgorithm m,Properties p, String parameterFile, ArrayList<String> accounts, Integer stratCount) {
-        super(m, "pair", "FUT", p,parameterFile, accounts,stratCount);
+    public Template(MainAlgorithm m, Properties p, String parameterFile, ArrayList<String> accounts, Integer stratCount) {
+        super(m, "pair", "FUT", p, parameterFile, accounts, stratCount);
         loadParameters(p);
         for (BeanSymbol s : Parameters.symbol) {
-            getPosition().put(s.getSerialno() - 1, new BeanPosition(s.getSerialno()-1,getStrategy()));
+            getPosition().put(s.getSerialno() - 1, new BeanPosition(s.getSerialno() - 1, getStrategy()));
         }
-        TradingUtil.writeToFile(getStrategy() + ".csv","comma seperated header columns ");
-        
+        TradingUtil.writeToFile(getStrategy() + ".csv", "comma seperated header columns ");
+
         String[] tempStrategyArray = parameterFile.split("\\.")[0].split("_");
         for (BeanConnection c : Parameters.connection) {
             c.getWrapper().addTradeListener(this);
-            c.initializeConnection(tempStrategyArray[tempStrategyArray.length - 1],-1);
+            c.initializeConnection(tempStrategyArray[tempStrategyArray.length - 1], -1);
         }
         if (RedisSubscribe.tes != null) {
             RedisSubscribe.tes.addTradeListener(this);

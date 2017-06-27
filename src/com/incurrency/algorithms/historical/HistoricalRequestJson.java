@@ -4,8 +4,6 @@ package com.incurrency.algorithms.historical;
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-
-
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -20,16 +18,16 @@ public class HistoricalRequestJson {
     Object start_absolute;
     Object end_absolute;
 
-    public HistoricalRequestJson(String metricName, String[] tagName, String[] tagValue, String samplingValue, String samplingUnit, String aggregatorName, String startTime, String endTime, int limit,String order) {
-    
+    public HistoricalRequestJson(String metricName, String[] tagName, String[] tagValue, String samplingValue, String samplingUnit, String aggregatorName, String startTime, String endTime, int limit, String order) {
+
         HashMap<String, String> tags = new HashMap();
         HashMap<String, String> sampling = new HashMap();
         HashMap aggregators0 = new HashMap();
         ArrayList aggregators = new ArrayList<>();
-        if(tagName!=null){
-        for (int i = 0; i < tagName.length; i++) {
-            tags.put(tagName[i], tagValue[i]);
-        }
+        if (tagName != null) {
+            for (int i = 0; i < tagName.length; i++) {
+                tags.put(tagName[i], tagValue[i]);
+            }
         }
         /*
          put("symbol", "nsenifty");
@@ -37,24 +35,24 @@ public class HistoricalRequestJson {
          put("strike", "8500");
          put("option", "CALL");
          */
-        if(samplingValue!=null){
-        sampling.put("value", samplingValue);//1
-        sampling.put("unit", samplingUnit);//days
-        aggregators0.put("name", aggregatorName);//last
-        aggregators0.put("align_sampling", "true");
-        aggregators0.put("sampling", sampling);
-        aggregators.add(aggregators0);
+        if (samplingValue != null) {
+            sampling.put("value", samplingValue);//1
+            sampling.put("unit", samplingUnit);//days
+            aggregators0.put("name", aggregatorName);//last
+            aggregators0.put("align_sampling", "true");
+            aggregators0.put("sampling", sampling);
+            aggregators.add(aggregators0);
         }
         HashMap metric = new HashMap();
         metric.put("tags", tags);
-        if(samplingValue!=null){
-        metric.put("aggregators", aggregators);
+        if (samplingValue != null) {
+            metric.put("aggregators", aggregators);
         }
         metric.put("name", metricName);
-        if(limit>0){
-            metric.put("limit",limit);
+        if (limit > 0) {
+            metric.put("limit", limit);
         }
-        if(order!=null){
+        if (order != null) {
             metric.put("order", order);
         }
         ArrayList query = new ArrayList<>();

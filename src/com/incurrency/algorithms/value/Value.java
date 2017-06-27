@@ -21,11 +21,12 @@ import org.rosuda.REngine.Rserve.RConnection;
  * @author psharma
  */
 public class Value extends Manager {
+
     private static final Logger logger = Logger.getLogger(Contra.class.getName());
-    private final Object lockScan=new Object();
-    
+    private final Object lockScan = new Object();
+
     public Value(MainAlgorithm m, Properties p, String parameterFile, ArrayList<String> accounts, Integer stratCount) {
-        super(m, p, parameterFile, accounts, stratCount,"contra");
+        super(m, p, parameterFile, accounts, stratCount, "contra");
         Timer trigger = new Timer("Timer: " + this.getStrategy() + " RScriptProcessor");
         trigger.schedule(RScriptRunTask, RScriptRunTime);
     }
@@ -43,7 +44,7 @@ public class Value extends Manager {
                         REXP wd = c.eval("getwd()");
                         System.out.println(wd.asString());
                         c.eval("options(encoding = \"UTF-8\")");
-                        String[] args=new String[]{"1",getStrategy(), getRedisDatabaseID()};
+                        String[] args = new String[]{"1", getStrategy(), getRedisDatabaseID()};
                         c.assign("args", args);
                         c.eval("source(\"" + RStrategyFile + "\")");
                     } catch (Exception e) {

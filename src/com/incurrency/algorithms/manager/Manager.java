@@ -12,17 +12,13 @@ import com.incurrency.framework.EnumOrderReason;
 import com.incurrency.framework.EnumOrderSide;
 import com.incurrency.framework.EnumOrderStage;
 import com.incurrency.framework.EnumOrderType;
-import com.incurrency.framework.EnumStopMode;
-import com.incurrency.framework.EnumStopType;
 import com.incurrency.framework.Mail;
 import com.incurrency.framework.MainAlgorithm;
 import com.incurrency.framework.OrderBean;
 import com.incurrency.framework.Parameters;
 import com.incurrency.framework.Stop;
 import com.incurrency.framework.Strategy;
-import com.incurrency.framework.Trade;
 import com.incurrency.framework.Utilities;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -34,8 +30,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.rosuda.REngine.REXP;
-import org.rosuda.REngine.Rserve.RConnection;
 
 /**
  *
@@ -277,9 +271,9 @@ public class Manager extends Strategy {
                             int referenceid = Utilities.getCashReferenceID(Parameters.symbol, symbolid, referenceCashType);
                             if (side.equals(EnumOrderSide.SELL) || side.equals(EnumOrderSide.COVER)) {
                                 int futureid = Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, expiryNearMonth);
-                                exitorderidlist.addAll(this.getFirstInternalOpenOrder(futureid, side, "Order"));
+                                exitorderidlist.add(this.ParentInternalOrderIDForSquareOff(futureid, "Order", side));
                                 futureid = Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, expiryFarMonth);
-                                exitorderidlist.addAll(this.getFirstInternalOpenOrder(futureid, side, "Order"));
+                                exitorderidlist.add(this.ParentInternalOrderIDForSquareOff(futureid, "Order", side));
                                 actualPositionSize = Utilities.getNetPosition(Parameters.symbol, this.getPosition(), exitorderidlist.get(0), "OPT");
                             } else if (side.equals(EnumOrderSide.BUY) || side.equals(EnumOrderSide.SHORT)) {
                                 if (optionPricingUsingFutures) {
@@ -386,6 +380,7 @@ public class Manager extends Strategy {
                                         order.setLimitPrice(limitprice);
                                         order.setOrderSide(derivedSide);
                                         order.setOriginalOrderSize(size);
+                                        order.setCurrentOrderSize(size);
                                         order.setOrderReason(EnumOrderReason.REGULARENTRY);
                                         order.setOrderStage(EnumOrderStage.INIT);
                                         order.setScale(getScaleEntry());
@@ -416,6 +411,7 @@ public class Manager extends Strategy {
                                         order.setLimitPrice(limitprice);
                                         order.setOrderSide(derivedSide);
                                         order.setOriginalOrderSize(size);
+                                        order.setCurrentOrderSize(size);
                                         order.setOrderReason(EnumOrderReason.REGULARENTRY);
                                         order.setOrderStage(EnumOrderStage.INIT);
                                         order.setScale(getScaleExit());
@@ -445,6 +441,7 @@ public class Manager extends Strategy {
                                         order.setLimitPrice(limitprice);
                                         order.setOrderSide(derivedSide);
                                         order.setOriginalOrderSize(size);
+                                        order.setCurrentOrderSize(size);
                                         order.setOrderReason(EnumOrderReason.REGULARENTRY);
                                         order.setOrderStage(EnumOrderStage.INIT);
                                         order.setScale(getScaleEntry());
@@ -475,6 +472,7 @@ public class Manager extends Strategy {
                                         order.setLimitPrice(limitprice);
                                         order.setOrderSide(derivedSide);
                                         order.setOriginalOrderSize(size);
+                                        order.setCurrentOrderSize(size);
                                         order.setOrderReason(EnumOrderReason.REGULARENTRY);
                                         order.setOrderStage(EnumOrderStage.INIT);
                                         order.setScale(getScaleExit());

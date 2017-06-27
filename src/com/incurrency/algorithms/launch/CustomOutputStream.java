@@ -4,22 +4,20 @@
  */
 package com.incurrency.algorithms.launch;
 
-import java.io.IOException;
 import java.io.OutputStream;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import javax.swing.JTextArea;
 
 /**
  *
  * @author pankaj
  */
 public class CustomOutputStream extends OutputStream {
-final static Lock lock = new ReentrantLock();   
-     
-     
+
+    final static Lock lock = new ReentrantLock();
+
     @Override
-    public void write(int b){
+    public void write(int b) {
         //LogWorker logger=new LogWorker(String.valueOf((char) b));
         //logger.start();
     }
@@ -37,5 +35,5 @@ final static Lock lock = new ReentrantLock();
             lock.unlock();
         }
     }
-   */
+     */
 }

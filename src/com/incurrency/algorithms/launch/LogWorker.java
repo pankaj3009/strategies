@@ -14,34 +14,34 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * @author Pankaj
  */
-public class LogWorker extends OutputStream{
-    
+public class LogWorker extends OutputStream {
+
     String message;
-    final static Lock lock = new ReentrantLock();  
-    
-    public LogWorker(){
-       
+    final static Lock lock = new ReentrantLock();
+
+    public LogWorker() {
+
     }
-    
+
     @Override
-    public void write(int b){
-        message=String.valueOf((char) b);
+    public void write(int b) {
+        message = String.valueOf((char) b);
         run();
     }
-    
+
     public void run() {
-        try{
-        if (lock.tryLock()) {
-        Object target;
-        target = Launch.launch;
-        EventQueue eventQueue = Toolkit.getDefaultToolkit().getSystemEventQueue();
-        eventQueue.postEvent(new SimpleAWTEvent(target, message));
-        } 
-        }catch (Exception e){
-            
-        }finally{
+        try {
+            if (lock.tryLock()) {
+                Object target;
+                target = Launch.launch;
+                EventQueue eventQueue = Toolkit.getDefaultToolkit().getSystemEventQueue();
+                eventQueue.postEvent(new SimpleAWTEvent(target, message));
+            }
+        } catch (Exception e) {
+
+        } finally {
             lock.unlock();
         }
-        
+
     }
 }

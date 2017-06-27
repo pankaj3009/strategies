@@ -6,27 +6,14 @@ package com.incurrency.algorithms.historical;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.reflect.TypeToken;
 import com.incurrency.framework.*;
-import com.incurrency.kairosresponse.GroupResult;
 import com.incurrency.kairosresponse.QueryResponse;
-import com.incurrency.kairosresponse.Results;
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.lang.reflect.Type;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.Socket;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -35,7 +22,6 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.text.DecimalFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -45,12 +31,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.SortedMap;
 import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 
 /**
  *
@@ -101,7 +85,7 @@ public class Historical {
         Historical.scansplits = true;
         getsymbols = Boolean.parseBoolean(properties.getProperty("getsymbols", "false"));
         historical = Boolean.parseBoolean(properties.getProperty("historical", "false"));
-        zerovolumeSymbols=properties.getProperty("zerovolumesymbols","");
+        zerovolumeSymbols = properties.getProperty("zerovolumesymbols", "");
 
         if (getsymbols) {
             String metric = properties.getProperty("metric", "").toString().trim();
@@ -203,7 +187,7 @@ public class Historical {
                             endDate = new Date();
                             //get start date
                             if (!done) {
-                                startDate=new Date(getLastTime(kairosIP,Utilities.getInt(kairosPort,8085),s, cassandraBarSize.get(b) + ".close"));
+                                startDate = new Date(getLastTime(kairosIP, Utilities.getInt(kairosPort, 8085), s, cassandraBarSize.get(b) + ".close"));
                                 lastUpdateDate.put(s.getDisplayname().trim(), startDate);
                                 if (s.getType().equals("FUT") || s.getType().equals("OPT")) {
                                     SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
@@ -324,7 +308,8 @@ public class Historical {
             }
         }
     }
-/*
+
+    /*
     private static void exportAsCSV(String symbol, String startDate, String endDate, String barSize, String metric, ArrayList<String> expiry, HashMap<String, ArrayList<SplitInformation>> splits) throws MalformedURLException, URISyntaxException, IOException, ParseException {
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -416,7 +401,7 @@ public class Historical {
         System.out.println("Data Exported:" + symbol + " ,Time Taken:" + (new Date().getTime() - time) / (1000) + " seconds");
 
     }
-*/
+     */
     private static void writeSplits(SplitInformation si) {
         try {
             File file = new File("suggestedsplits" + ".csv");
@@ -549,8 +534,8 @@ public class Historical {
         }
         return t;
     }
-*/
-    /*
+     */
+ /*
     private void getSymbols(String url,String metric) {
         try {
             HttpClient client = new HttpClient("http://"+url+":8085");
@@ -566,7 +551,7 @@ public class Historical {
         }
 
     }
-*/
+     */
     public static void writeToFile(String filename, TreeMap<Long, OHLCV> content) {
         try {
             File file = new File(filename.toUpperCase() + ".csv");
@@ -577,7 +562,6 @@ public class Historical {
             } else {
                 file.createNewFile();
             }
-
 
             //true = append file
             SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
@@ -599,7 +583,6 @@ public class Historical {
         }
     }
 
-
     private void loadParameters(boolean mysql, boolean cassandra) {
         timeZone = TimeZone.getTimeZone(Algorithm.timeZone);
         tradingMinutes = Integer.valueOf(properties.getProperty("tradingminutesinday", "375"));
@@ -614,7 +597,7 @@ public class Historical {
             mysqlUserName = properties.getProperty("mysqlusername", "user");
             mysqlPassword = properties.getProperty("mysqlpassword", "incurrency");
             for (String bar : barSizeSQL) {
-                String destination = properties.getProperty("sql"+bar);
+                String destination = properties.getProperty("sql" + bar);
                 if (destination != null) {
                     mysqlBarSize.put(bar, destination);
                 }
@@ -629,7 +612,7 @@ public class Historical {
             kairosIP = properties.getProperty("kairosip", "127.0.0.1");
             kairosPort = properties.getProperty("kairosport", "8085");
             for (String bar : barSizeCass) {
-                String destination = properties.getProperty("cassandra"+bar);
+                String destination = properties.getProperty("cassandra" + bar);
                 if (destination != null) {
                     cassandraBarSize.put(bar, destination);
                 }
@@ -638,53 +621,53 @@ public class Historical {
 
     }
 
-    public static long getLastTime(String kairosIP,int kairosPort, BeanSymbol s, String metric) throws IOException {
-    try{
-        List<String> out = new ArrayList<>();
-        HashMap<String, Object> param = new HashMap();
-        param.put("TYPE", Boolean.FALSE);
-        String[] names;
-        if(s.getRight()!=null){
-            names=new String[]{"symbol","expiry","strike","option"};
-        }else if (s.getExpiry()!=null){
-            names=new String[]{"symbol","expiry"};
-        }else{
-            names=new String[]{"symbol"};
-        }
-        String[] values;
-        if(s.getRight()!=null){
-            String formattedStrike = Utilities.formatDouble(Utilities.getDouble(s.getOption(), 0), new DecimalFormat("#.##"));
-            values=new String[]{s.getExchangeSymbol().trim().toLowerCase(),s.getExpiry(),formattedStrike,s.getRight()};
-        }else if (s.getExpiry()!=null){
-            values=new String[]{s.getExchangeSymbol().trim().toLowerCase(),s.getExpiry()};
-        }else{
-            values=new String[]{s.getExchangeSymbol().trim().toLowerCase()};
-        }
-        
-        HistoricalRequestJson request = new HistoricalRequestJson(metric,
-                names,
-                values,
-                null,
-                null,
-                null,
-                String.valueOf(0),
-                String.valueOf(new Date().getTime()),1,"desc");
-        //http://stackoverflow.com/questions/7181534/http-post-using-json-in-java
-        //        String json_string = JsonWriter.objectToJson(request, param);
-        Gson gson = new GsonBuilder().create();
-        String json_string = gson.toJson(request);
-        String response_json=Utilities.getJsonUsingPut("http://" + kairosIP + ":"+kairosPort+"/api/v1/datapoints/query", 0, json_string);
-        QueryResponse response;   
-        Type type = new com.google.common.reflect.TypeToken<QueryResponse>() {
-                    }.getType();
-        response=gson.fromJson(response_json, QueryResponse.class);
-        //long time=response.getQueries().get(querysize-1).getResults().get(resultsize-1).getValues().get(valuesize-1).get(datapoints-1).longValue();
-        long time=Double.valueOf(response.getQueries().get(0).getResults().get(0).getDataPoints().get(0).get(0).toString()).longValue();
-        //long time=response.queries[0].results[0].values[0].time;
-        return time;
-        }catch (Exception e){
+    public static long getLastTime(String kairosIP, int kairosPort, BeanSymbol s, String metric) throws IOException {
+        try {
+            List<String> out = new ArrayList<>();
+            HashMap<String, Object> param = new HashMap();
+            param.put("TYPE", Boolean.FALSE);
+            String[] names;
+            if (s.getRight() != null) {
+                names = new String[]{"symbol", "expiry", "strike", "option"};
+            } else if (s.getExpiry() != null) {
+                names = new String[]{"symbol", "expiry"};
+            } else {
+                names = new String[]{"symbol"};
+            }
+            String[] values;
+            if (s.getRight() != null) {
+                String formattedStrike = Utilities.formatDouble(Utilities.getDouble(s.getOption(), 0), new DecimalFormat("#.##"));
+                values = new String[]{s.getExchangeSymbol().trim().toLowerCase(), s.getExpiry(), formattedStrike, s.getRight()};
+            } else if (s.getExpiry() != null) {
+                values = new String[]{s.getExchangeSymbol().trim().toLowerCase(), s.getExpiry()};
+            } else {
+                values = new String[]{s.getExchangeSymbol().trim().toLowerCase()};
+            }
+
+            HistoricalRequestJson request = new HistoricalRequestJson(metric,
+                    names,
+                    values,
+                    null,
+                    null,
+                    null,
+                    String.valueOf(0),
+                    String.valueOf(new Date().getTime()), 1, "desc");
+            //http://stackoverflow.com/questions/7181534/http-post-using-json-in-java
+            //        String json_string = JsonWriter.objectToJson(request, param);
+            Gson gson = new GsonBuilder().create();
+            String json_string = gson.toJson(request);
+            String response_json = Utilities.getJsonUsingPut("http://" + kairosIP + ":" + kairosPort + "/api/v1/datapoints/query", 0, json_string);
+            QueryResponse response;
+            Type type = new com.google.common.reflect.TypeToken<QueryResponse>() {
+            }.getType();
+            response = gson.fromJson(response_json, QueryResponse.class);
+            //long time=response.getQueries().get(querysize-1).getResults().get(resultsize-1).getValues().get(valuesize-1).get(datapoints-1).longValue();
+            long time = Double.valueOf(response.getQueries().get(0).getResults().get(0).getDataPoints().get(0).get(0).toString()).longValue();
+            //long time=response.queries[0].results[0].values[0].time;
+            return time;
+        } catch (Exception e) {
             return 0;
-        } 
+        }
     }
 
     /*
@@ -713,7 +696,7 @@ public class Historical {
         return new Date(lastTime);
 
     }
-*/
+     */
     private static Date adjustDate(Date date, String barSize) {
         Date out = null;
         switch (barSize) {

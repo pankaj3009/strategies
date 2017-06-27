@@ -9,7 +9,6 @@ import com.incurrency.algorithms.manager.Manager;
 import com.incurrency.framework.Algorithm;
 import com.incurrency.framework.BeanConnection;
 import com.incurrency.framework.BeanPosition;
-import com.incurrency.framework.BeanSymbol;
 import com.incurrency.framework.DateUtil;
 import com.incurrency.framework.EnumOrderReason;
 import com.incurrency.framework.EnumOrderSide;
@@ -28,7 +27,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -94,7 +92,7 @@ public class Swing extends Manager implements TradeListener {
                         Double tradePrice = this.getPosition().get(id).getPrice();
                         int referenceid = Utilities.getCashReferenceID(Parameters.symbol, id, referenceCashType);
                         EnumOrderSide derivedSide = this.getPosition().get(id).getPosition() > 0 ? EnumOrderSide.SELL : EnumOrderSide.COVER;
-                        ArrayList<Stop> stops = Trade.getStop(this.getDb(), this.getStrategy() + ":" + this.getFirstInternalOpenOrder(id, derivedSide, "Order").iterator().next() + ":Order");
+                        ArrayList<Stop> stops = Trade.getStop(this.getDb(), this.getStrategy() + ":" + this.ParentInternalOrderIDForSquareOff(0, "Order", derivedSide) + ":Order");
                         boolean tpTrigger = false;
                         boolean slTrigger = false;
                         double tpDistance = 0D;
@@ -111,7 +109,7 @@ public class Swing extends Manager implements TradeListener {
                                         break;
                                     case STOPLOSS:
                                         if (stop.underlyingEntry != 0) {
-                                            if (Parameters.symbol.get(id).getDisplayname().contains("PUT") || (Parameters.symbol.get(id).getDisplayname().contains("FUT") && this.getPosition().get(id).getPosition() < 0))   {
+                                            if (Parameters.symbol.get(id).getDisplayname().contains("PUT") || (Parameters.symbol.get(id).getDisplayname().contains("FUT") && this.getPosition().get(id).getPosition() < 0)) {
                                                 slDistance = Parameters.symbol.get(referenceid).getLastPrice() - stop.underlyingEntry;
 
                                             } else {
@@ -129,7 +127,7 @@ public class Swing extends Manager implements TradeListener {
                         }
                         if (!this.isStopOrders() && (slTrigger || tpTrigger)) {
                             //int futureid = Utilities.getFutureIDFromExchangeSymbol(Parameters.symbol, referenceid, expiry);
-                            String entryTime = Trade.getEntryTime(this.getDb(), this.getStrategy() + ":" + this.getFirstInternalOpenOrder(id, derivedSide, "Order").iterator().next() + ":Order");
+                            String entryTime = Trade.getEntryTime(this.getDb(), this.getStrategy() + ":" + this.ParentInternalOrderIDForSquareOff(0, "Order", derivedSide) + ":Order");
                             String today = DateUtil.getFormatedDate("yyyy-MM-dd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone));
                             if (!entryTime.contains(today)) {
                                 logger.log(Level.INFO, "101, SLTP Exit,{0}:{1}:{2}:{3}:{4},sltrigger={5},tptrigger={6},lastprice={7},sl={8},distancefromsl={9},tp={10},distancefromtp={11}",
@@ -219,7 +217,7 @@ public class Swing extends Manager implements TradeListener {
                                 new Object[]{getStrategy(), "Order", symbol, -1, -1, stop.underlyingEntry, stop.stopValue});
                     } else {
                         //alert we have an incorrect side
-                        String message = "Symbol Variance. Expected: "+expectedSide+" "+expectedSymbol+" ,Actual: "+actualSide+" "+entrysymbol +" for strategy "+this.getStrategy();
+                        String message = "Symbol Variance. Expected: " + expectedSide + " " + expectedSymbol + " ,Actual: " + actualSide + " " + entrysymbol + " for strategy " + this.getStrategy();
                         Thread t = new Thread(new Mail("psharma@incurrency.com", message, "Algorithm ALERT"));
                         t.start();
                     }
@@ -352,7 +350,7 @@ public class Swing extends Manager implements TradeListener {
                 case BUY:
                     logger.log(Level.INFO, "101,Rollover SELL,{0}:{1}:{2}:{3}:{4}",
                             new Object[]{getStrategy(), "Order", Parameters.symbol.get(initID).getDisplayname(), -1, -1});
-                    stops = Trade.getStop(this.getDb(), this.getStrategy() + ":" + this.getFirstInternalOpenOrder(initID, EnumOrderSide.SELL, "Order").iterator().next() + ":Order");
+                    stops = Trade.getStop(this.getDb(), this.getStrategy() + ":" + this.ParentInternalOrderIDForSquareOff(0, "Order", EnumOrderSide.SELL) + ":Order");
                     OrderBean order = new OrderBean();
                     int referenceid = Utilities.getCashReferenceID(Parameters.symbol, targetID, referenceCashType);
                     double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, targetID, referenceid, EnumOrderSide.SELL, getTickSize(), this.getOrdType());
@@ -372,7 +370,7 @@ public class Swing extends Manager implements TradeListener {
                 case SHORT:
                     logger.log(Level.INFO, "101,Strategy Rollover EXIT SHORT,{0}:{1}:{2}:{3}:{4}",
                             new Object[]{getStrategy(), "Order", Parameters.symbol.get(initID).getDisplayname(), -1, -1});
-                    stops = Trade.getStop(this.getDb(), this.getStrategy() + ":" + this.getFirstInternalOpenOrder(initID, EnumOrderSide.COVER, "Order").iterator().next() + ":Order");
+                    stops = Trade.getStop(this.getDb(), this.getStrategy() + ":" + this.ParentInternalOrderIDForSquareOff(0, "Order", EnumOrderSide.COVER) + ":Order");
                     order = new OrderBean();
                     referenceid = Utilities.getCashReferenceID(Parameters.symbol, targetID, referenceCashType);
                     limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, targetID, referenceid, EnumOrderSide.COVER, getTickSize(), this.getOrdType());

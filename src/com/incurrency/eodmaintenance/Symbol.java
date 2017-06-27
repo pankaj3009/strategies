@@ -4,7 +4,6 @@
  */
 package com.incurrency.eodmaintenance;
 
-
 import com.incurrency.framework.BeanSymbol;
 import com.incurrency.framework.ReaderWriterInterface;
 import java.io.BufferedWriter;
@@ -15,7 +14,6 @@ import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -33,7 +31,7 @@ public class Symbol implements ReaderWriterInterface {
     public String contractId;
     public String exchange;
     public String type;
-    
+
     private static final Logger logger = Logger.getLogger(Symbol.class.getName());
 
     public Symbol() {
@@ -59,28 +57,27 @@ public class Symbol implements ReaderWriterInterface {
         this.type = input[6];
     }
 
-    
     @Override
     public void reader(String inputfile, List target) {
-        
-    File inputFile=new File(inputfile);
-         if(inputFile.exists() && !inputFile.isDirectory()){
-        try {
-            List<String> existingContractLoad=Files.readAllLines(Paths.get(inputfile), StandardCharsets.UTF_8);
-            for(String Contractline: existingContractLoad){
-                String[] input=Contractline.split(",");
-                target.add(new BeanSymbol(input,7));
+
+        File inputFile = new File(inputfile);
+        if (inputFile.exists() && !inputFile.isDirectory()) {
+            try {
+                List<String> existingContractLoad = Files.readAllLines(Paths.get(inputfile), StandardCharsets.UTF_8);
+                for (String Contractline : existingContractLoad) {
+                    String[] input = Contractline.split(",");
+                    target.add(new BeanSymbol(input, 7));
+                }
+                int i = 0;
+                for (Object s : target) {
+                    BeanSymbol bs = (BeanSymbol) s;
+                    bs.setSerialno(i);
+                    i++;
+                }
+            } catch (IOException ex) {
+                logger.log(Level.SEVERE, null, ex);
             }
-            int i=0;
-            for(Object s:target){
-                BeanSymbol bs=(BeanSymbol)s;
-                bs.setSerialno(i+1);
-                i++;
-            }
-        } catch (IOException ex) {
-           logger.log(Level.SEVERE, null, ex);
         }
-    }
     }
 
     @Override
@@ -92,38 +89,38 @@ public class Symbol implements ReaderWriterInterface {
                 PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(fileName, true)));
                 out.println(header);
                 out.close();
-            } 
-                String data = symbolLongName + "," + ibSymbol + "," + exchangeSymbol + "," + currency + "," + contractId + "," + exchange + "," + type;
-                PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(fileName, true)));
-                out.println(data);
-                out.close();
-            
+            }
+            String data = symbolLongName + "," + ibSymbol + "," + exchangeSymbol + "," + currency + "," + contractId + "," + exchange + "," + type;
+            PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(fileName, true)));
+            out.println(data);
+            out.close();
+
         } catch (Exception e) {
             logger.log(Level.SEVERE, null, e);
         }
     }
-    
+
     @Override
     public boolean equals(Object object) {
-    boolean result = false;
-    if (object == null || object.getClass() != getClass()) {
-      result = false;
-    } else {
-      Symbol symbol = (Symbol) object;
-      if ( this.ibSymbol.equals(symbol.ibSymbol)
-          && this.exchange.equals(symbol.exchange)
-              && this.currency.equals(symbol.currency)) {
-        result = true;
-      }
+        boolean result = false;
+        if (object == null || object.getClass() != getClass()) {
+            result = false;
+        } else {
+            Symbol symbol = (Symbol) object;
+            if (this.ibSymbol.equals(symbol.ibSymbol)
+                    && this.exchange.equals(symbol.exchange)
+                    && this.currency.equals(symbol.currency)) {
+                result = true;
+            }
+        }
+        return result;
     }
-    return result;
-  }
-    
+
     @Override
     public int hashCode() {
-    int hash = 5;
-    hash = 7 * hash + ibSymbol.hashCode()+exchange.hashCode()+currency.hashCode();
-    return hash;
-  }    
-    
+        int hash = 5;
+        hash = 7 * hash + ibSymbol.hashCode() + exchange.hashCode() + currency.hashCode();
+        return hash;
+    }
+
 }

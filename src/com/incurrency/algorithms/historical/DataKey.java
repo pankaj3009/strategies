@@ -4,12 +4,11 @@
  */
 package com.incurrency.algorithms.historical;
 
-
 /**
  *
  * @author pankaj
  */
-public class DataKey implements Comparable{
+public class DataKey implements Comparable {
 
     private String symbol;
     private long timeStamp;
@@ -20,24 +19,22 @@ public class DataKey implements Comparable{
         this.timeStamp = timeStamp;
         this.type = type;
     }
-    
+
     @Override
     public int compareTo(Object obj) {
         DataKey o = (DataKey) obj;
-        if(this.timeStamp>o.getTimeStamp()){
+        if (this.timeStamp > o.getTimeStamp()) {
             return 1;
-        }else if(this.getTimeStamp()<o.getTimeStamp()){
+        } else if (this.getTimeStamp() < o.getTimeStamp()) {
             return -1;
-        }else if(this.type.equals("open")){
+        } else if (this.type.equals("open")) {
             return 1;
-        }else if(this.type.equals("close")){
+        } else if (this.type.equals("close")) {
             return -1;
-        }else{
+        } else {
             return 0;
         }
-            
 
-    
     }
 
     /**
@@ -82,6 +79,4 @@ public class DataKey implements Comparable{
         this.type = type;
     }
 
-    
-    
 }

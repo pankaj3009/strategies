@@ -38,6 +38,7 @@ public class Launch extends javax.swing.JFrame {
     static private int level;
     static PrintStream printStream;
     Logger incurrency;
+
     /**
      * Creates new form Launch
      */
@@ -214,7 +215,7 @@ public class Launch extends javax.swing.JFrame {
     private void cmdTerminateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdTerminateActionPerformed
 
         if (input.containsKey("datasource")) { //use jeromq connector
-                 }
+        }
 
         int dialogResult = JOptionPane.showConfirmDialog(null, "Do you want to terminate all running algorithms?", "Warning", JOptionPane.YES_NO_OPTION);
         if (dialogResult == JOptionPane.YES_OPTION) {
@@ -261,7 +262,7 @@ public class Launch extends javax.swing.JFrame {
     }//GEN-LAST:event_radioFinerActionPerformed
 
     private void radioFineActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioFineActionPerformed
-       // Logger incurrency = Logger.getLogger("com.incurrency");
+        // Logger incurrency = Logger.getLogger("com.incurrency");
         Logger console = Logger.getLogger("java.util.logging.ConsoleHandler");
         console.setLevel(Level.FINE);
         incurrency.setLevel(Level.FINE);
@@ -272,7 +273,7 @@ public class Launch extends javax.swing.JFrame {
     }//GEN-LAST:event_radioFineActionPerformed
 
     private void radioInfoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioInfoActionPerformed
-     //   Logger incurrency = Logger.getLogger("com.incurrency");
+        //   Logger incurrency = Logger.getLogger("com.incurrency");
         Logger console = Logger.getLogger("java.util.logging.ConsoleHandler");
         console.setLevel(Level.INFO);
         incurrency.setLevel(Level.INFO);
@@ -284,7 +285,7 @@ public class Launch extends javax.swing.JFrame {
     }//GEN-LAST:event_radioInfoActionPerformed
 
     private void radioErrorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioErrorActionPerformed
-   //     Logger incurrency = Logger.getLogger("com.incurrency");
+        //     Logger incurrency = Logger.getLogger("com.incurrency");
         Logger console = Logger.getLogger("java.util.logging.ConsoleHandler");
         console.setLevel(Level.SEVERE);
         incurrency.setLevel(Level.SEVERE);
@@ -339,9 +340,6 @@ public class Launch extends javax.swing.JFrame {
             level = loggingLevel.intValue();
         }
 
-
-
-
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             @Override
@@ -378,10 +376,10 @@ public class Launch extends javax.swing.JFrame {
                 }
             }
         });
-        if(!headless){
-        printStream = new PrintStream(new LogWorker());
-        System.setOut(printStream); 
-        System.setErr(printStream);
+        if (!headless) {
+            printStream = new PrintStream(new LogWorker());
+            System.setOut(printStream);
+            System.setErr(printStream);
         }
         Thread.sleep(3000);
         boolean trading = false;
@@ -420,41 +418,41 @@ public class Launch extends javax.swing.JFrame {
         if (input.get("dataserver") != null) {
             algo.registerStrategy("com.incurrency.dataserver.DataServer");
         }
-        if(input.get("swing")!=null){
+        if (input.get("swing") != null) {
             algo.registerStrategy("com.incurrency.algorithms.swing.Swing");
         }
-         if(input.get("eodmaintenance")!=null){
+        if (input.get("eodmaintenance") != null) {
             algo.registerStrategy("com.incurrency.eodmaintenance.EODMaintenance");
         }
-         
-         if(input.get("fundamental")!=null){
-             algo.registerStrategy("com.incurrency.algorithms.fundamental.Fundamental");
-         }
-         if(input.get("valuation")!=null){
-             algo.registerStrategy("com.incurrency.algorithms.valuation.Valuation");
-         }
-          if(input.get("reval")!=null){
-             algo.registerStrategy("com.incurrency.reval.Reval");
-         }
-          if(input.get("scanneradr")!=null){
-             algo.registerStrategy("com.incurrency.scanneradr.ScannerAdr");
-         }
-          if(input.get("manager")!=null){
-              algo.registerStrategy("com.incurrency.algorithms.manager.Manager");
-          }
-          if(input.get("optsale")!=null){
-              algo.registerStrategy("com.incurrency.algorithms.optsale.OptSale");
-          }
-          if(input.get("yield")!=null){
-              algo.registerStrategy("com.incurrency.algorithms.yield.Yield");
-          }
-          if(input.get("contra")!=null){
-              algo.registerStrategy("com.incurrency.algorithms.contra.Contra");
-          }
-          if(input.get("value")!=null){
-              algo.registerStrategy("com.incurrency.algorithms.value.Value");
-          }
-          algo.postInit();
+
+        if (input.get("fundamental") != null) {
+            algo.registerStrategy("com.incurrency.algorithms.fundamental.Fundamental");
+        }
+        if (input.get("valuation") != null) {
+            algo.registerStrategy("com.incurrency.algorithms.valuation.Valuation");
+        }
+        if (input.get("reval") != null) {
+            algo.registerStrategy("com.incurrency.reval.Reval");
+        }
+        if (input.get("scanneradr") != null) {
+            algo.registerStrategy("com.incurrency.scanneradr.ScannerAdr");
+        }
+        if (input.get("manager") != null) {
+            algo.registerStrategy("com.incurrency.algorithms.manager.Manager");
+        }
+        if (input.get("optsale") != null) {
+            algo.registerStrategy("com.incurrency.algorithms.optsale.OptSale");
+        }
+        if (input.get("yield") != null) {
+            algo.registerStrategy("com.incurrency.algorithms.yield.Yield");
+        }
+        if (input.get("contra") != null) {
+            algo.registerStrategy("com.incurrency.algorithms.contra.Contra");
+        }
+        if (input.get("value") != null) {
+            algo.registerStrategy("com.incurrency.algorithms.value.Value");
+        }
+        algo.postInit();
     }
 
     @Override

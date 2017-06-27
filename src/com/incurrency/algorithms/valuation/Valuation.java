@@ -44,10 +44,8 @@ public class Valuation implements TradeListener {
         Properties p = Utilities.loadParameters(parameterFileName);
         loadParameters(p);
         for (BeanSymbol s : Parameters.symbol) {
-            calculateValuation(s.getSerialno() - 1);
+            calculateValuation(s.getSerialno());
         }
-
-
 
     }
 
@@ -156,7 +154,7 @@ public class Valuation implements TradeListener {
                                             if (elConsValue.getAttribute("dateType").equals("CURR")) {
                                                 f.ebitEstimate = elConsValue.getTextContent();
                                                 f.analystEstimateAvailable = "Yes";
-                                                f.estimateYear=estimateYear;
+                                                f.estimateYear = estimateYear;
 
                                             }
                                         }
@@ -252,92 +250,92 @@ public class Valuation implements TradeListener {
                 outerloop:
                 for (int temp1 = 0; temp1 < fiscalPeriods.getLength(); temp1++) {
                     NodeList statements = ((Element) fiscalPeriods.item(temp1)).getElementsByTagName("Statement");
-                    int fiscalPeriodIndex=0;
-                    boolean incfound=false;
-                    boolean bsfound=false;
-                    boolean incbsfound=false;
+                    int fiscalPeriodIndex = 0;
+                    boolean incfound = false;
+                    boolean bsfound = false;
+                    boolean incbsfound = false;
                     for (int temp2 = 0; temp2 < statements.getLength(); temp2++) {
-                        fiscalPeriodIndex=fiscalPeriodIndex+1;
+                        fiscalPeriodIndex = fiscalPeriodIndex + 1;
                         //first check if the fiscal period has both income and balance sheet statement
                         Element elStatement = (Element) statements.item(temp2);
                         if (elStatement.getAttribute("Type").equals("INC")) {
-                            incfound=true;
-                        }else if(elStatement.getAttribute("Type").equals("BAL")){
-                            bsfound=true;
+                            incfound = true;
+                        } else if (elStatement.getAttribute("Type").equals("BAL")) {
+                            bsfound = true;
                         }
                     }
-                    incbsfound=incfound && bsfound;
-                    if(incbsfound==true){
-                        statements = ((Element) fiscalPeriods.item(fiscalPeriodIndex-1)).getElementsByTagName("Statement");
+                    incbsfound = incfound && bsfound;
+                    if (incbsfound == true) {
+                        statements = ((Element) fiscalPeriods.item(fiscalPeriodIndex - 1)).getElementsByTagName("Statement");
                         for (int temp2 = 0; temp2 < statements.getLength(); temp2++) {
-                        Element elStatement=(Element)statements.item(temp2);
-                           if (elStatement.getAttribute("Type").equals("INC")) {
-                            Element elHeader = (Element) elStatement.getElementsByTagName("FPHeader").item(0);
-                            NodeList lineItems = elStatement.getElementsByTagName("lineItem");
-                            f.balanceSheetDuration = elHeader.getElementsByTagName("periodType").item(0).getTextContent().equals("Months") ? elHeader.getElementsByTagName("PeriodLength").item(0).getTextContent() : String.valueOf(Double.parseDouble(elHeader.getElementsByTagName("PeriodLength").item(0).getTextContent()) / 4);
-                            for (int temp4 = 0; temp4 < lineItems.getLength(); temp4++) {
-                                Element elCOA = (Element) lineItems.item(temp4);
-                                switch (elCOA.getAttribute("coaCode")) {
-                                    //case "SINN":
-                                    case "SNIN":
-                                        f.interestExpense = elCOA.getTextContent();
-                                        break;
-                                    default:
-                                        break;
+                            Element elStatement = (Element) statements.item(temp2);
+                            if (elStatement.getAttribute("Type").equals("INC")) {
+                                Element elHeader = (Element) elStatement.getElementsByTagName("FPHeader").item(0);
+                                NodeList lineItems = elStatement.getElementsByTagName("lineItem");
+                                f.balanceSheetDuration = elHeader.getElementsByTagName("periodType").item(0).getTextContent().equals("Months") ? elHeader.getElementsByTagName("PeriodLength").item(0).getTextContent() : String.valueOf(Double.parseDouble(elHeader.getElementsByTagName("PeriodLength").item(0).getTextContent()) / 4);
+                                for (int temp4 = 0; temp4 < lineItems.getLength(); temp4++) {
+                                    Element elCOA = (Element) lineItems.item(temp4);
+                                    switch (elCOA.getAttribute("coaCode")) {
+                                        //case "SINN":
+                                        case "SNIN":
+                                            f.interestExpense = elCOA.getTextContent();
+                                            break;
+                                        default:
+                                            break;
 
+                                    }
                                 }
-                            }
-                        } else if (elStatement.getAttribute("Type").equals("BAL")) {
-                            Element elHeader = (Element) elStatement.getElementsByTagName("FPHeader").item(0);
-                            NodeList lineItems = elStatement.getElementsByTagName("lineItem");
-                            f.financialsDate = elHeader.getElementsByTagName("StatementDate").item(0).getTextContent();
-                            for (int temp4 = 0; temp4 < lineItems.getLength(); temp4++) {
-                                Element elCOA = (Element) lineItems.item(temp4);
-                                switch (elCOA.getAttribute("coaCode")) {
-                                    case "STLD":
-                                        f.totalDebt = elCOA.getTextContent();
-                                        break;
-                                    case "LAPB":
-                                        f.accountsPayable = elCOA.getTextContent();
-                                        break;
-                                    case "AACR":
-                                        f.accountsReceivable = elCOA.getTextContent();
-                                        break;
-                                    case "SCSI":
-                                        f.cashandstinvestments = elCOA.getTextContent();
-                                        break;
-                                    case "QTCO":
-                                        //f.commonShares = elCOA.getTextContent();
-                                        break;
-                                    case "AITL":
-                                        f.inventories = elCOA.getTextContent();
-                                        break;
-                                    case "LMIN":
-                                        f.minorityInterest = elCOA.getTextContent();
-                                        break;
-                                    default:
-                                        break;
+                            } else if (elStatement.getAttribute("Type").equals("BAL")) {
+                                Element elHeader = (Element) elStatement.getElementsByTagName("FPHeader").item(0);
+                                NodeList lineItems = elStatement.getElementsByTagName("lineItem");
+                                f.financialsDate = elHeader.getElementsByTagName("StatementDate").item(0).getTextContent();
+                                for (int temp4 = 0; temp4 < lineItems.getLength(); temp4++) {
+                                    Element elCOA = (Element) lineItems.item(temp4);
+                                    switch (elCOA.getAttribute("coaCode")) {
+                                        case "STLD":
+                                            f.totalDebt = elCOA.getTextContent();
+                                            break;
+                                        case "LAPB":
+                                            f.accountsPayable = elCOA.getTextContent();
+                                            break;
+                                        case "AACR":
+                                            f.accountsReceivable = elCOA.getTextContent();
+                                            break;
+                                        case "SCSI":
+                                            f.cashandstinvestments = elCOA.getTextContent();
+                                            break;
+                                        case "QTCO":
+                                            //f.commonShares = elCOA.getTextContent();
+                                            break;
+                                        case "AITL":
+                                            f.inventories = elCOA.getTextContent();
+                                            break;
+                                        case "LMIN":
+                                            f.minorityInterest = elCOA.getTextContent();
+                                            break;
+                                        default:
+                                            break;
+                                    }
                                 }
+                                quarterlyDataReceived = true;
+                                f.symbol = Parameters.symbol.get(id).getExchangeSymbol();
+                                f.exchange = Parameters.symbol.get(id).getExchange();
+                                f.estimateYear = this.estimateYear;
+                                f.totalDebt = f.totalDebt == null ? "0" : f.totalDebt;
+                                f.accountsPayable = f.accountsPayable == null ? "0" : f.accountsPayable;
+                                f.accountsReceivable = f.accountsReceivable == null ? "0" : f.accountsReceivable;
+                                f.cashandstinvestments = f.cashandstinvestments == null ? "0" : f.cashandstinvestments;
+                                f.commonShares = f.commonShares == null ? "NA" : f.commonShares;
+                                f.inventories = f.inventories == null ? "0" : f.inventories;
+                                f.minorityInterest = f.minorityInterest == null ? "0" : f.minorityInterest;
+                                f.ebitEstimate = f.ebitEstimate == null ? "NA" : f.ebitEstimate;
+                                f.reportingCurrency = f.reportingCurrency == null ? "NA" : f.reportingCurrency;
+                                f.estimatesExchangeCurrency = f.estimatesExchangeCurrency == null ? f.reportingCurrency : f.estimatesExchangeCurrency;
+                                f.ebitActual = f.ebitActual == null ? "NA" : f.ebitActual;
+                                //f.sharePrice=f.exchange.equals("LSE")?String.valueOf(Double.valueOf(f.sharePrice)/100):f.sharePrice;
+                                fundamentalsAnnual.put(id, f);
+                                break outerloop;
                             }
-                            quarterlyDataReceived = true;
-                            f.symbol = Parameters.symbol.get(id).getExchangeSymbol();
-                            f.exchange = Parameters.symbol.get(id).getExchange();
-                            f.estimateYear = this.estimateYear;
-                            f.totalDebt = f.totalDebt == null ? "0" : f.totalDebt;
-                            f.accountsPayable = f.accountsPayable == null ? "0" : f.accountsPayable;
-                            f.accountsReceivable = f.accountsReceivable == null ? "0" : f.accountsReceivable;
-                            f.cashandstinvestments = f.cashandstinvestments == null ? "0" : f.cashandstinvestments;
-                            f.commonShares = f.commonShares == null ? "NA" : f.commonShares;
-                            f.inventories = f.inventories == null ? "0" : f.inventories;
-                            f.minorityInterest = f.minorityInterest == null ? "0" : f.minorityInterest;
-                            f.ebitEstimate = f.ebitEstimate == null ? "NA" : f.ebitEstimate;
-                            f.reportingCurrency = f.reportingCurrency == null ? "NA" : f.reportingCurrency;
-                            f.estimatesExchangeCurrency = f.estimatesExchangeCurrency == null ? f.reportingCurrency : f.estimatesExchangeCurrency;
-                            f.ebitActual = f.ebitActual == null ? "NA" : f.ebitActual;
-                           //f.sharePrice=f.exchange.equals("LSE")?String.valueOf(Double.valueOf(f.sharePrice)/100):f.sharePrice;
-                            fundamentalsAnnual.put(id, f);
-                            break outerloop;
-                        }
                         }
                     }
                 }
@@ -411,7 +409,7 @@ public class Valuation implements TradeListener {
                     }
                 }
                 if (annualDataReceived) {
-                    f.symbol=Parameters.symbol.get(id).getExchangeSymbol();
+                    f.symbol = Parameters.symbol.get(id).getExchangeSymbol();
                     f.totalDebt = f.totalDebt == null ? "0" : f.totalDebt;
                     f.accountsPayable = f.accountsPayable == null ? "0" : f.accountsPayable;
                     f.accountsReceivable = f.accountsReceivable == null ? "0" : f.accountsReceivable;
