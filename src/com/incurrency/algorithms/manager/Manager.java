@@ -380,7 +380,6 @@ public class Manager extends Strategy {
                                         order.setLimitPrice(limitprice);
                                         order.setOrderSide(derivedSide);
                                         order.setOriginalOrderSize(size);
-                                        order.setCurrentOrderSize(size);
                                         order.setOrderReason(EnumOrderReason.REGULARENTRY);
                                         order.setOrderStage(EnumOrderStage.INIT);
                                         order.setScale(getScaleEntry());
