@@ -410,8 +410,8 @@ public class Manager extends Strategy {
                                         order.setLimitPrice(limitprice);
                                         order.setOrderSide(derivedSide);
                                         order.setOriginalOrderSize(size);
-                                        order.setCurrentOrderSize(size);
-                                        order.setOrderReason(EnumOrderReason.REGULARENTRY);
+//                                        order.setCurrentOrderSize(size);
+                                        order.setOrderReason(EnumOrderReason.REGULAREXIT);
                                         order.setOrderStage(EnumOrderStage.INIT);
                                         order.setScale(getScaleExit());
                                         order.setOrderLog("SELL" + delimiter + tradetuple.get(1));
@@ -472,7 +472,7 @@ public class Manager extends Strategy {
                                         order.setOrderSide(derivedSide);
                                         order.setOriginalOrderSize(size);
                                         order.setCurrentOrderSize(size);
-                                        order.setOrderReason(EnumOrderReason.REGULARENTRY);
+                                        order.setOrderReason(EnumOrderReason.REGULAREXIT);
                                         order.setOrderStage(EnumOrderStage.INIT);
                                         order.setScale(getScaleExit());
                                         order.setOrderLog("SELL" + delimiter + tradetuple.get(1));
