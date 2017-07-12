@@ -13,7 +13,7 @@ import com.incurrency.framework.Parameters;
 import com.incurrency.framework.Strategy;
 import com.incurrency.framework.TradeEvent;
 import com.incurrency.framework.TradeListener;
-import com.incurrency.framework.TradingUtil;
+import com.incurrency.framework.Utilities;
 import java.util.ArrayList;
 import java.util.Properties;
 import java.util.logging.Logger;
@@ -32,7 +32,7 @@ public class Template extends Strategy implements TradeListener {
         for (BeanSymbol s : Parameters.symbol) {
             getPosition().put(s.getSerialno() - 1, new BeanPosition(s.getSerialno() - 1, getStrategy()));
         }
-        TradingUtil.writeToFile(getStrategy() + ".csv", "comma seperated header columns ");
+        Utilities.writeToFile(getStrategy() + ".csv", "comma seperated header columns ");
 
         String[] tempStrategyArray = parameterFile.split("\\.")[0].split("_");
         for (BeanConnection c : Parameters.connection) {
