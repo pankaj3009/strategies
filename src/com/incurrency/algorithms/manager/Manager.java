@@ -4,6 +4,9 @@
  */
 package com.incurrency.algorithms.manager;
 
+import com.google.common.reflect.TypeToken;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.incurrency.framework.Algorithm;
 import com.incurrency.framework.BeanConnection;
 import com.incurrency.framework.BeanPosition;
@@ -19,6 +22,7 @@ import com.incurrency.framework.Parameters;
 import com.incurrency.framework.Stop;
 import com.incurrency.framework.Strategy;
 import com.incurrency.framework.Utilities;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -74,6 +78,9 @@ public class Manager extends Strategy {
 
         Timer monitor = new Timer("Timer: " + this.getStrategy() + " WaitForTrades");
         monitor.schedule(TradeProcessor, new Date());
+        Timer Jsonmonitor = new Timer("Timer: " + this.getStrategy() + " WaitForJsonTrades");
+        Jsonmonitor.schedule(JsonTradeProcessor, new Date());
+        
         Timer mdrequest = new Timer("Timer: " + this.getStrategy() + " WaitForMDRequest");
         mdrequest.schedule(MarketDataRequestProcessor, new Date());
 
@@ -120,6 +127,16 @@ public class Manager extends Strategy {
             }
         }
     };
+    
+        public TimerTask JsonTradeProcessor = new TimerTask() {
+        @Override
+        public void run() {
+            while (true) {
+                waitForJsonTrades();
+            }
+        }
+    };
+
 
     public TimerTask MarketDataRequestProcessor = new TimerTask() {
         @Override
@@ -497,6 +514,116 @@ public class Manager extends Strategy {
         }
     }
 
+        public void waitForJsonTrades() {
+        try {
+            List<String> tradetuple = this.getDb().blpop("jsontrades:" + this.getStrategy(), "", 60);
+            if (tradetuple != null) {
+                logger.log(Level.INFO, "101,Received Trade:{0} for strategy {1}", new Object[]{tradetuple.get(1), tradetuple.get(0)});
+                //tradetuple as symbol:size:side:sl
+                Thread t = new Thread(new Mail(getIamail(), "Received Trade: " + tradetuple.get(1) + " for strategy " + tradetuple.get(0), "Received Order from [R]"));
+                t.start();
+                String displayName = tradetuple.get(1);
+                   Type type = new TypeToken<OrderBean>() {
+                }.getType();
+                Gson gson = new GsonBuilder().create();
+                OrderBean ob = gson.fromJson((String) displayName, type);
+                                    int id=ob.getParentSymbolID();
+                    if (ob.getOriginalOrderSize() > 0) {
+                        switch (ob.getOrderSide()) {
+                            case BUY:
+                                    if (id>0) {
+                                        int referenceid = -1;
+                                        if (Parameters.symbol.get(id).getType().equals("OPT")) {
+                                            referenceid = Utilities.getCashReferenceID(Parameters.symbol, id, referenceCashType);
+                                            String tempExpiry = Parameters.symbol.get(id).getExpiry();
+                                            referenceid = this.optionPricingUsingFutures ? Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, tempExpiry) : referenceid;
+                                        }
+                                        ob.setOrderReason(EnumOrderReason.REGULARENTRY);
+                                        ob.setOrderStage(EnumOrderStage.INIT);
+                                        ob.setOrderLog("BUY" + delimiter + tradetuple.get(1));
+                                        HashMap<String, Object> tmpOrderAttributes = new HashMap<>();
+                                        tmpOrderAttributes.putAll(this.getOrderAttributes());
+                                        ob.setOrderAttributes(tmpOrderAttributes);
+                                        if ((this.getOrdType() != EnumOrderType.MKT && ob.getLimitPrice() > 0) || this.getOrdType().equals(EnumOrderType.MKT)) {
+                                            logger.log(Level.INFO, "501,Strategy BUY,{0}", new Object[]{getStrategy() + delimiter + "BUY" + delimiter + Parameters.symbol.get(id).getDisplayname()});
+                                            entry(ob);
+                                        }
+                                    }
+                                
+                                break;
+                            case SELL:
+                                    if (id >= 0) {
+                                        int referenceid = -1;
+                                        if (Parameters.symbol.get(id).getType().equals("OPT")) {
+                                            referenceid = Utilities.getCashReferenceID(Parameters.symbol, id, referenceCashType);
+                                            String tempExpiry = Parameters.symbol.get(id).getExpiry();
+                                            referenceid = this.optionPricingUsingFutures ? Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, tempExpiry) : referenceid;
+                                        }
+                                        ob.setOrderReason(EnumOrderReason.REGULAREXIT);
+                                        ob.setOrderStage(EnumOrderStage.INIT);
+                                        ob.setOrderLog("SELL" + delimiter + tradetuple.get(1));
+                                        HashMap<String, Object> tmpOrderAttributes = new HashMap<>();
+                                        tmpOrderAttributes.putAll(this.getOrderAttributes());
+                                        ob.setOrderAttributes(tmpOrderAttributes);
+                                        if ((this.getOrdType() != EnumOrderType.MKT && ob.getLimitPrice() > 0) || this.getOrdType().equals(EnumOrderType.MKT)) {
+                                            logger.log(Level.INFO, "501,Strategy SELL,{0}", new Object[]{getStrategy() + delimiter + "SELL" + delimiter + Parameters.symbol.get(id).getDisplayname()});
+                                            exit(ob);
+                                        }
+                                    }
+                                break;
+                            case SHORT:
+                                    if (id >= 0) {
+                                        int referenceid = -1;
+                                        if (Parameters.symbol.get(id).getType().equals("OPT")) {
+                                            referenceid = Utilities.getCashReferenceID(Parameters.symbol, id, referenceCashType);
+                                            String tempExpiry = Parameters.symbol.get(id).getExpiry();
+                                            referenceid = this.optionPricingUsingFutures ? Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, tempExpiry) : referenceid;
+                                        }
+                                        ob.setOrderReason(EnumOrderReason.REGULARENTRY);
+                                        ob.setOrderStage(EnumOrderStage.INIT);
+                                        ob.setOrderLog("SHORT" + delimiter + tradetuple.get(1));
+                                        HashMap<String, Object> tmpOrderAttributes = new HashMap<>();
+                                        tmpOrderAttributes.putAll(this.getOrderAttributes());
+                                        ob.setOrderAttributes(tmpOrderAttributes);
+                                        if ((this.getOrdType() != EnumOrderType.MKT && ob.getLimitPrice() > 0) || this.getOrdType().equals(EnumOrderType.MKT)) {
+                                            logger.log(Level.INFO, "501,Strategy SHORT,{0}", new Object[]{getStrategy() + delimiter + "SHORT" + delimiter + Parameters.symbol.get(id).getDisplayname()});
+                                            entry(ob);
+                                        }
+                                    }
+                                
+                                break;
+                            case COVER:
+                                    if (id >= 0) {
+                                        int referenceid = -1;
+                                        if (Parameters.symbol.get(id).getType().equals("OPT")) {
+                                            referenceid = Utilities.getCashReferenceID(Parameters.symbol, id, referenceCashType);
+                                            String tempExpiry = Parameters.symbol.get(id).getExpiry();
+                                            referenceid = this.optionPricingUsingFutures ? Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, tempExpiry) : referenceid;
+                                        }
+                                        ob.setOrderReason(EnumOrderReason.REGULAREXIT);
+                                        ob.setOrderStage(EnumOrderStage.INIT);
+                                        ob.setOrderLog("SELL" + delimiter + tradetuple.get(1));
+                                        HashMap<String, Object> tmpOrderAttributes = new HashMap<>();
+                                        tmpOrderAttributes.putAll(this.getOrderAttributes());
+                                        ob.setOrderAttributes(tmpOrderAttributes);
+                                        if ((this.getOrdType() != EnumOrderType.MKT && ob.getLimitPrice() > 0) || this.getOrdType().equals(EnumOrderType.MKT)) {
+                                            logger.log(Level.INFO, "501,Strategy COVER,{0}", new Object[]{getStrategy() + delimiter + "COVER" + delimiter + Parameters.symbol.get(id).getDisplayname()});
+                                            exit(ob);
+                                        }
+                                    }
+                                
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, null, e);
+        }
+    }
+
+    
     /**
      * @return the scaleEntry
      */
