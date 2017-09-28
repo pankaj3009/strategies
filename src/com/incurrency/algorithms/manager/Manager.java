@@ -122,7 +122,7 @@ public class Manager extends Strategy {
     public TimerTask TradeProcessor = new TimerTask() {
         @Override
         public void run() {
-            while (true) {
+            while (true && Parameters.symbol.size()>0) {
                 waitForTrades();
             }
         }
