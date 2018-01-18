@@ -26,7 +26,7 @@ public class Value extends Manager {
     private final Object lockScan = new Object();
 
     public Value(MainAlgorithm m, Properties p, String parameterFile, ArrayList<String> accounts, Integer stratCount) {
-        super(m, p, parameterFile, accounts, stratCount, "contra");
+        super(m, p, parameterFile, accounts, "contra");
         Timer trigger = new Timer("Timer: " + this.getStrategy() + " RScriptProcessor");
         trigger.schedule(RScriptRunTask, RScriptRunTime);
     }
@@ -44,7 +44,7 @@ public class Value extends Manager {
                         REXP wd = c.eval("getwd()");
                         System.out.println(wd.asString());
                         c.eval("options(encoding = \"UTF-8\")");
-                        String[] args = new String[]{"1", getStrategy(), getRedisDatabaseID()};
+                        String[] args = new String[]{"1", getStrategy(), String.valueOf(redisdborder)};
                         c.assign("args", args);
                         c.eval("source(\"" + RStrategyFile + "\")");
                     } catch (Exception e) {

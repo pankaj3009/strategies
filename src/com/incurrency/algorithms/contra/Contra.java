@@ -38,7 +38,7 @@ public class Contra extends Manager {
     private final Object lockScan = new Object();
 
     public Contra(MainAlgorithm m, Properties p, String parameterFile, ArrayList<String> accounts, Integer stratCount) {
-        super(m, p, parameterFile, accounts, stratCount, "contra");
+        super(m, p, parameterFile, accounts, "contra");
         Timer trigger = new Timer("Timer: " + this.getStrategy() + " RScriptProcessor");
         trigger.schedule(RScriptRunTask, RScriptRunTime);
         boolean contractRollover = Utilities.rolloverDay(Math.max(1, rolloverDays - 2), this.getStartDate(), this.expiryNearMonth);
@@ -63,7 +63,7 @@ public class Contra extends Manager {
                         System.out.println(wd.asString());
                         c.eval("options(encoding = \"UTF-8\")");
                         String[] args = new String[1];
-                        args = new String[]{"1", getStrategy(), getRedisDatabaseID()};
+                        args = new String[]{"1", getStrategy(), String.valueOf(redisdborder)};
                         c.assign("args", args);
                         c.eval("source(\"" + RStrategyFile + "\")");
                     } catch (Exception e) {
@@ -108,8 +108,8 @@ public class Contra extends Manager {
                                     entryorderidlist = Utilities.getOrInsertOptionIDForReceiveSystem(Parameters.symbol, getPosition(), futureid, side, expiryFarMonth);
                                 }
                             } else if (Parameters.symbol.get(initID).getType().equals("OPT") && !optionPricingUsingFutures) {
-                                int symbolid = Utilities.getCashReferenceID(Parameters.symbol, initID, referenceCashType);
-                                int referenceid = Utilities.getCashReferenceID(Parameters.symbol, symbolid, referenceCashType);
+                                int symbolid = Utilities.getCashReferenceID(Parameters.symbol, initID);
+                                int referenceid = Utilities.getCashReferenceID(Parameters.symbol, symbolid);
                                 if (optionSystem.equals("PAY")) {
                                     entryorderidlist = Utilities.getOrInsertOptionIDForPaySystem(Parameters.symbol, getPosition(), referenceid, side, expiryFarMonth);
                                 } else {
@@ -120,7 +120,7 @@ public class Contra extends Manager {
                             }
 
                             if (!entryorderidlist.isEmpty() && entryorderidlist.get(0) != -1) {
-                                initSymbol(entryorderidlist.get(0), optionPricingUsingFutures, referenceCashType);
+                                initSymbol(entryorderidlist.get(0), optionPricingUsingFutures);
                                 positionRollover(initID, entryorderidlist.get(0));
                             } else {
                                 logger.log(Level.INFO, "100,Rollover not completed as invalid Target symbol,{0}:{1}:{2}:{3}:{4}", new Object[]{getStrategy(), "Order", Parameters.symbol.get(initID).getDisplayname(), -1, -1});
@@ -148,7 +148,7 @@ public class Contra extends Manager {
                             new Object[]{getStrategy(), "Order", Parameters.symbol.get(initID).getDisplayname(), -1, -1});
                     //stops = Trade.getStop(this.getDb(), this.getStrategy() + ":" + this.ParentInternalOrderIDForSquareOff("Order", ob) this.getFirstInternalOpenOrder(initID, EnumOrderSide.SELL, "Order").iterator().next() + ":Order");
                     OrderBean order = new OrderBean();
-                    int referenceid = Utilities.getCashReferenceID(Parameters.symbol, targetID, referenceCashType);
+                    int referenceid = Utilities.getCashReferenceID(Parameters.symbol, targetID);
                     double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, initID, referenceid, EnumOrderSide.SELL, getTickSize(), this.getOrdType());
                     order.setParentDisplayName(Parameters.symbol.get(initID).getDisplayname());
                     order.setChildDisplayName(Parameters.symbol.get(initID).getDisplayname());
@@ -168,7 +168,7 @@ public class Contra extends Manager {
                             new Object[]{getStrategy(), "Order", Parameters.symbol.get(initID).getDisplayname(), -1, -1});
                     // stops = Trade.getStop(this.getDb(), this.getStrategy() + ":" + this.getFirstInternalOpenOrder(initID, EnumOrderSide.COVER, "Order").iterator().next() + ":Order");
                     order = new OrderBean();
-                    referenceid = Utilities.getCashReferenceID(Parameters.symbol, targetID, referenceCashType);
+                    referenceid = Utilities.getCashReferenceID(Parameters.symbol, targetID);
                     limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, initID, referenceid, EnumOrderSide.COVER, getTickSize(), this.getOrdType());
                     order.setParentDisplayName(Parameters.symbol.get(initID).getDisplayname());
                     order.setChildDisplayName(Parameters.symbol.get(initID).getDisplayname());
@@ -197,7 +197,7 @@ public class Contra extends Manager {
                     if (this.getLongOnly()) {
                         logger.log(Level.INFO, "101,Rollover BUY,{0}:{1}:{2}:{3}:{4},NewPositionSize={5}",
                                 new Object[]{getStrategy(), "Order", Parameters.symbol.get(targetID).getDisplayname(), -1, -1, newSize});
-                        int referenceid = Utilities.getCashReferenceID(Parameters.symbol, targetID, referenceCashType);
+                        int referenceid = Utilities.getCashReferenceID(Parameters.symbol, targetID);
                         double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, targetID, referenceid, EnumOrderSide.BUY, getTickSize(), this.getOrdType());
                         OrderBean order = new OrderBean();
                         order.setParentDisplayName(Parameters.symbol.get(targetID).getDisplayname());
@@ -219,7 +219,7 @@ public class Contra extends Manager {
                         logger.log(Level.INFO, "101,Rollover SHORT,{0}:{1}:{2}:{3}:{4},NewPositionSize={5}",
                                 new Object[]{getStrategy(), "Order", Parameters.symbol.get(targetID).getDisplayname(), -1, -1, newSize});
                         OrderBean order = new OrderBean();
-                        int referenceid = Utilities.getCashReferenceID(Parameters.symbol, targetID, referenceCashType);
+                        int referenceid = Utilities.getCashReferenceID(Parameters.symbol, targetID);
                         double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, targetID, referenceid, EnumOrderSide.SHORT, getTickSize(), this.getOrdType());
                         order.setParentDisplayName(Parameters.symbol.get(targetID).getDisplayname());
                         order.setChildDisplayName(Parameters.symbol.get(initID).getDisplayname());

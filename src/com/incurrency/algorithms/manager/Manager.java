@@ -14,7 +14,7 @@ import com.incurrency.framework.DateUtil;
 import com.incurrency.framework.EnumOrderReason;
 import com.incurrency.framework.EnumOrderSide;
 import com.incurrency.framework.EnumOrderStage;
-import com.incurrency.framework.EnumOrderType;
+import com.incurrency.framework.Order.EnumOrderType;
 import com.incurrency.framework.Mail;
 import com.incurrency.framework.MainAlgorithm;
 import com.incurrency.framework.OrderBean;
@@ -60,8 +60,8 @@ public class Manager extends Strategy {
 
     private static final Logger logger = Logger.getLogger(Manager.class.getName());
 
-    public Manager(MainAlgorithm m, Properties p, String parameterFile, ArrayList<String> accounts, Integer stratCount, String strategy) {
-        super(m, strategy, "FUT", p, parameterFile, accounts, stratCount);
+    public Manager(MainAlgorithm m, Properties p, String parameterFile, ArrayList<String> accounts, String strategy) {
+        super(m,p, parameterFile, accounts);
         loadParameters(p);
         String[] tempStrategyArray = parameterFile.split("\\.")[0].split("_");
         for (BeanConnection c : Parameters.connection) {
@@ -83,7 +83,7 @@ public class Manager extends Strategy {
         
         Timer mdrequest = new Timer("Timer: " + this.getStrategy() + " WaitForMDRequest");
         mdrequest.schedule(MarketDataRequestProcessor, new Date());
-
+        
     }
 
     private void loadParameters(Properties p) {
@@ -155,7 +155,7 @@ public class Manager extends Strategy {
             String symbol = displayName.split(":", -1)[0];
             int symbolid = Utilities.getIDFromDisplayName(Parameters.symbol, symbol);
             if (symbolid == -1) {
-                insertSymbol(Parameters.symbol, symbol, optionPricingUsingFutures, referenceCashType);
+                insertSymbol(Parameters.symbol, symbol, optionPricingUsingFutures);
             }
         }
     }
@@ -179,7 +179,7 @@ public class Manager extends Strategy {
                 int symbolid = Utilities.getIDFromDisplayName(Parameters.symbol, symbol);
                 if (symbolid == -1 && securityType.equals("PASSTHROUGH") && (side.equals(EnumOrderSide.BUY) || side.equals(EnumOrderSide.SHORT))) {
                     //insert symbol into database
-                    insertSymbol(Parameters.symbol, symbol, optionPricingUsingFutures, referenceCashType);
+                    insertSymbol(Parameters.symbol, symbol, optionPricingUsingFutures);
                     symbolid = Utilities.getIDFromDisplayName(Parameters.symbol, symbol);
                 }
                 if (securityType.equals("OPT") || displayName.contains("OPT") || symbolid >= 0) { //only proceed if symbolid exists in our db
@@ -193,9 +193,9 @@ public class Manager extends Strategy {
                         if (displayName.contains("OPT")) { //passthrough
                             if (side.equals(EnumOrderSide.SELL) || side.equals(EnumOrderSide.COVER)) {
                                 exitorderidlist.add(symbolid);
-                                actualPositionSize = Utilities.getNetPosition(Parameters.symbol, this.getPosition(), exitorderidlist.get(0), "OPT");
+                                actualPositionSize = Utilities.getNetPosition(Parameters.symbol, this.getPosition(), exitorderidlist.get(0), true);
                             } else if (side.equals(EnumOrderSide.BUY) || side.equals(EnumOrderSide.SHORT)) {
-                                int referenceid = Utilities.getCashReferenceID(Parameters.symbol, symbolid, referenceCashType);
+                                int referenceid = Utilities.getCashReferenceID(Parameters.symbol, symbolid);
                                 if (optionPricingUsingFutures) {
                                     int futureid = Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, expiry);
                                     if (futureid >= 0) { //future exists in db
@@ -207,13 +207,13 @@ public class Manager extends Strategy {
                                     entryorderidlist.add(symbolid);
                                 }
                                 if (exitorderidlist.size() > 0) {
-                                    actualPositionSize = Utilities.getNetPosition(Parameters.symbol, this.getPosition(), entryorderidlist.get(0), "OPT");
+                                    actualPositionSize = Utilities.getNetPosition(Parameters.symbol, this.getPosition(), entryorderidlist.get(0), true);
                                 } else {
                                     actualPositionSize = 0;
                                 }
                             }
                         } else { //symbolid needs to be derived
-                            int referenceid = Utilities.getCashReferenceID(Parameters.symbol, symbolid, referenceCashType);
+                            int referenceid = Utilities.getCashReferenceID(Parameters.symbol, symbolid);
                             if (side.equals(EnumOrderSide.SELL) || side.equals(EnumOrderSide.COVER)) {
                                 if (optionPricingUsingFutures) {
                                     int futureid = Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, expiryNearMonth);
@@ -243,7 +243,7 @@ public class Manager extends Strategy {
                                     derivedSide = EnumOrderSide.SELL;
                                 }
                                 if (exitorderidlist.size() > 0) {
-                                    actualPositionSize = Utilities.getNetPosition(Parameters.symbol, this.getPosition(), exitorderidlist.get(0), "OPT");
+                                    actualPositionSize = Utilities.getNetPosition(Parameters.symbol, this.getPosition(), exitorderidlist.get(0), true);
                                 } else {
                                     actualPositionSize = 0;
                                 }
@@ -267,7 +267,7 @@ public class Manager extends Strategy {
                                 } else {
                                     derivedSide = EnumOrderSide.BUY;
                                 }
-                                actualPositionSize = Utilities.getNetPosition(Parameters.symbol, this.getPosition(), entryorderidlist.get(0), "OPT");
+                                actualPositionSize = Utilities.getNetPosition(Parameters.symbol, this.getPosition(), entryorderidlist.get(0), true);
                             }
 
                         }
@@ -277,27 +277,27 @@ public class Manager extends Strategy {
                         if (displayName.contains("FUT")) { //passthrough
                             if (side.equals(EnumOrderSide.SELL) || side.equals(EnumOrderSide.COVER)) {
                                 exitorderidlist.add(symbolid);
-                                actualPositionSize = Utilities.getNetPosition(Parameters.symbol, this.getPosition(), exitorderidlist.get(0), "OPT");
+                                actualPositionSize = Utilities.getNetPosition(Parameters.symbol, this.getPosition(), exitorderidlist.get(0), true);
                             } else if (side.equals(EnumOrderSide.BUY) || side.equals(EnumOrderSide.SHORT)) {
-                                int referenceid = Utilities.getCashReferenceID(Parameters.symbol, symbolid, referenceCashType);
+                                int referenceid = Utilities.getCashReferenceID(Parameters.symbol, symbolid);
                                 int futureid = Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, expiry);
                                 entryorderidlist.add(futureid);
-                                actualPositionSize = Utilities.getNetPosition(Parameters.symbol, this.getPosition(), entryorderidlist.get(0), "OPT");
+                                actualPositionSize = Utilities.getNetPosition(Parameters.symbol, this.getPosition(), entryorderidlist.get(0), true);
                             }
                         } else { //symbolid needs to be derived
-                            int referenceid = Utilities.getCashReferenceID(Parameters.symbol, symbolid, referenceCashType);
+                            int referenceid = Utilities.getCashReferenceID(Parameters.symbol, symbolid);
                             if (side.equals(EnumOrderSide.SELL) || side.equals(EnumOrderSide.COVER)) {
                                 int futureid = Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, expiryNearMonth);
                                 exitorderidlist.add(this.ParentInternalOrderIDForSquareOff(futureid, "Order", side));
                                 futureid = Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, expiryFarMonth);
                                 exitorderidlist.add(this.ParentInternalOrderIDForSquareOff(futureid, "Order", side));
-                                actualPositionSize = Utilities.getNetPosition(Parameters.symbol, this.getPosition(), exitorderidlist.get(0), "OPT");
+                                actualPositionSize = Utilities.getNetPosition(Parameters.symbol, this.getPosition(), exitorderidlist.get(0), true);
                             } else if (side.equals(EnumOrderSide.BUY) || side.equals(EnumOrderSide.SHORT)) {
                                 if (optionPricingUsingFutures) {
                                     int futureid = Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, expiry);
                                     entryorderidlist.add(futureid);
                                 }
-                                actualPositionSize = Utilities.getNetPosition(Parameters.symbol, this.getPosition(), entryorderidlist.get(0), "OPT");
+                                actualPositionSize = Utilities.getNetPosition(Parameters.symbol, this.getPosition(), entryorderidlist.get(0), true);
                             }
                         }
                     }
@@ -305,10 +305,10 @@ public class Manager extends Strategy {
                     if (securityType.equals("PASSTHROUGH")) {
                         if (side.equals(EnumOrderSide.SELL) || side.equals(EnumOrderSide.COVER)) {
                             exitorderidlist.add(symbolid);
-                            actualPositionSize = Utilities.getNetPosition(Parameters.symbol, this.getPosition(), exitorderidlist.get(0), Parameters.symbol.get(symbolid).getType());
+                            actualPositionSize = Utilities.getNetPosition(Parameters.symbol, this.getPosition(), exitorderidlist.get(0), true);
                         } else if (side.equals(EnumOrderSide.BUY) || side.equals(EnumOrderSide.SHORT)) {
                             entryorderidlist.add(symbolid);
-                            actualPositionSize = Utilities.getNetPosition(Parameters.symbol, this.getPosition(), entryorderidlist.get(0), Parameters.symbol.get(symbolid).getType());
+                            actualPositionSize = Utilities.getNetPosition(Parameters.symbol, this.getPosition(), entryorderidlist.get(0), true);
                         }
                     }
 
@@ -317,12 +317,12 @@ public class Manager extends Strategy {
 
                     if (entryorderidlist.size() > 0) {
                         for (int i : entryorderidlist) {
-                            this.initSymbol(i, optionPricingUsingFutures, referenceCashType);
+                            this.initSymbol(i, optionPricingUsingFutures);
                         }
                     }
                     if (exitorderidlist.size() > 0) {
                         for (int i : exitorderidlist) {
-                            this.initSymbol(i, optionPricingUsingFutures, referenceCashType);
+                            this.initSymbol(i, optionPricingUsingFutures);
                         }
                     }
 
@@ -389,7 +389,7 @@ public class Manager extends Strategy {
                                         order.setChildDisplayName(Parameters.symbol.get(id).getDisplayname());
                                         int referenceid = -1;
                                         if (Parameters.symbol.get(id).getType().equals("OPT")) {
-                                            referenceid = Utilities.getCashReferenceID(Parameters.symbol, id, referenceCashType);
+                                            referenceid = Utilities.getCashReferenceID(Parameters.symbol, id);
                                             String tempExpiry = Parameters.symbol.get(id).getExpiry();
                                             referenceid = this.optionPricingUsingFutures ? Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, tempExpiry) : referenceid;
                                         }
@@ -419,7 +419,7 @@ public class Manager extends Strategy {
                                         order.setChildDisplayName(Parameters.symbol.get(id).getDisplayname());
                                         int referenceid = -1;
                                         if (Parameters.symbol.get(id).getType().equals("OPT")) {
-                                            referenceid = Utilities.getCashReferenceID(Parameters.symbol, id, referenceCashType);
+                                            referenceid = Utilities.getCashReferenceID(Parameters.symbol, id);
                                             String tempExpiry = Parameters.symbol.get(id).getExpiry();
                                             referenceid = this.optionPricingUsingFutures ? Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, tempExpiry) : referenceid;
                                         }
@@ -449,7 +449,7 @@ public class Manager extends Strategy {
                                         order.setChildDisplayName(Parameters.symbol.get(id).getDisplayname());
                                         int referenceid = -1;
                                         if (Parameters.symbol.get(id).getType().equals("OPT")) {
-                                            referenceid = Utilities.getCashReferenceID(Parameters.symbol, id, referenceCashType);
+                                            referenceid = Utilities.getCashReferenceID(Parameters.symbol, id);
                                             String tempExpiry = Parameters.symbol.get(id).getExpiry();
                                             referenceid = this.optionPricingUsingFutures ? Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, tempExpiry) : referenceid;
                                         }
@@ -480,7 +480,7 @@ public class Manager extends Strategy {
                                         order.setChildDisplayName(Parameters.symbol.get(id).getDisplayname());
                                         int referenceid = -1;
                                         if (Parameters.symbol.get(id).getType().equals("OPT")) {
-                                            referenceid = Utilities.getCashReferenceID(Parameters.symbol, id, referenceCashType);
+                                            referenceid = Utilities.getCashReferenceID(Parameters.symbol, id);
                                             String tempExpiry = Parameters.symbol.get(id).getExpiry();
                                             referenceid = this.optionPricingUsingFutures ? Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, tempExpiry) : referenceid;
                                         }
@@ -527,14 +527,14 @@ public class Manager extends Strategy {
                 }.getType();
                 Gson gson = new GsonBuilder().create();
                 OrderBean ob = gson.fromJson((String) displayName, type);
-                                    int id=ob.getParentSymbolID();
+                    int id=ob.getParentSymbolID();
                     if (ob.getOriginalOrderSize() > 0) {
                         switch (ob.getOrderSide()) {
                             case BUY:
-                                    if (id>0) {
+                                    if (id>=0) {
                                         int referenceid = -1;
                                         if (Parameters.symbol.get(id).getType().equals("OPT")) {
-                                            referenceid = Utilities.getCashReferenceID(Parameters.symbol, id, referenceCashType);
+                                            referenceid = Utilities.getCashReferenceID(Parameters.symbol, id);
                                             String tempExpiry = Parameters.symbol.get(id).getExpiry();
                                             referenceid = this.optionPricingUsingFutures ? Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, tempExpiry) : referenceid;
                                         }
@@ -555,7 +555,7 @@ public class Manager extends Strategy {
                                     if (id >= 0) {
                                         int referenceid = -1;
                                         if (Parameters.symbol.get(id).getType().equals("OPT")) {
-                                            referenceid = Utilities.getCashReferenceID(Parameters.symbol, id, referenceCashType);
+                                            referenceid = Utilities.getCashReferenceID(Parameters.symbol, id);
                                             String tempExpiry = Parameters.symbol.get(id).getExpiry();
                                             referenceid = this.optionPricingUsingFutures ? Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, tempExpiry) : referenceid;
                                         }
@@ -575,7 +575,7 @@ public class Manager extends Strategy {
                                     if (id >= 0) {
                                         int referenceid = -1;
                                         if (Parameters.symbol.get(id).getType().equals("OPT")) {
-                                            referenceid = Utilities.getCashReferenceID(Parameters.symbol, id, referenceCashType);
+                                            referenceid = Utilities.getCashReferenceID(Parameters.symbol, id);
                                             String tempExpiry = Parameters.symbol.get(id).getExpiry();
                                             referenceid = this.optionPricingUsingFutures ? Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, tempExpiry) : referenceid;
                                         }
@@ -596,7 +596,7 @@ public class Manager extends Strategy {
                                     if (id >= 0) {
                                         int referenceid = -1;
                                         if (Parameters.symbol.get(id).getType().equals("OPT")) {
-                                            referenceid = Utilities.getCashReferenceID(Parameters.symbol, id, referenceCashType);
+                                            referenceid = Utilities.getCashReferenceID(Parameters.symbol, id);
                                             String tempExpiry = Parameters.symbol.get(id).getExpiry();
                                             referenceid = this.optionPricingUsingFutures ? Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, tempExpiry) : referenceid;
                                         }

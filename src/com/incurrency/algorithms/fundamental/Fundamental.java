@@ -10,7 +10,6 @@ import com.incurrency.framework.EnumRequestType;
 import com.incurrency.framework.Parameters;
 import com.incurrency.framework.TradeEvent;
 import com.incurrency.framework.TradeListener;
-import com.incurrency.framework.fundamental.FundamentalData;
 import java.io.FileInputStream;
 import java.util.Properties;
 import java.util.logging.Level;

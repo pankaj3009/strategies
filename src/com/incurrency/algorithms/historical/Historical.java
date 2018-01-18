@@ -12,11 +12,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -46,8 +42,10 @@ public class Historical {
     private static final Logger logger = Logger.getLogger(Historical.class.getName());
     public static TimeZone timeZone;
     public static int runtime;
-    public static HashMap<String, String> mysqlBarSize = new HashMap<>();
-    public static HashMap<String, String> cassandraBarSize = new HashMap<>();
+    public static HashMap<String, String> mysqlBarDestination = new HashMap<>();
+    public static HashMap<String, String> cassandraBarDestination = new HashMap<>();
+    public static HashMap<String, String> mysqlBarRequestDuration = new HashMap<>();
+    public static HashMap<String, String> cassandraBarRequestDuration = new HashMap<>();
     static String mysqlConnection;
     static String mysqlUserName;
     static String mysqlPassword;
@@ -68,245 +66,159 @@ public class Historical {
     static String zerovolumeSymbols;
 
     /**
-     * @param args the command line arguments
+     * @param parameterFile the command line arguments
      */
     public Historical(String parameterFile) throws Exception {
-        boolean export = false;
-        boolean validate = false;
-        boolean gaps = false;
-        boolean historical = false;
-        boolean scansplits = false;
-        boolean getsymbols = false;
         properties = Utilities.loadParameters(parameterFile);
-        export = Boolean.parseBoolean(properties.getProperty("export", "false"));
-        validate = Boolean.parseBoolean(properties.getProperty("validate", "false"));
-        gaps = Boolean.parseBoolean(properties.getProperty("gaps", "false"));
-        scansplits = Boolean.parseBoolean(properties.getProperty("scansplits", "false"));
         Historical.scansplits = true;
-        getsymbols = Boolean.parseBoolean(properties.getProperty("getsymbols", "false"));
-        historical = Boolean.parseBoolean(properties.getProperty("historical", "false"));
         zerovolumeSymbols = properties.getProperty("zerovolumesymbols", "");
 
-        if (getsymbols) {
-            String metric = properties.getProperty("metric", "").toString().trim();
-            //getSymbols(Algorithm.cassandraIP,metric);
-        } else if (historical) {
-            boolean done = false;
-            boolean target_mysql = Boolean.parseBoolean(properties.getProperty("mysql", "false").toString().trim());
-            boolean target_cassandra = Boolean.parseBoolean(properties.getProperty("cassandra", "false").toString().trim());
-            Date shutdownDate = new Date();
-            loadParameters(target_mysql, target_cassandra);
-            if (runtime > 0) {
-                shutdownDate = addMinutes(new Date(), runtime);
-            } else {
-                String shutdownDateString = properties.getProperty("shutdowndate");
-                shutdownDate = addDays(new Date(), 7);
+        boolean done = false;
+        boolean target_mysql = Boolean.parseBoolean(properties.getProperty("mysql", "false").toString().trim());
+        boolean target_cassandra = Boolean.parseBoolean(properties.getProperty("cassandra", "false").toString().trim());
+        Date shutdownDate = new Date();
+        loadParameters(target_mysql, target_cassandra);
+        if (runtime > 0) {
+            shutdownDate = addMinutes(new Date(), runtime);
+        } else {
+            String shutdownDateString = properties.getProperty("shutdowndate");
+            shutdownDate = addDays(new Date(), 7);
 
-                if (shutdownDateString != null) {
-                    SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd HH:mm:ss");
-                    try {
-                        shutdownDate = sdf.parse(shutdownDateString.toString().trim());
-                    } catch (Exception e) {
+            if (shutdownDateString != null) {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd HH:mm:ss");
+                try {
+                    shutdownDate = sdf.parse(shutdownDateString.toString().trim());
+                } catch (Exception e) {
+                }
+            }
+        }
+        logger.log(Level.INFO, "103,ShutDownDate,{0}", new Object[]{shutdownDate});
+        MainAlgorithm.setCloseDate(shutdownDate);
+        //make requests
+        HashMap<String, Boolean> barSizeProcessed = new HashMap<>();
+        Connection mySQLConnect = null;
+        PreparedStatement mySQLQuery = null;
+        Socket cassandraConnect = null;
+        if (mysqlConnection != null) {
+            mySQLConnect = DriverManager.getConnection(Historical.mysqlConnection, Historical.mysqlUserName, Historical.mysqlPassword);
+            mySQLQuery = mySQLConnect.prepareStatement("select date from ? where symbol=? order by date asc limit 1");
+        } else if (cassandraConnection != null) {
+            cassandraConnect = new Socket(Historical.cassandraConnection, Integer.valueOf(Historical.cassandraPort));
+        }
+
+        //process mysql first    
+        String barSize = null;
+        Date endDate = new Date();
+        Date startDate = null;
+        int connectionCount = Parameters.connection.size();
+        int i = 0; //i = symbols requested, used for identifying the beanconnection to use
+        Thread t = new Thread();
+        if (mysqlConnection != null) {
+            for (String b : mysqlBarDestination.keySet()) {
+                if (!barSizeProcessed.containsKey(b)) {
+                    barSize = b;
+                    dc = new DataCapture(mysqlBarDestination.get(b), batch);
+                    for (BeanSymbol s : Parameters.symbol) {//for each symbol
+                        //get start date
+                        if (!done) {
+                            mySQLQuery = mySQLConnect.prepareStatement("select date from " + mysqlBarDestination.get(b) + " where symbol=? order by date desc limit 1");
+                            mySQLQuery.setString(1, s.getDisplayname());
+                            ResultSet rs = mySQLQuery.executeQuery();
+                            while (rs.next()) {
+                                startDate = rs.getDate("date");
+                                startDate = addSeconds(startDate, 1);
+                            }
+                            if (startDate == null) {//no data in database for symbol
+                                if (b.equals("1sec")) {
+                                    startDate = addDays(endDate, -180);
+                                } else {
+                                    startDate = addDays(endDate, -365);
+                                }
+                            }
+
+                            while (t.isAlive()) {
+                                Thread.sleep(10000);
+                            }
+                            long minutesToClose = (shutdownDate.getTime() - new Date().getTime()) / (1000);
+                            long estimatedTime;
+                            HistoricalBarsAll bar;
+                            lastUpdateDate.put(s.getDisplayname().trim(), startDate);
+                            t = new Thread(bar = new HistoricalBarsAll(barSize, startDate, endDate, s, tradingMinutes, openTime, closeTime, timeZone, Algorithm.holidays));
+                            t.setName("Historical Bars:" + s.getDisplayname());
+                            estimatedTime = bar.estimatedTime();
+
+                            if (estimatedTime < minutesToClose) {
+                                t.start();
+                            } else {
+                                done = true;
+                            }
+                            t.start();
+                            startDate = null;
+                        }
                     }
                 }
             }
-            logger.log(Level.INFO, "103,ShutDownDate,{0}", new Object[]{shutdownDate});
-            MainAlgorithm.setCloseDate(shutdownDate);
-            //make requests
-            HashMap<String, Boolean> barSizeProcessed = new HashMap<>();
-            Connection mySQLConnect = null;
-            PreparedStatement mySQLQuery = null;
-            Socket cassandraConnect = null;
-            if (mysqlConnection != null) {
-                mySQLConnect = DriverManager.getConnection(Historical.mysqlConnection, Historical.mysqlUserName, Historical.mysqlPassword);
-                mySQLQuery = mySQLConnect.prepareStatement("select date from ? where symbol=? order by date asc limit 1");
-            } else if (cassandraConnection != null) {
-                cassandraConnect = new Socket(Historical.cassandraConnection, Integer.valueOf(Historical.cassandraPort));
-            }
-
-            //process mysql first    
-            String barSize = null;
-            Date endDate = new Date();
-            Date startDate = null;
-            int connectionCount = Parameters.connection.size();
-            int i = 0; //i = symbols requested, used for identifying the beanconnection to use
-            Thread t = new Thread();
-            if (mysqlConnection != null) {
-                for (String b : mysqlBarSize.keySet()) {
-                    if (!barSizeProcessed.containsKey(b)) {
-                        barSize = b;
-                        dc = new DataCapture(mysqlBarSize.get(b), batch);
-                        for (BeanSymbol s : Parameters.symbol) {//for each symbol
-                            //get start date
-                            if (!done) {
-                                mySQLQuery = mySQLConnect.prepareStatement("select date from " + mysqlBarSize.get(b) + " where symbol=? order by date desc limit 1");
-                                mySQLQuery.setString(1, s.getDisplayname());
-                                ResultSet rs = mySQLQuery.executeQuery();
-                                while (rs.next()) {
-                                    startDate = rs.getDate("date");
-                                    startDate = addSeconds(startDate, 1);
+        } else if (cassandraConnection != null) {
+            for (String b : cassandraBarDestination.keySet()) {
+                if (!barSizeProcessed.containsKey(b)) {
+                    barSize = b;
+                    dc = new DataCapture(b, batch);
+                    int j = -1;
+                    for (BeanSymbol s : Parameters.symbol) {//for each symbol
+                        j = j + 1;
+                        endDate = new Date();
+                        //get start date
+                        if (!done) {
+                            startDate = new Date(getLastTime(kairosIP, Utilities.getInt(kairosPort, 8085), s, cassandraBarDestination.get(b) + ".close"));
+                            lastUpdateDate.put(s.getDisplayname().trim(), startDate);
+                            if (s.getType().equals("FUT") || s.getType().equals("OPT")) {
+                                SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+                                Date expiration = sdf.parse(s.getExpiry());
+                                if (expiration.before(endDate)) {
+                                    endDate = expiration;
+                                    endDate = addDays(endDate, 1);
+                                    endDate = addSeconds(endDate, -1);//bring time to 23.59
                                 }
-                                if (startDate == null) {//no data in database for symbol
+                            }
+                            if (startDate.getTime() != 0L) {
+                                //increase startdate by barsize
+                                startDate = adjustDate(startDate, barSize);
+                            } else if (startDate.getTime() == 0L) {//no data in database for symbol
+                                if (s.getType().equals("FUT") || s.getType().equals("OPT")) {
+                                    SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+                                    Date expiration = sdf.parse(s.getExpiry());
+                                    startDate = addDays(expiration, -90);
+                                } else {
                                     if (b.equals("1sec")) {
                                         startDate = addDays(endDate, -180);
                                     } else {
                                         startDate = addDays(endDate, -365);
                                     }
                                 }
-
-                                while (t.isAlive()) {
-                                    Thread.sleep(10000);
-                                }
-                                long minutesToClose = (shutdownDate.getTime() - new Date().getTime()) / (1000);
-                                long estimatedTime;
-                                HistoricalBarsAll bar;
-                                lastUpdateDate.put(s.getDisplayname().trim(), startDate);
-                                t = new Thread(bar = new HistoricalBarsAll(barSize, startDate, endDate, s, tradingMinutes, openTime, closeTime, timeZone, Algorithm.holidays));
-                                t.setName("Historical Bars:" + s.getDisplayname());
-                                estimatedTime = bar.estimatedTime();
-
-                                if (estimatedTime < minutesToClose) {
-                                    t.start();
-                                } else {
-                                    done = true;
-                                }
+                            }
+                            int connectionid = i % connectionCount;
+                            BeanConnection c = Parameters.connection.get(connectionid);
+                            while (t.isAlive()) {
+                                Thread.sleep(1000);
+                            }
+                            long minutesToClose = (shutdownDate.getTime() - new Date().getTime()) / (1000);
+                            long estimatedTime;
+                            HistoricalBarsAll bar;
+                            t = new Thread(bar = new HistoricalBarsAll(barSize, startDate, endDate, s, tradingMinutes, openTime, closeTime, timeZone, Algorithm.holidays));
+                            t.setName("Historical Bars:" + s.getDisplayname());
+                            estimatedTime = bar.estimatedTime();
+                            if (estimatedTime < minutesToClose) {
                                 t.start();
-                                startDate = null;
+                            } else {
+                                done = true;
                             }
                         }
                     }
                 }
-            } else if (cassandraConnection != null) {
-                for (String b : cassandraBarSize.keySet()) {
-                    if (!barSizeProcessed.containsKey(b)) {
-                        barSize = b;
-                        dc = new DataCapture(mysqlBarSize.get(b), batch);
-                        int j = -1;
-                        for (BeanSymbol s : Parameters.symbol) {//for each symbol
-                            j = j + 1;
-                            endDate = new Date();
-                            //get start date
-                            if (!done) {
-                                startDate = new Date(getLastTime(kairosIP, Utilities.getInt(kairosPort, 8085), s, cassandraBarSize.get(b) + ".close"));
-                                lastUpdateDate.put(s.getDisplayname().trim(), startDate);
-                                if (s.getType().equals("FUT") || s.getType().equals("OPT")) {
-                                    SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
-                                    Date expiration = sdf.parse(s.getExpiry());
-                                    if (expiration.before(endDate)) {
-                                        endDate = expiration;
-                                        endDate = addDays(endDate, 1);
-                                        endDate = addSeconds(endDate, -1);//bring time to 23.59
-                                    }
-                                }
-                                if (startDate.getTime() != 0L) {
-                                    //increase startdate by barsize
-                                    startDate = adjustDate(startDate, barSize);
-                                } else if (startDate.getTime() == 0L) {//no data in database for symbol
-                                    if (s.getType().equals("FUT") || s.getType().equals("OPT")) {
-                                        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
-                                        Date expiration = sdf.parse(s.getExpiry());
-                                        startDate = addDays(expiration, -90);
-                                    } else {
-                                        if (b.equals("1sec")) {
-                                            startDate = addDays(endDate, -180);
-                                        } else {
-                                            startDate = addDays(endDate, -365);
-                                        }
-                                    }
-                                }
-                                int connectionid = i % connectionCount;
-                                BeanConnection c = Parameters.connection.get(connectionid);
-                                while (t.isAlive()) {
-                                    Thread.sleep(1000);
-                                }
-                                long minutesToClose = (shutdownDate.getTime() - new Date().getTime()) / (1000);
-                                long estimatedTime;
-                                HistoricalBarsAll bar;
-                                t = new Thread(bar = new HistoricalBarsAll(barSize, startDate, endDate, s, tradingMinutes, openTime, closeTime, timeZone, Algorithm.holidays));
-                                t.setName("Historical Bars:" + s.getDisplayname());
-                                estimatedTime = bar.estimatedTime();
-                                if (estimatedTime < minutesToClose) {
-                                    t.start();
-                                } else {
-                                    done = true;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            System.exit(0);
-        } else if (export) {
-            //put export functionality here
-            String barSize = properties.getProperty("barsize", "1min").toString().trim();
-            String startDate = properties.getProperty("startdate", "1970-01-01 00:00:00").toString().trim();
-            String endDate = properties.getProperty("enddate", getFormatedDate("yyyy-MM-dd HH:mm:ss", new Date().getTime(), timeZone)).toString().trim();
-            String metric = properties.getProperty("metric", "");
-            String symbolFile = properties.getProperty("symbolfile", "symbols.csv").toString().trim();
-            String rollFile = properties.getProperty("rollfile", "rolls.csv").toString().trim();
-            String splitFile = properties.getProperty("splitfile", "splits.csv").toString().trim();
-            List<String> symbols;
-            if (symbolFile.contains(".csv")) {
-                symbols = Files.readAllLines(Paths.get(symbolFile), StandardCharsets.UTF_8);
-                symbols.remove(0);
-            } else {
-                symbols = Arrays.asList(symbolFile.split(","));
-            }
-            HashMap<String, ArrayList<SplitInformation>> splits = new HashMap<>();
-            if (!splitFile.equals("")) {
-                List<String> splitData = Files.readAllLines(Paths.get(splitFile), StandardCharsets.UTF_8);
-                splitData.remove(0);
-                for (String sp : splitData) {
-                    String str[] = sp.split(",");
-                    if (splits.containsKey(str[1].toLowerCase())) {
-                        SplitInformation si = new SplitInformation();
-                        si.actualDate = str[0];
-                        si.symbol = str[1];
-                        si.oldShares = Integer.valueOf(str[2]);
-                        si.newShares = Integer.valueOf(str[3]);
-                        splits.get(str[1].toLowerCase()).add(si);
-                    } else {
-                        ArrayList<SplitInformation> tmp = new ArrayList<>();
-                        SplitInformation si = new SplitInformation();
-                        si.actualDate = str[0];
-                        si.symbol = str[1];
-                        si.oldShares = Integer.valueOf(str[2]);
-                        si.newShares = Integer.valueOf(str[3]);
-                        tmp.add(si);
-                        splits.put(str[1].toLowerCase(), tmp);
-                    }
-                }
-            }
-
-            List<String> expirationList = new ArrayList();
-            if (!rollFile.equals("")) {
-                expirationList = Files.readAllLines(Paths.get(rollFile), StandardCharsets.UTF_8);
-            }
-            for (String s : symbols) {
-                //exportAsCSV(s, startDate, endDate, barSize, metric, (ArrayList<String>) expirationList, splits);
-            }
-
-        } else if (scansplits) {
-
-            String startDate = properties.getProperty("startdate", "\"1970-01-01 00:00:00\"").toString().trim();
-            String endDate = properties.getProperty("enddate", getFormatedDate("yyyy-MM-dd HH:mm:ss", new Date().getTime(), timeZone)).toString().trim();
-            String metric = properties.getProperty("metric", "");
-            String symbolFile = properties.getProperty("symbolfile", "symbols.csv").toString().trim();
-            threshold = Double.parseDouble(properties.getProperty("splitthreshold", "0.7").toString().trim());
-
-            List<String> symbols;
-            if (symbolFile.contains(".csv")) {
-                symbols = Files.readAllLines(Paths.get(symbolFile), StandardCharsets.UTF_8);
-                symbols.remove(0);
-            } else {
-                symbols = Arrays.asList(symbolFile.split(","));
-            }
-            HashMap<String, ArrayList<SplitInformation>> splits = new HashMap<>();
-            List<String> expirationList = new ArrayList();
-            for (String s : symbols) {
-                //exportAsCSV(s, startDate, endDate, "1min", metric, (ArrayList<String>) expirationList, splits);
             }
         }
+        System.exit(0);
+
     }
 
     /*
@@ -599,7 +511,13 @@ public class Historical {
             for (String bar : barSizeSQL) {
                 String destination = properties.getProperty("sql" + bar);
                 if (destination != null) {
-                    mysqlBarSize.put(bar, destination);
+                    mysqlBarDestination.put(bar, destination);
+                }
+            }
+            for (String bar : barSizeSQL) {
+                String duration = properties.getProperty(bar);
+                if (duration != null) {
+                    mysqlBarRequestDuration.put(bar, duration);
                 }
             }
         }
@@ -614,7 +532,13 @@ public class Historical {
             for (String bar : barSizeCass) {
                 String destination = properties.getProperty("cassandra" + bar);
                 if (destination != null) {
-                    cassandraBarSize.put(bar, destination);
+                    cassandraBarDestination.put(bar, destination);
+                }
+            }
+            for (String bar : barSizeCass) {
+                String duration = properties.getProperty(bar);
+                if (duration != null) {
+                    cassandraBarRequestDuration.put(bar, duration);
                 }
             }
         }
@@ -658,8 +582,8 @@ public class Historical {
             String json_string = gson.toJson(request);
             String response_json = Utilities.getJsonUsingPut("http://" + kairosIP + ":" + kairosPort + "/api/v1/datapoints/query", 0, json_string);
             QueryResponse response;
-            Type type = new com.google.common.reflect.TypeToken<QueryResponse>() {
-            }.getType();
+            //Type type = new com.google.common.reflect.TypeToken<QueryResponse>() {
+            //}.getType();
             response = gson.fromJson(response_json, QueryResponse.class);
             //long time=response.getQueries().get(querysize-1).getResults().get(resultsize-1).getValues().get(valuesize-1).get(datapoints-1).longValue();
             long time = Double.valueOf(response.getQueries().get(0).getResults().get(0).getDataPoints().get(0).get(0).toString()).longValue();

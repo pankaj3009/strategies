@@ -1,0 +1,3 @@
+cd /home/psharma/strategies/algorithm
+#java -jar strategies.jar propertyfile=globalproperties.txt contra=u724054_manual01.txt value=u724054_value01.txt,u948087_value02.txt,du67768_value03.txt,u1084428_value04.txt,u724054_value05.txt yield=u724054_yield03.txt,u1084428_yield04.txt
+java -jar strategies.jar propertyfile=01-globalproperties.ini manual=u724054_value01.ini,u948087_value02.ini,du67768_value03.ini,u1084428_value04.ini,u724054_value05.ini yield=u724054_yield03.ini,u1084428_yield04.ini

@@ -55,27 +55,27 @@ public class DataCapture implements HistoricalBarListener {
             String expiry = event.getSymbol().getExpiry();
             switch (event.getOhlc().getPeriodicity()) {
                 case DAILY:
-                    if (mysqlConnection != null && Historical.mysqlBarSize.get("daily") != null) {
-                        insertIntoMySQL(event.getOhlc(), Historical.mysqlBarSize.get("daily"), name);
+                    if (mysqlConnection != null && Historical.mysqlBarDestination.get("daily") != null) {
+                        insertIntoMySQL(event.getOhlc(), Historical.mysqlBarDestination.get("daily"), name);
                     }
-                    if (cassandraConnection != null && Historical.cassandraBarSize.get("daily") != null) {
-                        insertIntoCassandra(event.getOhlc(), Historical.cassandraBarSize.get("daily"), name, expiry);
+                    if (cassandraConnection != null && Historical.cassandraBarDestination.get("daily") != null) {
+                        insertIntoCassandra(event.getOhlc(), Historical.cassandraBarDestination.get("daily"), name, expiry);
                     }
                     break;
                 case ONEMINUTE:
-                    if (mysqlConnection != null && Historical.mysqlBarSize.get("1min") != null) {
-                        insertIntoMySQL(event.getOhlc(), Historical.mysqlBarSize.get("1min"), name);
+                    if (mysqlConnection != null && Historical.mysqlBarDestination.get("1min") != null) {
+                        insertIntoMySQL(event.getOhlc(), Historical.mysqlBarDestination.get("1min"), name);
                     }
-                    if (cassandraConnection != null && Historical.cassandraBarSize.get("1min") != null) {
-                        insertIntoCassandra(event.getOhlc(), Historical.cassandraBarSize.get("1min"), name, expiry);
+                    if (cassandraConnection != null && Historical.cassandraBarDestination.get("1min") != null) {
+                        insertIntoCassandra(event.getOhlc(), Historical.cassandraBarDestination.get("1min"), name, expiry);
                     }
                     break;
                 case ONESECOND:
-                    if (mysqlConnection != null && Historical.mysqlBarSize.get("1sec") != null) {
-                        insertIntoMySQL(event.getOhlc(), Historical.mysqlBarSize.get("1sec"), name);
+                    if (mysqlConnection != null && Historical.mysqlBarDestination.get("1sec") != null) {
+                        insertIntoMySQL(event.getOhlc(), Historical.mysqlBarDestination.get("1sec"), name);
                     }
-                    if (cassandraConnection != null && Historical.cassandraBarSize.get("1sec") != null) {
-                        insertIntoCassandra(event.getOhlc(), Historical.cassandraBarSize.get("1sec"), name, expiry);
+                    if (cassandraConnection != null && Historical.cassandraBarDestination.get("1sec") != null) {
+                        insertIntoCassandra(event.getOhlc(), Historical.cassandraBarDestination.get("1sec"), name, expiry);
                     }
                     break;
                 default:

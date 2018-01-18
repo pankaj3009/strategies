@@ -4,10 +4,8 @@
  */
 package com.incurrency.algorithms.yield;
 
-import com.incurrency.RatesClient.RedisSubscribe;
-import com.incurrency.algorithms.manager.Manager;
+import com.incurrency.algorithms.manual.Manual;
 import com.incurrency.framework.Algorithm;
-import com.incurrency.framework.BeanConnection;
 import com.incurrency.framework.BeanSymbol;
 import com.incurrency.framework.EnumOrderReason;
 import com.incurrency.framework.EnumOrderSide;
@@ -16,14 +14,11 @@ import com.incurrency.framework.MainAlgorithm;
 import com.incurrency.framework.OrderBean;
 import com.incurrency.framework.Parameters;
 import com.incurrency.framework.TradeEvent;
-import com.incurrency.framework.TradeListener;
-import com.incurrency.framework.Utilities;
 import com.incurrency.framework.Utilities;
 import java.io.File;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.Properties;
 import java.util.Timer;
@@ -31,14 +26,12 @@ import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jquantlib.time.JDate;
-import org.rosuda.REngine.REXP;
-import org.rosuda.REngine.Rserve.RConnection;
 
 /**
  *
  * @author Pankaj
  */
-public class Yield extends Manager implements TradeListener {
+public class Yield extends Manual {
 
     int indexid;
     int futureid = -1;
@@ -55,89 +48,67 @@ public class Yield extends Manager implements TradeListener {
     double dte = 1000000; //set dte to an arbitrarily large number so that trades are not exited before dte is actually calculated.
     double margin;
     double maxPositionSize;
+    int rolloverDays;
     String[] args = new String[1];
+    String expiry;
     private final Object lockScan = new Object();
 
-    public Yield(MainAlgorithm m, Properties p, String parameterFile, ArrayList<String> accounts, Integer stratCount) {
-        super(m, p, parameterFile, accounts, stratCount, "optsale");
-        loadAdditionalParameters(p);
-
-        // Add Trade Listeners
-        for (BeanConnection c : Parameters.connection) {
-            c.getWrapper().addTradeListener(this);
-        }
-        if (RedisSubscribe.tes != null) {
-            RedisSubscribe.tes.addTradeListener(this);
-        }
-        MainAlgorithm.tes.addTradeListener(this);
-
-        Timer trigger = new Timer("Timer: " + this.getStrategy() + " RScriptProcessor");
-        trigger.schedule(RScriptRunTask, RScriptRunTime);
-        indexid = Utilities.getIDFromDisplayName(Parameters.symbol, indexDisplayName);
-        if (indexid >= 0) {
-            try {
-                SimpleDateFormat sdf_yyyyMMdd = new SimpleDateFormat("yyyyMMdd");
-                SimpleDateFormat sdf_yyyy_MM_dd = new SimpleDateFormat("yyyy-MM-dd");
-                JDate expiryDate = new JDate(sdf_yyyyMMdd.parse(expiryNearMonth));
-                dte = Algorithm.ind.businessDaysBetween(new JDate(new Date()), expiryDate);
-                expiry = expiryNearMonth;
-                futureid = Utilities.getFutureIDFromExchangeSymbol(Parameters.symbol, indexid, expiry);
-                if (dte <= rolloverDays) {
-                    expiryDate = new JDate(sdf_yyyyMMdd.parse(expiryFarMonth));
-                    dte = Algorithm.ind.businessDaysBetween(new JDate(new Date()), expiryDate);
-                    expiry = expiryFarMonth;
+    public Yield(MainAlgorithm m, Properties p, String parameterFile, ArrayList<String> accounts, Boolean addTimers) {
+        super(m, p, parameterFile, accounts, Boolean.FALSE);
+        if (s_redisip!=null) {
+            loadAdditionalParameters(p);
+            scheduleTimers();
+            indexid = Utilities.getIDFromDisplayName(Parameters.symbol, indexDisplayName);
+            if (indexid >= 0) {
+                try {
+                    expiry = super.calculateExpiry(rolloverDays);
+                     SimpleDateFormat sdf_yyyyMMdd = new SimpleDateFormat("yyyyMMdd");
+                     JDate expiryDate = new JDate(sdf_yyyyMMdd.parse(expiry));
                     futureid = Utilities.getFutureIDFromExchangeSymbol(Parameters.symbol, indexid, expiry);
+                      dte = Algorithm.ind.businessDaysBetween(new JDate(new Date()), expiryDate);
+                    File dir = new File("logs");
+                    File file = new File(dir, getStrategy() + ".csv");
+                    //if file doesnt exists, then create it
+                    if (!file.exists()) {
+                        Utilities.writeToFile(getStrategy() + ".csv", "DisplayName,DTE,LastPrice,AnnualizedReturn,Theta,Vega,Theta/Vega,YesterdayVol,CalculatedPremium");
+                    }
+                } catch (Exception e) {
+                    logger.log(Level.SEVERE, null, e);
                 }
-                File dir = new File("logs");
-                File file = new File(dir, getStrategy() + ".csv");
-
-                //if file doesnt exists, then create it
-                if (!file.exists()) {
-                    Utilities.writeToFile(getStrategy() + ".csv", "DisplayName,DTE,LastPrice,AnnualizedReturn,Theta,Vega,Theta/Vega,YesterdayVol,CalculatedPremium");
-                }
-            } catch (Exception e) {
-                logger.log(Level.SEVERE, null, e);
             }
         }
     }
-    private TimerTask RScriptRunTask = new TimerTask() {
+
+    @Override
+    public void scheduleTimers() {
+        rScriptTimer();
+        orderTimer();
+        marketDataTimer();
+
+    }
+
+    @Override
+    public void rScriptTimer() {
+      Timer monitor = new Timer("Timer: " + getStrategy() + " WaitForTrades");
+        monitor.schedule(new RScript(), RScriptRunTime);   
+    }
+
+    public class RScript extends TimerTask {
+
         @Override
         public void run() {
-            //Strategy
-            //Connection
-            //Symbol Display Name
-            // InternalOrderID
-            //ExternalOrderID
-            // Get current market price of NSENIFTY index.
             try {
                 insertStrikes();
                 Thread.sleep(4000);
-                SimpleDateFormat sdf_yyyy_MM_dd = new SimpleDateFormat("yyyy-MM-dd");
-                String date = sdf_yyyy_MM_dd.format(new Date());
-                args = new String[]{"1", getStrategy(), getRedisDatabaseID(), date};
-                if (!RStrategyFile.equals("")) {
-                    synchronized (lockScan) {
-                        RConnection c;
-                        c = new RConnection(rServerIP);
-                        c.eval("setwd(\"" + wd + "\")");
-                        REXP wd = c.eval("getwd()");
-                        System.out.println(wd.asString());
-                        c.eval("options(encoding = \"UTF-8\")");
-                        c.assign("args", args);
-                        logger.log(Level.INFO, "102,Invoking R Strategy,{0}:{1}:{2}:{3}:{4},args={5}",
-                                new Object[]{getStrategy(), "Order", "unknown", -1, -1, Arrays.toString(args)});
-                        c.eval("source(\"" + RStrategyFile + "\")");
-
-                    }
-                } else {
-                    logger.log(Level.INFO, "102, R Strategy File Not Specified, {0}:{1}:{2}:{3}:{4}",
-                            new Object[]{getStrategy(), "Order", -1, -1, -1});
-                }
-            } catch (Exception e) {
-                logger.log(Level.SEVERE, null, e);
+                runRScript();
+            } catch (InterruptedException ex) {
+                Logger.getLogger(Yield.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-    };
+
+    }
+
+
 
     public void insertStrikes() {
         ArrayList<Integer> allOrderList = new ArrayList<>();
@@ -169,7 +140,7 @@ public class Yield extends Manager implements TradeListener {
                 }
 
                 for (int i : allOrderList) {
-                    initSymbol(i, optionPricingUsingFutures, referenceCashType);
+                    initSymbol(i, optionPricingUsingFutures);
                 }
 
             } else {
@@ -227,6 +198,7 @@ public class Yield extends Manager implements TradeListener {
     }
 
     private void loadAdditionalParameters(Properties p) {
+        rolloverDays = Utilities.getInt(p.getProperty("rolloverdays"), 5);
         indexDisplayName = p.getProperty("IndexDisplayName", "NSENIFTY_IND___");
         avgMovePerDayEntry = Utilities.getDouble(p.getProperty("AverageMovePerDayEntry", "0.4"), 0.4);
         avgMovePerDayExit = Utilities.getDouble(p.getProperty("AverageMovePerDayExit", "0.2"), 0.2);

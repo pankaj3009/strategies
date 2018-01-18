@@ -1,5 +1,0 @@
-BackTestStartDate=20141126091500
-BackTestEndDate=20141126153000
-BackTestCloseReferenceDate=20141125091500
-TimeZone=Asia/Kolkata
-BackTestBars=1sec

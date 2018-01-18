@@ -4,6 +4,7 @@
  */
 package com.incurrency.algorithms.launch;
 
+import com.incurrency.framework.Algorithm;
 import com.incurrency.framework.MainAlgorithm;
 import com.incurrency.framework.Strategy;
 import java.awt.AWTEvent;
@@ -395,65 +396,29 @@ public class Launch extends javax.swing.JFrame {
         Launch.getFrames()[0].setTitle(title);
         algo = MainAlgorithm.getInstance(input);
         //register strategy
-        while (MainAlgorithm.getInstance() == null) {
+        while (Algorithm.initialized && MainAlgorithm.getInstance() == null) {
             Thread.yield();
+            logger.log(Level.INFO,"Waiting for Algorithm to initialize...");
         }
         algo = MainAlgorithm.getInstance();
-
-        if (input.get("adr") != null) {
-            algo.registerStrategy("com.incurrency.algorithms.adr.ADR");
-        }
-        if (input.get("adrpublisher") != null) {
-            algo.registerStrategy("com.incurrency.adrpublisher.ADRPublisher");
-        }
-        if (input.get("csv") != null) {
-            algo.registerStrategy("com.incurrency.algorithms.csv.CSV");//
-        }
-        if (input.get("idt") != null) {
-            algo.registerStrategy("com.incurrency.algorithms.turtle.IDT");
-        }
-        if (input.get("historical") != null) {
-            algo.registerStrategy("com.incurrency.algorithms.historical.Historical");
-        }
-        if (input.get("dataserver") != null) {
-            algo.registerStrategy("com.incurrency.dataserver.DataServer");
-        }
-        if (input.get("swing") != null) {
-            algo.registerStrategy("com.incurrency.algorithms.swing.Swing");
-        }
-        if (input.get("eodmaintenance") != null) {
-            algo.registerStrategy("com.incurrency.eodmaintenance.EODMaintenance");
-        }
-
-        if (input.get("fundamental") != null) {
-            algo.registerStrategy("com.incurrency.algorithms.fundamental.Fundamental");
-        }
-        if (input.get("valuation") != null) {
-            algo.registerStrategy("com.incurrency.algorithms.valuation.Valuation");
-        }
-        if (input.get("reval") != null) {
-            algo.registerStrategy("com.incurrency.reval.Reval");
-        }
-        if (input.get("scanneradr") != null) {
-            algo.registerStrategy("com.incurrency.scanneradr.ScannerAdr");
-        }
-        if (input.get("manager") != null) {
-            algo.registerStrategy("com.incurrency.algorithms.manager.Manager");
-        }
-        if (input.get("optsale") != null) {
-            algo.registerStrategy("com.incurrency.algorithms.optsale.OptSale");
-        }
-        if (input.get("yield") != null) {
-            algo.registerStrategy("com.incurrency.algorithms.yield.Yield");
-        }
-        if (input.get("contra") != null) {
-            algo.registerStrategy("com.incurrency.algorithms.contra.Contra");
-        }
-        if (input.get("value") != null) {
-            algo.registerStrategy("com.incurrency.algorithms.value.Value");
+        if(algo!=null){
+        for (String key : input.keySet()) {
+            if (!key.equalsIgnoreCase("propertyfile")) {
+                try {
+                    String className = "com.incurrency.algorithms." + key + "." + key.substring(0, 1).toUpperCase() + key.substring(1);
+                    Class.forName(className);
+                    algo.registerStrategy(className);
+                    logger.log(Level.INFO, "Loaded Strategy Family: {0}", new Object[]{key});
+                } catch (ClassNotFoundException e) {
+                    logger.log(Level.SEVERE, "Class not found: {0}", new Object[]{"com.incurrency." + key + "." + key.substring(0, 1).toUpperCase() + key.substring(1)});
+                }
+            }
         }
         algo.postInit();
-    }
+        }else{
+            logger.log(Level.SEVERE,"Algorithm could not be initialized.");
+        }
+        }
 
     @Override
     protected void processEvent(AWTEvent event) {

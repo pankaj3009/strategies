@@ -1,5 +1,0 @@
-ip,port,clientID,purpose,rtMessageLimit,histMessageLimit,tickersLimit,strategy,order limit,accountowner
-127.0.0.1,4830,71,Data,45,11,0,adr,7,psharma@incurrency.com
-127.0.0.1,4170,72,Data,45,11,75,adr,7,sharma.pankaj.kumar@gmail.com
-127.0.0.1,8600,73,Data,45,11,75,none,7,pankajsharmain1@gmail.com
-127.0.0.1,1740,74,Data,45,11,75,none,7,pankajsharmain1@gmail.com

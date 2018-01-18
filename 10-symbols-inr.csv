@@ -1,4 +1,0 @@
-serialno,brokersymbol,exchangesymbol,happyname,type,exchange,primaryexchange,currency,expiry,option,right,minsize,barsstarttime,streamingpriority,strategy
-1,PNB,PNB,,FUT,NSE,,INR,20150827,,,2000,,2,SWING
-2,PNB,PNB,,STK,NSE,,INR,,,,2000,,2,SWING
-3,PNB,PNB,,FUT,NSE,,INR,20150924,,,2000,,2,SWING

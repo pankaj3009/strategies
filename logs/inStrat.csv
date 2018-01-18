@@ -1,101 +1,57 @@
-[18:08:32.454],100,inStratVersion,1.03B-20140826
-[18:08:32.486],100,inStratInputParameters,adr=inradr03.txt propertyfile=globalproperties03.txt
-[18:08:32.486],100,ConnectionParameters, IP_1_127.0.0.1 
-[18:08:32.486],100,ConnectionParameters, Port_1_4830 
-[18:08:32.486],100,ConnectionParameters, ClientID_1_24 
-[18:08:32.486],100,ConnectionParameters, Strategy_1_adr 
-[18:08:32.486],100,ConnectionParameters, Purpose_1_Trading 
-[18:08:32.486],100,ConnectionParameters, # RealTime Market Data_1_0 
-[18:08:32.486],100,ConnectionParameters, Pause in seconds between historical data_1_11 
-[18:08:32.486],100,ConnectionParameters, Messages per second_1_45 
-[18:08:32.501],100,ConnectionParameters, Orders Per 2 minutes for triggering system halt_1_7 
-[18:08:32.501],100,ConnectionParameters, Owner Email_1_psharma@incurrency.com 
-[18:08:33.329],Next OrderID Received,127.0.0.1_4,830_24_1
-[18:08:33.329],103,IB Message,null_-1_2104_Market data farm connection is OK:hfarm
-[18:08:33.345],103,IB Message,null_-1_2104_Market data farm connection is OK:jfarm
-[18:08:33.345],103,IB Message,null_-1_2104_Market data farm connection is OK:eufarm
-[18:08:33.345],100,ConnectionParameters, IP_2_127.0.0.1 
-[18:08:33.345],103,IB Message,null_-1_2104_Market data farm connection is OK:usfuture
-[18:08:33.345],100,ConnectionParameters, Port_2_4170 
-[18:08:33.345],100,ConnectionParameters, ClientID_2_25 
-[18:08:33.345],103,IB Message,null_-1_2104_Market data farm connection is OK:cashfarm
-[18:08:33.361],100,ConnectionParameters, Strategy_2_none 
-[18:08:33.361],103,IB Message,null_-1_2104_Market data farm connection is OK:usopt
-[18:08:33.361],100,ConnectionParameters, Purpose_2_Data 
-[18:08:33.361],103,IB Message,null_-1_2104_Market data farm connection is OK:usfarm.us
-[18:08:33.361],100,ConnectionParameters, # RealTime Market Data_2_75 
-[18:08:33.361],100,ConnectionParameters, Pause in seconds between historical data_2_11 
-[18:08:33.361],103,IB Message,null_-1_2104_Market data farm connection is OK:usfarm
-[18:08:33.361],100,ConnectionParameters, Messages per second_2_45 
-[18:08:33.361],100,ConnectionParameters, Orders Per 2 minutes for triggering system halt_2_7 
-[18:08:33.361],100,ConnectionParameters, Owner Email_2_pankajsharmain1@gmail.com 
-[18:08:33.611],103,IB Message,null_-1_2106_HMDS data farm connection is OK:ilhmds
-[18:08:33.611],103,HistoricalDataFarmConnected,null_2106_HMDS data farm connection is OK:ilhmds
-[18:08:33.611],103,IB Message,null_-1_2106_HMDS data farm connection is OK:hthmds
-[18:08:33.626],103,HistoricalDataFarmConnected,null_2106_HMDS data farm connection is OK:hthmds
-[18:08:33.626],103,IB Message,null_-1_2106_HMDS data farm connection is OK:ushmds
-[18:08:33.626],103,HistoricalDataFarmConnected,null_2106_HMDS data farm connection is OK:ushmds
-[18:08:34.220],Next OrderID Received,127.0.0.1_4,170_25_1
-[18:08:34.220],103,IB Message,null_-1_2104_Market data farm connection is OK:hfarm
-[18:08:34.236],103,IB Message,null_-1_2106_HMDS data farm connection is OK:hthmds
-[18:08:34.236],103,HistoricalDataFarmConnected,null_2106_HMDS data farm connection is OK:hthmds
-[18:08:34.236],100,ConnectionParameters, IP_3_127.0.0.1 
-[18:08:34.236],100,ConnectionParameters, Port_3_8600 
-[18:08:34.236],100,ConnectionParameters, ClientID_3_26 
-[18:08:34.236],100,ConnectionParameters, Strategy_3_none 
-[18:08:34.236],100,ConnectionParameters, Purpose_3_Data 
-[18:08:34.236],100,ConnectionParameters, # RealTime Market Data_3_75 
-[18:08:34.236],100,ConnectionParameters, Pause in seconds between historical data_3_11 
-[18:08:34.236],100,ConnectionParameters, Messages per second_3_45 
-[18:08:34.251],100,ConnectionParameters, Orders Per 2 minutes for triggering system halt_3_7 
-[18:08:34.251],100,ConnectionParameters, Owner Email_3_pankajsharmain1@gmail.com 
-[18:08:35.095],Next OrderID Received,127.0.0.1_8,600_26_1
-[18:08:35.095],103,IB Message,null_-1_2104_Market data farm connection is OK:hfarm
-[18:08:35.095],103,IB Message,null_-1_2106_HMDS data farm connection is OK:hthmds
-[18:08:35.095],103,HistoricalDataFarmConnected,null_2106_HMDS data farm connection is OK:hthmds
-[18:08:36.205],103,IB Message,U724054_-1_2100_API client has been unsubscribed from account data.
-[18:08:36.220],103,IB Message,DU67768_-1_2100_API client has been unsubscribed from account data.
-[18:08:36.220],103,IB Message,U948087_-1_2100_API client has been unsubscribed from account data.
-[18:08:56.447],100,inStratShutdown,Tue Jun 30 15:31:00 IST 2015
-[18:08:56.447],100,StrategyParameters,inradr03_Accounts_U724054
-[18:08:56.447],100,StrategyParameters,inradr03_StartDate_Tue Jun 30 09:15:00 IST 2015
-[18:08:56.447],100,StrategyParameters,inradr03_EndDate_Tue Jun 30 15:28:00 IST 2015
-[18:08:56.447],100,StrategyParameters,inradr03_PrintTime_Tue Jun 30 15:30:00 IST 2015
-[18:08:56.462],100,StrategyParameters,inradr03_Shutdown_Tue Jun 30 15:31:00 IST 2015
-[18:08:56.462],100,StrategyParameters,inradr03_TickSize_0.05
-[18:08:56.462],100,StrategyParameters,inradr03_ContractSize_10
-[18:08:56.462],100,StrategyParameters,inradr03_Exposure_0.0
-[18:08:56.462],100,StrategyParameters,inradr03_ClawProfit_0.0
-[18:08:56.462],100,StrategyParameters,inradr03_DayProfit_170000.0
-[18:08:56.462],100,StrategyParameters,inradr03_DayStopLoss_40000.0
-[18:08:56.462],100,StrategyParameters,inradr03_PointValue_1.0
-[18:08:56.462],100,StrategyParameters,inradr03_EntrySlippage_0.005
-[18:08:56.462],100,StrategyParameters,inradr03_ExitSlippage_0.005
-[18:08:56.462],100,StrategyParameters,inradr03_OrderDuration_1
-[18:08:56.462],100,StrategyParameters,inradr03_DynamicDuration_1
-[18:08:56.462],100,StrategyParameters,inradr03_MaxOpenPositions_1
-[18:08:56.462],100,StrategyParameters,inradr03_BrokerageFile_inrfutbrokerage.txt
-[18:08:56.462],100,StrategyParameters,inradr03_TradeFile_INRADRTrades.csv
-[18:08:56.462],100,StrategyParameters,inradr03_OrderFile_INRADROrders.csv
-[18:08:56.462],100,StrategyParameters,inradr03_TimeZone_Asia/Kolkata
-[18:08:56.462],100,StrategyParameters,inradr03_StartingCapital_500000.0
-[18:08:56.462],100,StrategyParameters,inradr03_LongAllowed_true
-[18:08:56.462],100,StrategyParameters,inradr03_ShortAllowed_true
-[18:08:56.478],100, OpeningInternalOrderID,inradr03_1
-[18:08:56.493],100,StrategyParameters,inradr03_Use for Trading_true
-[18:08:56.493],100,StrategyParameters,inradr03_TradingAllowed_true
-[18:08:56.493],100,StrategyParameters,inradr03_Index_NIFTY50
-[18:08:56.493],100,StrategyParameters,inradr03_IndexType_FUT
-[18:08:56.493],100,StrategyParameters,inradr03_ContractExpiry_20150730
-[18:08:56.509],100,StrategyParameters,inradr03_Threshold_450
-[18:08:56.509],100,StrategyParameters,inradr03_StopLoss_40.0
-[18:08:56.509],100,StrategyParameters,inradr03_TakeProfit_100.0
-[18:08:56.509],100,StrategyParameters,inradr03_Window_30
-[18:08:56.509],100,StrategyParameters,inradr03_WindowMinimumMove_20.0
-[18:08:56.509],100,StrategyParameters,inradr03_DayMinimumMove_40.0
-[18:08:56.509],100,StrategyParameters,inradr03_ScalpingMode_false
-[18:08:56.509],100,StrategyParameters,inradr03_ReentryMinimumMove_8.0
-[18:08:56.509],100,StrategyParameters,inradr03_ADRRule_CNX500
-[18:08:56.509],100,StrategyParameters,inradr03_LosingZoneNoTrade_false
-[18:08:56.509],100,StrategyParameters,inradr03_ScaleOutTargets_[10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0]
-[18:08:56.509],100,StrategyParameters,inradr03_ScaleOutRatios_[1, 1, 1, 1, 1, 1, 1, 1]
+[13:00:46.139],100,inStratVersion,1.03B-20140826
+[13:00:46.155],100,inStratInputParameters,propertyfile=01-globalproperties.txt manual=u724054_value01.txt
+[13:00:48.516],100,ConnectionParameters, IP_1_127.0.0.1 
+[13:00:48.516],100,ConnectionParameters, Port_1_4830 
+[13:00:48.516],100,ConnectionParameters, ClientID_1_20 
+[13:00:48.516],100,ConnectionParameters, Strategy_1_optsale:contra:swing:yield:value 
+[13:00:48.516],100,ConnectionParameters, Purpose_1_Trading 
+[13:00:48.532],100,ConnectionParameters, # RealTime Market Data_1_0 
+[13:00:48.532],100,ConnectionParameters, Pause in seconds between historical data_1_11 
+[13:00:48.532],100,ConnectionParameters, Messages per second_1_45 
+[13:00:48.532],100,ConnectionParameters, Orders Per 2 minutes for triggering system halt_1_20 
+[13:00:48.532],100,ConnectionParameters, Owner Email_1_psharma@incurrency.com 
+[13:00:49.195],402, NextOrderIDReceived,Unknown:null:Unknown:-1:-1,OrderID=1139
+[13:00:49.195],103,IB Message,null_-1_2104_Market data farm connection is OK:hfarm
+[13:00:49.210],103,IB Message,null_-1_2104_Market data farm connection is OK:eufarm
+[13:00:49.210],403,Connected,Unknown:null:optsale:contra:swing:yield:value:-1:-1
+[13:00:49.210],103,IB Message,null_-1_2104_Market data farm connection is OK:usfuture
+[13:00:49.210],103,IB Message,null_-1_2104_Market data farm connection is OK:jfarm
+[13:00:49.210],103,IB Message,null_-1_2104_Market data farm connection is OK:cashfarm
+[13:00:49.210],103,IB Message,null_-1_2104_Market data farm connection is OK:usfarm.us
+[13:00:49.210],103,IB Message,null_-1_2104_Market data farm connection is OK:usfarm
+[13:00:49.210],103,HistoricalDataFarmConnected,null_2106_HMDS data farm connection is OK:hkhmds
+[13:00:49.210],103,HistoricalDataFarmConnected,null_2106_HMDS data farm connection is OK:ushmds
+[13:00:49.226],100,ConnectionParameters, IP_2_127.0.0.1 
+[13:00:49.226],100,ConnectionParameters, Port_2_8600 
+[13:00:49.226],100,ConnectionParameters, ClientID_2_21 
+[13:00:49.226],100,ConnectionParameters, Strategy_2_value 
+[13:00:49.226],100,ConnectionParameters, Purpose_2_Trading 
+[13:00:49.226],100,ConnectionParameters, # RealTime Market Data_2_0 
+[13:00:49.242],100,ConnectionParameters, Pause in seconds between historical data_2_11 
+[13:00:49.242],100,ConnectionParameters, Messages per second_2_45 
+[13:00:49.242],100,ConnectionParameters, Orders Per 2 minutes for triggering system halt_2_20 
+[13:00:49.242],100,ConnectionParameters, Owner Email_2_psharma@incurrency.com 
+[13:00:49.880],402, NextOrderIDReceived,Unknown:null:Unknown:-1:-1,OrderID=1
+[13:00:49.880],103,IB Message,null_-1_2104_Market data farm connection is OK:hfarm
+[13:00:49.880],403,Connected,Unknown:null:value:-1:-1
+[13:00:49.895],100,ConnectionParameters, IP_3_127.0.0.1 
+[13:00:49.895],100,ConnectionParameters, Port_3_4170 
+[13:00:49.895],100,ConnectionParameters, ClientID_3_22 
+[13:00:49.895],100,ConnectionParameters, Strategy_3_contra:swing:optsale:value 
+[13:00:49.895],100,ConnectionParameters, Purpose_3_Trading 
+[13:00:49.895],100,ConnectionParameters, # RealTime Market Data_3_0 
+[13:00:49.911],100,ConnectionParameters, Pause in seconds between historical data_3_11 
+[13:00:49.911],100,ConnectionParameters, Messages per second_3_45 
+[13:00:49.927],100,ConnectionParameters, Orders Per 2 minutes for triggering system halt_3_20 
+[13:00:49.927],100,ConnectionParameters, Owner Email_3_psharma@incurrency.com:anupamm@yahoo.com 
+[13:00:50.661],103,IB Message,null_-1_2104_Market data farm connection is OK:hfarm
+[13:00:50.661],103,IB Message,null_-1_2104_Market data farm connection is OK:usfuture
+[13:00:50.661],402, NextOrderIDReceived,Unknown:null:Unknown:-1:-1,OrderID=4
+[13:00:50.661],103,IB Message,null_-1_2104_Market data farm connection is OK:usfarm.us
+[13:00:50.661],103,IB Message,null_-1_2104_Market data farm connection is OK:usfarm
+[13:00:50.676],103,HistoricalDataFarmConnected,null_2106_HMDS data farm connection is OK:hkhmds
+[13:00:50.676],403,Connected,Unknown:null:contra:swing:optsale:value:-1:-1
+[13:00:50.676],103,HistoricalDataFarmConnected,null_2106_HMDS data farm connection is OK:ushmds
+[13:01:02.362],103,IB Message,U724054_-1_2100_API client has been unsubscribed from account data.
+[13:01:04.443],103,IB Message,U948087_-1_2100_API client has been unsubscribed from account data.
+[13:01:06.040],103,IB Message,DU67768_-1_2100_API client has been unsubscribed from account data.

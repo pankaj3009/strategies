@@ -1,5 +1,0 @@
-ip,port,clientID,purpose,rtMessageLimit,histMessageLimit,tickersLimit,strategy,orders,
-127.0.0.1,4830,11,ADR,40,10,0,None,7,psharma@incurrency.com
-127.0.0.1,4170,12,ADR,40,10,100,None,7,psharma@incurrency.com
-127.0.0.1,8600,13,ADR,40,10,100,None,7,psharma@incurrency.com
-127.0.0.1,1740,14,ADR,40,10,100,None,7,psharma@incurrency.com

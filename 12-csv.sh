@@ -1,1 +1,0 @@
-propertyfile=12-globalproperties.txt csv=12-csv.txt
