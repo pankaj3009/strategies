@@ -13,6 +13,7 @@ import com.incurrency.framework.Algorithm;
 import com.incurrency.framework.BeanSymbol;
 import com.incurrency.framework.DateUtil;
 import com.incurrency.framework.MainAlgorithm;
+import com.incurrency.framework.RedisConnect;
 import com.incurrency.framework.Utilities;
 import com.incurrency.kairosresponse.QueryResponse;
 import java.io.BufferedReader;
@@ -75,7 +76,7 @@ public class Eodmaintenance {
     private String f_RateServer;
     private String f_IBSymbol;
     private String ibsymbolurl;
-    private JedisPool jPool;
+    private com.incurrency.framework.RedisConnect eodDB;
     private String redisurl;
 
     public static JedisPool RedisConnect(String uri, Integer port, Integer database) {
@@ -104,7 +105,7 @@ public class Eodmaintenance {
         redisurl = properties.getProperty("redisurl");
         int rowsToSkipFNO = Integer.valueOf(properties.getProperty("RowsToSkipFNO", "12"));
         if(redisurl!=null){
-            jPool = RedisConnect(redisurl.split(":")[0], Integer.valueOf(redisurl.split(":")[1]), Integer.valueOf(redisurl.split(":")[2]));
+            eodDB = new RedisConnect(redisurl.split(":")[0], Integer.valueOf(redisurl.split(":")[1]), Integer.valueOf(redisurl.split(":")[2]));
         }
 
         String nextExpiry = Utilities.getLastThursday(currentDay, "yyyyMMdd", 0);
@@ -115,7 +116,7 @@ public class Eodmaintenance {
          */
         //createFNOContractSizeRecords(0,new Date().getTime());
 //        if (!outputfile.exists()) {
-        if (jPool != null) {
+        if (eodDB != null) {
             nifty50 = this.loadNifty50StocksFromRedis();
             cnx500 = this.loadCNX500StocksFromRedis();
             allStocks = this.loadAllStocksFromRedis();
@@ -211,8 +212,8 @@ public class Eodmaintenance {
                     }
 
                     for (Map.Entry<String, String> s : symbols.entrySet()) {
-                        if(jPool!=null){
-                        try (Jedis jedis = jPool.getResource()) {
+                        if(eodDB!=null){
+                        try (Jedis jedis = eodDB.pool.getResource()) {
                             jedis.hset("ibsymbols:" + today, s.getKey(), s.getValue());
                         }
                         }
@@ -260,7 +261,7 @@ public class Eodmaintenance {
             difference = com.google.common.collect.Sets.difference(newNifty, nifty50);
             logger.log(Level.INFO, "Nifty50 Entries in new data,{0}", new Object[]{Arrays.toString(difference.toArray())});
             for (Object s : newNifty.toArray()) {
-                try (Jedis jedis = jPool.getResource()) {
+                try (Jedis jedis = eodDB.pool.getResource()) {
                     jedis.sadd("nifty50:" + sdf_yyyyMMdd.format(new Date()), s.toString());
                 }
             }
@@ -294,7 +295,7 @@ public class Eodmaintenance {
             logger.log(Level.INFO, "CNX500 Entries in New Data,{0}", new Object[]{Arrays.toString(difference.toArray())});
             SimpleDateFormat sdf_yyyyMMdd = new SimpleDateFormat("yyyyMMdd");
             for (Object s : newCNX500.toArray()) {
-                try (Jedis jedis = jPool.getResource()) {
+                try (Jedis jedis = eodDB.pool.getResource()) {
                     jedis.sadd("cnx500:" + sdf_yyyyMMdd.format(new Date()), s.toString());
                 }
             }
@@ -328,7 +329,7 @@ public class Eodmaintenance {
             logger.log(Level.INFO, "SME Entries in New Data,{0}", new Object[]{Arrays.toString(difference.toArray())});
             SimpleDateFormat sdf_yyyyMMdd = new SimpleDateFormat("yyyyMMdd");
             for (Object s : newSME.toArray()) {
-                try (Jedis jedis = jPool.getResource()) {
+                try (Jedis jedis = eodDB.pool.getResource()) {
                     jedis.sadd("smesymbols:" + sdf_yyyyMMdd.format(new Date()), s.toString());
                 }
             }
@@ -402,7 +403,7 @@ public class Eodmaintenance {
 //                        jedis.del("contractsize:"+expiry);
 //                    }
             for (Map.Entry<String, String> entry : newContractSize.entrySet()) {
-                try (Jedis jedis = jPool.getResource()) {
+                try (Jedis jedis = eodDB.pool.getResource()) {
                     jedis.hset("contractsize:" + expiry, entry.getKey(), entry.getValue());
                 }
             }
@@ -450,7 +451,7 @@ public class Eodmaintenance {
 //                        jedis.del("strikedistance:"+expiry);
 //                    }
             for (Map.Entry<String, String> entry : newStrikeDistance.entrySet()) {
-                try (Jedis jedis = jPool.getResource()) {
+                try (Jedis jedis = eodDB.pool.getResource()) {
                     jedis.hset("strikedistance:" + expiry, entry.getKey(), entry.getValue());
                 }
             }
@@ -812,18 +813,18 @@ public class Eodmaintenance {
     }
 
     public Map<String, String> loadContractSizesFromRedis(String expiry) {
-        String shortlistedkey = Utilities.getShorlistedKey(jPool, "contractsize", expiry);
+        String shortlistedkey = Utilities.getShorlistedKey(eodDB, "contractsize", expiry);
         Map<String, String> contractSizes = new HashMap<>();
-        try (Jedis jedis = jPool.getResource()) {
+        try (Jedis jedis = eodDB.pool.getResource()) {
             contractSizes = jedis.hgetAll(shortlistedkey);
         }
         return contractSizes;
     }
 
     public Map<String, String> loadStrikeDistanceFromRedis(String expiry) {
-        String shortlistedkey = Utilities.getShorlistedKey(jPool, "strikedistance", expiry);
+        String shortlistedkey = Utilities.getShorlistedKey(eodDB, "strikedistance", expiry);
         Map<String, String> strikeDistance = new HashMap<>();
-        try (Jedis jedis = jPool.getResource()) {
+        try (Jedis jedis = eodDB.pool.getResource()) {
             strikeDistance = jedis.hgetAll(shortlistedkey);
         }
         return strikeDistance;
@@ -831,9 +832,9 @@ public class Eodmaintenance {
 
     public Set<String> loadCNX500StocksFromRedis() {
         String today = DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone));
-        String shortlistedkey = Utilities.getShorlistedKey(jPool, "cnx500", today);
+        String shortlistedkey = Utilities.getShorlistedKey(eodDB, "cnx500", today);
         Set<String> niftySymbols = new HashSet<>();
-        try (Jedis jedis = jPool.getResource()) {
+        try (Jedis jedis = eodDB.pool.getResource()) {
             niftySymbols = jedis.smembers(shortlistedkey);
         }
         return niftySymbols;
@@ -841,9 +842,9 @@ public class Eodmaintenance {
 
     public Set<String> loadNifty50StocksFromRedis() {
         String today = DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone));
-        String shortlistedkey = Utilities.getShorlistedKey(jPool, "nifty50", today);
+        String shortlistedkey = Utilities.getShorlistedKey(eodDB, "nifty50", today);
         Set<String> niftySymbols = new HashSet<>();
-        try (Jedis jedis = jPool.getResource()) {
+        try (Jedis jedis = eodDB.pool.getResource()) {
             niftySymbols = jedis.smembers(shortlistedkey);
         }
         return niftySymbols;
@@ -852,9 +853,9 @@ public class Eodmaintenance {
 
     public Map<String, String> loadAllStocksFromRedis() {
         String today = DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone));
-        String shortlistedkey = Utilities.getShorlistedKey(jPool, "ibsymbols", today);
+        String shortlistedkey = Utilities.getShorlistedKey(eodDB, "ibsymbols", today);
         Map<String, String> allSymbols = new HashMap<>();
-        try (Jedis jedis = jPool.getResource()) {
+        try (Jedis jedis = eodDB.pool.getResource()) {
             allSymbols = jedis.hgetAll(shortlistedkey);
         }
         return allSymbols;
@@ -862,10 +863,10 @@ public class Eodmaintenance {
 
     public Set<String> loadSMEStocksFromRedis() {
         Set<String> allSymbols = new HashSet<>();
-        if(jPool!=null){
+        if(eodDB!=null){
         String today = DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone));
-        String shortlistedkey = Utilities.getShorlistedKey(jPool, "smesymbols", today);
-        try (Jedis jedis = jPool.getResource()) {
+        String shortlistedkey = Utilities.getShorlistedKey(eodDB, "smesymbols", today);
+        try (Jedis jedis = eodDB.pool.getResource()) {
             allSymbols = jedis.smembers(shortlistedkey);
         }
         }

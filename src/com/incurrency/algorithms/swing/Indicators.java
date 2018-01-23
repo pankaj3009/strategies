@@ -7,11 +7,11 @@ package com.incurrency.algorithms.swing;
 import com.google.common.base.Preconditions;
 import com.incurrency.framework.Algorithm;
 import com.incurrency.framework.BeanSymbol;
-import com.incurrency.framework.DataStore;
 import com.incurrency.framework.DateUtil;
 import com.incurrency.framework.EnumBarSize;
 import com.incurrency.framework.MatrixMethods;
 import static com.incurrency.framework.MatrixMethods.*;
+import com.incurrency.framework.RedisConnect;
 import com.incurrency.framework.ReservedValues;
 import com.incurrency.framework.Utilities;
 import com.tictactec.ta.lib.Core;
@@ -32,7 +32,7 @@ import org.jblas.DoubleMatrix;
  */
 public class Indicators {
 
-    private static DataStore<String, Object> output = new DataStore<>();
+    private static RedisConnect output ;
     private static final Object lockStddev = new Object();
     private static final Object lockma = new Object();
     private static final Object lockatr = new Object();

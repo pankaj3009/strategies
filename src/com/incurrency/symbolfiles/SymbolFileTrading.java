@@ -8,6 +8,7 @@ import com.incurrency.framework.Algorithm;
 import com.incurrency.framework.BeanSymbol;
 import com.incurrency.framework.DateUtil;
 import com.incurrency.framework.MainAlgorithm;
+import com.incurrency.framework.RedisConnect;
 import com.incurrency.framework.Utilities;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -38,7 +39,7 @@ public class SymbolFileTrading {
         return new JedisPool(new JedisPoolConfig(), uri, port, 10000, null, database);
     }
 
-    private JedisPool jPool;
+    private RedisConnect jPool;
     private String currentDay;
     private List<BeanSymbol> nifty50 = new ArrayList<>();
     private List<BeanSymbol> symbols = new ArrayList<>();
@@ -47,7 +48,7 @@ public class SymbolFileTrading {
 
     public SymbolFileTrading(String redisurl, String symbolFileName) {
         this.symbolFileName = symbolFileName;
-        jPool = RedisConnect(redisurl.split(":")[0], Integer.valueOf(redisurl.split(":")[1]), Integer.valueOf(redisurl.split(":")[2]));
+        jPool = new RedisConnect(redisurl.split(":")[0], Integer.valueOf(redisurl.split(":")[1]), Integer.valueOf(redisurl.split(":")[2]));
         currentDay = DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getTimeZone(MainAlgorithm.timeZone));
         //currentDay="20160930";
         loadAllSymbols();
@@ -138,7 +139,7 @@ public class SymbolFileTrading {
         String today = DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone));
         String shortlistedkey = Utilities.getShorlistedKey(jPool, "ibsymbols", today);
         Map<String, String> ibsymbols = new HashMap<>();
-        try (Jedis jedis = jPool.getResource()) {
+        try (Jedis jedis = jPool.pool.getResource()) {
             ibsymbols = jedis.hgetAll(shortlistedkey);
             for (Map.Entry<String, String> entry : ibsymbols.entrySet()) {
                 String exchangeSymbol = entry.getKey().trim().toUpperCase();
@@ -163,7 +164,7 @@ public class SymbolFileTrading {
             String today = DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone));
             String shortlistedkey = Utilities.getShorlistedKey(jPool, "nifty50", today);
             Set<String> niftySymbols = new HashSet<>();
-            try (Jedis jedis = jPool.getResource()) {
+            try (Jedis jedis = jPool.pool.getResource()) {
                 niftySymbols = jedis.smembers(shortlistedkey);
                 Iterator iterator = niftySymbols.iterator();
                 while (iterator.hasNext()) {
@@ -187,7 +188,7 @@ public class SymbolFileTrading {
             String expiry = Utilities.getLastThursday(currentDay, "yyyyMMdd", 0);;
             shortlistedkey = Utilities.getShorlistedKey(jPool, "strikedistance", expiry);
             Map<String, String> strikeLevels = new HashMap<>();
-            try (Jedis jedis = jPool.getResource()) {
+            try (Jedis jedis = jPool.pool.getResource()) {
                 strikeLevels = jedis.hgetAll(shortlistedkey);
                 for (Map.Entry<String, String> entry : strikeLevels.entrySet()) {
                     String exchangeSymbol = entry.getKey().toUpperCase();//2nd column of nse file                        
@@ -216,7 +217,7 @@ public class SymbolFileTrading {
             Set<String> foreverNifty50 = new HashSet<>();
             while (!cursor.equals("0")) {
                 cursor = cursor.equals("") ? "0" : cursor;
-                try (Jedis jedis = jPool.getResource()) {
+                try (Jedis jedis = jPool.pool.getResource()) {
                     ScanResult s = jedis.scan(cursor);
                     cursor = s.getCursor();
                     for (Object key : s.getResult()) {
@@ -229,7 +230,7 @@ public class SymbolFileTrading {
             //select stocks that are in fno
             String fnokey = Utilities.getShorlistedKey(jPool, "contractsize", today);
             Map<String, String> contractSizes = new HashMap<>();
-            try (Jedis jedis = jPool.getResource()) {
+            try (Jedis jedis = jPool.pool.getResource()) {
                 contractSizes = jedis.hgetAll(fnokey);
             }
             //select intersection of ForeverNifty50 & contractSizes("key")
@@ -256,7 +257,7 @@ public class SymbolFileTrading {
             String expiry = Utilities.getLastThursday(currentDay, "yyyyMMdd", 0);;
             String shortlistedkey = Utilities.getShorlistedKey(jPool, "strikedistance", expiry);
             Map<String, String> strikeLevels = new HashMap<>();
-            try (Jedis jedis = jPool.getResource()) {
+            try (Jedis jedis = jPool.pool.getResource()) {
                 strikeLevels = jedis.hgetAll(shortlistedkey);
                 for (Map.Entry<String, String> entry : strikeLevels.entrySet()) {
                     String exchangeSymbol = entry.getKey().toUpperCase();//2nd column of nse file                        
@@ -281,7 +282,7 @@ public class SymbolFileTrading {
         try {
             String shortlistedkey = Utilities.getShorlistedKey(jPool, "contractsize", expiry);
             Map<String, String> contractSizes = new HashMap<>();
-            try (Jedis jedis = jPool.getResource()) {
+            try (Jedis jedis = jPool.pool.getResource()) {
                 contractSizes = jedis.hgetAll(shortlistedkey);
                 for (Map.Entry<String, String> entry : contractSizes.entrySet()) {
                     String exchangeSymbol = entry.getKey().trim().toUpperCase();
@@ -313,7 +314,7 @@ public class SymbolFileTrading {
             //Capture Strike levels
             shortlistedkey = Utilities.getShorlistedKey(jPool, "strikedistance", expiry);
             Map<String, String> strikeLevels = new HashMap<>();
-            try (Jedis jedis = jPool.getResource()) {
+            try (Jedis jedis = jPool.pool.getResource()) {
                 strikeLevels = jedis.hgetAll(shortlistedkey);
                 for (Map.Entry<String, String> entry : strikeLevels.entrySet()) {
                     String exchangeSymbol = entry.getKey().toUpperCase();//2nd column of nse file                        
@@ -343,7 +344,7 @@ public class SymbolFileTrading {
             String today = DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone));
             String shortlistedkey = Utilities.getShorlistedKey(jPool, "cnx500", today);
             Set<String> niftySymbols = new HashSet<>();
-            try (Jedis jedis = jPool.getResource()) {
+            try (Jedis jedis = jPool.pool.getResource()) {
                 niftySymbols = jedis.smembers(shortlistedkey);
                 Iterator iterator = niftySymbols.iterator();
                 while (iterator.hasNext()) {
@@ -364,7 +365,7 @@ public class SymbolFileTrading {
             String expiry = Utilities.getLastThursday(currentDay, "yyyyMMdd", 0);;
             shortlistedkey = Utilities.getShorlistedKey(jPool, "strikedistance", expiry);
             Map<String, String> strikeLevels = new HashMap<>();
-            try (Jedis jedis = jPool.getResource()) {
+            try (Jedis jedis = jPool.pool.getResource()) {
                 strikeLevels = jedis.hgetAll(shortlistedkey);
                 for (Map.Entry<String, String> entry : strikeLevels.entrySet()) {
                     String exchangeSymbol = entry.getKey().toUpperCase();//2nd column of nse file                        

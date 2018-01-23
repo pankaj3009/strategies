@@ -819,7 +819,7 @@ public class ServerRoleTWSConnection extends Thread implements EWrapper, com.inc
                         new Object[]{ob.getOrderReference(), c.getAccountName(), ob.getParentDisplayName(), String.valueOf(ob.getInternalOrderID()), String.valueOf(ob.getExternalOrderID())});
             }
             String searchString = "OQ:.*" + c.getAccountName() + ":" + ob.getOrderReference() + ":" + ob.getParentDisplayName() + ":" + ob.getInternalOrderID() + ":";
-            Set<OrderQueueKey> oqks = Utilities.getLiveOrderKeys(Algorithm.dbForTrades, c, searchString);
+            Set<OrderQueueKey> oqks = Utilities.getLiveOrderKeys(Algorithm.tradeDB, c, searchString);
             for (OrderQueueKey oqki : oqks) {
                 OrderBean obvi = c.getOrderBeanCopy(oqki);
                 if (!obvi.isCancelRequested() && obvi.getExternalOrderID() > 0) {
@@ -1644,7 +1644,7 @@ public class ServerRoleTWSConnection extends Thread implements EWrapper, com.inc
         try {
             logger.log(Level.INFO, "402,execDetails,{0}:{1}:{2}:{3}:{4},CumExecution={5}:AveragePrice={6}",
                     new Object[]{"Unknown", c.getAccountName(), "Unknown", "-1", String.valueOf(execution.m_orderId), String.valueOf(execution.m_cumQty), String.valueOf(execution.m_avgPrice)});
-            Set<OrderQueueKey> oqks = Utilities.getAllOrderKeys(Algorithm.dbForTrades, c, "OQ:" + execution.m_orderId + ":" + c.getAccountName() + ":.*");
+            Set<OrderQueueKey> oqks = Utilities.getAllOrderKeys(Algorithm.tradeDB, c, "OQ:" + execution.m_orderId + ":" + c.getAccountName() + ":.*");
             if (oqks.size() == 1) {
                 for (OrderQueueKey oqki : oqks) {
                     OrderBean ob = c.getOrderBeanCopy(oqki);

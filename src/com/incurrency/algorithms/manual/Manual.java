@@ -47,6 +47,7 @@ import com.incurrency.RatesClient.RedisSubscribe;
 import com.incurrency.framework.TradeEvent;
 import com.incurrency.framework.TradeListener;
 import java.lang.reflect.Type;
+import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -196,6 +197,7 @@ public class Manual extends Strategy implements TradeListener {
                         Path filename = ev.context();
                         filename = dir.resolve(filename);
                         BufferedReader bufferedReader;
+                        if(!Files.isDirectory(filename)){
                         try (FileReader fileReader = new FileReader(filename.getFileName().toString())) {
                             String line = null;
                             bufferedReader = new BufferedReader(fileReader);
@@ -209,12 +211,13 @@ public class Manual extends Strategy implements TradeListener {
                                 }
                             }
                             bufferedReader.close();
-                            key.reset();
                         } catch (Exception e) {
+                            key.reset();
                             logger.log(Level.SEVERE, null, e);
                         }
-
+                        }
                     }
+                        key.reset();
                 }
             } catch (InterruptedException ex) {
                 Logger.getLogger(Manual.class.getName()).log(Level.SEVERE, null, ex);
@@ -409,7 +412,7 @@ public class Manual extends Strategy implements TradeListener {
     }
 
     private void loadParameters(Properties p) {
-        dir = Paths.get(p.getProperty("Directory", "").trim());
+        dir = Paths.get(p.getProperty("dir", "").trim()).toAbsolutePath();
         orderSource = p.getProperty("OrderSource", "redis").trim();
         rServerIP = p.getProperty("RServerIP").toString().trim();
         optionPricingUsingFutures = Boolean.valueOf(p.getProperty("OptionPricingUsingFutures", "TRUE"));
