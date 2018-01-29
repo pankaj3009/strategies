@@ -119,7 +119,7 @@ public class Manual extends Strategy implements TradeListener {
     }
 
     public void rScriptTimer() {
-        if (rServerIP != null) {
+        if (rServerIP != null && RScriptRunTime!=null && RStrategyFile!=null) {
             Timer trigger = new Timer("Timer: " + this.getStrategy() + " RScriptProcessor");
             trigger.schedule(new RScript(), RScriptRunTime);
         }
@@ -414,22 +414,24 @@ public class Manual extends Strategy implements TradeListener {
     private void loadParameters(Properties p) {
         dir = Paths.get(p.getProperty("dir", "").trim()).toAbsolutePath();
         orderSource = p.getProperty("OrderSource", "redis").trim();
-        rServerIP = p.getProperty("RServerIP").toString().trim();
         optionPricingUsingFutures = Boolean.valueOf(p.getProperty("OptionPricingUsingFutures", "TRUE"));
-        String entryScanTime = p.getProperty("ScanStartTime").trim();
+        String entryScanTime = p.getProperty("ScanStartTime","").trim();
         Calendar calToday = Calendar.getInstance(TimeZone.getTimeZone(Algorithm.timeZone));
         String[] entryTimeComponents = entryScanTime.split(":");
-        calToday.set(Calendar.HOUR_OF_DAY, Utilities.getInt(entryTimeComponents[0], 15));
-        calToday.set(Calendar.MINUTE, Utilities.getInt(entryTimeComponents[1], 20));
-        calToday.set(Calendar.SECOND, Utilities.getInt(entryTimeComponents[2], 0));
-        RScriptRunTime = calToday.getTime();
-        if (this.RScriptRunTime.compareTo(new Date()) < 0) {
-            calToday.add(Calendar.DATE, 1);
+        if (entryTimeComponents.length == 3) {
+            calToday.set(Calendar.HOUR_OF_DAY, Utilities.getInt(entryTimeComponents[0], 15));
+            calToday.set(Calendar.MINUTE, Utilities.getInt(entryTimeComponents[1], 20));
+            calToday.set(Calendar.SECOND, Utilities.getInt(entryTimeComponents[2], 0));
             RScriptRunTime = calToday.getTime();
-        }
+            rServerIP = p.getProperty("RServerIP").toString().trim();
+            if (this.RScriptRunTime.compareTo(new Date()) < 0) {
+                calToday.add(Calendar.DATE, 1);
+                RScriptRunTime = calToday.getTime();
+            }
 
-        RStrategyFile = p.getProperty("RStrategyFile", "");
-        wd = p.getProperty("wd", "/home/psharma/Seafile/R");
+            RStrategyFile = p.getProperty("RStrategyFile", "");
+            wd = p.getProperty("wd", "/home/psharma/Seafile/R");
+        }
         scaleEntry = Boolean.parseBoolean(p.getProperty("ScaleEntry", "FALSE"));
         scaleExit = Boolean.parseBoolean(p.getProperty("ScaleExit", "FALSE"));
 
