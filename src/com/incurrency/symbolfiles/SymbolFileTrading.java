@@ -109,8 +109,6 @@ public class SymbolFileTrading {
                 if (id >= 0) {
                     id = Utilities.getIDFromExchangeSymbol(fno, exchangesymbol, "FUT", expiry, "", "");
                     s = fno.get(id);
-                    Utilities.getIDFromExchangeSymbol(symbols, exchangesymbol, "STK", "", "", "");
-                    s=symbols.get(id);
                     BeanSymbol s1 = s.clone(s);
                     s1.setStreamingpriority(2);
                     s1.setStrategy(strategyString);
