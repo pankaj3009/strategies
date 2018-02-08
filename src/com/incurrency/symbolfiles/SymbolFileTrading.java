@@ -99,35 +99,40 @@ public class SymbolFileTrading {
             ArrayList<BeanSymbol> out2 = new ArrayList<>();
             for (int i = 0; i < nifty50.size(); i++) {
                 s = nifty50.get(i);
-                s.setStrategy("CONTRA");
+                s.setStrategy(strategyString);
                 out2.add(s);
             }
             fno = loadFutures(expiry);
             for (int i = 0; i < fno.size(); i++) {
                 String exchangesymbol = fno.get(i).getExchangeSymbol();
-                int id = Utilities.getIDFromExchangeSymbol(nifty50, exchangesymbol, "STK", "", "", "");
+//                int id = Utilities.getIDFromExchangeSymbol(nifty50, exchangesymbol, "STK", "", "", "");
+                int id = Utilities.getIDFromExchangeSymbol(symbols, exchangesymbol, "STK", "", "", "");
                 if (id >= 0) {
-                    id = Utilities.getIDFromExchangeSymbol(fno, exchangesymbol, "FUT", expiry, "", "");
-                    s = fno.get(id);
+//                    id = Utilities.getIDFromExchangeSymbol(fno, exchangesymbol, "FUT", expiry, "", "");
+//                    s = fno.get(id);
+                      int dupid = Utilities.getIDFromExchangeSymbol(out2, exchangesymbol, "STK", "", "", "");                  
+                      if(dupid<0){// add symbol if not already present
+                      s=symbols.get(id);
                     BeanSymbol s1 = s.clone(s);
                     s1.setStreamingpriority(2);
                     s1.setStrategy(strategyString);
                     out2.add(s1);
+                      }
                 }
             }
-            ArrayList<BeanSymbol> fwdout = loadFutures(Utilities.getLastThursday(expiryplus, "yyyyMMdd", 0));
-            for (int i = 0; i < fno.size(); i++) {
-                String exchangesymbol = fno.get(i).getExchangeSymbol();
-                int id = Utilities.getIDFromExchangeSymbol(nifty50, exchangesymbol, "STK", "", "", "");
-                if (id >= 0) {
-                    id = Utilities.getIDFromExchangeSymbol(fwdout, exchangesymbol, "FUT", Utilities.getLastThursday(expiryplus, "yyyyMMdd", 0), "", "");
-                    s = fwdout.get(id);
-                    BeanSymbol s1 = s.clone(s);
-                    s1.setStreamingpriority(2);
-                    s1.setStrategy(strategyString);
-                    out2.add(s1);
-                }
-            }
+//            ArrayList<BeanSymbol> fwdout = loadFutures(Utilities.getLastThursday(expiryplus, "yyyyMMdd", 0));
+//            for (int i = 0; i < fno.size(); i++) {
+//                String exchangesymbol = fno.get(i).getExchangeSymbol();
+//                int id = Utilities.getIDFromExchangeSymbol(nifty50, exchangesymbol, "STK", "", "", "");
+//                if (id >= 0) {
+//                    id = Utilities.getIDFromExchangeSymbol(fwdout, exchangesymbol, "FUT", Utilities.getLastThursday(expiryplus, "yyyyMMdd", 0), "", "");
+//                    s = fwdout.get(id);
+//                    BeanSymbol s1 = s.clone(s);
+//                    s1.setStreamingpriority(2);
+//                    s1.setStrategy(strategyString);
+//                    out2.add(s1);
+//                }
+//            }
             out.addAll(out2);
             Utilities.printSymbolsToFile(out, symbolFileName, false);
         } catch (Exception e) {

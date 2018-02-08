@@ -110,46 +110,51 @@ public class SymbolFileRateServer {
         ArrayList<BeanSymbol> fno = loadFutures(expiry);
         for (int i = 0; i < fno.size(); i++) {
             String exchangesymbol = fno.get(i).getExchangeSymbol();
-            int id = Utilities.getIDFromExchangeSymbol(nifty50, exchangesymbol, "STK", "", "", "");
+//            int id = Utilities.getIDFromExchangeSymbol(nifty50, exchangesymbol, "STK", "", "", "");
+           int id = Utilities.getIDFromExchangeSymbol(symbols, exchangesymbol, "STK", "", "", "");
             if (id >= 0) {
-                id = Utilities.getIDFromExchangeSymbol(fno, exchangesymbol, "FUT", expiry, "", "");
-                s = fno.get(id);
+//                id = Utilities.getIDFromExchangeSymbol(fno, exchangesymbol, "FUT", expiry, "", "");
+//                s = fno.get(id);
+                      int dupid = Utilities.getIDFromExchangeSymbol(out, exchangesymbol, "STK", "", "", "");                  
+                      if(dupid<0){// add symbol if not already present
+                s=symbols.get(id);
                 BeanSymbol s1 = s.clone(s);
                 s1.setStreamingpriority(2);
                 s1.setStrategy("DATA");
-                s1.setExpiry(expiry);
-                s1.setType("FUT");
-                out.add(s1);
-            } else {
-                id = Utilities.getIDFromExchangeSymbol(fno, exchangesymbol, "FUT", expiry, "", "");
-                s = fno.get(id);
-                BeanSymbol s1 = s.clone(s);
-                s1.setStreamingpriority(3);
-                s1.setStrategy("DATA");
+//                s1.setExpiry(expiry);
+//                s1.setType("FUT");
                 out.add(s1);
             }
+//                      else {
+//                id = Utilities.getIDFromExchangeSymbol(fno, exchangesymbol, "FUT", expiry, "", "");
+//                s = fno.get(id);
+//                BeanSymbol s1 = s.clone(s);
+//                s1.setStreamingpriority(3);
+//                s1.setStrategy("DATA");
+//                out.add(s1);
+//            }
         }
-        ArrayList<BeanSymbol> fwdout = loadFutures(nextExpiry);
-        for (int i = 0; i < fwdout.size(); i++) {
-            String exchangesymbol = fwdout.get(i).getExchangeSymbol();
-            int id = Utilities.getIDFromExchangeSymbol(nifty50, exchangesymbol, "STK", "", "", "");
-            if (id >= 0) {
-                id = Utilities.getIDFromExchangeSymbol(fwdout, exchangesymbol, "FUT", nextExpiry, "", "");
-                s = fwdout.get(id);
-                BeanSymbol s1 = s.clone(s);
-                s1.setStreamingpriority(2);
-                s1.setStrategy("DATA");
-                s1.setExpiry(nextExpiry);
-                s1.setType("FUT");
-                out.add(s1);
-            } else {
-                id = Utilities.getIDFromExchangeSymbol(fwdout, exchangesymbol, "FUT", nextExpiry, "", "");
-                s = fwdout.get(id);
-                BeanSymbol s1 = s.clone(s);
-                s1.setStreamingpriority(3);
-                s1.setStrategy("DATA");
-                out.add(s1);
-            }
+//        ArrayList<BeanSymbol> fwdout = loadFutures(nextExpiry);
+//        for (int i = 0; i < fwdout.size(); i++) {
+//            String exchangesymbol = fwdout.get(i).getExchangeSymbol();
+//            int id = Utilities.getIDFromExchangeSymbol(nifty50, exchangesymbol, "STK", "", "", "");
+//            if (id >= 0) {
+//                id = Utilities.getIDFromExchangeSymbol(fwdout, exchangesymbol, "FUT", nextExpiry, "", "");
+//                s = fwdout.get(id);
+//                BeanSymbol s1 = s.clone(s);
+//                s1.setStreamingpriority(2);
+//                s1.setStrategy("DATA");
+//                s1.setExpiry(nextExpiry);
+//                s1.setType("FUT");
+//                out.add(s1);
+//            } else {
+//                id = Utilities.getIDFromExchangeSymbol(fwdout, exchangesymbol, "FUT", nextExpiry, "", "");
+//                s = fwdout.get(id);
+//                BeanSymbol s1 = s.clone(s);
+//                s1.setStreamingpriority(3);
+//                s1.setStrategy("DATA");
+//                out.add(s1);
+//            }
         }
 
         Utilities.printSymbolsToFile(out, symbolFileName, false);
