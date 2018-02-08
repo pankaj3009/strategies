@@ -105,7 +105,7 @@ public class SymbolFileTrading {
             fno = loadFutures(expiry);
             for (int i = 0; i < fno.size(); i++) {
                 String exchangesymbol = fno.get(i).getExchangeSymbol();
-                int id = Utilities.getIDFromExchangeSymbol(nifty50, exchangesymbol, "STK", "", "", "");
+                int id = Utilities.getIDFromExchangeSymbol(symbols, exchangesymbol, "STK", "", "", "");
                 if (id >= 0) {
                     //id = Utilities.getIDFromExchangeSymbol(fno, exchangesymbol, "FUT", expiry, "", "");
                     //s = fno.get(id);
