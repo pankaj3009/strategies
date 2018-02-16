@@ -408,6 +408,35 @@ public class Manual extends Strategy implements TradeListener {
         if(ob.getOriginalOrderSize()==0){
             ob.setOriginalOrderSize(ob.getStrategyOrderSize());
         }
+        if(ob.getStartingPosition()==0){
+            ob.setStartingPosition(ob.getStrategyStartingPosition());
+        }
+        ob.setStartingPosition(Utilities.getNetPosition(Parameters.symbol, getPosition(), symbolid, true));
+        int catchUpPosition;
+        int size = ob.getOriginalOrderSize();
+        switch (ob.getOrderSide()) {
+            case BUY:
+                catchUpPosition = ob.getStrategyStartingPosition() - ob.getStartingPosition();
+                size = Math.max(size + catchUpPosition, 0);
+                break;
+            case SHORT:
+                catchUpPosition = -ob.getStrategyStartingPosition() - ob.getStartingPosition();
+                size = Math.max(size - catchUpPosition, 0);
+                break;
+            case SELL:
+                catchUpPosition = ob.getStrategyStartingPosition() - ob.getStartingPosition();
+                size = Math.max(size - catchUpPosition, 0);
+                //if actualpositionsize is -ve, that is an error condition.
+                break;
+            case COVER:
+                catchUpPosition = ob.getStrategyStartingPosition() + ob.getStartingPosition();
+                size = Math.max(size - catchUpPosition, 0);
+                break;
+            default:
+                break;
+        }
+        ob.setOriginalOrderSize(size);
+
 
         return ob;
     }
