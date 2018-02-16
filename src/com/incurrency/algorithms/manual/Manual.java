@@ -44,6 +44,7 @@ import java.util.logging.Logger;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.incurrency.RatesClient.RedisSubscribe;
+import com.incurrency.framework.Trade;
 import com.incurrency.framework.TradeEvent;
 import com.incurrency.framework.TradeListener;
 import java.lang.reflect.Type;
@@ -138,8 +139,52 @@ public class Manual extends Strategy implements TradeListener {
 
     @Override
     public void tradeReceived(TradeEvent event) {
+        int id = event.getSymbolID();
+        int position = this.getPosition().get(id).getPosition();
+        double price = Parameters.symbol.get(id).getLastPrice();
+        if (price >0) {
+            int internalorderid = -1;
+            if (position > 0) {
+                internalorderid = ParentInternalOrderIDForSquareOff(id, "Order", getStrategy(), EnumOrderSide.BUY);
+            } else if (position < 0) {
+                internalorderid = ParentInternalOrderIDForSquareOff(id, "Order", getStrategy(), EnumOrderSide.SHORT);
+            }
+            Boolean sltriggered = Boolean.FALSE;
+            Boolean tptriggered = Boolean.FALSE;
+            String key = "";
 
+            if (internalorderid > 0) {
+                key = "opentrades_" + getStrategy() + "_" + internalorderid + "_" + "Order";
+                double sl = Trade.getSL(getDb(), key);
+                double tp = Trade.getTP(getDb(), key);
+                sltriggered = (position > 0 && sl > price && sl > 0) || (position < 0 && sl < price & sl > 0) ? Boolean.TRUE : Boolean.FALSE;
+                tptriggered = (position > 0 && tp < price & tp > 0) || (position < 0 && tp > price && tp > 0) ? Boolean.TRUE : Boolean.FALSE;
+            }
+            if (sltriggered | tptriggered) {
+                OrderBean ord = new OrderBean();
+                ord.setParentDisplayName(Parameters.symbol.get(id).getDisplayname());
+                ord.setChildDisplayName(Parameters.symbol.get(id).getDisplayname());
+                ord.setOrderSide(position > 0 ? EnumOrderSide.SELL : EnumOrderSide.COVER);
+                ord.setOrderReason(tptriggered ? EnumOrderReason.TP : EnumOrderReason.SL);
+                ord.setOrderType(EnumOrderType.CUSTOMREL);
+                ord.setOrderStage(EnumOrderStage.INIT);
+                int size = Trade.getEntrySize(getDb(), key) - Trade.getExitSize(getDb(), key);
+                ord.setStrategyOrderSize(size);
+                int startingpos = Utilities.getNetPosition(Parameters.symbol, getPosition(), id, true);
+                ord.setStrategyStartingPosition(Math.abs(startingpos));
+                ord.setScale(scaleExit);
+                ord.setOrderReference(getStrategy());
+                exit(ord);
+            }
+        }
     }
+
+         
+            
+
+        
+        
+    
 
     class RScript extends TimerTask {
 
@@ -254,7 +299,7 @@ public class Manual extends Strategy implements TradeListener {
                 if (trade != null && trade.get(1) != null) {
                     OrderBean order = null;
                     if (isJSONValid(trade.get(1))) {
-
+                        order=jsonOrderProcessor(trade.get(1));
                     } else {
                         order = simpleOrderProcessor(trade.get(1));
                     }

@@ -92,7 +92,7 @@ public class Swing extends Manager implements TradeListener {
                         Double tradePrice = this.getPosition().get(id).getPrice();
                         int referenceid = Utilities.getCashReferenceID(Parameters.symbol, id);
                         EnumOrderSide derivedSide = this.getPosition().get(id).getPosition() > 0 ? EnumOrderSide.SELL : EnumOrderSide.COVER;
-                        ArrayList<Stop> stops = Trade.getStop(this.getDb(), this.getStrategy() + ":" + this.ParentInternalOrderIDForSquareOff(0, "Order", derivedSide) + ":Order");
+                        ArrayList<Stop> stops = Trade.getStop(this.getDb(), this.getStrategy() + ":" + this.ParentInternalOrderIDForSquareOff(0, "Order", getStrategy(),derivedSide) + ":Order");
                         boolean tpTrigger = false;
                         boolean slTrigger = false;
                         double tpDistance = 0D;
@@ -127,7 +127,7 @@ public class Swing extends Manager implements TradeListener {
                         }
                         if ((slTrigger || tpTrigger)) {
                             //int futureid = Utilities.getFutureIDFromExchangeSymbol(Parameters.symbol, referenceid, expiry);
-                            String entryTime = Trade.getEntryTime(this.getDb(), this.getStrategy() + ":" + this.ParentInternalOrderIDForSquareOff(0, "Order", derivedSide) + ":Order");
+                            String entryTime = Trade.getEntryTime(this.getDb(), this.getStrategy() + ":" + this.ParentInternalOrderIDForSquareOff(0, "Order", getStrategy(),derivedSide) + ":Order");
                             String today = DateUtil.getFormatedDate("yyyy-MM-dd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone));
                             if (!entryTime.contains(today)) {
                                 logger.log(Level.INFO, "101, SLTP Exit,{0}:{1}:{2}:{3}:{4},sltrigger={5},tptrigger={6},lastprice={7},sl={8},distancefromsl={9},tp={10},distancefromtp={11}",
@@ -350,7 +350,7 @@ public class Swing extends Manager implements TradeListener {
                 case BUY:
                     logger.log(Level.INFO, "101,Rollover SELL,{0}:{1}:{2}:{3}:{4}",
                             new Object[]{getStrategy(), "Order", Parameters.symbol.get(initID).getDisplayname(), -1, -1});
-                    stops = Trade.getStop(this.getDb(), this.getStrategy() + ":" + this.ParentInternalOrderIDForSquareOff(0, "Order", EnumOrderSide.SELL) + ":Order");
+                    stops = Trade.getStop(this.getDb(), this.getStrategy() + ":" + this.ParentInternalOrderIDForSquareOff(0, "Order",getStrategy(), EnumOrderSide.SELL) + ":Order");
                     OrderBean order = new OrderBean();
                     int referenceid = Utilities.getCashReferenceID(Parameters.symbol, targetID);
                     double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, targetID, referenceid, EnumOrderSide.SELL, getTickSize(), this.getOrdType());
@@ -370,7 +370,7 @@ public class Swing extends Manager implements TradeListener {
                 case SHORT:
                     logger.log(Level.INFO, "101,Strategy Rollover EXIT SHORT,{0}:{1}:{2}:{3}:{4}",
                             new Object[]{getStrategy(), "Order", Parameters.symbol.get(initID).getDisplayname(), -1, -1});
-                    stops = Trade.getStop(this.getDb(), this.getStrategy() + ":" + this.ParentInternalOrderIDForSquareOff(0, "Order", EnumOrderSide.COVER) + ":Order");
+                    stops = Trade.getStop(this.getDb(), this.getStrategy() + ":" + this.ParentInternalOrderIDForSquareOff(0, "Order", getStrategy(),EnumOrderSide.COVER) + ":Order");
                     order = new OrderBean();
                     referenceid = Utilities.getCashReferenceID(Parameters.symbol, targetID);
                     limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, targetID, referenceid, EnumOrderSide.COVER, getTickSize(), this.getOrdType());
