@@ -288,9 +288,9 @@ public class Manager extends Strategy {
                             int referenceid = Utilities.getCashReferenceID(Parameters.symbol, symbolid);
                             if (side.equals(EnumOrderSide.SELL) || side.equals(EnumOrderSide.COVER)) {
                                 int futureid = Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, expiryNearMonth);
-                                exitorderidlist.add(this.ParentInternalOrderIDForSquareOff(futureid, "Order",getStrategy(), side));
+                                exitorderidlist.add(this.EntryInternalOrderIDForSquareOff(futureid, "Order",getStrategy(), side));
                                 futureid = Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, expiryFarMonth);
-                                exitorderidlist.add(this.ParentInternalOrderIDForSquareOff(futureid, "Order",getStrategy(), side));
+                                exitorderidlist.add(this.EntryInternalOrderIDForSquareOff(futureid, "Order",getStrategy(), side));
                                 actualPositionSize = Utilities.getNetPosition(Parameters.symbol, this.getPosition(), exitorderidlist.get(0), true);
                             } else if (side.equals(EnumOrderSide.BUY) || side.equals(EnumOrderSide.SHORT)) {
                                 if (optionPricingUsingFutures) {

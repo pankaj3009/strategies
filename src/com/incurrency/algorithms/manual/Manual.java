@@ -145,16 +145,16 @@ public class Manual extends Strategy implements TradeListener {
         if (price >0) {
             int internalorderid = -1;
             if (position > 0) {
-                internalorderid = ParentInternalOrderIDForSquareOff(id, "Order", getStrategy(), EnumOrderSide.BUY);
+                internalorderid = EntryInternalOrderIDForSquareOff(id, "Order", getStrategy(), EnumOrderSide.SELL);
             } else if (position < 0) {
-                internalorderid = ParentInternalOrderIDForSquareOff(id, "Order", getStrategy(), EnumOrderSide.SHORT);
+                internalorderid = EntryInternalOrderIDForSquareOff(id, "Order", getStrategy(), EnumOrderSide.COVER);
             }
             Boolean sltriggered = Boolean.FALSE;
             Boolean tptriggered = Boolean.FALSE;
             String key = "";
 
             if (internalorderid > 0) {
-                key = "opentrades_" + getStrategy() + "_" + internalorderid + "_" + "Order";
+                key = "opentrades_" + getStrategy() + ":" + internalorderid + ":" + "Order";
                 double sl = Trade.getSL(getDb(), key);
                 double tp = Trade.getTP(getDb(), key);
                 sltriggered = (position > 0 && sl > price && sl > 0) || (position < 0 && sl < price & sl > 0) ? Boolean.TRUE : Boolean.FALSE;
