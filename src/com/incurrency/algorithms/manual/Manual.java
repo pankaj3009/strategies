@@ -140,6 +140,7 @@ public class Manual extends Strategy implements TradeListener {
     @Override
     public void tradeReceived(TradeEvent event) {
         int id = event.getSymbolID();
+        if(this.getStrategySymbols().contains(Integer.valueOf(id))){
         int position = this.getPosition().get(id).getPosition();
         double price = Parameters.symbol.get(id).getLastPrice();
         if (price >0) {
@@ -176,6 +177,7 @@ public class Manual extends Strategy implements TradeListener {
                 ord.setOrderReference(getStrategy());
                 exit(ord);
             }
+        }
         }
     }
 
@@ -380,8 +382,24 @@ public class Manual extends Strategy implements TradeListener {
         Type type = new TypeToken<OrderBean>() {
         }.getType();
         Gson gson = new GsonBuilder().create();
+        
         OrderBean ob = gson.fromJson((String) line, type);
         //fill default values if missing
+        
+        int symbolid = Utilities.getIDFromDisplayName(Parameters.symbol, ob.getParentDisplayName());
+        if (symbolid == -1 && (ob.getOrderSide().equals(EnumOrderSide.BUY) || ob.getOrderSide().equals(EnumOrderSide.SHORT))) {
+            //new symbol. insert symbol into database
+            insertSymbol(Parameters.symbol, ob.getParentDisplayName(), optionPricingUsingFutures);
+            symbolid = Utilities.getIDFromDisplayName(Parameters.symbol, ob.getParentDisplayName());
+        }
+        int referenceid = getUnderlyingReferenceID(symbolid);
+        if(ob.getLimitPrice()==0){
+        double limitPrice = Utilities.getLimitPriceForOrder(Parameters.symbol, symbolid, referenceid, ob.getOrderSide(), getTickSize(), ob.getOrderType());
+        ob.setLimitPrice(limitPrice);
+        }
+        if(ob.getOriginalOrderSize()==0){
+            ob.setOriginalOrderSize(ob.getStrategyOrderSize());
+        }
 
         return ob;
     }
