@@ -152,7 +152,7 @@ public class Yield extends Manual {
     }
 
     public boolean underlyingTradePriceExists(BeanSymbol s, int waitSeconds) {
-        int underlying = s.getUnderlyingID();
+        int underlying = s.getUnderlyingFutureID();
         if (underlying == -1) {
             return false;
         } else {
@@ -230,7 +230,7 @@ public class Yield extends Manual {
                 double futurePrice;
                 double indexPrice;
                 double strikePrice;
-                int underlyingid = Parameters.symbol.get(id).getUnderlyingID();
+                int underlyingid = Parameters.symbol.get(id).getUnderlyingFutureID();
                 if (Parameters.symbol.get(id).getCdte() > 0 && underlyingid >= 0) {
                     futurePrice = Parameters.symbol.get(underlyingid).getLastPrice();
                     //indexPrice = Parameters.symbol.get(indexid).getLastPrice();

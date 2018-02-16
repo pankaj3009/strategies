@@ -76,6 +76,7 @@ public class Manual extends Strategy implements TradeListener {
     public String wd;
     public Boolean scaleEntry = Boolean.FALSE;
     public Boolean scaleExit = Boolean.FALSE;
+    public Boolean useCashReferenceForSLTP=Boolean.FALSE;
     private final Object lockScan = new Object();
 
     public Manual(MainAlgorithm m, Properties p, String parameterFile, ArrayList<String> accounts, Boolean addTimers) {
@@ -140,44 +141,51 @@ public class Manual extends Strategy implements TradeListener {
     @Override
     public void tradeReceived(TradeEvent event) {
         int id = event.getSymbolID();
-        if(this.getStrategySymbols().contains(Integer.valueOf(id))){
-        int position = this.getPosition().get(id).getPosition();
-        double price = Parameters.symbol.get(id).getLastPrice();
-        if (price >0) {
-            int internalorderid = -1;
-            if (position > 0) {
-                internalorderid = EntryInternalOrderIDForSquareOff(id, "Order", getStrategy(), EnumOrderSide.SELL);
-            } else if (position < 0) {
-                internalorderid = EntryInternalOrderIDForSquareOff(id, "Order", getStrategy(), EnumOrderSide.COVER);
-            }
-            Boolean sltriggered = Boolean.FALSE;
-            Boolean tptriggered = Boolean.FALSE;
-            String key = "";
+        if (this.getStrategySymbols().contains(Integer.valueOf(id))) {
+            int position = this.getPosition().get(id).getPosition();
+            double price = Parameters.symbol.get(id).getLastPrice();
+            if (price > 0) {
+                int internalorderid = -1;
+                if (position > 0) {
+                    internalorderid = EntryInternalOrderIDForSquareOff(id, "Order", getStrategy(), EnumOrderSide.SELL);
+                } else if (position < 0) {
+                    internalorderid = EntryInternalOrderIDForSquareOff(id, "Order", getStrategy(), EnumOrderSide.COVER);
+                }
+                Boolean sltriggered = Boolean.FALSE;
+                Boolean tptriggered = Boolean.FALSE;
+                String key = "";
 
-            if (internalorderid > 0) {
-                key = "opentrades_" + getStrategy() + ":" + internalorderid + ":" + "Order";
-                double sl = Trade.getSL(getDb(), key);
-                double tp = Trade.getTP(getDb(), key);
-                sltriggered = (position > 0 && sl > price && sl > 0) || (position < 0 && sl < price & sl > 0) ? Boolean.TRUE : Boolean.FALSE;
-                tptriggered = (position > 0 && tp < price & tp > 0) || (position < 0 && tp > price && tp > 0) ? Boolean.TRUE : Boolean.FALSE;
+                if (internalorderid > 0) {
+                    key = "opentrades_" + getStrategy() + ":" + internalorderid + ":" + "Order";
+                    double sl = Trade.getSL(getDb(), key);
+                    double tp = Trade.getTP(getDb(), key);
+                    int referenceid = id;
+                    if (useCashReferenceForSLTP) {
+                        referenceid = Parameters.symbol.get(id).getUnderlyingCashID();
+                    }
+                    if (referenceid >= 0 & (sl > 0 || tp > 0)) {
+                        price = Parameters.symbol.get(referenceid).getLastPrice();
+                        sltriggered = (position > 0 && sl > price && sl > 0) || (position < 0 && sl < price & sl > 0) ? Boolean.TRUE : Boolean.FALSE;
+                        tptriggered = (position > 0 && tp < price & tp > 0) || (position < 0 && tp > price && tp > 0) ? Boolean.TRUE : Boolean.FALSE;
+                    }
+                }
+                if (sltriggered | tptriggered) {
+                    OrderBean ord = new OrderBean();
+                    ord.setParentDisplayName(Parameters.symbol.get(id).getDisplayname());
+                    ord.setChildDisplayName(Parameters.symbol.get(id).getDisplayname());
+                    ord.setOrderSide(position > 0 ? EnumOrderSide.SELL : EnumOrderSide.COVER);
+                    ord.setOrderReason(tptriggered ? EnumOrderReason.TP : EnumOrderReason.SL);
+                    ord.setOrderType(EnumOrderType.CUSTOMREL);
+                    ord.setOrderStage(EnumOrderStage.INIT);
+                    int size = Trade.getEntrySize(getDb(), key) - Trade.getExitSize(getDb(), key);
+                    ord.setStrategyOrderSize(size);
+                    int startingpos = Utilities.getNetPosition(Parameters.symbol, getPosition(), id, true);
+                    ord.setStrategyStartingPosition(Math.abs(startingpos));
+                    ord.setScale(scaleExit);
+                    ord.setOrderReference(getStrategy());
+                    exit(ord);
+                }
             }
-            if (sltriggered | tptriggered) {
-                OrderBean ord = new OrderBean();
-                ord.setParentDisplayName(Parameters.symbol.get(id).getDisplayname());
-                ord.setChildDisplayName(Parameters.symbol.get(id).getDisplayname());
-                ord.setOrderSide(position > 0 ? EnumOrderSide.SELL : EnumOrderSide.COVER);
-                ord.setOrderReason(tptriggered ? EnumOrderReason.TP : EnumOrderReason.SL);
-                ord.setOrderType(EnumOrderType.CUSTOMREL);
-                ord.setOrderStage(EnumOrderStage.INIT);
-                int size = Trade.getEntrySize(getDb(), key) - Trade.getExitSize(getDb(), key);
-                ord.setStrategyOrderSize(size);
-                int startingpos = Utilities.getNetPosition(Parameters.symbol, getPosition(), id, true);
-                ord.setStrategyStartingPosition(Math.abs(startingpos));
-                ord.setScale(scaleExit);
-                ord.setOrderReference(getStrategy());
-                exit(ord);
-            }
-        }
         }
     }
 
@@ -478,6 +486,7 @@ public class Manual extends Strategy implements TradeListener {
         dir = Paths.get(p.getProperty("dir", "").trim()).toAbsolutePath();
         orderSource = p.getProperty("OrderSource", "redis").trim();
         optionPricingUsingFutures = Boolean.valueOf(p.getProperty("OptionPricingUsingFutures", "TRUE"));
+        useCashReferenceForSLTP=Boolean.valueOf(p.getProperty("UseCashForSLTP","FALSE"));
         String entryScanTime = p.getProperty("ScanStartTime","").trim();
         Calendar calToday = Calendar.getInstance(TimeZone.getTimeZone(Algorithm.timeZone));
         String[] entryTimeComponents = entryScanTime.split(":");
