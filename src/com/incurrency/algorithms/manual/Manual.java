@@ -170,6 +170,7 @@ public class Manual extends Strategy implements TradeListener {
                     }
                 }
                 if (sltriggered | tptriggered) {
+                    if(Parameters.symbol.get(id).getBidPrice()>=Parameters.symbol.get(id).getLastPrice()*0.99 && Parameters.symbol.get(id).getAskPrice()<=Parameters.symbol.get(id).getLastPrice()*1.01 ){
                     OrderBean ord = new OrderBean();
                     ord.setParentDisplayName(Parameters.symbol.get(id).getDisplayname());
                     ord.setChildDisplayName(Parameters.symbol.get(id).getDisplayname());
@@ -184,6 +185,10 @@ public class Manual extends Strategy implements TradeListener {
                     ord.setScale(scaleExit);
                     ord.setOrderReference(getStrategy());
                     exit(ord);
+                    }else{
+                        logger.log(Level.SEVERE,"Symbol: {0}, BidPrice: {1}, AskPrice:{2}, LastPrice:{3}, Order Not sent for execution as the prices did not meet safety check",
+                                new Object[]{Parameters.symbol.get(id).getDisplayname(),Parameters.symbol.get(id).getBidPrice(),Parameters.symbol.get(id).getAskPrice(),Parameters.symbol.get(id).getLastPrice()});
+                    }
                 }
             }
         }
