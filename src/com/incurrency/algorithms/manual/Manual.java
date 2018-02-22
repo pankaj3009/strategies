@@ -165,8 +165,8 @@ public class Manual extends Strategy implements TradeListener {
                     }
                     if (referenceid >= 0 & (sl > 0 || tp > 0)) {
                         price = Parameters.symbol.get(referenceid).getLastPrice();
-                        sltriggered = (position > 0 && sl > price && sl > 0) || (position < 0 && sl < price & sl > 0) ? Boolean.TRUE : Boolean.FALSE;
-                        tptriggered = (position > 0 && tp < price & tp > 0) || (position < 0 && tp > price && tp > 0) ? Boolean.TRUE : Boolean.FALSE;
+                        sltriggered = price>0 && ((position > 0 && sl > price && sl > 0) || (position < 0 && sl < price & sl > 0)) ? Boolean.TRUE : Boolean.FALSE;
+                        tptriggered = price>0 && ((position > 0 && tp < price & tp > 0) || (position < 0 && tp > price && tp > 0)) ? Boolean.TRUE : Boolean.FALSE;
                     }
                 }
                 if (sltriggered | tptriggered) {
