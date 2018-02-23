@@ -350,6 +350,10 @@ public class Manual extends Strategy implements TradeListener {
                 insertSymbol(Parameters.symbol, order.getParentDisplayName(), optionPricingUsingFutures);
                 symbolid = Utilities.getIDFromDisplayName(Parameters.symbol, order.getParentDisplayName());
             }
+            if (symbolid == -1) {
+                logger.log(Level.SEVERE, "Unable to process order {0} as symbol could not be added to instrat", new Object[]{line});
+                return null;
+            }
             if (symbolid >= 0) { //only proceed if symbolid exists in our db
                 order.setStartingPosition(Utilities.getNetPosition(Parameters.symbol, getPosition(), symbolid, true));
                 initSymbol(symbolid, optionPricingUsingFutures);
@@ -404,6 +408,10 @@ public class Manual extends Strategy implements TradeListener {
             //new symbol. insert symbol into database
             insertSymbol(Parameters.symbol, ob.getParentDisplayName(), optionPricingUsingFutures);
             symbolid = Utilities.getIDFromDisplayName(Parameters.symbol, ob.getParentDisplayName());
+        }
+        if(symbolid==-1){
+            logger.log(Level.SEVERE,"Unable to process order {0} as symbol could not be added to instrat",new Object[]{line});
+            return null;
         }
         int referenceid = getUnderlyingReferenceID(symbolid);
         if(ob.getLimitPrice()==0){
