@@ -457,6 +457,7 @@ public class Manual extends Strategy implements TradeListener {
     public int placeOrder(OrderBean order) {
         int orderid = -1;
         if (order != null) {
+            if(order.getOriginalOrderSize()>0){
             if ((order.getOrderType() != EnumOrderType.MKT && order.getLimitPrice() > 0) || order.getOrderType().equals(EnumOrderType.MKT)) {
                 logger.log(Level.INFO, "501,Strategy {0},{1}", new Object[]{order.getOrderSide().toString(), getStrategy() + delimiter + order.getOrderSide().toString() + delimiter + order.getParentDisplayName()});
                 if (order.getOrderSide().equals(EnumOrderSide.BUY) || order.getOrderSide().equals(EnumOrderSide.SHORT)) {
@@ -464,6 +465,9 @@ public class Manual extends Strategy implements TradeListener {
                 } else {
                     orderid = exit(order);
                 }
+            }
+            }else{
+                logger.log(Level.INFO, "101,Order not placed as ordersize<=0, OrderSize:{0}",new Object[]{order.getOriginalOrderSize()});
             }
         } else {
             logger.log(Level.SEVERE, "101,Null Order Object Received");
