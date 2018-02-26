@@ -328,7 +328,7 @@ public class Manual extends Strategy implements TradeListener {
     }
 
     public OrderBean simpleOrderProcessor(String line) {
-        logger.log(Level.INFO, "101,Received trade", new Object[]{line});
+        logger.log(Level.INFO, "101,Received trade {0}", new Object[]{line});
         String[] tuple = line.split(":");
         if (tuple.length == 5) {
             //tuple as trades:strategy:symbol:tradesize:side:sl:initialsize
