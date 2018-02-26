@@ -180,6 +180,7 @@ public class Manual extends Strategy implements TradeListener {
                     ord.setOrderStage(EnumOrderStage.INIT);
                     int size = Trade.getEntrySize(getDb(), key) - Trade.getExitSize(getDb(), key);
                     ord.setStrategyOrderSize(size);
+                    ord.setOriginalOrderSize(size);
                     int startingpos = Utilities.getNetPosition(Parameters.symbol, getPosition(), id, true);
                     ord.setStrategyStartingPosition(Math.abs(startingpos));
                     ord.setScale(scaleExit);
