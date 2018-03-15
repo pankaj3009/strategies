@@ -187,7 +187,7 @@ public class Swing extends Manager implements TradeListener {
             }
             tradetuple = this.getDb().brpop("recontrades:" + this.getStrategy(), "", 1);
         }
-        for (String key : this.getDb().getKeys("opentrades_" + this.getStrategy())) {
+        for (String key : this.getDb().scanRedis("opentrades_" + this.getStrategy()+"*")) {
             ArrayList<Stop> tradestops = Trade.getStop(this.getDb(), key);
             String entrysymbol = this.getDb().getValue("opentrades", key, "entrysymbol");
             String actualSide = this.getDb().getValue("opentrades", key, "entryside");
