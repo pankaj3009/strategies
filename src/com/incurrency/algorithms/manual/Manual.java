@@ -369,7 +369,9 @@ public class Manual extends Strategy implements TradeListener {
                     HashMap<String, Object> tmpOrderAttributes = new HashMap<>();
                     referenceid = getUnderlyingReferenceID(symbolid);
                     limitPrice = Utilities.getLimitPriceForOrder(Parameters.symbol, symbolid, referenceid, order.getOrderSide(), getTickSize(), order.getOrderType());
-                    order.setLimitPrice(limitPrice);
+                    if(order.getOrderType().equals(EnumOrderType.CUSTOMREL)){
+                        order.setLimitPrice(limitPrice);
+                    }
                     order.setOrderStage(EnumOrderStage.INIT);
                     order.setOrderLog(order.getOrderSide().toString() + delimiter + tuple[2]);
                     tmpOrderAttributes.putAll(getOrderAttributes());
@@ -417,7 +419,9 @@ public class Manual extends Strategy implements TradeListener {
         int referenceid = getUnderlyingReferenceID(symbolid);
         if(ob.getLimitPrice()==0){
         double limitPrice = Utilities.getLimitPriceForOrder(Parameters.symbol, symbolid, referenceid, ob.getOrderSide(), getTickSize(), ob.getOrderType());
-        ob.setLimitPrice(limitPrice);
+        if(ob.getOrderType().equals(EnumOrderType.CUSTOMREL)){
+            ob.setLimitPrice(limitPrice);
+        }
         }
         if(ob.getOriginalOrderSize()==0){
             ob.setOriginalOrderSize(ob.getStrategyOrderSize());
