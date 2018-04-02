@@ -66,7 +66,7 @@ import redis.clients.jedis.JedisPoolConfig;
 public class Manual extends Strategy implements TradeListener {
 
     private static final Logger logger = Logger.getLogger(Manual.class.getName());
-    private static WatchService watcher = null;
+    private WatchService watcher = null;
     String orderSource;
     Path dir;
     public boolean optionPricingUsingFutures = true;
@@ -219,7 +219,6 @@ public class Manual extends Strategy implements TradeListener {
                     logger.log(Level.INFO, "102,Invoking R Strategy,{0}:{1}:{2}:{3}:{4},args={5}",
                             new Object[]{getStrategy(), "Order", "unknown", -1, -1, Arrays.toString(args)});
                     c.eval("source(\"" + RStrategyFile + "\")");
-
                 }
             } else {
                 logger.log(Level.INFO, "102, R Strategy File Not Specified, {0}:{1}:{2}:{3}:{4}",
@@ -252,7 +251,7 @@ public class Manual extends Strategy implements TradeListener {
                             filename = dir.resolve(filename);
                             BufferedReader bufferedReader;
                             if (!Files.isDirectory(filename)) {
-                                try (FileReader fileReader = new FileReader(filename.getFileName().toString())) {
+                                try (FileReader fileReader = new FileReader(filename.toString())) {
                                     String line = null;
                                     bufferedReader = new BufferedReader(fileReader);
                                     while ((line = bufferedReader.readLine()) != null) {
