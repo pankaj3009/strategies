@@ -225,6 +225,7 @@ public class Manual extends Strategy implements TradeListener {
                         new Object[]{getStrategy(), "Order", -1, -1, -1});
             }
         } catch (Exception e) {
+            logger.log(Level.SEVERE,"Exception triggered in Strategy: {0}",new Object[]{this.getStrategy()});
             logger.log(Level.SEVERE, null, e);
         }
     }
