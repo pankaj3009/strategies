@@ -316,6 +316,8 @@ public class Manual extends Strategy implements TradeListener {
                     }
                     if (order != null) {
                         placeOrder(order);
+                    }else{
+                        logger.log(Level.INFO,"Null order generated for order string: {0}",new Object[]{trade.get(1)});
                     }
                 }
             }
@@ -414,7 +416,7 @@ public class Manual extends Strategy implements TradeListener {
         int referenceid = getUnderlyingReferenceID(symbolid);
         if (ob.getLimitPrice() == 0) {
             double limitPrice = Utilities.getLimitPriceForOrder(Parameters.symbol, symbolid, referenceid, ob.getOrderSide(), getTickSize(), ob.getOrderType());
-            if (ob.getOrderType().equals(EnumOrderType.CUSTOMREL)) {
+            if (!ob.getOrderType().equals(EnumOrderType.MKT)) {
                 ob.setLimitPrice(limitPrice);
             }
         }
@@ -456,7 +458,10 @@ public class Manual extends Strategy implements TradeListener {
     public int placeOrder(OrderBean order) {
         int orderid = -1;
         if (order != null) {
-            if (order.getOriginalOrderSize() > 0) {
+                Gson gson = new Gson();
+               String json = gson.toJson(order);
+                logger.log(Level.INFO, "201,PlaceOrder Details,{0}:{1}:{2}:{3}:{4},Order={5}", new Object[]{getStrategy(), "Order", order.getParentDisplayName(), -1, -1, json});
+        if (order.getOriginalOrderSize() > 0) {
                 if ((order.getOrderType() != EnumOrderType.MKT && order.getLimitPrice() > 0) || order.getOrderType().equals(EnumOrderType.MKT)) {
                     logger.log(Level.INFO, "501,Strategy {0},{1}", new Object[]{order.getOrderSide().toString(), getStrategy() + delimiter + order.getOrderSide().toString() + delimiter + order.getParentDisplayName()});
                     if (order.getOrderSide().equals(EnumOrderSide.BUY) || order.getOrderSide().equals(EnumOrderSide.SHORT)) {
