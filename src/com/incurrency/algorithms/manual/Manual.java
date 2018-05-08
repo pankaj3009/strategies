@@ -457,7 +457,8 @@ public class Manual extends Strategy implements TradeListener {
 
     public int placeOrder(OrderBean order) {
         int orderid = -1;
-        if (order != null) {
+        try{
+            if (order != null) {
                 Gson gson = new Gson();
                String json = gson.toJson(order);
                 logger.log(Level.INFO, "201,PlaceOrder Details,{0}:{1}:{2}:{3}:{4},Order={5}", new Object[]{getStrategy(), "Order", order.getParentDisplayName(), -1, -1, json});
@@ -475,6 +476,9 @@ public class Manual extends Strategy implements TradeListener {
             }
         } else {
             logger.log(Level.SEVERE, "101,Null Order Object Received");
+        }
+        }catch(Exception e){
+            logger.log(Level.SEVERE,null,e);
         }
         return orderid;
     }
