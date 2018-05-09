@@ -413,6 +413,7 @@ public class Manual extends Strategy implements TradeListener {
             logger.log(Level.SEVERE, "Unable to process order {0} as symbol could not be added to instrat", new Object[]{line});
             return null;
         }
+        createPosition(symbolid);
         int referenceid = getUnderlyingReferenceID(symbolid);
         if (ob.getLimitPrice() == 0) {
             double limitPrice = Utilities.getLimitPriceForOrder(Parameters.symbol, symbolid, referenceid, ob.getOrderSide(), getTickSize(), ob.getOrderType());
