@@ -205,36 +205,63 @@ public class Manual extends Strategy implements TradeListener {
                             if (keyvalue.get("side").equals("BUY") | keyvalue.get("side").equals("SHORT")) {
                                 boolean placeOrder = false;
                                 if (keyvalue.get("condition").equals("BREACHBELOW")) {
-                                    if (Utilities.getDouble(keyvalue.get("conditionprice"), 0) > Parameters.symbol.get(id).getLastPrice()) {
-                                        placeOrder = true;
+                                    switch (keyvalue.get("barsize")) {
+                                        case "TICK":
+                                            if (Utilities.getDouble(keyvalue.get("conditionprice"), 0) > Parameters.symbol.get(id).getLastPrice()) {
+                                                placeOrder = true;
+                                            }
+                                            break;
+                                        default:
+                                            if (keyvalue.get("barsize") != null) {
+                                                String barsize = keyvalue.get("barsize").split("[a-z]")[0];
+                                                int min = Utilities.getInt(barsize, 0);
+                                                if (min > 0 & DateUtil.barChange(id, min) & Utilities.getDouble(keyvalue.get("conditionprice"), 0) > Parameters.symbol.get(id).getLastPrice()) {
+                                                    placeOrder = true;
+                                                }
+                                            }
+                                            break;
                                     }
+
                                 } else if (keyvalue.get("condition").equals("BREACHABOVE")) {
-                                    if (Utilities.getDouble(keyvalue.get("conditionprice"), Double.MAX_VALUE) < Parameters.symbol.get(id).getLastPrice()) {
-                                        placeOrder = true;
+                                    switch (keyvalue.get("barsize")) {
+                                        case "TICK":
+                                            if (Utilities.getDouble(keyvalue.get("conditionprice"), Double.MAX_VALUE) < Parameters.symbol.get(id).getLastPrice()) {
+                                                placeOrder = true;
+                                            }
+                                            break;
+                                        default:
+                                            if (keyvalue.get("barsize") != null) {
+                                                String barsize = keyvalue.get("barsize").split("[a-z]")[0];
+                                                int min = Utilities.getInt(barsize, 0);
+                                                if (min > 0 & DateUtil.barChange(id, min) & Utilities.getDouble(keyvalue.get("conditionprice"), Double.MAX_VALUE) < Parameters.symbol.get(id).getLastPrice()) {
+                                                    placeOrder = true;
+                                                }
+                                            }
+                                            break;
                                     }
-                                }
-                                if (placeOrder) {
-                                    if (keyvalue.get("ordersymbol") != null & keyvalue.get("ordersize") != null) {
-                                        int symbolid = Utilities.getIDFromDisplayName(Parameters.symbol, keyvalue.get("ordersymbol"));
-                                        int size = Utilities.getInt(keyvalue.get("ordersize"), 0);
-                                        if (symbolid >= 0 & size > 0) {
-                                            OrderBean ord = new OrderBean();
-                                            ord.setParentDisplayName(Parameters.symbol.get(symbolid).getDisplayname());
-                                            ord.setChildDisplayName(Parameters.symbol.get(symbolid).getDisplayname());
-                                            ord.setOrderSide(EnumOrderSide.valueOf(keyvalue.get("side")));
-                                            ord.setOrderReason(EnumOrderReason.REGULARENTRY);
-                                            ord.setOrderType(this.getOrdType());
-                                            ord.setLimitPrice(0);
-                                            ord.setOrderStage(EnumOrderStage.INIT);
-                                            ord.setStrategyOrderSize(size);
-                                            ord.setOriginalOrderSize(size);
-                                            int startingpos = Utilities.getNetPosition(Parameters.symbol, getPosition(), symbolid, true);
-                                            ord.setStrategyStartingPosition(Math.abs(startingpos));
-                                            ord.setScale(scaleEntry);
-                                            ord.setOrderReference(getStrategy());
-                                            this.getDb().setHash(s, "status", "INACTIVE");
-                                            createPosition(symbolid);
-                                            entry(ord);
+                                    if (placeOrder) {
+                                        if (keyvalue.get("ordersymbol") != null & keyvalue.get("ordersize") != null) {
+                                            int symbolid = Utilities.getIDFromDisplayName(Parameters.symbol, keyvalue.get("ordersymbol"));
+                                            int size = Utilities.getInt(keyvalue.get("ordersize"), 0);
+                                            if (symbolid >= 0 & size > 0) {
+                                                OrderBean ord = new OrderBean();
+                                                ord.setParentDisplayName(Parameters.symbol.get(symbolid).getDisplayname());
+                                                ord.setChildDisplayName(Parameters.symbol.get(symbolid).getDisplayname());
+                                                ord.setOrderSide(EnumOrderSide.valueOf(keyvalue.get("side")));
+                                                ord.setOrderReason(EnumOrderReason.REGULARENTRY);
+                                                ord.setOrderType(this.getOrdType());
+                                                ord.setLimitPrice(0);
+                                                ord.setOrderStage(EnumOrderStage.INIT);
+                                                ord.setStrategyOrderSize(size);
+                                                ord.setOriginalOrderSize(size);
+                                                int startingpos = Utilities.getNetPosition(Parameters.symbol, getPosition(), symbolid, true);
+                                                ord.setStrategyStartingPosition(Math.abs(startingpos));
+                                                ord.setScale(scaleEntry);
+                                                ord.setOrderReference(getStrategy());
+                                                this.getDb().setHash(s, "status", "INACTIVE");
+                                                createPosition(symbolid);
+                                                entry(ord);
+                                            }
                                         }
                                     }
                                 }
@@ -242,20 +269,19 @@ public class Manual extends Strategy implements TradeListener {
                         }
                     }
                 }
-
             } catch (Exception e) {
                 logger.log(Level.SEVERE, null, e);
             }
         }
     }
 
-    class RScript extends TimerTask {
+        class RScript extends TimerTask {
 
-        @Override
-        public void run() {
-            runRScript();
+            @Override
+            public void run() {
+                runRScript();
+            }
         }
-    }
 
     public void runRScript() {
         try {
