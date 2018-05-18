@@ -202,7 +202,7 @@ public class Manual extends Strategy implements TradeListener {
                 if (keyvalue.get("status").equals("ACTIVE")) {
                     if (keyvalue.get("starttime") == null | (keyvalue.get("starttime") != null & new Date().compareTo(DateUtil.getFormattedDate(keyvalue.get("starttime"), "yyyy-MM-dd HH:mm:ss", timeZone)) > 0)) {
                         if (keyvalue.get("endtime") == null | (keyvalue.get("endtime") != null & new Date().compareTo(DateUtil.getFormattedDate(keyvalue.get("endtime"), "yyyy-MM-dd HH:mm:ss", timeZone)) < 0)) {
-                            if (keyvalue.get("side").equals("BUY") | keyvalue.get("side").equals("SHORT")) {
+                            if (keyvalue.get("side").equals("BUY") | keyvalue.get("side").equals("SHORT") || keyvalue.get("side").equals("SELL") || keyvalue.get("side").equals("COVER")) {
                                 boolean placeOrder = false;
                                 if (keyvalue.get("condition").equals("BREACHBELOW")) {
                                     switch (keyvalue.get("barsize")) {
@@ -256,11 +256,16 @@ public class Manual extends Strategy implements TradeListener {
                                                 ord.setOriginalOrderSize(size);
                                                 int startingpos = Utilities.getNetPosition(Parameters.symbol, getPosition(), symbolid, true);
                                                 ord.setStrategyStartingPosition(Math.abs(startingpos));
-                                                ord.setScale(scaleEntry);
                                                 ord.setOrderReference(getStrategy());
                                                 this.getDb().setHash(s, "status", "INACTIVE");
-                                                createPosition(symbolid);
-                                                entry(ord);
+                                                if (ord.getOrderSide().equals(EnumOrderSide.BUY) | ord.getOrderSide().equals(EnumOrderSide.SHORT)) {
+                                                    ord.setScale(scaleEntry);
+                                                    createPosition(symbolid);
+                                                    entry(ord);
+                                                } else {
+                                                    ord.setScale(scaleExit);
+                                                    exit(ord);
+                                                }
                                             }
                                         }
                                     }
@@ -275,13 +280,13 @@ public class Manual extends Strategy implements TradeListener {
         }
     }
 
-        class RScript extends TimerTask {
+    class RScript extends TimerTask {
 
-            @Override
-            public void run() {
-                runRScript();
-            }
+        @Override
+        public void run() {
+            runRScript();
         }
+    }
 
     public void runRScript() {
         try {
