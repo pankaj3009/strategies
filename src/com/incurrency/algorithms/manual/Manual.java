@@ -94,8 +94,9 @@ public class Manual extends Strategy implements TradeListener {
                     if (watcher == null) {
                         watcher = dir.getFileSystem().newWatchService();
                         dir.register(watcher,
-                                ENTRY_CREATE,
-                                ENTRY_MODIFY);
+                                ENTRY_CREATE
+                                //,ENTRY_MODIFY
+                                );
                     }
                     Timer tradeReader = new Timer("Timer: " + getStrategy() + " ReadTradesFromFile");
                     tradeReader.schedule(new ReadTrades(), new Date());
