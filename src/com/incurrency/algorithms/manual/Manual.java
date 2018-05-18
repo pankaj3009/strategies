@@ -221,7 +221,6 @@ public class Manual extends Strategy implements TradeListener {
                                             }
                                             break;
                                     }
-
                                 } else if (keyvalue.get("condition").equals("BREACHABOVE")) {
                                     switch (keyvalue.get("barsize")) {
                                         case "TICK":
@@ -239,33 +238,37 @@ public class Manual extends Strategy implements TradeListener {
                                             }
                                             break;
                                     }
-                                    if (placeOrder) {
-                                        if (keyvalue.get("ordersymbol") != null & keyvalue.get("ordersize") != null) {
-                                            int symbolid = Utilities.getIDFromDisplayName(Parameters.symbol, keyvalue.get("ordersymbol"));
-                                            int size = Utilities.getInt(keyvalue.get("ordersize"), 0);
-                                            if (symbolid >= 0 & size > 0) {
-                                                OrderBean ord = new OrderBean();
-                                                ord.setParentDisplayName(Parameters.symbol.get(symbolid).getDisplayname());
-                                                ord.setChildDisplayName(Parameters.symbol.get(symbolid).getDisplayname());
-                                                ord.setOrderSide(EnumOrderSide.valueOf(keyvalue.get("side")));
-                                                ord.setOrderReason(EnumOrderReason.REGULARENTRY);
-                                                ord.setOrderType(this.getOrdType());
-                                                ord.setLimitPrice(0);
-                                                ord.setOrderStage(EnumOrderStage.INIT);
-                                                ord.setStrategyOrderSize(size);
-                                                ord.setOriginalOrderSize(size);
-                                                int startingpos = Utilities.getNetPosition(Parameters.symbol, getPosition(), symbolid, true);
-                                                ord.setStrategyStartingPosition(Math.abs(startingpos));
-                                                ord.setOrderReference(getStrategy());
-                                                this.getDb().setHash(s, "status", "INACTIVE");
-                                                if (ord.getOrderSide().equals(EnumOrderSide.BUY) | ord.getOrderSide().equals(EnumOrderSide.SHORT)) {
-                                                    ord.setScale(scaleEntry);
-                                                    createPosition(symbolid);
-                                                    entry(ord);
-                                                } else {
-                                                    ord.setScale(scaleExit);
-                                                    exit(ord);
-                                                }
+                                } else if (keyvalue.get("condition").equals("EFFECTIVEFROM")) {
+                                    if (keyvalue.get("starttime") != null & new Date().compareTo(DateUtil.getFormattedDate(keyvalue.get("starttime"), "yyyy-MM-dd HH:mm:ss", timeZone)) > 0) {
+                                        placeOrder = true;
+                                    }
+                                }
+                                if (placeOrder) {
+                                    if (keyvalue.get("ordersymbol") != null & keyvalue.get("ordersize") != null) {
+                                        int symbolid = Utilities.getIDFromDisplayName(Parameters.symbol, keyvalue.get("ordersymbol"));
+                                        int size = Utilities.getInt(keyvalue.get("ordersize"), 0);
+                                        if (symbolid >= 0 & size > 0) {
+                                            OrderBean ord = new OrderBean();
+                                            ord.setParentDisplayName(Parameters.symbol.get(symbolid).getDisplayname());
+                                            ord.setChildDisplayName(Parameters.symbol.get(symbolid).getDisplayname());
+                                            ord.setOrderSide(EnumOrderSide.valueOf(keyvalue.get("side")));
+                                            ord.setOrderReason(EnumOrderReason.REGULARENTRY);
+                                            ord.setOrderType(this.getOrdType());
+                                            ord.setLimitPrice(0);
+                                            ord.setOrderStage(EnumOrderStage.INIT);
+                                            ord.setStrategyOrderSize(size);
+                                            ord.setOriginalOrderSize(size);
+                                            int startingpos = Utilities.getNetPosition(Parameters.symbol, getPosition(), symbolid, true);
+                                            ord.setStrategyStartingPosition(Math.abs(startingpos));
+                                            ord.setOrderReference(getStrategy());
+                                            this.getDb().setHash(s, "status", "INACTIVE");
+                                            if (ord.getOrderSide().equals(EnumOrderSide.BUY) | ord.getOrderSide().equals(EnumOrderSide.SHORT)) {
+                                                ord.setScale(scaleEntry);
+                                                createPosition(symbolid);
+                                                entry(ord);
+                                            } else {
+                                                ord.setScale(scaleExit);
+                                                exit(ord);
                                             }
                                         }
                                     }
@@ -663,6 +666,5 @@ public class Manual extends Strategy implements TradeListener {
             expiry = expiryNearMonth;
         }
         return expiry;
-
     }
 }
