@@ -95,8 +95,8 @@ public class Manual extends Strategy implements TradeListener {
                         watcher = dir.getFileSystem().newWatchService();
                         dir.register(watcher,
                                 ENTRY_CREATE
-                                //,ENTRY_MODIFY
-                                );
+                        //,ENTRY_MODIFY
+                        );
                     }
                     Timer tradeReader = new Timer("Timer: " + getStrategy() + " ReadTradesFromFile");
                     tradeReader.schedule(new ReadTrades(), new Date());
@@ -178,7 +178,7 @@ public class Manual extends Strategy implements TradeListener {
                         ord.setOrderSide(position > 0 ? EnumOrderSide.SELL : EnumOrderSide.COVER);
                         ord.setOrderReason(tptriggered ? EnumOrderReason.TP : EnumOrderReason.SL);
                         ord.setOrderType(this.getOrdType());
-                        ord.setLimitPrice(tptriggered ? Trade.getTP(getDb(), key):Trade.getSL(getDb(), key));
+                        ord.setLimitPrice(tptriggered ? Trade.getTP(getDb(), key) : Trade.getSL(getDb(), key));
                         ord.setOrderStage(EnumOrderStage.INIT);
                         int size = Trade.getEntrySize(getDb(), key) - Trade.getExitSize(getDb(), key);
                         ord.setStrategyOrderSize(size);
@@ -194,44 +194,49 @@ public class Manual extends Strategy implements TradeListener {
                     }
                 }
             }
-        }        
-        List<String> potentialOrders=this.getDb().scanRedis("manual:"+Parameters.symbol.get(id)+"*");
+        }
+        List<String> potentialOrders = this.getDb().scanRedis("monitoring:" + this.getStrategy() + ":" + Parameters.symbol.get(id).getDisplayname() + "*");
         for (String s : potentialOrders) {
             ConcurrentHashMap<String, String> keyvalue = this.getDb().getValues("", s);
             try {
-                if (keyvalue.get("status").equals("active")) {
-                    if (keyvalue.get("side").equals("BUY") | keyvalue.get("side").equals("SHORT")) {
-                        boolean placeOrder = false;
-                        if (keyvalue.get("condition").equals("BREACHBELOW")) {
-                            if (Utilities.getDouble(keyvalue.get("conditionprice"), 0) > Parameters.symbol.get(id).getLastPrice()) {
-                                placeOrder = true;
-                            }
-                        } else if (keyvalue.get("condition").equals("BREACHABOVE")) {
-                            if (Utilities.getDouble(keyvalue.get("conditionprice"), Double.MAX_VALUE) < Parameters.symbol.get(id).getLastPrice()) {
-                                placeOrder = true;
-                            }
-                        }
-                        if (placeOrder) {
-                            if (keyvalue.get("ordersymbol") != null & keyvalue.get("ordersize") != null) {
-                                int symbolid = Utilities.getIDFromDisplayName(Parameters.symbol, keyvalue.get("ordersymbol"));
-                                int size = Utilities.getInt(keyvalue.get("ordersize"), 0);
-                                if (symbolid >= 0 & size > 0) {
-                                    OrderBean ord = new OrderBean();
-                                    ord.setParentDisplayName(Parameters.symbol.get(symbolid).getDisplayname());
-                                    ord.setChildDisplayName(Parameters.symbol.get(symbolid).getDisplayname());
-                                    ord.setOrderSide(EnumOrderSide.valueOf(keyvalue.get("side")));
-                                    ord.setOrderReason(EnumOrderReason.REGULARENTRY);
-                                    ord.setOrderType(this.getOrdType());
-                                    ord.setLimitPrice(0);
-                                    ord.setOrderStage(EnumOrderStage.INIT);
-                                    ord.setStrategyOrderSize(size);
-                                    ord.setOriginalOrderSize(size);
-                                    int startingpos = Utilities.getNetPosition(Parameters.symbol, getPosition(), symbolid, true);
-                                    ord.setStrategyStartingPosition(Math.abs(startingpos));
-                                    ord.setScale(scaleEntry);
-                                    ord.setOrderReference(getStrategy());
-                                    this.getDb().setHash(s, "status", "inactive");
-                                    entry(ord);
+                if (keyvalue.get("status").equals("ACTIVE")) {
+                    if (keyvalue.get("starttime") == null | (keyvalue.get("starttime") != null & new Date().compareTo(DateUtil.getFormattedDate(keyvalue.get("starttime"), "yyyy-MM-dd HH:mm:ss", timeZone)) > 0)) {
+                        if (keyvalue.get("endtime") == null | (keyvalue.get("endtime") != null & new Date().compareTo(DateUtil.getFormattedDate(keyvalue.get("endtime"), "yyyy-MM-dd HH:mm:ss", timeZone)) < 0)) {
+                            if (keyvalue.get("side").equals("BUY") | keyvalue.get("side").equals("SHORT")) {
+                                boolean placeOrder = false;
+                                if (keyvalue.get("condition").equals("BREACHBELOW")) {
+                                    if (Utilities.getDouble(keyvalue.get("conditionprice"), 0) > Parameters.symbol.get(id).getLastPrice()) {
+                                        placeOrder = true;
+                                    }
+                                } else if (keyvalue.get("condition").equals("BREACHABOVE")) {
+                                    if (Utilities.getDouble(keyvalue.get("conditionprice"), Double.MAX_VALUE) < Parameters.symbol.get(id).getLastPrice()) {
+                                        placeOrder = true;
+                                    }
+                                }
+                                if (placeOrder) {
+                                    if (keyvalue.get("ordersymbol") != null & keyvalue.get("ordersize") != null) {
+                                        int symbolid = Utilities.getIDFromDisplayName(Parameters.symbol, keyvalue.get("ordersymbol"));
+                                        int size = Utilities.getInt(keyvalue.get("ordersize"), 0);
+                                        if (symbolid >= 0 & size > 0) {
+                                            OrderBean ord = new OrderBean();
+                                            ord.setParentDisplayName(Parameters.symbol.get(symbolid).getDisplayname());
+                                            ord.setChildDisplayName(Parameters.symbol.get(symbolid).getDisplayname());
+                                            ord.setOrderSide(EnumOrderSide.valueOf(keyvalue.get("side")));
+                                            ord.setOrderReason(EnumOrderReason.REGULARENTRY);
+                                            ord.setOrderType(this.getOrdType());
+                                            ord.setLimitPrice(0);
+                                            ord.setOrderStage(EnumOrderStage.INIT);
+                                            ord.setStrategyOrderSize(size);
+                                            ord.setOriginalOrderSize(size);
+                                            int startingpos = Utilities.getNetPosition(Parameters.symbol, getPosition(), symbolid, true);
+                                            ord.setStrategyStartingPosition(Math.abs(startingpos));
+                                            ord.setScale(scaleEntry);
+                                            ord.setOrderReference(getStrategy());
+                                            this.getDb().setHash(s, "status", "INACTIVE");
+                                            createPosition(symbolid);
+                                            entry(ord);
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -242,8 +247,7 @@ public class Manual extends Strategy implements TradeListener {
                 logger.log(Level.SEVERE, null, e);
             }
         }
-    }   
-
+    }
 
     class RScript extends TimerTask {
 
@@ -276,7 +280,7 @@ public class Manual extends Strategy implements TradeListener {
                         new Object[]{getStrategy(), "Order", -1, -1, -1});
             }
         } catch (Exception e) {
-            logger.log(Level.SEVERE,"Exception triggered in Strategy: {0}",new Object[]{this.getStrategy()});
+            logger.log(Level.SEVERE, "Exception triggered in Strategy: {0}", new Object[]{this.getStrategy()});
             logger.log(Level.SEVERE, null, e);
         }
     }
@@ -366,8 +370,8 @@ public class Manual extends Strategy implements TradeListener {
                     }
                     if (order != null) {
                         placeOrder(order);
-                    }else{
-                        logger.log(Level.INFO,"Null order generated for order string: {0}",new Object[]{trade.get(1)});
+                    } else {
+                        logger.log(Level.INFO, "Null order generated for order string: {0}", new Object[]{trade.get(1)});
                     }
                 }
             }
@@ -508,28 +512,28 @@ public class Manual extends Strategy implements TradeListener {
 
     public int placeOrder(OrderBean order) {
         int orderid = -1;
-        try{
+        try {
             if (order != null) {
                 Gson gson = new Gson();
-               String json = gson.toJson(order);
+                String json = gson.toJson(order);
                 logger.log(Level.INFO, "201,PlaceOrder Details,{0}:{1}:{2}:{3}:{4},Order={5}", new Object[]{getStrategy(), "Order", order.getParentDisplayName(), -1, -1, json});
-        if (order.getOriginalOrderSize() > 0) {
-                if ((order.getOrderType() != EnumOrderType.MKT && order.getLimitPrice() > 0) || order.getOrderType().equals(EnumOrderType.MKT)) {
-                    logger.log(Level.INFO, "501,Strategy {0},{1}", new Object[]{order.getOrderSide().toString(), getStrategy() + delimiter + order.getOrderSide().toString() + delimiter + order.getParentDisplayName()});
-                    if (order.getOrderSide().equals(EnumOrderSide.BUY) || order.getOrderSide().equals(EnumOrderSide.SHORT)) {
-                        orderid = entry(order);
-                    } else {
-                        orderid = exit(order);
+                if (order.getOriginalOrderSize() > 0) {
+                    if ((order.getOrderType() != EnumOrderType.MKT && order.getLimitPrice() > 0) || order.getOrderType().equals(EnumOrderType.MKT)) {
+                        logger.log(Level.INFO, "501,Strategy {0},{1}", new Object[]{order.getOrderSide().toString(), getStrategy() + delimiter + order.getOrderSide().toString() + delimiter + order.getParentDisplayName()});
+                        if (order.getOrderSide().equals(EnumOrderSide.BUY) || order.getOrderSide().equals(EnumOrderSide.SHORT)) {
+                            orderid = entry(order);
+                        } else {
+                            orderid = exit(order);
+                        }
                     }
+                } else {
+                    logger.log(Level.INFO, "101,Order not placed as ordersize<=0, OrderSize:{0}", new Object[]{order.getOriginalOrderSize()});
                 }
             } else {
-                logger.log(Level.INFO, "101,Order not placed as ordersize<=0, OrderSize:{0}", new Object[]{order.getOriginalOrderSize()});
+                logger.log(Level.SEVERE, "101,Null Order Object Received");
             }
-        } else {
-            logger.log(Level.SEVERE, "101,Null Order Object Received");
-        }
-        }catch(Exception e){
-            logger.log(Level.SEVERE,null,e);
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, null, e);
         }
         return orderid;
     }
