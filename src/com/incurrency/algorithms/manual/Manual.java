@@ -53,6 +53,7 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.Rserve.RConnection;
 import redis.clients.jedis.Jedis;
@@ -192,8 +193,56 @@ public class Manual extends Strategy implements TradeListener {
                     }
                 }
             }
+        }        
+        List<String> potentialOrders=this.getDb().scanRedis("manual:"+Parameters.symbol.get(id)+"*");
+        for (String s : potentialOrders) {
+            ConcurrentHashMap<String, String> keyvalue = this.getDb().getValues("", s);
+            try {
+                if (keyvalue.get("status").equals("active")) {
+                    if (keyvalue.get("side").equals("BUY") | keyvalue.get("side").equals("SHORT")) {
+                        boolean placeOrder = false;
+                        if (keyvalue.get("condition").equals("BREACHBELOW")) {
+                            if (Utilities.getDouble(keyvalue.get("conditionprice"), 0) > Parameters.symbol.get(id).getLastPrice()) {
+                                placeOrder = true;
+                            }
+                        } else if (keyvalue.get("condition").equals("BREACHABOVE")) {
+                            if (Utilities.getDouble(keyvalue.get("conditionprice"), Double.MAX_VALUE) < Parameters.symbol.get(id).getLastPrice()) {
+                                placeOrder = true;
+                            }
+                        }
+                        if (placeOrder) {
+                            if (keyvalue.get("ordersymbol") != null & keyvalue.get("ordersize") != null) {
+                                int symbolid = Utilities.getIDFromDisplayName(Parameters.symbol, keyvalue.get("ordersymbol"));
+                                int size = Utilities.getInt(keyvalue.get("ordersize"), 0);
+                                if (symbolid >= 0 & size > 0) {
+                                    OrderBean ord = new OrderBean();
+                                    ord.setParentDisplayName(Parameters.symbol.get(symbolid).getDisplayname());
+                                    ord.setChildDisplayName(Parameters.symbol.get(symbolid).getDisplayname());
+                                    ord.setOrderSide(EnumOrderSide.valueOf(keyvalue.get("side")));
+                                    ord.setOrderReason(EnumOrderReason.REGULARENTRY);
+                                    ord.setOrderType(this.getOrdType());
+                                    ord.setLimitPrice(0);
+                                    ord.setOrderStage(EnumOrderStage.INIT);
+                                    ord.setStrategyOrderSize(size);
+                                    ord.setOriginalOrderSize(size);
+                                    int startingpos = Utilities.getNetPosition(Parameters.symbol, getPosition(), symbolid, true);
+                                    ord.setStrategyStartingPosition(Math.abs(startingpos));
+                                    ord.setScale(scaleEntry);
+                                    ord.setOrderReference(getStrategy());
+                                    this.getDb().setHash(s, "status", "inactive");
+                                    entry(ord);
+                                }
+                            }
+                        }
+                    }
+                }
+
+            } catch (Exception e) {
+                logger.log(Level.SEVERE, null, e);
+            }
         }
-    }
+    }   
+
 
     class RScript extends TimerTask {
 
