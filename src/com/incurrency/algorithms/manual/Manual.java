@@ -245,6 +245,7 @@ public class Manual extends Strategy implements TradeListener {
                                 }
                                 if (placeOrder) {
                                     if (keyvalue.get("ordersymbol") != null & keyvalue.get("ordersize") != null) {
+                                        insertSymbol(Parameters.symbol, keyvalue.get("ordersymbol"), optionPricingUsingFutures);
                                         int symbolid = Utilities.getIDFromDisplayName(Parameters.symbol, keyvalue.get("ordersymbol"));
                                         int size = Utilities.getInt(keyvalue.get("ordersize"), 0);
                                         if (symbolid >= 0 & size > 0) {
