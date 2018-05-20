@@ -52,6 +52,7 @@ import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import org.rosuda.REngine.REXP;
@@ -146,53 +147,56 @@ public class Manual extends Strategy implements TradeListener {
             int position = this.getPosition().get(id).getPosition();
             double price = Parameters.symbol.get(id).getLastPrice();
             if (price > 0) {
-                int internalorderid = -1;
+                HashSet<Integer> internalorderids = new HashSet<>();
                 if (position > 0) {
-                    internalorderid = EntryInternalOrderIDForSquareOff(id, "Order", getStrategy(), EnumOrderSide.SELL);
+                    internalorderids = EntryInternalOrderIDsForSquareOff(id, "Order", getStrategy(), EnumOrderSide.SELL);
                 } else if (position < 0) {
-                    internalorderid = EntryInternalOrderIDForSquareOff(id, "Order", getStrategy(), EnumOrderSide.COVER);
+                    internalorderids = EntryInternalOrderIDsForSquareOff(id, "Order", getStrategy(), EnumOrderSide.COVER);
                 }
-                Boolean sltriggered = Boolean.FALSE;
-                Boolean tptriggered = Boolean.FALSE;
-                String key = "";
+                for (int internalorderid : internalorderids) {
+                    Boolean sltriggered = Boolean.FALSE;
+                    Boolean tptriggered = Boolean.FALSE;
+                    String key = "";
+                    if (internalorderid > 0) {
+                        key = "opentrades_" + getStrategy() + ":" + internalorderid + ":" + "Order";
+                        double sl = Trade.getSL(getDb(), key);
+                        double tp = Trade.getTP(getDb(), key);
+                        int referenceid = id;
+                        if (useCashReferenceForSLTP) {
+                            referenceid = Parameters.symbol.get(id).getUnderlyingCashID();
+                        }
+                        if (referenceid >= 0 & (sl > 0 || tp > 0)) {
+                            price = Parameters.symbol.get(referenceid).getLastPrice();
+                            sltriggered = price > 0 && ((position > 0 && sl > price && sl > 0) || (position < 0 && sl < price & sl > 0)) ? Boolean.TRUE : Boolean.FALSE;
+                            tptriggered = price > 0 && ((position > 0 && tp < price & tp > 0) || (position < 0 && tp > price && tp > 0)) ? Boolean.TRUE : Boolean.FALSE;
+                        }
+                    }
+                    if (sltriggered | tptriggered) {
+                        if (Parameters.symbol.get(id).getBidPrice() >= Parameters.symbol.get(id).getLastPrice() * 0.99 && Parameters.symbol.get(id).getAskPrice() <= Parameters.symbol.get(id).getLastPrice() * 1.01) {
+                            OrderBean ord = new OrderBean();
+                            ord.setParentDisplayName(Parameters.symbol.get(id).getDisplayname());
+                            ord.setChildDisplayName(Parameters.symbol.get(id).getDisplayname());
+                            ord.setOrderSide(position > 0 ? EnumOrderSide.SELL : EnumOrderSide.COVER);
+                            ord.setOrderReason(tptriggered ? EnumOrderReason.TP : EnumOrderReason.SL);
+                            ord.setOrderType(this.getOrdType());
+                            ord.setLimitPrice(tptriggered ? Trade.getTP(getDb(), key) : Trade.getSL(getDb(), key));
+                            ord.setOrderStage(EnumOrderStage.INIT);
+                            int size = Trade.getEntrySize(getDb(), key) - Trade.getExitSize(getDb(), key);
+                            ord.setStrategyOrderSize(size);
+                            ord.setOriginalOrderSize(size);
+                            int startingpos = Utilities.getNetPosition(Parameters.symbol, getPosition(), id, true);
+                            ord.setStrategyStartingPosition(Math.abs(startingpos));
+                            ord.setScale(scaleExit);
+                            ord.setOrderReference(getStrategy());
+                            ord.setOrderKeyForSquareOff(key);
+                            exit(ord);
+                        } else {
+                            logger.log(Level.SEVERE, "Symbol: {0}, BidPrice: {1}, AskPrice:{2}, LastPrice:{3}, Order Not sent for execution as the prices did not meet safety check",
+                                    new Object[]{Parameters.symbol.get(id).getDisplayname(), Parameters.symbol.get(id).getBidPrice(), Parameters.symbol.get(id).getAskPrice(), Parameters.symbol.get(id).getLastPrice()});
+                        }
+                    }
+                }
 
-                if (internalorderid > 0) {
-                    key = "opentrades_" + getStrategy() + ":" + internalorderid + ":" + "Order";
-                    double sl = Trade.getSL(getDb(), key);
-                    double tp = Trade.getTP(getDb(), key);
-                    int referenceid = id;
-                    if (useCashReferenceForSLTP) {
-                        referenceid = Parameters.symbol.get(id).getUnderlyingCashID();
-                    }
-                    if (referenceid >= 0 & (sl > 0 || tp > 0)) {
-                        price = Parameters.symbol.get(referenceid).getLastPrice();
-                        sltriggered = price > 0 && ((position > 0 && sl > price && sl > 0) || (position < 0 && sl < price & sl > 0)) ? Boolean.TRUE : Boolean.FALSE;
-                        tptriggered = price > 0 && ((position > 0 && tp < price & tp > 0) || (position < 0 && tp > price && tp > 0)) ? Boolean.TRUE : Boolean.FALSE;
-                    }
-                }
-                if (sltriggered | tptriggered) {
-                    if (Parameters.symbol.get(id).getBidPrice() >= Parameters.symbol.get(id).getLastPrice() * 0.99 && Parameters.symbol.get(id).getAskPrice() <= Parameters.symbol.get(id).getLastPrice() * 1.01) {
-                        OrderBean ord = new OrderBean();
-                        ord.setParentDisplayName(Parameters.symbol.get(id).getDisplayname());
-                        ord.setChildDisplayName(Parameters.symbol.get(id).getDisplayname());
-                        ord.setOrderSide(position > 0 ? EnumOrderSide.SELL : EnumOrderSide.COVER);
-                        ord.setOrderReason(tptriggered ? EnumOrderReason.TP : EnumOrderReason.SL);
-                        ord.setOrderType(this.getOrdType());
-                        ord.setLimitPrice(tptriggered ? Trade.getTP(getDb(), key) : Trade.getSL(getDb(), key));
-                        ord.setOrderStage(EnumOrderStage.INIT);
-                        int size = Trade.getEntrySize(getDb(), key) - Trade.getExitSize(getDb(), key);
-                        ord.setStrategyOrderSize(size);
-                        ord.setOriginalOrderSize(size);
-                        int startingpos = Utilities.getNetPosition(Parameters.symbol, getPosition(), id, true);
-                        ord.setStrategyStartingPosition(Math.abs(startingpos));
-                        ord.setScale(scaleExit);
-                        ord.setOrderReference(getStrategy());
-                        exit(ord);
-                    } else {
-                        logger.log(Level.SEVERE, "Symbol: {0}, BidPrice: {1}, AskPrice:{2}, LastPrice:{3}, Order Not sent for execution as the prices did not meet safety check",
-                                new Object[]{Parameters.symbol.get(id).getDisplayname(), Parameters.symbol.get(id).getBidPrice(), Parameters.symbol.get(id).getAskPrice(), Parameters.symbol.get(id).getLastPrice()});
-                    }
-                }
             }
         }
         List<String> potentialOrders = this.getDb().scanRedis("monitoring:" + this.getStrategy() + ":" + Parameters.symbol.get(id).getDisplayname() + "*");
