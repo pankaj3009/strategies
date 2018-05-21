@@ -211,9 +211,11 @@ public class Manual extends Strategy implements TradeListener {
                             if (keyvalue.get("side").equals("BUY") | keyvalue.get("side").equals("SHORT") || keyvalue.get("side").equals("SELL") || keyvalue.get("side").equals("COVER")) {
                                 boolean placeOrder = false;
                                 if (keyvalue.get("condition").equals("BREACHBELOW")) {
+                                    double conditionprice=Utilities.getDouble(keyvalue.get("conditionprice"), 0);
+                                    double slippage=Utilities.getDouble(keyvalue.get("maxpercentslippage"), Double.MAX_VALUE);
                                     switch (keyvalue.get("barsize")) {
                                         case "TICK":
-                                            if (Utilities.getDouble(keyvalue.get("conditionprice"), 0) > Parameters.symbol.get(id).getLastPrice()) {
+                                            if (conditionprice > Parameters.symbol.get(id).getLastPrice() && Math.abs(Parameters.symbol.get(id).getLastPrice()-conditionprice)*100/conditionprice<slippage) {
                                                 placeOrder = true;
                                             }
                                             break;
@@ -222,16 +224,18 @@ public class Manual extends Strategy implements TradeListener {
                                                 //logger.log(Level.INFO,"{0},{1}",new Object[]{this.getStrategy(),event.getTickType()});
                                                 String barsize = keyvalue.get("barsize").split("[^A-Z0-9]+|(?<=[A-Z])(?=[0-9])|(?<=[0-9])(?=[A-Z])")[0];
                                                 int min = Utilities.getInt(barsize, 0);
-                                                if (min > 0 & DateUtil.barChange(id, min) & Utilities.getDouble(keyvalue.get("conditionprice"), 0) > Parameters.symbol.get(id).getLastPrice()) {
+                                                if (min > 0 && DateUtil.barChange(id, min) && conditionprice > Parameters.symbol.get(id).getLastPrice() && Math.abs(Parameters.symbol.get(id).getLastPrice()-conditionprice)*100/conditionprice<slippage) {
                                                     placeOrder = true;
                                                 }
                                             }
                                             break;
                                     }
                                 } else if (keyvalue.get("condition").equals("BREACHABOVE")) {
+                                    double conditionprice=Utilities.getDouble(keyvalue.get("conditionprice"), Double.MAX_VALUE);
+                                    double slippage=Utilities.getDouble(keyvalue.get("maxpercentslippage"), Double.MAX_VALUE);
                                     switch (keyvalue.get("barsize")) {
                                         case "TICK":
-                                            if (Utilities.getDouble(keyvalue.get("conditionprice"), Double.MAX_VALUE) < Parameters.symbol.get(id).getLastPrice()) {
+                                            if (conditionprice < Parameters.symbol.get(id).getLastPrice() && Math.abs(Parameters.symbol.get(id).getLastPrice()-conditionprice)*100/conditionprice<slippage) {
                                                 placeOrder = true;
                                             }
                                             break;
@@ -239,7 +243,7 @@ public class Manual extends Strategy implements TradeListener {
                                             if (keyvalue.get("barsize") != null) {
                                                 String barsize = keyvalue.get("barsize").split("[a-z]")[0];
                                                 int min = Utilities.getInt(barsize, 0);
-                                                if (min > 0 & DateUtil.barChange(id, min) & Utilities.getDouble(keyvalue.get("conditionprice"), Double.MAX_VALUE) < Parameters.symbol.get(id).getLastPrice()) {
+                                                if (min > 0 && DateUtil.barChange(id, min) && conditionprice < Parameters.symbol.get(id).getLastPrice() && Math.abs(Parameters.symbol.get(id).getLastPrice()-conditionprice)*100/conditionprice<slippage) {
                                                     placeOrder = true;
                                                 }
                                             }
