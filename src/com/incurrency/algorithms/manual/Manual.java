@@ -43,6 +43,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.ib.client.TickType;
 import com.incurrency.RatesClient.RedisSubscribe;
 import com.incurrency.framework.Trade;
 import com.incurrency.framework.TradeEvent;
@@ -142,6 +143,7 @@ public class Manual extends Strategy implements TradeListener {
 
     @Override
     public void tradeReceived(TradeEvent event) {
+        if(event.getTickType()==TickType.LAST){
         int id = event.getSymbolID();
         if (this.getStrategySymbols().contains(Integer.valueOf(id))) {
             int position = this.getPosition().get(id).getPosition();
@@ -217,6 +219,7 @@ public class Manual extends Strategy implements TradeListener {
                                             break;
                                         default:
                                             if (keyvalue.get("barsize") != null) {
+                                                //logger.log(Level.INFO,"{0},{1}",new Object[]{this.getStrategy(),event.getTickType()});
                                                 String barsize = keyvalue.get("barsize").split("[^A-Z0-9]+|(?<=[A-Z])(?=[0-9])|(?<=[0-9])(?=[A-Z])")[0];
                                                 int min = Utilities.getInt(barsize, 0);
                                                 if (min > 0 & DateUtil.barChange(id, min) & Utilities.getDouble(keyvalue.get("conditionprice"), 0) > Parameters.symbol.get(id).getLastPrice()) {
@@ -285,6 +288,7 @@ public class Manual extends Strategy implements TradeListener {
             } catch (Exception e) {
                 logger.log(Level.SEVERE, null, e);
             }
+        }
         }
     }
 
