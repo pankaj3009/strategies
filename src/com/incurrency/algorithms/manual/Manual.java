@@ -241,7 +241,7 @@ public class Manual extends Strategy implements TradeListener {
                                             break;
                                         default:
                                             if (keyvalue.get("barsize") != null) {
-                                                String barsize = keyvalue.get("barsize").split("[a-z]")[0];
+                                                String barsize = keyvalue.get("barsize").split("[^A-Z0-9]+|(?<=[A-Z])(?=[0-9])|(?<=[0-9])(?=[A-Z])")[0];
                                                 int min = Utilities.getInt(barsize, 0);
                                                 if (min > 0 && DateUtil.barChange(id, min) && conditionprice < Parameters.symbol.get(id).getLastPrice() && Math.abs(Parameters.symbol.get(id).getLastPrice()-conditionprice)*100/conditionprice<slippage) {
                                                     placeOrder = true;
