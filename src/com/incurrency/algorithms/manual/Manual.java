@@ -216,6 +216,7 @@ public class Manual extends Strategy implements TradeListener {
                                     switch (keyvalue.get("barsize")) {
                                         case "TICK":
                                             if (conditionprice > Parameters.symbol.get(id).getLastPrice() && Math.abs(Parameters.symbol.get(id).getLastPrice()-conditionprice)*100/conditionprice<slippage) {
+                                                logger.log(Level.INFO,"201,Order Generated from monitor Key={0},barsize={1},Side={2}",new Object[]{s,keyvalue.get("barsize"),keyvalue.get("side")});
                                                 placeOrder = true;
                                             }
                                             break;
@@ -225,6 +226,7 @@ public class Manual extends Strategy implements TradeListener {
                                                 String barsize = keyvalue.get("barsize").split("[^A-Z0-9]+|(?<=[A-Z])(?=[0-9])|(?<=[0-9])(?=[A-Z])")[0];
                                                 int min = Utilities.getInt(barsize, 0);
                                                 if (min > 0 && DateUtil.barChange(id, min) && conditionprice > Parameters.symbol.get(id).getLastPrice() && Math.abs(Parameters.symbol.get(id).getLastPrice()-conditionprice)*100/conditionprice<slippage) {
+                                                logger.log(Level.INFO,"201,Order Generated from monitor Key={0},barsize={1},Side={2}",new Object[]{s,keyvalue.get("barsize"),keyvalue.get("side")});
                                                     placeOrder = true;
                                                 }
                                             }
@@ -236,6 +238,7 @@ public class Manual extends Strategy implements TradeListener {
                                     switch (keyvalue.get("barsize")) {
                                         case "TICK":
                                             if (conditionprice < Parameters.symbol.get(id).getLastPrice() && Math.abs(Parameters.symbol.get(id).getLastPrice()-conditionprice)*100/conditionprice<slippage) {
+                                                logger.log(Level.INFO,"201,Order Generated from monitor Key={0},barsize={1},Side={2}",new Object[]{s,keyvalue.get("barsize"),keyvalue.get("side")});
                                                 placeOrder = true;
                                             }
                                             break;
@@ -244,6 +247,7 @@ public class Manual extends Strategy implements TradeListener {
                                                 String barsize = keyvalue.get("barsize").split("[^A-Z0-9]+|(?<=[A-Z])(?=[0-9])|(?<=[0-9])(?=[A-Z])")[0];
                                                 int min = Utilities.getInt(barsize, 0);
                                                 if (min > 0 && DateUtil.barChange(id, min) && conditionprice < Parameters.symbol.get(id).getLastPrice() && Math.abs(Parameters.symbol.get(id).getLastPrice()-conditionprice)*100/conditionprice<slippage) {
+                                                logger.log(Level.INFO,"201,Order Generated from monitor Key={0},barsize={1},Side={2}",new Object[]{s,keyvalue.get("barsize"),keyvalue.get("side")});
                                                     placeOrder = true;
                                                 }
                                             }
@@ -251,6 +255,7 @@ public class Manual extends Strategy implements TradeListener {
                                     }
                                 } else if (keyvalue.get("condition").equals("EFFECTIVEFROM")) {
                                     if (keyvalue.get("starttime") != null & new Date().compareTo(DateUtil.getFormattedDate(keyvalue.get("starttime"), "yyyy-MM-dd HH:mm:ss", timeZone)) > 0) {
+                                       logger.log(Level.INFO,"201,Order Generated from monitor Key={0},barsize={1},Side={2}",new Object[]{s,keyvalue.get("barsize"),keyvalue.get("side")});
                                         placeOrder = true;
                                     }
                                 }
@@ -273,6 +278,7 @@ public class Manual extends Strategy implements TradeListener {
                                             int startingpos = Utilities.getNetPosition(Parameters.symbol, getPosition(), symbolid, true);
                                             ord.setStrategyStartingPosition(Math.abs(startingpos));
                                             ord.setOrderReference(getStrategy());
+                                            logger.log(Level.INFO,"201,Setting monitor as inactive Key={0},barsize={1},Side={2}",new Object[]{s,keyvalue.get("barsize"),keyvalue.get("side")});
                                             this.getDb().setHash(s, "status", "INACTIVE");
                                             if (ord.getOrderSide().equals(EnumOrderSide.BUY) | ord.getOrderSide().equals(EnumOrderSide.SHORT)) {
                                                 ord.setScale(scaleEntry);
