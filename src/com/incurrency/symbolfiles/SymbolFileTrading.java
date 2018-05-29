@@ -58,7 +58,7 @@ public class SymbolFileTrading {
 
     public void swing() {
         try {
-            String strategyString="VALUE01:VALUE02:VALUE03:VALUE04:VALUE05:MANUAL01:YIELD03:YIELD04";
+            String strategyString="VALUE01:VALUE02:VALUE03:VALUE04:VALUE05:MANUAL01:INDEXID01:STOCKID01:YIELD03:YIELD04";
             ArrayList<BeanSymbol> out = new ArrayList<>();
             String expiry = Utilities.getLastThursday(currentDay, "yyyyMMdd", 0);
             BeanSymbol s = new BeanSymbol("NIFTY50", "NSENIFTY", "IND", "", "", "");
