@@ -208,7 +208,7 @@ public class Manual extends Strategy implements TradeListener {
                 if (keyvalue.get("status").equals("ACTIVE")) {
                     if (keyvalue.get("starttime") == null | (keyvalue.get("starttime") != null & new Date().compareTo(DateUtil.getFormattedDate(keyvalue.get("starttime"), "yyyy-MM-dd HH:mm:ss", timeZone)) > 0)) {
                         if (keyvalue.get("endtime") == null | (keyvalue.get("endtime") != null & new Date().compareTo(DateUtil.getFormattedDate(keyvalue.get("endtime"), "yyyy-MM-dd HH:mm:ss", timeZone)) < 0)) {
-                            if (keyvalue.get("side").equals("BUY") | keyvalue.get("side").equals("SHORT") || keyvalue.get("side").equals("SELL") || keyvalue.get("side").equals("COVER")) {
+                            if (keyvalue.get("side").equals("BUY") || keyvalue.get("side").equals("SHORT") || keyvalue.get("side").equals("SELL") || keyvalue.get("side").equals("COVER")||keyvalue.get("side").equals("CLOSEALL")) {
                                 boolean placeOrder = false;
                                 if (keyvalue.get("condition").equals("BREACHBELOW")) {
                                     double conditionprice=Utilities.getDouble(keyvalue.get("conditionprice"), 0);
@@ -268,8 +268,19 @@ public class Manual extends Strategy implements TradeListener {
                                             OrderBean ord = new OrderBean();
                                             ord.setParentDisplayName(Parameters.symbol.get(symbolid).getDisplayname());
                                             ord.setChildDisplayName(Parameters.symbol.get(symbolid).getDisplayname());
-                                            ord.setOrderSide(EnumOrderSide.valueOf(keyvalue.get("side")));
-                                            ord.setOrderReason(EnumOrderReason.REGULARENTRY);
+                                            if (keyvalue.get("side").equals("CLOSEALL")) {
+                                                EnumOrderSide side = EnumOrderSide.UNDEFINED;
+                                                if (this.getPosition().get(symbolid).getPosition() > 0) {
+                                                    side = EnumOrderSide.SELL;
+                                                } else if (this.getPosition().get(symbolid).getPosition() < 0) {
+                                                    side = EnumOrderSide.COVER;
+                                                }
+                                                if(!side.equals(EnumOrderSide.UNDEFINED)){
+                                                    ord.setOrderSide(side);
+                                                }                                                
+                                            }else{
+                                                ord.setOrderSide(EnumOrderSide.valueOf(keyvalue.get("side")));
+                                            }
                                             ord.setOrderType(EnumOrderType.valueOf(keyvalue.get("ordertype")));
                                             ord.setLimitPrice(0);
                                             ord.setOrderStage(EnumOrderStage.INIT);
@@ -283,9 +294,11 @@ public class Manual extends Strategy implements TradeListener {
                                             if (ord.getOrderSide().equals(EnumOrderSide.BUY) | ord.getOrderSide().equals(EnumOrderSide.SHORT)) {
                                                 ord.setScale(scaleEntry);
                                                 createPosition(symbolid);
+                                                ord.setOrderReason(EnumOrderReason.REGULARENTRY);
                                                 entry(ord);
                                             } else {
                                                 ord.setScale(scaleExit);
+                                                ord.setOrderReason(EnumOrderReason.REGULAREXIT);
                                                 exit(ord);
                                             }
                                         }
