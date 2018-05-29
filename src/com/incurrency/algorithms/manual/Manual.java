@@ -231,6 +231,10 @@ public class Manual extends Strategy implements TradeListener {
                                                 if (min > 0 && DateUtil.barChange(id, min) && conditionprice > Parameters.symbol.get(id).getLastPrice() && Math.abs(Parameters.symbol.get(id).getLastPrice()-conditionprice)*100/conditionprice<slippage) {
                                                 logger.log(Level.INFO,"201,Order Generated from monitor Key={0},barsize={1},Side={2}",new Object[]{s,keyvalue.get("barsize"),keyvalue.get("side")});
                                                     placeOrder = true;
+                                                }else if(min > 0 && DateUtil.barChange(id, min) && conditionprice > Parameters.symbol.get(id).getLastPrice() && Math.abs(Parameters.symbol.get(id).getLastPrice()-conditionprice)*100/conditionprice>slippage){
+                                                    logger.log(Level.INFO,"201,Monitor did not generate order as exceeding slippage. Key={0},barsize={1},Side={2},AllowedSlippage={3},CalculatedSlippage={4},LastPrice={5}",new Object[]{s,keyvalue.get("barsize"),keyvalue.get("side"),slippage,
+                                                Math.abs(Parameters.symbol.get(id).getLastPrice()-conditionprice)*100/conditionprice,Parameters.symbol.get(id).getLastPrice()});
+
                                                 }
                                             }
                                             break;
@@ -255,6 +259,9 @@ public class Manual extends Strategy implements TradeListener {
                                                 if (min > 0 && DateUtil.barChange(id, min) && conditionprice < Parameters.symbol.get(id).getLastPrice() && Math.abs(Parameters.symbol.get(id).getLastPrice()-conditionprice)*100/conditionprice<slippage) {
                                                 logger.log(Level.INFO,"201,Order Generated from monitor Key={0},barsize={1},Side={2}",new Object[]{s,keyvalue.get("barsize"),keyvalue.get("side")});
                                                     placeOrder = true;
+                                                }else if(min > 0 && DateUtil.barChange(id, min) && conditionprice < Parameters.symbol.get(id).getLastPrice() && Math.abs(Parameters.symbol.get(id).getLastPrice()-conditionprice)*100/conditionprice>slippage){
+                                               logger.log(Level.INFO,"201,Monitor did not generate order as exceeding slippage. Key={0},barsize={1},Side={2},AllowedSlippage={3},CalculatedSlippage={4},LastPrice={5}",new Object[]{s,keyvalue.get("barsize"),keyvalue.get("side"),slippage,
+                                                Math.abs(Parameters.symbol.get(id).getLastPrice()-conditionprice)*100/conditionprice,Parameters.symbol.get(id).getLastPrice()});                                                    
                                                 }
                                             }
                                             break;
