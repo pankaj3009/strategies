@@ -415,8 +415,9 @@ public class Launch extends javax.swing.JFrame {
             }
         }
         algo.postInit();
+        MainAlgorithm.strategiesLoaded.set(true);
         }else{
-            logger.log(Level.SEVERE,"Algorithm could not be initialized.");
+            logger.log(Level.SEVERE,"100,Algorithm could not be initialized");
         }
         }
 

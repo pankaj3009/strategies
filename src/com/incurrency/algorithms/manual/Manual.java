@@ -97,7 +97,7 @@ public class Manual extends Strategy implements TradeListener {
                         watcher = dir.getFileSystem().newWatchService();
                         dir.register(watcher,
                                 ENTRY_CREATE
-                        //,ENTRY_MODIFY
+                                ,ENTRY_MODIFY
                         );
                     }
                     Timer tradeReader = new Timer("Timer: " + getStrategy() + " ReadTradesFromFile");
@@ -526,7 +526,7 @@ public class Manual extends Strategy implements TradeListener {
     }
 
     public OrderBean jsonOrderProcessor(String line) {
-        logger.log(Level.INFO, "101,Received trade {0}", new Object[]{line});
+        logger.log(Level.INFO, "501,Received trade request,{0}", new Object[]{line});
         Thread t = new Thread(new Mail(getIamail(), "Received Trade: " + line + " for strategy " + getStrategy(), "Received Order from [R]"));
         t.start();
         Type type = new TypeToken<OrderBean>() {
