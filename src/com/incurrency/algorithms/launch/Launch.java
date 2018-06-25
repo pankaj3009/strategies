@@ -408,7 +408,7 @@ public class Launch extends javax.swing.JFrame {
                     String className = "com.incurrency.algorithms." + key + "." + key.substring(0, 1).toUpperCase() + key.substring(1);
                     Class.forName(className);
                     algo.registerStrategy(className);
-                    logger.log(Level.INFO, "100, Completed loading StrategyFamily,, StrategyFamily={0}", new Object[]{key});
+                    logger.log(Level.INFO, "100,Completed loading StrategyFamily,, StrategyFamily={0}", new Object[]{key});
                 } catch (ClassNotFoundException e) {
                     logger.log(Level.SEVERE, "Class not found: {0}", new Object[]{"com.incurrency." + key + "." + key.substring(0, 1).toUpperCase() + key.substring(1)});
                 }
