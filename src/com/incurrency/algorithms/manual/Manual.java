@@ -96,8 +96,8 @@ public class Manual extends Strategy implements TradeListener {
                     if (watcher == null) {
                         watcher = dir.getFileSystem().newWatchService();
                         dir.register(watcher,
-                                ENTRY_CREATE
-                                ,ENTRY_MODIFY
+                                ENTRY_CREATE,
+                                 ENTRY_MODIFY
                         );
                     }
                     Timer tradeReader = new Timer("Timer: " + getStrategy() + " ReadTradesFromFile");
@@ -143,176 +143,177 @@ public class Manual extends Strategy implements TradeListener {
 
     @Override
     public void tradeReceived(TradeEvent event) {
-        if(event.getTickType()==TickType.LAST){
-        int id = event.getSymbolID();
-        if (this.getStrategySymbols().contains(Integer.valueOf(id))) {
-            int position = this.getPosition().get(id).getPosition();
-            double price = Parameters.symbol.get(id).getLastPrice();
-            if (price > 0) {
-                HashSet<Integer> internalorderids = new HashSet<>();
-                if (position > 0) {
-                    internalorderids = EntryInternalOrderIDsForSquareOff(id, "Order", getStrategy(), EnumOrderSide.SELL);
-                } else if (position < 0) {
-                    internalorderids = EntryInternalOrderIDsForSquareOff(id, "Order", getStrategy(), EnumOrderSide.COVER);
-                }
-                for (int internalorderid : internalorderids) {
-                    Boolean sltriggered = Boolean.FALSE;
-                    Boolean tptriggered = Boolean.FALSE;
-                    String key = "";
-                    if (internalorderid > 0) {
-                        key = "opentrades_" + getStrategy() + ":" + internalorderid + ":" + "Order";
-                        double sl = Trade.getSL(getDb(), key);
-                        double tp = Trade.getTP(getDb(), key);
-                        int referenceid = id;
-                        if (useCashReferenceForSLTP) {
-                            referenceid = Parameters.symbol.get(id).getUnderlyingCashID();
+        if (event.getTickType() == TickType.LAST) {
+            int id = event.getSymbolID();
+            if (this.getStrategySymbols().contains(Integer.valueOf(id))) {
+                int position = this.getPosition().get(id).getPosition();
+                double price = Parameters.symbol.get(id).getLastPrice();
+                if (price > 0) {
+                    HashSet<Integer> internalorderids = new HashSet<>();
+                    if (position > 0) {
+                        internalorderids = EntryInternalOrderIDsForSquareOff(id, "Order", getStrategy(), EnumOrderSide.SELL);
+                    } else if (position < 0) {
+                        internalorderids = EntryInternalOrderIDsForSquareOff(id, "Order", getStrategy(), EnumOrderSide.COVER);
+                    }
+                    for (int internalorderid : internalorderids) {
+                        Boolean sltriggered = Boolean.FALSE;
+                        Boolean tptriggered = Boolean.FALSE;
+                        String key = "";
+                        if (internalorderid > 0) {
+                            key = "opentrades_" + getStrategy() + ":" + internalorderid + ":" + "Order";
+                            double sl = Trade.getSL(getDb(), key);
+                            double tp = Trade.getTP(getDb(), key);
+                            int referenceid = id;
+                            if (useCashReferenceForSLTP) {
+                                referenceid = Parameters.symbol.get(id).getUnderlyingCashID();
+                            }
+                            if (referenceid >= 0 & (sl > 0 || tp > 0)) {
+                                price = Parameters.symbol.get(referenceid).getLastPrice();
+                                sltriggered = price > 0 && ((position > 0 && sl > price && sl > 0) || (position < 0 && sl < price & sl > 0)) ? Boolean.TRUE : Boolean.FALSE;
+                                tptriggered = price > 0 && ((position > 0 && tp < price & tp > 0) || (position < 0 && tp > price && tp > 0)) ? Boolean.TRUE : Boolean.FALSE;
+                            }
                         }
-                        if (referenceid >= 0 & (sl > 0 || tp > 0)) {
-                            price = Parameters.symbol.get(referenceid).getLastPrice();
-                            sltriggered = price > 0 && ((position > 0 && sl > price && sl > 0) || (position < 0 && sl < price & sl > 0)) ? Boolean.TRUE : Boolean.FALSE;
-                            tptriggered = price > 0 && ((position > 0 && tp < price & tp > 0) || (position < 0 && tp > price && tp > 0)) ? Boolean.TRUE : Boolean.FALSE;
+                        if (sltriggered | tptriggered) {
+                            if (Parameters.symbol.get(id).getBidPrice() >= Parameters.symbol.get(id).getLastPrice() * 0.99 && Parameters.symbol.get(id).getAskPrice() <= Parameters.symbol.get(id).getLastPrice() * 1.01) {
+                                OrderBean ord = new OrderBean();
+                                ord.setParentDisplayName(Parameters.symbol.get(id).getDisplayname());
+                                ord.setChildDisplayName(Parameters.symbol.get(id).getDisplayname());
+                                ord.setOrderSide(position > 0 ? EnumOrderSide.SELL : EnumOrderSide.COVER);
+                                ord.setOrderReason(tptriggered ? EnumOrderReason.TP : EnumOrderReason.SL);
+                                ord.setOrderType(this.getOrdType());
+                                ord.setLimitPrice(tptriggered ? Trade.getTP(getDb(), key) : Trade.getSL(getDb(), key));
+                                ord.setOrderStage(EnumOrderStage.INIT);
+                                int size = Trade.getEntrySize(getDb(), key) - Trade.getExitSize(getDb(), key);
+                                ord.setStrategyOrderSize(size);
+                                ord.setOriginalOrderSize(size);
+                                int startingpos = Utilities.getNetPosition(Parameters.symbol, getPosition(), id, true);
+                                ord.setStrategyStartingPosition(Math.abs(startingpos));
+                                ord.setScale(scaleExit);
+                                ord.setOrderReference(getStrategy());
+                                ord.setOrderKeyForSquareOff(key);
+                                exit(ord);
+                            } else {
+                                logger.log(Level.SEVERE, "Symbol: {0}, BidPrice: {1}, AskPrice:{2}, LastPrice:{3}, Order Not sent for execution as the prices did not meet safety check",
+                                        new Object[]{Parameters.symbol.get(id).getDisplayname(), Parameters.symbol.get(id).getBidPrice(), Parameters.symbol.get(id).getAskPrice(), Parameters.symbol.get(id).getLastPrice()});
+                            }
                         }
                     }
-                    if (sltriggered | tptriggered) {
-                        if (Parameters.symbol.get(id).getBidPrice() >= Parameters.symbol.get(id).getLastPrice() * 0.99 && Parameters.symbol.get(id).getAskPrice() <= Parameters.symbol.get(id).getLastPrice() * 1.01) {
-                            OrderBean ord = new OrderBean();
-                            ord.setParentDisplayName(Parameters.symbol.get(id).getDisplayname());
-                            ord.setChildDisplayName(Parameters.symbol.get(id).getDisplayname());
-                            ord.setOrderSide(position > 0 ? EnumOrderSide.SELL : EnumOrderSide.COVER);
-                            ord.setOrderReason(tptriggered ? EnumOrderReason.TP : EnumOrderReason.SL);
-                            ord.setOrderType(this.getOrdType());
-                            ord.setLimitPrice(tptriggered ? Trade.getTP(getDb(), key) : Trade.getSL(getDb(), key));
-                            ord.setOrderStage(EnumOrderStage.INIT);
-                            int size = Trade.getEntrySize(getDb(), key) - Trade.getExitSize(getDb(), key);
-                            ord.setStrategyOrderSize(size);
-                            ord.setOriginalOrderSize(size);
-                            int startingpos = Utilities.getNetPosition(Parameters.symbol, getPosition(), id, true);
-                            ord.setStrategyStartingPosition(Math.abs(startingpos));
-                            ord.setScale(scaleExit);
-                            ord.setOrderReference(getStrategy());
-                            ord.setOrderKeyForSquareOff(key);
-                            exit(ord);
-                        } else {
-                            logger.log(Level.SEVERE, "Symbol: {0}, BidPrice: {1}, AskPrice:{2}, LastPrice:{3}, Order Not sent for execution as the prices did not meet safety check",
-                                    new Object[]{Parameters.symbol.get(id).getDisplayname(), Parameters.symbol.get(id).getBidPrice(), Parameters.symbol.get(id).getAskPrice(), Parameters.symbol.get(id).getLastPrice()});
-                        }
-                    }
-                }
 
+                }
             }
-        }
-        List<String> potentialOrders = this.getDb().scanRedis("monitoring:" + this.getStrategy() + ":" + Parameters.symbol.get(id).getDisplayname() + "*");
-        for (String s : potentialOrders) {
-            ConcurrentHashMap<String, String> keyvalue = this.getDb().getValues("", s);
-            try {
-                if (keyvalue.get("status").equals("ACTIVE")) {
-                    if (keyvalue.get("starttime") == null | (keyvalue.get("starttime") != null & new Date().compareTo(DateUtil.getFormattedDate(keyvalue.get("starttime"), "yyyy-MM-dd HH:mm:ss", timeZone)) > 0)) {
-                        if (keyvalue.get("endtime") == null | (keyvalue.get("endtime") != null & new Date().compareTo(DateUtil.getFormattedDate(keyvalue.get("endtime"), "yyyy-MM-dd HH:mm:ss", timeZone)) < 0)) {
-                            if (keyvalue.get("side").equals("BUY") || keyvalue.get("side").equals("SHORT") || keyvalue.get("side").equals("SELL") || keyvalue.get("side").equals("COVER")||keyvalue.get("side").equals("CLOSEALL")) {
-                                boolean placeOrder = false;
-                                if (keyvalue.get("condition").equals("BREACHBELOW")) {
-                                    double conditionprice=Utilities.getDouble(keyvalue.get("conditionprice"), 0);
-                                    double slippage=Utilities.getDouble(keyvalue.get("maxpercentslippage"), Double.MAX_VALUE);
-                                    switch (keyvalue.get("barsize")) {
-                                        case "TICK":
-                                            if (conditionprice > Parameters.symbol.get(id).getLastPrice() && Math.abs(Parameters.symbol.get(id).getLastPrice()-conditionprice)*100/conditionprice<slippage) {
-                                                logger.log(Level.INFO,"201,Order Generated from monitor Key={0},barsize={1},Side={2}",new Object[]{keyvalue,keyvalue.get("barsize"),keyvalue.get("side")});
-                                                placeOrder = true;
-                                            }else if(conditionprice > Parameters.symbol.get(id).getLastPrice() && Math.abs(Parameters.symbol.get(id).getLastPrice()-conditionprice)*100/conditionprice>slippage){
-                                                logger.log(Level.INFO,"201,Monitor did not generate order as exceeding slippage. Key={0},barsize={1},Side={2},AllowedSlippage={3},CalculatedSlippage={4},LastPrice={5}",new Object[]{s,keyvalue.get("barsize"),keyvalue.get("side"),slippage,
-                                                Math.abs(Parameters.symbol.get(id).getLastPrice()-conditionprice)*100/conditionprice,Parameters.symbol.get(id).getLastPrice()});
-                                            }
-                                            break;
-                                        default:
-                                            if (keyvalue.get("barsize") != null) {
-                                                //logger.log(Level.INFO,"{0},{1}",new Object[]{this.getStrategy(),event.getTickType()});
-                                                String barsize = keyvalue.get("barsize").split("[^A-Z0-9]+|(?<=[A-Z])(?=[0-9])|(?<=[0-9])(?=[A-Z])")[0];
-                                                int min = Utilities.getInt(barsize, 0);
-                                                if (min > 0 && DateUtil.barChange(id, min) && conditionprice > Parameters.symbol.get(id).getLastPrice() && Math.abs(Parameters.symbol.get(id).getLastPrice()-conditionprice)*100/conditionprice<slippage) {
-                                                logger.log(Level.INFO,"201,Order Generated from monitor Key={0},barsize={1},Side={2}",new Object[]{keyvalue,keyvalue.get("barsize"),keyvalue.get("side")});
+            List<String> potentialOrders = this.getDb().scanRedis("monitoring:" + this.getStrategy() + ":" + Parameters.symbol.get(id).getDisplayname() + "*");
+            for (String s : potentialOrders) {
+                ConcurrentHashMap<String, String> keyvalue = this.getDb().getValues("", s);
+                try {
+                    if (keyvalue.get("status").equals("ACTIVE")) {
+                        if (keyvalue.get("starttime") == null | (keyvalue.get("starttime") != null & new Date().compareTo(DateUtil.getFormattedDate(keyvalue.get("starttime"), "yyyy-MM-dd HH:mm:ss", timeZone)) > 0)) {
+                            if (keyvalue.get("endtime") == null | (keyvalue.get("endtime") != null & new Date().compareTo(DateUtil.getFormattedDate(keyvalue.get("endtime"), "yyyy-MM-dd HH:mm:ss", timeZone)) < 0)) {
+                                if (keyvalue.get("side").equals("BUY") || keyvalue.get("side").equals("SHORT") || keyvalue.get("side").equals("SELL") || keyvalue.get("side").equals("COVER") || keyvalue.get("side").equals("CLOSEALL")) {
+                                    boolean placeOrder = false;
+                                    if (keyvalue.get("condition").equals("BREACHBELOW")) {
+                                        double conditionprice = Utilities.getDouble(keyvalue.get("conditionprice"), 0);
+                                        double slippage = Utilities.getDouble(keyvalue.get("maxpercentslippage"), Double.MAX_VALUE);
+                                        switch (keyvalue.get("barsize")) {
+                                            case "TICK":
+                                                if (conditionprice > Parameters.symbol.get(id).getLastPrice() && Math.abs(Parameters.symbol.get(id).getLastPrice() - conditionprice) * 100 / conditionprice < slippage) {
+                                                    logger.log(Level.INFO, "201,Order Generated from monitor Key={0},barsize={1},Side={2}", new Object[]{keyvalue, keyvalue.get("barsize"), keyvalue.get("side")});
                                                     placeOrder = true;
-                                                }else if(min > 0 && DateUtil.barChange(id, min) && conditionprice > Parameters.symbol.get(id).getLastPrice() && Math.abs(Parameters.symbol.get(id).getLastPrice()-conditionprice)*100/conditionprice>slippage){
-                                                    logger.log(Level.INFO,"201,Monitor did not generate order as exceeding slippage. Key={0},barsize={1},Side={2},AllowedSlippage={3},CalculatedSlippage={4},LastPrice={5}",new Object[]{s,keyvalue.get("barsize"),keyvalue.get("side"),slippage,
-                                                Math.abs(Parameters.symbol.get(id).getLastPrice()-conditionprice)*100/conditionprice,Parameters.symbol.get(id).getLastPrice()});
+                                                } else if (conditionprice > Parameters.symbol.get(id).getLastPrice() && Math.abs(Parameters.symbol.get(id).getLastPrice() - conditionprice) * 100 / conditionprice > slippage) {
+                                                    logger.log(Level.INFO, "201,Monitor did not generate order as exceeding slippage. Key={0},barsize={1},Side={2},AllowedSlippage={3},CalculatedSlippage={4},LastPrice={5}", new Object[]{s, keyvalue.get("barsize"), keyvalue.get("side"), slippage,
+                                                        Math.abs(Parameters.symbol.get(id).getLastPrice() - conditionprice) * 100 / conditionprice, Parameters.symbol.get(id).getLastPrice()});
+                                                }
+                                                break;
+                                            default:
+                                                if (keyvalue.get("barsize") != null) {
+                                                    //logger.log(Level.INFO,"{0},{1}",new Object[]{this.getStrategy(),event.getTickType()});
+                                                    String barsize = keyvalue.get("barsize").split("[^A-Z0-9]+|(?<=[A-Z])(?=[0-9])|(?<=[0-9])(?=[A-Z])")[0];
+                                                    int min = Utilities.getInt(barsize, 0);
+                                                    if (min > 0 && DateUtil.barChange(id, min) && conditionprice > Parameters.symbol.get(id).getLastPrice() && Math.abs(Parameters.symbol.get(id).getLastPrice() - conditionprice) * 100 / conditionprice < slippage) {
+                                                        logger.log(Level.INFO, "201,Order Generated from monitor Key={0},barsize={1},Side={2}", new Object[]{keyvalue, keyvalue.get("barsize"), keyvalue.get("side")});
+                                                        placeOrder = true;
+                                                    } else if (min > 0 && DateUtil.barChange(id, min) && conditionprice > Parameters.symbol.get(id).getLastPrice() && Math.abs(Parameters.symbol.get(id).getLastPrice() - conditionprice) * 100 / conditionprice > slippage) {
+                                                        logger.log(Level.INFO, "201,Monitor did not generate order as exceeding slippage. Key={0},barsize={1},Side={2},AllowedSlippage={3},CalculatedSlippage={4},LastPrice={5}", new Object[]{s, keyvalue.get("barsize"), keyvalue.get("side"), slippage,
+                                                            Math.abs(Parameters.symbol.get(id).getLastPrice() - conditionprice) * 100 / conditionprice, Parameters.symbol.get(id).getLastPrice()});
 
+                                                    }
                                                 }
-                                            }
-                                            break;
-                                    }
-                                } else if (keyvalue.get("condition").equals("BREACHABOVE")) {
-                                    double conditionprice=Utilities.getDouble(keyvalue.get("conditionprice"), Double.MAX_VALUE);
-                                    double slippage=Utilities.getDouble(keyvalue.get("maxpercentslippage"), Double.MAX_VALUE);
-                                    switch (keyvalue.get("barsize")) {
-                                        case "TICK":
-                                            if (conditionprice < Parameters.symbol.get(id).getLastPrice() && Math.abs(Parameters.symbol.get(id).getLastPrice()-conditionprice)*100/conditionprice<slippage) {
-                                                logger.log(Level.INFO,"201,Order Generated from monitor Key={0},barsize={1},Side={2}",new Object[]{keyvalue,keyvalue.get("barsize"),keyvalue.get("side")});
-                                                placeOrder = true;
-                                            }else if(conditionprice < Parameters.symbol.get(id).getLastPrice() & Math.abs(Parameters.symbol.get(id).getLastPrice()-conditionprice)*100/conditionprice>slippage){
-                                               logger.log(Level.INFO,"201,Monitor did not generate order as exceeding slippage. Key={0},barsize={1},Side={2},AllowedSlippage={3},CalculatedSlippage={4},LastPrice={5}",new Object[]{s,keyvalue.get("barsize"),keyvalue.get("side"),slippage,
-                                                Math.abs(Parameters.symbol.get(id).getLastPrice()-conditionprice)*100/conditionprice,Parameters.symbol.get(id).getLastPrice()});
-                                            }
-                                            break;
-                                        default:
-                                            if (keyvalue.get("barsize") != null) {
-                                                String barsize = keyvalue.get("barsize").split("[^A-Z0-9]+|(?<=[A-Z])(?=[0-9])|(?<=[0-9])(?=[A-Z])")[0];
-                                                int min = Utilities.getInt(barsize, 0);
-                                                if (min > 0 && DateUtil.barChange(id, min) && conditionprice < Parameters.symbol.get(id).getLastPrice() && Math.abs(Parameters.symbol.get(id).getLastPrice()-conditionprice)*100/conditionprice<slippage) {
-                                                logger.log(Level.INFO,"201,Order Generated from monitor Key={0},barsize={1},Side={2},",new Object[]{keyvalue,keyvalue.get("barsize"),keyvalue.get("side")});
+                                                break;
+                                        }
+                                    } else if (keyvalue.get("condition").equals("BREACHABOVE")) {
+                                        double conditionprice = Utilities.getDouble(keyvalue.get("conditionprice"), Double.MAX_VALUE);
+                                        double slippage = Utilities.getDouble(keyvalue.get("maxpercentslippage"), Double.MAX_VALUE);
+                                        switch (keyvalue.get("barsize")) {
+                                            case "TICK":
+                                                if (conditionprice < Parameters.symbol.get(id).getLastPrice() && Math.abs(Parameters.symbol.get(id).getLastPrice() - conditionprice) * 100 / conditionprice < slippage) {
+                                                    logger.log(Level.INFO, "201,Order Generated from monitor Key={0},barsize={1},Side={2}", new Object[]{keyvalue, keyvalue.get("barsize"), keyvalue.get("side")});
                                                     placeOrder = true;
-                                                }else if(min > 0 && DateUtil.barChange(id, min) && conditionprice < Parameters.symbol.get(id).getLastPrice() && Math.abs(Parameters.symbol.get(id).getLastPrice()-conditionprice)*100/conditionprice>slippage){
-                                               logger.log(Level.INFO,"201,Monitor did not generate order as exceeding slippage. Key={0},barsize={1},Side={2},AllowedSlippage={3},CalculatedSlippage={4},LastPrice={5}",new Object[]{s,keyvalue.get("barsize"),keyvalue.get("side"),slippage,
-                                                Math.abs(Parameters.symbol.get(id).getLastPrice()-conditionprice)*100/conditionprice,Parameters.symbol.get(id).getLastPrice()});                                                    
+                                                } else if (conditionprice < Parameters.symbol.get(id).getLastPrice() & Math.abs(Parameters.symbol.get(id).getLastPrice() - conditionprice) * 100 / conditionprice > slippage) {
+                                                    logger.log(Level.INFO, "201,Monitor did not generate order as exceeding slippage. Key={0},barsize={1},Side={2},AllowedSlippage={3},CalculatedSlippage={4},LastPrice={5}", new Object[]{s, keyvalue.get("barsize"), keyvalue.get("side"), slippage,
+                                                        Math.abs(Parameters.symbol.get(id).getLastPrice() - conditionprice) * 100 / conditionprice, Parameters.symbol.get(id).getLastPrice()});
                                                 }
-                                            }
-                                            break;
-                                    }
-                                } else if (keyvalue.get("condition").equals("EFFECTIVEFROM")) {
-                                    if (keyvalue.get("starttime") != null & new Date().compareTo(DateUtil.getFormattedDate(keyvalue.get("starttime"), "yyyy-MM-dd HH:mm:ss", timeZone)) > 0) {
-                                       logger.log(Level.INFO,"201,Order Generated from monitor Key={0},barsize={1},Side={2}",new Object[]{keyvalue,keyvalue.get("barsize"),keyvalue.get("side")});
-                                        placeOrder = true;
-                                    }
-                                }
-                                if (placeOrder) {
-                                    if (keyvalue.get("ordersymbol") != null & keyvalue.get("ordersize") != null) {
-                                        insertSymbol(Parameters.symbol, keyvalue.get("ordersymbol"), optionPricingUsingFutures);
-                                        int symbolid = Utilities.getIDFromDisplayName(Parameters.symbol, keyvalue.get("ordersymbol"));
-                                        int size = Utilities.getInt(keyvalue.get("ordersize"), 0);
-                                        if (symbolid >= 0 & size > 0) {
-                                            OrderBean ord = new OrderBean();
-                                            ord.setParentDisplayName(Parameters.symbol.get(symbolid).getDisplayname());
-                                            ord.setChildDisplayName(Parameters.symbol.get(symbolid).getDisplayname());
-                                            if (keyvalue.get("side").equals("CLOSEALL")) {
-                                                EnumOrderSide side = EnumOrderSide.UNDEFINED;
-                                                if (this.getPosition().get(symbolid).getPosition() > 0) {
-                                                    side = EnumOrderSide.SELL;
-                                                } else if (this.getPosition().get(symbolid).getPosition() < 0) {
-                                                    side = EnumOrderSide.COVER;
+                                                break;
+                                            default:
+                                                if (keyvalue.get("barsize") != null) {
+                                                    String barsize = keyvalue.get("barsize").split("[^A-Z0-9]+|(?<=[A-Z])(?=[0-9])|(?<=[0-9])(?=[A-Z])")[0];
+                                                    int min = Utilities.getInt(barsize, 0);
+                                                    if (min > 0 && DateUtil.barChange(id, min) && conditionprice < Parameters.symbol.get(id).getLastPrice() && Math.abs(Parameters.symbol.get(id).getLastPrice() - conditionprice) * 100 / conditionprice < slippage) {
+                                                        logger.log(Level.INFO, "201,Order Generated from monitor Key={0},barsize={1},Side={2},", new Object[]{keyvalue, keyvalue.get("barsize"), keyvalue.get("side")});
+                                                        placeOrder = true;
+                                                    } else if (min > 0 && DateUtil.barChange(id, min) && conditionprice < Parameters.symbol.get(id).getLastPrice() && Math.abs(Parameters.symbol.get(id).getLastPrice() - conditionprice) * 100 / conditionprice > slippage) {
+                                                        logger.log(Level.INFO, "201,Monitor did not generate order as exceeding slippage. Key={0},barsize={1},Side={2},AllowedSlippage={3},CalculatedSlippage={4},LastPrice={5}", new Object[]{s, keyvalue.get("barsize"), keyvalue.get("side"), slippage,
+                                                            Math.abs(Parameters.symbol.get(id).getLastPrice() - conditionprice) * 100 / conditionprice, Parameters.symbol.get(id).getLastPrice()});
+                                                    }
                                                 }
-                                                if(!side.equals(EnumOrderSide.UNDEFINED)){
-                                                    ord.setOrderSide(side);
-                                                }                                                
-                                            }else{
-                                                ord.setOrderSide(EnumOrderSide.valueOf(keyvalue.get("side")));
-                                            }
-                                            ord.setOrderType(EnumOrderType.valueOf(keyvalue.get("ordertype")));
-                                            ord.setLimitPrice(0);
-                                            ord.setOrderStage(EnumOrderStage.INIT);
-                                            ord.setStrategyOrderSize(size);
-                                            ord.setOriginalOrderSize(size);
-                                            int startingpos = Utilities.getNetPosition(Parameters.symbol, getPosition(), symbolid, true);
-                                            ord.setStrategyStartingPosition(Math.abs(startingpos));
-                                            ord.setOrderReference(getStrategy());
-                                            logger.log(Level.INFO,"201,Setting monitor as inactive Key={0},barsize={1},Side={2}",new Object[]{s,keyvalue.get("barsize"),keyvalue.get("side")});
-                                            this.getDb().setHash(s, "status", "INACTIVE");
-                                            if (ord.getOrderSide().equals(EnumOrderSide.BUY) | ord.getOrderSide().equals(EnumOrderSide.SHORT)) {
-                                                ord.setScale(scaleEntry);
-                                                createPosition(symbolid);
-                                                ord.setOrderReason(EnumOrderReason.REGULARENTRY);
-                                                entry(ord);
-                                            } else {
-                                                ord.setScale(scaleExit);
-                                                ord.setOrderReason(EnumOrderReason.REGULAREXIT);
-                                                exit(ord);
+                                                break;
+                                        }
+                                    } else if (keyvalue.get("condition").equals("EFFECTIVEFROM")) {
+                                        if (keyvalue.get("starttime") != null & new Date().compareTo(DateUtil.getFormattedDate(keyvalue.get("starttime"), "yyyy-MM-dd HH:mm:ss", timeZone)) > 0) {
+                                            logger.log(Level.INFO, "201,Order Generated from monitor Key={0},barsize={1},Side={2}", new Object[]{keyvalue, keyvalue.get("barsize"), keyvalue.get("side")});
+                                            placeOrder = true;
+                                        }
+                                    }
+                                    if (placeOrder) {
+                                        if (keyvalue.get("ordersymbol") != null & keyvalue.get("ordersize") != null) {
+                                            insertSymbol(Parameters.symbol, keyvalue.get("ordersymbol"), optionPricingUsingFutures);
+                                            int symbolid = Utilities.getIDFromDisplayName(Parameters.symbol, keyvalue.get("ordersymbol"));
+                                            int size = Utilities.getInt(keyvalue.get("ordersize"), 0);
+                                            if (symbolid >= 0 & size > 0) {
+                                                OrderBean ord = new OrderBean();
+                                                ord.setParentDisplayName(Parameters.symbol.get(symbolid).getDisplayname());
+                                                ord.setChildDisplayName(Parameters.symbol.get(symbolid).getDisplayname());
+                                                if (keyvalue.get("side").equals("CLOSEALL")) {
+                                                    EnumOrderSide side = EnumOrderSide.UNDEFINED;
+                                                    if (this.getPosition().get(symbolid).getPosition() > 0) {
+                                                        side = EnumOrderSide.SELL;
+                                                    } else if (this.getPosition().get(symbolid).getPosition() < 0) {
+                                                        side = EnumOrderSide.COVER;
+                                                    }
+                                                    if (!side.equals(EnumOrderSide.UNDEFINED)) {
+                                                        ord.setOrderSide(side);
+                                                    }
+                                                } else {
+                                                    ord.setOrderSide(EnumOrderSide.valueOf(keyvalue.get("side")));
+                                                }
+                                                ord.setOrderType(EnumOrderType.valueOf(keyvalue.get("ordertype")));
+                                                ord.setLimitPrice(0);
+                                                ord.setOrderStage(EnumOrderStage.INIT);
+                                                ord.setStrategyOrderSize(size);
+                                                ord.setOriginalOrderSize(size);
+                                                int startingpos = Utilities.getNetPosition(Parameters.symbol, getPosition(), symbolid, true);
+                                                ord.setStrategyStartingPosition(Math.abs(startingpos));
+                                                ord.setOrderReference(getStrategy());
+                                                logger.log(Level.INFO, "201,Setting monitor as inactive Key={0},barsize={1},Side={2}", new Object[]{s, keyvalue.get("barsize"), keyvalue.get("side")});
+                                                this.getDb().setHash(s, "status", "INACTIVE");
+                                                if (ord.getOrderSide().equals(EnumOrderSide.BUY) | ord.getOrderSide().equals(EnumOrderSide.SHORT)) {
+                                                    ord.setScale(scaleEntry);
+                                                    createPosition(symbolid);
+                                                    ord.setOrderReason(EnumOrderReason.REGULARENTRY);
+                                                    entry(ord);
+                                                } else {
+                                                    ord.setScale(scaleExit);
+                                                    ord.setOrderReason(EnumOrderReason.REGULAREXIT);
+                                                    exit(ord);
+                                                }
                                             }
                                         }
                                     }
@@ -320,11 +321,10 @@ public class Manual extends Strategy implements TradeListener {
                             }
                         }
                     }
+                } catch (Exception e) {
+                    logger.log(Level.SEVERE, null, e);
                 }
-            } catch (Exception e) {
-                logger.log(Level.SEVERE, null, e);
             }
-        }
         }
     }
 
@@ -359,7 +359,7 @@ public class Manual extends Strategy implements TradeListener {
                         new Object[]{getStrategy(), "Order", -1, -1, -1});
             }
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "Exception triggered in Strategy: {0}", new Object[]{this.getStrategy()});
+            logger.log(Level.SEVERE, "500,Exception triggered in RScript,,Strategy={0}", new Object[]{this.getStrategy()});
             logger.log(Level.SEVERE, null, e);
         }
     }
@@ -449,8 +449,6 @@ public class Manual extends Strategy implements TradeListener {
                     }
                     if (order != null) {
                         placeOrder(order);
-                    } else {
-                        logger.log(Level.INFO, "Null order generated for order string: {0}", new Object[]{trade.get(1)});
                     }
                 }
             }
@@ -482,7 +480,7 @@ public class Manual extends Strategy implements TradeListener {
                 symbolid = Utilities.getIDFromDisplayName(Parameters.symbol, order.getParentDisplayName());
             }
             if (symbolid == -1) {
-                logger.log(Level.SEVERE, "Unable to process order {0} as symbol could not be added to instrat", new Object[]{line});
+                logger.log(Level.SEVERE, "500, Unable to process order,{0}:{1}:{2}:{3}:{4},OrderString={5},SymbolID={6}", new Object[]{this.getStrategy(), "Order", order.getParentDisplayName(), -1, -1, line, symbolid});
                 return null;
             }
             if (symbolid >= 0) { //only proceed if symbolid exists in our db
@@ -543,7 +541,7 @@ public class Manual extends Strategy implements TradeListener {
             symbolid = Utilities.getIDFromDisplayName(Parameters.symbol, ob.getParentDisplayName());
         }
         if (symbolid == -1) {
-            logger.log(Level.SEVERE, "Unable to process order {0} as symbol could not be added to instrat", new Object[]{line});
+            logger.log(Level.SEVERE, "500, Unable to process order,{0}:{1}:{2}:{3}:{4},OrderString={5},SymbolID={6}", new Object[]{this.getStrategy(), "Order", ob.getParentDisplayName(), -1, -1, line, symbolid});
             return null;
         }
         createPosition(symbolid);
@@ -595,10 +593,9 @@ public class Manual extends Strategy implements TradeListener {
             if (order != null) {
                 Gson gson = new Gson();
                 String json = gson.toJson(order);
-                logger.log(Level.INFO, "201,PlaceOrder Details,{0}:{1}:{2}:{3}:{4},Order={5}", new Object[]{getStrategy(), "Order", order.getParentDisplayName(), -1, -1, json});
+                logger.log(Level.INFO, "500,OrderGenerated,{0}:{1}:{2}:{3}:{4},Order={5}", new Object[]{getStrategy(), "Order", order.getParentDisplayName(), -1, -1, json});
                 if (order.getOriginalOrderSize() > 0) {
                     if ((order.getOrderType() != EnumOrderType.MKT && order.getLimitPrice() > 0) || order.getOrderType().equals(EnumOrderType.MKT)) {
-                        logger.log(Level.INFO, "501,Strategy {0},{1}", new Object[]{order.getOrderSide().toString(), getStrategy() + delimiter + order.getOrderSide().toString() + delimiter + order.getParentDisplayName()});
                         if (order.getOrderSide().equals(EnumOrderSide.BUY) || order.getOrderSide().equals(EnumOrderSide.SHORT)) {
                             orderid = entry(order);
                         } else {
@@ -606,10 +603,10 @@ public class Manual extends Strategy implements TradeListener {
                         }
                     }
                 } else {
-                    logger.log(Level.INFO, "101,Order not placed as ordersize<=0, OrderSize:{0}", new Object[]{order.getOriginalOrderSize()});
+                    logger.log(Level.INFO, "500, Unable to process order,{0}:{1}:{2}:{3}:{4},OrderSize={5}", new Object[]{this.getStrategy(), "Order", order.getParentDisplayName(), -1, -1, order.getOriginalOrderSize()});
                 }
             } else {
-                logger.log(Level.SEVERE, "101,Null Order Object Received");
+                logger.log(Level.INFO, "500, Unable to process order,{0}:{1}:{2}:{3}:{4},Order=NULL", new Object[]{this.getStrategy(), "Order", "NULL", -1, -1, order.getOriginalOrderSize()});
             }
         } catch (Exception e) {
             logger.log(Level.SEVERE, null, e);
