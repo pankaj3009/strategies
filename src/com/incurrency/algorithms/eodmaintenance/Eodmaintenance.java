@@ -373,6 +373,9 @@ public class Eodmaintenance {
                     } else if (columnNumber >= 0) {
                         if (input[1].trim().length() > 0 && !Pattern.compile(Pattern.quote(input[1]), Pattern.CASE_INSENSITIVE).matcher("symbol").find()) {//not an empty row
                             String exchangesymbol = input[1].trim().toUpperCase();
+                            if(exchangesymbol.equals("NIFTY")){
+                                exchangesymbol="NSENIFTY";
+                            }
 //                                String displayName = input[1].trim().toUpperCase().replaceAll("[^A-Za-z0-9]", "");
                             String displayName = input[1].trim().toUpperCase();
                             int minsize = Utilities.getInt(input[columnNumber], 0);
