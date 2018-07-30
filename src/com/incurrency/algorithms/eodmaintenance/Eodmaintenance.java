@@ -424,7 +424,7 @@ public class Eodmaintenance {
 
         for (Map.Entry<String, String> fnosymbol : fnoSymbols.entrySet()) {
             //get strikes for expiry
-            List<String> strikes = getOptionStrikesFromKDB("91.121.168.138", 8085, fnosymbol.getKey().toLowerCase(), expiry, startTime, endTime, "india.nse.option.s4.daily.settle");
+            List<String> strikes = getOptionStrikesFromKDB("91.121.117.8", 8085, fnosymbol.getKey().toLowerCase(), expiry, startTime, endTime, "india.nse.option.s4.daily.settle");
             if (strikes != null && strikes.size() >= 3) {
                 List<Double> dstrikes = new ArrayList<>();
                 for (String s : strikes) {
