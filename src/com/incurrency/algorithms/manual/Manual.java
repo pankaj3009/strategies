@@ -181,7 +181,7 @@ public class Manual extends Strategy implements TradeListener {
                                 ord.setOrderSide(position > 0 ? EnumOrderSide.SELL : EnumOrderSide.COVER);
                                 ord.setOrderReason(tptriggered ? EnumOrderReason.TP : EnumOrderReason.SL);
                                 ord.setOrderType(this.getOrdType());
-                                ord.setLimitPrice(tptriggered ? Trade.getTP(getDb(), key) : Trade.getSL(getDb(), key));
+                                ord.setLimitPrice(tptriggered ? Utilities.round(Trade.getTP(getDb(), key),this.getTickSize()) : Utilities.round(Trade.getSL(getDb(), key),this.getTickSize()));
                                 ord.setOrderStage(EnumOrderStage.INIT);
                                 int size = Trade.getEntrySize(getDb(), key) - Trade.getExitSize(getDb(), key);
                                 ord.setStrategyOrderSize(size);
