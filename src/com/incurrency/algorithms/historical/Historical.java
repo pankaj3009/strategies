@@ -31,6 +31,8 @@ import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.rosuda.REngine.REXP;
+import org.rosuda.REngine.Rserve.RConnection;
 
 /**
  *
@@ -46,6 +48,7 @@ public class Historical {
     public static HashMap<String, String> cassandraBarDestination = new HashMap<>();
     public static HashMap<String, String> mysqlBarRequestDuration = new HashMap<>();
     public static HashMap<String, String> cassandraBarRequestDuration = new HashMap<>();
+    public static HashMap<String, String> rBarRequestDuration = new HashMap<>();
     static String mysqlConnection;
     static String mysqlUserName;
     static String mysqlPassword;
@@ -53,6 +56,15 @@ public class Historical {
     static String cassandraPort;
     static String kairosIP;
     static String kairosPort;
+    static String rConnection;
+    static String rfolder;
+    static String rstartingdate;
+    static String rendingdate;
+    static boolean rbackfill;
+    static int rnewfileperday;
+    static String rscript;
+    static String workingdirectory;
+    static RConnection rcon;
     static DataCapture dc;
     static int tradingMinutes;
     static String openTime;
@@ -76,8 +88,9 @@ public class Historical {
         boolean done = false;
         boolean target_mysql = Boolean.parseBoolean(properties.getProperty("mysql", "false").toString().trim());
         boolean target_cassandra = Boolean.parseBoolean(properties.getProperty("cassandra", "false").toString().trim());
+        boolean target_r = Boolean.parseBoolean(properties.getProperty("rdb", "false").toString().trim());
         Date shutdownDate = new Date();
-        loadParameters(target_mysql, target_cassandra);
+        loadParameters(target_mysql, target_cassandra,target_r);
         if (runtime > 0) {
             shutdownDate = addMinutes(new Date(), runtime);
         } else {
@@ -104,11 +117,20 @@ public class Historical {
             mySQLQuery = mySQLConnect.prepareStatement("select date from ? where symbol=? order by date asc limit 1");
         } else if (cassandraConnection != null) {
             cassandraConnect = new Socket(Historical.cassandraConnection, Integer.valueOf(Historical.cassandraPort));
+        } else if (rConnection!=null){
+              rcon = new RConnection(Historical.rConnection);
+              String command="setwd(\"" + workingdirectory + "\")";
+              rcon.eval(command);
+              REXP wd = rcon.eval("getwd()");
+              System.out.println(wd.asString());
+              command="source(\"" + rscript + "\")";
+              rcon.eval(command);
         }
-
         //process mysql first    
         String barSize = null;
         Date endDate = new Date();
+        Date specifiedEndDate=DateUtil.getFormattedDate(Historical.rendingdate+ " 23:59:00", "yyyyMMdd hh:mm:ss", Algorithm.timeZone);
+        endDate=endDate.after(specifiedEndDate)?specifiedEndDate:endDate;
         Date startDate = null;
         int connectionCount = Parameters.connection.size();
         int i = 0; //i = symbols requested, used for identifying the beanconnection to use
@@ -169,7 +191,7 @@ public class Historical {
                         endDate = new Date();
                         //get start date
                         if (!done) {
-                            startDate = new Date(getLastTime(kairosIP, Utilities.getInt(kairosPort, 8085), s, cassandraBarDestination.get(b) + ".close"));
+                            startDate = new Date(getLastTimeFromKairos(kairosIP, Utilities.getInt(kairosPort, 8085), s, cassandraBarDestination.get(b) + ".close"));
                             lastUpdateDate.put(s.getDisplayname().trim(), startDate);
                             if (s.getType().equals("FUT") || s.getType().equals("OPT")) {
                                 SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
@@ -216,255 +238,73 @@ public class Historical {
                     }
                 }
             }
+        }else if(rConnection!=null){
+             for (String b : rBarRequestDuration.keySet()) {
+                    barSize = b;
+                    dc = new DataCapture(b, batch);
+                    int j = -1;
+                    for (BeanSymbol s : Parameters.symbol) {//for each symbol
+                        j = j + 1;
+                        endDate = new Date();
+                        //get start date
+                        if (!done) {
+                            startDate = new Date(getLastTimeFromR(s,rstartingdate,rfolder,rnewfileperday,100,"historical.R" ));
+                            if(!rbackfill){
+                                Date requiredStart=DateUtil.getFormattedDate(Historical.rstartingdate, "yyyyMMdd", Algorithm.timeZone);
+                                startDate=requiredStart.after(startDate)?requiredStart:startDate;
+                            }                            
+                            lastUpdateDate.put(s.getDisplayname().trim(), startDate);
+                            if (s.getType().equals("FUT") || s.getType().equals("OPT")) {
+                                SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+                                Date expiration = sdf.parse(s.getExpiry());
+                                if (expiration.before(endDate)) {
+                                    endDate = expiration;
+                                    endDate = addDays(endDate, 1);
+                                    endDate = addSeconds(endDate, -1);//bring time to 23.59
+                                }
+                            }
+                            if (startDate.getTime() > 0L) {
+                                //increase startdate by barsize
+                                startDate = adjustDate(startDate, barSize);
+                            } else if (startDate.getTime() <= 0L) {//no data in database for symbol
+                                if (s.getType().equals("FUT") || s.getType().equals("OPT")) {
+                                    SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+                                    Date expiration = sdf.parse(s.getExpiry());
+                                    startDate = addDays(expiration, -90);
+                                } else {
+                                    if (b.equals("1sec")) {
+                                        startDate = addDays(endDate, -180);
+                                    } else {
+                                        startDate = addDays(endDate, -365);
+                                    }
+                                }
+                            }
+                            int connectionid = i % connectionCount;
+                            BeanConnection c = Parameters.connection.get(connectionid);
+                            while (t.isAlive()) {
+                                Thread.sleep(1000);
+                            }
+                            long minutesToClose = (shutdownDate.getTime() - new Date().getTime()) / (1000);
+                            long estimatedTime;
+                            HistoricalBarsAll bar;
+                            t = new Thread(bar = new HistoricalBarsAll(barSize, startDate, endDate, s, tradingMinutes, openTime, closeTime, timeZone, Algorithm.holidays));
+                            t.setName("Historical Bars:" + s.getDisplayname());
+                            estimatedTime = bar.estimatedTime();
+                            if (estimatedTime < minutesToClose) {
+                                t.start();
+                            } else {
+                                done = true;
+                            }
+                        }
+                    }
+                
+            }
         }
         System.exit(0);
 
     }
-
-    /*
-    private static void exportAsCSV(String symbol, String startDate, String endDate, String barSize, String metric, ArrayList<String> expiry, HashMap<String, ArrayList<SplitInformation>> splits) throws MalformedURLException, URISyntaxException, IOException, ParseException {
-
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        SimpleDateFormat sdfExpiry = new SimpleDateFormat("yyyy-MM-dd");
-        Date start = sdf.parse(startDate);
-        Date end = sdf.parse(endDate);
-        if (symbol.contains(",")) {
-            symbol = symbol.split(",")[2].toLowerCase();
-        } else {
-            symbol = symbol.toLowerCase();
-        }
-        TreeMap<Long, OHLCV> t = new TreeMap();
-        long time = new Date().getTime();
-        if (expiry.size() > 0) {
-            //get each expiration date for symbol
-            for (int i = 0; i < expiry.size() - 1; i++) {
-                Date startPeriod = sdfExpiry.parse(expiry.get(i));
-                Date endPeriod = sdfExpiry.parse(expiry.get(i + 1));
-                endPeriod = new Date(endPeriod.getTime() + 24 * 60 * 60 * 1000 - 1);//move time to 23:59:00
-                if (start.before(startPeriod) || end.after(startPeriod)) {
-                    t.putAll(exportAsCSVSubFunction(Algorithm.cassandraIP,symbol, startPeriod, endPeriod, metric, expiry.get(i + 1)));
-                }
-            }
-        } else {
-            t.putAll(exportAsCSVSubFunction(Algorithm.cassandraIP,symbol, start, end, metric, null));
-
-        }
-
-        if (!splits.isEmpty()) {
-            if (splits.containsKey(symbol)) {
-                ArrayList<SplitInformation> splitDates = splits.get(symbol);
-                for (SplitInformation si : splitDates) {
-                    Date splitDate = parseDate("yyyy-MM-dd", si.actualDate, timeZone);
-                    if (t.floorEntry(splitDate.getTime()) != null) {//data exists for before split date
-                        Date splitStartDate = addDays(splitDate, -5);
-                        Date splitEndDate = addDays(splitDate, 5);
-                        double expPricePercentage = ((double) si.oldShares) / si.newShares;
-                        for (Date d = splitStartDate; d.before(splitEndDate); d = addDays(d, 1)) {
-                            //get first quote after splitstartdate
-                            double nextprice = Double.valueOf(t.ceilingEntry(d.getTime()).getValue().getClose());
-                            double priorprice = Double.valueOf(t.floorEntry(d.getTime()).getValue().getClose());
-                            if (nextprice / priorprice < expPricePercentage + 0.1 && nextprice / priorprice > expPricePercentage - 0.1) {
-                                long splitTime = t.floorKey(d.getTime());
-                                SortedMap<Long, OHLCV> subt = t.subMap(t.firstKey(), splitTime + 1);//we need both firstkey and splittime values
-
-                                for (OHLCV ohlcv : subt.values()) {
-                                    ohlcv.setOpen(String.valueOf(Double.valueOf(ohlcv.getOpen()) * expPricePercentage));
-                                    ohlcv.setHigh(String.valueOf(Double.valueOf(ohlcv.getHigh()) * expPricePercentage));
-                                    ohlcv.setLow(String.valueOf(Double.valueOf(ohlcv.getLow()) * expPricePercentage));
-                                    ohlcv.setClose(String.valueOf(Double.valueOf(ohlcv.getClose()) * expPricePercentage));
-                                    long volume = (long) Double.parseDouble(ohlcv.getVolume());
-                                    ohlcv.setVolume(String.valueOf((long) volume / expPricePercentage));
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        if (scansplits) {
-            if (t.size() > 0) {
-                Date splitStartDate = new Date(t.firstKey());
-                splitStartDate = addDays(splitStartDate, 1);
-                boolean finished = false;
-                for (Date d = splitStartDate; !finished; d = addDays(d, 1)) {
-                    if (t.ceilingEntry(d.getTime()) != null) {
-                        double price = Double.valueOf(t.ceilingEntry(d.getTime()).getValue().getClose());
-
-                        double priorprice = Double.valueOf(t.floorEntry(addDays(d, -1).getTime()).getValue().getClose());
-                        if (price / priorprice < threshold) {
-                            //we have a potential split, write to splitinformation
-                            SplitInformation si = new SplitInformation();
-                            si.expectedDate = getFormatedDate("yyyy-MM-dd", d.getTime(), timeZone);
-                            si.symbol = symbol;
-                            si.expectedNewShares = priorprice / price;
-                            si.oldShares = 1;
-                            writeSplits(si);
-                        }
-                    } else {
-                        finished = true;
-                    }
-                }
-            }
-        }
-        if (!scansplits) {
-            writeToFile(symbol, t);
-        }
-        t.clear();
-        System.out.println("Data Exported:" + symbol + " ,Time Taken:" + (new Date().getTime() - time) / (1000) + " seconds");
-
-    }
-     */
-    private static void writeSplits(SplitInformation si) {
-        try {
-            File file = new File("suggestedsplits" + ".csv");
-
-            //if file doesnt exists, then create it
-            if (!file.exists()) {
-                file.createNewFile();
-            }
-            FileWriter fileWritter = new FileWriter(file, true);
-            BufferedWriter bufferWritter = new BufferedWriter(fileWritter);
-            bufferWritter.write(si.expectedDate + "," + si.symbol + "," + si.oldShares + "," + si.expectedNewShares + newline);
-            bufferWritter.close();
-        } catch (IOException ex) {
-        }
-    }
-
-    /*
-    private static TreeMap<Long, OHLCV> exportAsCSVSubFunction(String url,String symbol, Date startDate, Date endDate, String metric, String expiry) throws URISyntaxException, IOException {
-        HttpClient client = new HttpClient("http://"+url+":8085");
-        TreeMap<Long, OHLCV> t = new TreeMap<>();
-        String metricnew = null;
-        int startCounter = 0;
-        if (scansplits) {
-            startCounter = 4;
-        }
-        for (int i = startCounter; i < 5; i++) {
-
-            switch (i) {
-                case 0:
-                    metricnew = metric + ".open";
-                    break;
-                case 1:
-                    metricnew = metric + ".high";
-                    break;
-                case 2:
-                    metricnew = metric + ".low";
-                    break;
-                case 3:
-                    metricnew = metric + ".volume";
-                    break;
-                case 4:
-                    metricnew = metric + ".close";
-                    break;
-                default:
-                    break;
-            }
-
-            QueryBuilder builder = QueryBuilder.getInstance();
-            builder.setStart(startDate)
-                    .setEnd(endDate)
-                    .addMetric(metricnew)
-                    .addTag("symbol", symbol.toLowerCase());
-            //.setOrder(QueryMetric.Order.ASCENDING);
-
-            // .addAggregator(AggregatorFactory.create;
-//            builder.getMetrics().get(0).setOrder(QueryMetric.Order.ASCENDING);
-            if (expiry != null) {
-                builder.getMetrics().get(0).addTag("expiry", expiry.replace("-", ""));
-            }
-            long time = new Date().getTime();
-            QueryResponse response = client.query(builder);
-
-            List<DataPoint> dataPoints = response.getQueries().get(0).getResults().get(0).getDataPoints();
-            for (DataPoint dataPoint : dataPoints) {
-                long lastTime = dataPoint.getTimestamp();
-                Object value = dataPoint.getValue();
-                //System.out.println("Date:" + new Date(lastTime) + ",Value:" + value.toString());
-                switch (i) {
-                    case 0:
-                        if (t.get(lastTime) == null) {
-                            OHLCV temp = new OHLCV();
-                            temp.setOpen(value.toString());
-                            t.put(lastTime, temp);
-                        } else {
-                            OHLCV temp = t.get(lastTime);
-                            temp.setOpen(value.toString());
-                            t.put(lastTime, temp);
-                        }
-                        break;
-                    case 1:
-                        if (t.get(lastTime) == null) {
-                            OHLCV temp = new OHLCV();
-                            temp.setHigh(value.toString());
-                            t.put(lastTime, temp);
-                        } else {
-                            OHLCV temp = t.get(lastTime);
-                            temp.setHigh(value.toString());
-                            t.put(lastTime, temp);
-                        }
-                        break;
-                    case 2:
-                        if (t.get(lastTime) == null) {
-                            OHLCV temp = new OHLCV();
-                            temp.setLow(value.toString());
-                            t.put(lastTime, temp);
-                        } else {
-                            OHLCV temp = t.get(lastTime);
-                            temp.setLow(value.toString());
-                            t.put(lastTime, temp);
-                        }
-                        break;
-                    case 4:
-                        if (t.get(lastTime) == null) {
-                            OHLCV temp = new OHLCV();
-                            temp.setClose(value.toString());
-                            t.put(lastTime, temp);
-                        } else {
-                            OHLCV temp = t.get(lastTime);
-                            temp.setClose(value.toString());
-                            t.put(lastTime, temp);
-                        }
-                        break;
-                    case 3:
-                        if (t.get(lastTime) == null) {
-                            OHLCV temp = new OHLCV();
-                            Long vol = Long.valueOf(value.toString());
-                            temp.setVolume(String.format("%d", vol));
-                            t.put(lastTime, temp);
-                        } else {
-                            OHLCV temp = t.get(lastTime);
-                            Long vol = Long.valueOf(value.toString());
-                            temp.setVolume(String.format("%d", vol));
-                            t.put(lastTime, temp);
-                        }
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
-        return t;
-    }
-     */
- /*
-    private void getSymbols(String url,String metric) {
-        try {
-            HttpClient client = new HttpClient("http://"+url+":8085");
-            GetResponse response = client.getTagValues();
-
-
-            System.out.println("response=" + response.getStatusCode());
-            for (String name : response.getResults()) {
-                System.out.println(name);
-                client.shutdown();
-            }
-        } catch (Exception e) {
-        }
-
-    }
-     */
-    public static void writeToFile(String filename, TreeMap<Long, OHLCV> content) {
+   
+     public static void writeToFile(String filename, TreeMap<Long, OHLCV> content) {
         try {
             File file = new File(filename.toUpperCase() + ".csv");
 
@@ -495,7 +335,7 @@ public class Historical {
         }
     }
 
-    private void loadParameters(boolean mysql, boolean cassandra) {
+    private void loadParameters(boolean mysql, boolean cassandra, boolean r) {
         timeZone = TimeZone.getTimeZone(Algorithm.timeZone);
         tradingMinutes = Integer.valueOf(properties.getProperty("tradingminutesinday", "375"));
         openTime = properties.getProperty("opentime", "9:15:00");
@@ -542,10 +382,35 @@ public class Historical {
                 }
             }
         }
+        if(r){
+            rConnection = properties.getProperty("rconnection", "127.0.0.1");
+             String barSizeAllCass = properties.getProperty("rbarsize", "daily").toString().trim();
+            String[] barSizeCass = barSizeAllCass.split(",");
+            for (String bar : barSizeCass) {
+                String duration = properties.getProperty(bar);
+                if (duration != null) {
+                    rBarRequestDuration.put(bar, duration);
+                }
+            }
+            rfolder=properties.getProperty("rfolder", "daily").toString().trim();
+            rnewfileperday=Integer.valueOf(properties.getProperty("newfileperday", "0"));
+            String today=DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone));
+            rstartingdate=properties.getProperty("rstartingdate", today).toString().trim();
+            if(rstartingdate.isEmpty()){
+                rstartingdate=today;
+            }
+            rendingdate=properties.getProperty("rendingdate", today).toString().trim();
+            if(rendingdate.isEmpty()){
+                rendingdate=today;
+            }
+            rscript=properties.getProperty("rscript","historical.R").toString().trim();
+            workingdirectory=properties.getProperty("workingdirectory", "/home/psharma").toString().trim();
+            rbackfill=Boolean.valueOf(properties.getProperty("rbackfill","false"));
+        }
 
     }
 
-    public static long getLastTime(String kairosIP, int kairosPort, BeanSymbol s, String metric) throws IOException {
+    public static long getLastTimeFromKairos(String kairosIP, int kairosPort, BeanSymbol s, String metric) throws IOException {
         try {
             List<String> out = new ArrayList<>();
             HashMap<String, Object> param = new HashMap();
@@ -594,33 +459,22 @@ public class Historical {
         }
     }
 
-    /*
-    private static Date getLastTime(String url, String metric, BeanSymbol s) throws MalformedURLException, ParseException, IOException, URISyntaxException {
-        HttpClient client = new HttpClient("http://"+url+":8085");
-        String symbol = s.getDisplayname();
-        String expiry = s.getExpiry();
+    public static long getLastTimeFromR (BeanSymbol s,String endTime,String rfolder,int rnewfileperday,int lookback, String script){
+        // if rnewfileperday==TRUE, get list of directories in rfolder
+        try{
+        String command="source(\"" + rscript + "\")";
+              rcon.eval(command);
+              command="getStartingTime(\""+rfolder+"\",\""+s.getDisplayname()+"\",\""+endTime+"\",\""+rnewfileperday+"\",\""+lookback+"\")";
+        REXP time;
 
-        symbol = symbol.replace("&", "");
-        QueryBuilder builder = QueryBuilder.getInstance();
-        builder.setStart(new Date(0))
-                .addMetric(metric)
-                .addTag("symbol", symbol.toLowerCase());
-        if (!(expiry == null)) {
-            builder.getMetrics().get(0).addTag("expiry", expiry);
+        time=rcon.eval(command);
+        long out=DateUtil.getFormattedDate(time.asString(), "yyyy-MM-dd HH:mm:ss", Algorithm.timeZone).getTime();
+        return out;
+        }catch (Exception e){
+            return 0L;
         }
-        builder.getMetrics().get(0).setLimit(1);
-        builder.getMetrics().get(0).setOrder(QueryMetric.Order.DESCENDING);
-        QueryResponse response = client.query(builder);
-        List<DataPoint> dataPoints = response.getQueries().get(0).getResults().get(0).getDataPoints();
-        long lastTime = 0;
-        for (DataPoint dataPoint : dataPoints) {
-            lastTime = dataPoint.getTimestamp();
-        }
-        client.shutdown();
-        return new Date(lastTime);
-
     }
-     */
+    
     private static Date adjustDate(Date date, String barSize) {
         Date out = null;
         switch (barSize) {

@@ -131,7 +131,9 @@ public class HistoricalBarsAll implements Runnable {
             case "1sec":
                 iterations = 1 + ((int) ((days * tradingMinutes) / 30.00));
                 //System.out.println("Iterations:" + iterations);
-                if(Historical.cassandraBarDestination.size()>0){
+                if(Historical.rConnection!=null){
+                    duration = Historical.rBarRequestDuration.get("1sec")!=null?Historical.rBarRequestDuration.get("1sec"):"1800 S";
+                }else if(Historical.cassandraBarDestination.size()>0){
                     duration = Historical.cassandraBarRequestDuration.get("1sec")!=null?Historical.cassandraBarRequestDuration.get("1sec"):"1800 S";
                 } else {
                     duration = Historical.mysqlBarRequestDuration.get("1sec")!=null?Historical.mysqlBarRequestDuration.get("1sec"):"1800 S";
@@ -140,7 +142,9 @@ public class HistoricalBarsAll implements Runnable {
                 break;
             case "5sec":
                 iterations = (int) (days * tradingMinutes / 7200) + 1;
-                if (Historical.cassandraBarDestination.size() > 0) {
+                if(Historical.rConnection!=null){
+                    duration = Historical.rBarRequestDuration.get("5sec")!=null?Historical.rBarRequestDuration.get("5sec"):"7200 S";
+                }else if (Historical.cassandraBarDestination.size() > 0) {
                 duration = Historical.cassandraBarRequestDuration.get("5sec")!=null?Historical.cassandraBarRequestDuration.get("5sec"):"7200 S";
                 } else {
                     duration = Historical.mysqlBarRequestDuration.get("5sec")!=null?Historical.mysqlBarRequestDuration.get("5sec"):"7200 S";
@@ -149,7 +153,9 @@ public class HistoricalBarsAll implements Runnable {
                 break;
             case "1min":
                 iterations = (int) (days * 5) + 1;
-                if (Historical.cassandraBarDestination.size() > 0) {
+                if(Historical.rConnection!=null){
+                    duration = Historical.rBarRequestDuration.get("1min")!=null?Historical.rBarRequestDuration.get("1min"):"5 D";
+                }else if (Historical.cassandraBarDestination.size() > 0) {
                     duration = Historical.cassandraBarRequestDuration.get("1min")!=null?Historical.cassandraBarRequestDuration.get("1min"):"5 D";
                 } else {
                     duration = Historical.mysqlBarRequestDuration.get("1min")!=null?Historical.mysqlBarRequestDuration.get("1min"):"5 D";
@@ -158,7 +164,9 @@ public class HistoricalBarsAll implements Runnable {
                 break;
             case "1day":
                 iterations = days + 1;
-                if(Historical.cassandraBarDestination.size()>0){
+                if(Historical.rConnection!=null){
+                    duration = Historical.rBarRequestDuration.get("1day")!=null?Historical.rBarRequestDuration.get("1day"):"1 Y";
+                }else if(Historical.cassandraBarDestination.size()>0){
                     duration = Historical.cassandraBarRequestDuration.get("1day")!=null?Historical.cassandraBarRequestDuration.get("1day"):"1 Y";
                 } else {
                     duration = Historical.mysqlBarRequestDuration.get("1day")!=null?Historical.mysqlBarRequestDuration.get("1day"):"1 Y";
@@ -218,42 +226,11 @@ public class HistoricalBarsAll implements Runnable {
                     default:
                         break;
                 }
-
-                /*
-                 switch (ibBarSize) {
-                 case "1 secs":
-                 startDate = nextGoodDay(startDate,30);
-                 //System.out.println("New Start Date:"+startDate.toString());
-                 break;
-                 case "5 sec":
-                 startDate = nextGoodDay(startDate,120);
-                 break;
-                 case "1 min":
-                 startDate = nextGoodDay(startDate,7200); //move to next day
-                 break;
-                 case "1 day":
-                 startDate = new Date(0);
-                 break;
-                 default:
-                 break;
-                 }
-                 */
                 Date tempDate = startDate.after(endDate) ? endDate : startDate;
 
                 String tempDateString = sdf.format(tempDate);
                 if (!oldStartDate.after(endDate)) {
-                    //int connectionId = i % connectionsInUse;
-                    //System.out.println("Connection Being Used:" + connectionId);
                     useConnection.get(connectionId).getWrapper().requestHistoricalData(s, tempDateString, duration, ibBarSize);
-                    /*
-                    if (connectionId == connectionsInUse - 1) {//finished a loop through connections. Sleep
-                        try {
-                            Thread.sleep(useConnection.get(connectionId).getHistMessageLimit() * 1000);
-                        } catch (InterruptedException ex) {
-                            logger.log(Level.SEVERE, null, ex);
-                        }
-                    }
-                     */
                 } else {
                     try {
                         //if (i > 0) {

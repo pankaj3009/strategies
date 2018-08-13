@@ -14,8 +14,14 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.TimeZone;
+import java.util.TreeMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.rosuda.REngine.Rserve.RserveException;
 
 /**
  *
@@ -30,6 +36,8 @@ public class DataCapture implements HistoricalBarListener {
     static int batchSize = 0;
     private String table;
     int batch;
+    private HashMap<String, TreeMap<Long, BeanOHLC>> rdata = new HashMap<>();
+    private HashMap<String, Long> lastData = new HashMap<>();
 
     public DataCapture(String table, int batch) throws SQLException, UnknownHostException, IOException, ClassNotFoundException {
         this.table = table;
@@ -40,12 +48,10 @@ public class DataCapture implements HistoricalBarListener {
             mysqlConnection = DriverManager.getConnection(Historical.mysqlConnection, Historical.mysqlUserName, Historical.mysqlPassword);
             mysqlConnection.setAutoCommit(true);
             mySQLInsert = mysqlConnection.prepareStatement("insert into " + table + " values (?,?,?,?,?,?,?)");
-
         }
         if (Historical.cassandraConnection != null) {
             cassandraConnection = new Socket(Historical.cassandraConnection, Integer.valueOf(Historical.cassandraPort));
         }
-
     }
 
     @Override
@@ -61,6 +67,9 @@ public class DataCapture implements HistoricalBarListener {
                     if (cassandraConnection != null && Historical.cassandraBarDestination.get("daily") != null) {
                         insertIntoCassandra(event.getOhlc(), Historical.cassandraBarDestination.get("daily"), name, expiry);
                     }
+                    if (Historical.rBarRequestDuration.get("daily") != null) {
+                        insertIntoRDB(event.getOhlc(), event.getSymbol().getDisplayname());
+                    }
                     break;
                 case ONEMINUTE:
                     if (mysqlConnection != null && Historical.mysqlBarDestination.get("1min") != null) {
@@ -69,6 +78,9 @@ public class DataCapture implements HistoricalBarListener {
                     if (cassandraConnection != null && Historical.cassandraBarDestination.get("1min") != null) {
                         insertIntoCassandra(event.getOhlc(), Historical.cassandraBarDestination.get("1min"), name, expiry);
                     }
+                    if (Historical.rBarRequestDuration.get("1min") != null) {
+                        insertIntoRDB(event.getOhlc(), event.getSymbol().getDisplayname());
+                    }
                     break;
                 case ONESECOND:
                     if (mysqlConnection != null && Historical.mysqlBarDestination.get("1sec") != null) {
@@ -76,6 +88,9 @@ public class DataCapture implements HistoricalBarListener {
                     }
                     if (cassandraConnection != null && Historical.cassandraBarDestination.get("1sec") != null) {
                         insertIntoCassandra(event.getOhlc(), Historical.cassandraBarDestination.get("1sec"), name, expiry);
+                    }
+                    if (Historical.rBarRequestDuration.get("1sec") != null) {
+                        insertIntoRDB(event.getOhlc(), event.getSymbol().getDisplayname());
                     }
                     break;
                 default:
@@ -107,7 +122,6 @@ public class DataCapture implements HistoricalBarListener {
         } else {
             mySQLInsert.executeBatch();
         }
-
     }
 
     public void insertIntoCassandra(BeanOHLC ohlc, String metric, String symbol, String expiry) throws IOException {
@@ -131,10 +145,79 @@ public class DataCapture implements HistoricalBarListener {
         }
     }
 
+    public synchronized void insertIntoRDB(BeanOHLC ohlc, String symbol) {
+        String file = "NA";
+        if(ohlc.getOpenTime()>0){
+            if (Historical.rnewfileperday > 0) {
+                String formattedDate = getFormattedDate("yyyy-MM-dd", ohlc.getOpenTime(), TimeZone.getTimeZone(Algorithm.timeZone));
+                file = Historical.rfolder + formattedDate + "/" + symbol + "_" + formattedDate + ".rds";
+            } else {
+                file = Historical.rfolder + "/" + symbol + ".rds";
+            }            
+        }
+        //String keyfile = Historical.rfolder + "/" + symbol + ".rds";
+        TreeMap<Long, BeanOHLC> data = rdata.get(file);
+        if(data==null){
+            data = new TreeMap<Long, BeanOHLC>();
+        }
+        if (ohlc.getOpenTime()==0) {
+//            if (Historical.rnewfileperday > 0) {
+//                String formattedDate = getFormattedDate("yyyy-MM-dd", data.firstKey(), TimeZone.getTimeZone(Algorithm.timeZone));
+//                file = Historical.rfolder + formattedDate + "/" + symbol + "_" + formattedDate + ".rds";
+//            } else {
+//                file = Historical.rfolder + "/" + symbol + ".rds";
+//            }
+            //write record to R
+            for(String f : rdata.keySet()){
+            writeToR(f);
+            }
+            rdata.clear();
+        }
+        if(ohlc.getOpenTime()!=0){
+        data.put(ohlc.getOpenTime(), ohlc);
+        rdata.put(file, data);            
+        }
+    }
+
     public String getFormattedDate(String format, long timeMS, TimeZone tmz) {
         SimpleDateFormat sdf = new SimpleDateFormat(format);
         sdf.setTimeZone(tmz);
         String date = sdf.format(new Date(timeMS));
         return date;
+    }
+
+    public void writeToR(String file) {
+        try{
+        TreeMap<Long, BeanOHLC> data = rdata.get(file);
+        int n=data.size();
+        double[] open = new double[n];
+        double[] high = new double[n];
+        double[] low = new double[n];
+        double[] close = new double[n];
+        String[] volume = new String[n];
+        String[] date=new String[n];
+        int i=-1;
+        for (BeanOHLC d : data.values()) {
+            i=i+1;
+            open[i]=d.getOpen();
+            high[i]=d.getHigh();
+            low[i]=d.getLow();
+            close[i]=d.getClose();
+            volume[i]=String.valueOf(d.getVolume());
+            date[i]=String.valueOf(d.getOpenTime() / 1000);
+        }
+        Historical.rcon.assign("date", date);
+        Historical.rcon.assign("open", open);
+        Historical.rcon.assign("high", high);
+        Historical.rcon.assign("low", low);
+        Historical.rcon.assign("close", close);
+        Historical.rcon.assign("volume", volume);
+        
+        String command = "insertIntoRDB(\"" + file + "\",\"" + date + "\",\"" + open + "\",\"" + high + "\",\"" + low + "\",\"" + close + "\",\"" + volume + "\")";
+        command = "insertIntoRDB(\""+file+"\""+",date,open,high,low,close,volume)";
+        Historical.rcon.eval(command);
+        } catch (Exception ex) {
+            Logger.getLogger(DataCapture.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 }
