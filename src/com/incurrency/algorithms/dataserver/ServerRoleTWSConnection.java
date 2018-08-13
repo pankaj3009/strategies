@@ -1147,8 +1147,10 @@ public class ServerRoleTWSConnection extends Thread implements EWrapper, com.inc
                         tickType = "size";
                         break;
                     case TickType.HIGH:
+                        tickType="high";
                         break;
                     case TickType.LOW:
+                        tickType="low";
                         break;
                     case TickType.VOLUME: //volume
                         tickType = "dayvolume";
