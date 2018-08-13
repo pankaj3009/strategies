@@ -260,6 +260,17 @@ public class HistoricalBarsAll implements Runnable {
             //        entryCal.set(Calendar.SECOND, 0);
             entryCal.set(Calendar.MILLISECOND, 0);
         }
+        if (entryHour < tradeOpenHour || (entryHour == tradeOpenHour && entryMinute < tradeOpenMinute)) {
+            //1.get minutes from close
+            //int minutesFromClose=(tradeCloseHour-entryHour)>0?(tradeCloseHour-entryHour)*60:0+this.tradeCloseMinute-entryMinute;
+            //int minutesCarriedForward=minuteAdjust-minutesFromClose;
+
+            entryCal.set(Calendar.HOUR_OF_DAY, tradeOpenHour);
+            entryCal.set(Calendar.MINUTE, tradeOpenMinute);
+            entryCal.set(Calendar.SECOND, 0);
+            entryCal.set(Calendar.MILLISECOND, 0);
+//            exitCal.add(Calendar.MINUTE, minuteAdjust);
+        }
 
         Calendar exitCal = (Calendar) entryCal.clone();
         exitCal.setTimeZone(timeZone);

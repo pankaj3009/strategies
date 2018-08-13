@@ -147,12 +147,13 @@ public class DataCapture implements HistoricalBarListener {
 
     public synchronized void insertIntoRDB(BeanOHLC ohlc, String symbol) {
         String file = "NA";
+        String type=symbol.split("_")[1].toLowerCase();
         if(ohlc.getOpenTime()>0){
             if (Historical.rnewfileperday > 0) {
                 String formattedDate = getFormattedDate("yyyy-MM-dd", ohlc.getOpenTime(), TimeZone.getTimeZone(Algorithm.timeZone));
-                file = Historical.rfolder + formattedDate + "/" + symbol + "_" + formattedDate + ".rds";
+                file = Historical.rfolder + type+"/"+formattedDate + "/" + symbol + "_" + formattedDate + ".rds";
             } else {
-                file = Historical.rfolder + "/" + symbol + ".rds";
+                file = Historical.rfolder + type+ "/" + symbol + ".rds";
             }            
         }
         //String keyfile = Historical.rfolder + "/" + symbol + ".rds";

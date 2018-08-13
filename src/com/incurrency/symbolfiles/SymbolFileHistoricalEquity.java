@@ -61,7 +61,7 @@ public class SymbolFileHistoricalEquity {
         s.setExchange("NSE");
         s.setStreamingpriority(1);
         s.setStrategy("DATA");
-        s.setDisplayname("NSENIFTY");
+  //      s.setDisplayname("NSENIFTY_IND___");
         out.add(s.clone(s));
 
         s = new BeanSymbol("BANKNIFTY", "BANKNIFTY", "IND", "", "", "");
@@ -69,14 +69,14 @@ public class SymbolFileHistoricalEquity {
         s.setExchange("NSE");
         s.setStreamingpriority(1);
         s.setStrategy("DATA");
-        s.setDisplayname("BANKNIFTY");
+//        s.setDisplayname("BANKNIFTY_IND___");
         out.add(s.clone(s));
 
         out.addAll(cnx500);
 
         for (int i = 0; i < cnx500.size(); i++) {
             // cnx500.get(i).setDisplayname(cnx500.get(i).getExchangeSymbol().replaceAll("[^A-Za-z0-9]", ""));
-            cnx500.get(i).setDisplayname(cnx500.get(i).getExchangeSymbol().replaceAll(" ", ""));
+    //        cnx500.get(i).setDisplayname(cnx500.get(i).getExchangeSymbol().replaceAll(" ", ""));
         }
 
         Utilities.printSymbolsToFile(out, symbolFileName, true);

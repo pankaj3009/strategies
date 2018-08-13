@@ -462,9 +462,10 @@ public class Historical {
     public static long getLastTimeFromR (BeanSymbol s,String endTime,String rfolder,int rnewfileperday,int lookback, String script){
         // if rnewfileperday==TRUE, get list of directories in rfolder
         try{
+        String type=s.getDisplayname().split("_")[1].toLowerCase();
         String command="source(\"" + rscript + "\")";
               rcon.eval(command);
-              command="getStartingTime(\""+rfolder+"\",\""+s.getDisplayname()+"\",\""+endTime+"\",\""+rnewfileperday+"\",\""+lookback+"\")";
+              command="getStartingTime(\""+rfolder+type+"/"+ "\",\""+s.getDisplayname()+"\",\""+endTime+"\",\""+rnewfileperday+"\",\""+lookback+"\")";
         REXP time;
 
         time=rcon.eval(command);

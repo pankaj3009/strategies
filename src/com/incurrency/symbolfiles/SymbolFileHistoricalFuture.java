@@ -80,7 +80,7 @@ public class SymbolFileHistoricalFuture {
         out.addAll(fwdout);
         for (int i = 0; i < out.size(); i++) {
             //   out.get(i).setDisplayname(out.get(i).getExchangeSymbol().replaceAll("[^A-Za-z0-9]", ""));
-            out.get(i).setDisplayname(out.get(i).getExchangeSymbol().replaceAll(" ", ""));
+            //out.get(i).setDisplayname(out.get(i).getExchangeSymbol().replaceAll(" ", ""));
         }
 
         Utilities.printSymbolsToFile(out, symbolFileName, true);
