@@ -76,6 +76,7 @@ public class Historical {
     static HashMap<String, Date> lastUpdateDate = new HashMap<>();
     private Properties properties;
     static String zerovolumeSymbols;
+    public static final Object lockRcon = new Object();
 
     /**
      * @param parameterFile the command line arguments
@@ -90,7 +91,7 @@ public class Historical {
         boolean target_cassandra = Boolean.parseBoolean(properties.getProperty("cassandra", "false").toString().trim());
         boolean target_r = Boolean.parseBoolean(properties.getProperty("rdb", "false").toString().trim());
         Date shutdownDate = new Date();
-        loadParameters(target_mysql, target_cassandra,target_r);
+        loadParameters(target_mysql, target_cassandra, target_r);
         if (runtime > 0) {
             shutdownDate = addMinutes(new Date(), runtime);
         } else {
@@ -117,20 +118,22 @@ public class Historical {
             mySQLQuery = mySQLConnect.prepareStatement("select date from ? where symbol=? order by date asc limit 1");
         } else if (cassandraConnection != null) {
             cassandraConnect = new Socket(Historical.cassandraConnection, Integer.valueOf(Historical.cassandraPort));
-        } else if (rConnection!=null){
-              rcon = new RConnection(Historical.rConnection);
-              String command="setwd(\"" + workingdirectory + "\")";
-              rcon.eval(command);
-              REXP wd = rcon.eval("getwd()");
-              System.out.println(wd.asString());
-              command="source(\"" + rscript + "\")";
-              rcon.eval(command);
+        } else if (rConnection != null) {
+            rcon = new RConnection(Historical.rConnection);
+            String command = "setwd(\"" + workingdirectory + "\")";
+            synchronized (lockRcon) {
+                rcon.eval(command);
+                REXP wd = rcon.eval("getwd()");
+                System.out.println(wd.asString());
+                command = "source(\"" + rscript + "\")";
+                rcon.eval(command);
+            }
         }
         //process mysql first    
         String barSize = null;
         Date endDate = new Date();
-        Date specifiedEndDate=DateUtil.getFormattedDate(Historical.rendingdate+ " 23:59:00", "yyyyMMdd hh:mm:ss", Algorithm.timeZone);
-        endDate=endDate.after(specifiedEndDate)?specifiedEndDate:endDate;
+        Date specifiedEndDate = DateUtil.getFormattedDate(Historical.rendingdate + " 23:59:00", "yyyyMMdd hh:mm:ss", Algorithm.timeZone);
+        endDate = endDate.after(specifiedEndDate) ? specifiedEndDate : endDate;
         Date startDate = null;
         int connectionCount = Parameters.connection.size();
         int i = 0; //i = symbols requested, used for identifying the beanconnection to use
@@ -238,73 +241,73 @@ public class Historical {
                     }
                 }
             }
-        }else if(rConnection!=null){
-             for (String b : rBarRequestDuration.keySet()) {
-                    barSize = b;
-                    dc = new DataCapture(b, batch);
-                    int j = -1;
-                    for (BeanSymbol s : Parameters.symbol) {//for each symbol
-                        j = j + 1;
-                        endDate = new Date();
-                        //get start date
-                        if (!done) {
-                            startDate = new Date(getLastTimeFromR(s,rstartingdate,rfolder,rnewfileperday,100,"historical.R" ));
-                            if(!rbackfill){
-                                Date requiredStart=DateUtil.getFormattedDate(Historical.rstartingdate, "yyyyMMdd", Algorithm.timeZone);
-                                startDate=requiredStart.after(startDate)?requiredStart:startDate;
-                            }                            
-                            lastUpdateDate.put(s.getDisplayname().trim(), startDate);
+        } else if (rConnection != null) {
+            for (String b : rBarRequestDuration.keySet()) {
+                barSize = b;
+                dc = new DataCapture(b, batch);
+                int j = -1;
+                for (BeanSymbol s : Parameters.symbol) {//for each symbol
+                    j = j + 1;
+                    endDate = new Date();
+                    //get start date
+                    if (!done) {
+                        startDate = new Date(getLastTimeFromR(s, rstartingdate, rfolder, rnewfileperday, 100, "historical.R"));
+                        if (!rbackfill) {
+                            Date requiredStart = DateUtil.getFormattedDate(Historical.rstartingdate, "yyyyMMdd", Algorithm.timeZone);
+                            startDate = requiredStart.after(startDate) ? requiredStart : startDate;
+                        }
+                        lastUpdateDate.put(s.getDisplayname().trim(), startDate);
+                        if (s.getType().equals("FUT") || s.getType().equals("OPT")) {
+                            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+                            Date expiration = sdf.parse(s.getExpiry());
+                            if (expiration.before(endDate)) {
+                                endDate = expiration;
+                                endDate = addDays(endDate, 1);
+                                endDate = addSeconds(endDate, -1);//bring time to 23.59
+                            }
+                        }
+                        if (startDate.getTime() > 0L) {
+                            //increase startdate by barsize
+                            startDate = adjustDate(startDate, barSize);
+                        } else if (startDate.getTime() <= 0L) {//no data in database for symbol
                             if (s.getType().equals("FUT") || s.getType().equals("OPT")) {
                                 SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
                                 Date expiration = sdf.parse(s.getExpiry());
-                                if (expiration.before(endDate)) {
-                                    endDate = expiration;
-                                    endDate = addDays(endDate, 1);
-                                    endDate = addSeconds(endDate, -1);//bring time to 23.59
-                                }
-                            }
-                            if (startDate.getTime() > 0L) {
-                                //increase startdate by barsize
-                                startDate = adjustDate(startDate, barSize);
-                            } else if (startDate.getTime() <= 0L) {//no data in database for symbol
-                                if (s.getType().equals("FUT") || s.getType().equals("OPT")) {
-                                    SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
-                                    Date expiration = sdf.parse(s.getExpiry());
-                                    startDate = addDays(expiration, -90);
-                                } else {
-                                    if (b.equals("1sec")) {
-                                        startDate = addDays(endDate, -180);
-                                    } else {
-                                        startDate = addDays(endDate, -365);
-                                    }
-                                }
-                            }
-                            int connectionid = i % connectionCount;
-                            BeanConnection c = Parameters.connection.get(connectionid);
-                            while (t.isAlive()) {
-                                Thread.sleep(1000);
-                            }
-                            long minutesToClose = (shutdownDate.getTime() - new Date().getTime()) / (1000);
-                            long estimatedTime;
-                            HistoricalBarsAll bar;
-                            t = new Thread(bar = new HistoricalBarsAll(barSize, startDate, endDate, s, tradingMinutes, openTime, closeTime, timeZone, Algorithm.holidays));
-                            t.setName("Historical Bars:" + s.getDisplayname());
-                            estimatedTime = bar.estimatedTime();
-                            if (estimatedTime < minutesToClose) {
-                                t.start();
+                                startDate = addDays(expiration, -90);
                             } else {
-                                done = true;
+                                if (b.equals("1sec")) {
+                                    startDate = addDays(endDate, -180);
+                                } else {
+                                    startDate = addDays(endDate, -365);
+                                }
                             }
                         }
+                        int connectionid = i % connectionCount;
+                        BeanConnection c = Parameters.connection.get(connectionid);
+                        while (t.isAlive()) {
+                            Thread.sleep(1000);
+                        }
+                        long minutesToClose = (shutdownDate.getTime() - new Date().getTime()) / (1000);
+                        long estimatedTime;
+                        HistoricalBarsAll bar;
+                        t = new Thread(bar = new HistoricalBarsAll(barSize, startDate, endDate, s, tradingMinutes, openTime, closeTime, timeZone, Algorithm.holidays));
+                        t.setName("Historical Bars:" + s.getDisplayname());
+                        estimatedTime = bar.estimatedTime();
+                        if (estimatedTime < minutesToClose) {
+                            t.start();
+                        } else {
+                            done = true;
+                        }
                     }
-                
+                }
+
             }
         }
         System.exit(0);
 
     }
-   
-     public static void writeToFile(String filename, TreeMap<Long, OHLCV> content) {
+
+    public static void writeToFile(String filename, TreeMap<Long, OHLCV> content) {
         try {
             File file = new File(filename.toUpperCase() + ".csv");
 
@@ -382,9 +385,9 @@ public class Historical {
                 }
             }
         }
-        if(r){
+        if (r) {
             rConnection = properties.getProperty("rconnection", "127.0.0.1");
-             String barSizeAllCass = properties.getProperty("rbarsize", "daily").toString().trim();
+            String barSizeAllCass = properties.getProperty("rbarsize", "daily").toString().trim();
             String[] barSizeCass = barSizeAllCass.split(",");
             for (String bar : barSizeCass) {
                 String duration = properties.getProperty(bar);
@@ -392,20 +395,20 @@ public class Historical {
                     rBarRequestDuration.put(bar, duration);
                 }
             }
-            rfolder=properties.getProperty("rfolder", "daily").toString().trim();
-            rnewfileperday=Integer.valueOf(properties.getProperty("newfileperday", "0"));
-            String today=DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone));
-            rstartingdate=properties.getProperty("rstartingdate", today).toString().trim();
-            if(rstartingdate.isEmpty()){
-                rstartingdate=today;
+            rfolder = properties.getProperty("rfolder", "daily").toString().trim();
+            rnewfileperday = Integer.valueOf(properties.getProperty("newfileperday", "0"));
+            String today = DateUtil.getFormatedDate("yyyyMMdd", new Date().getTime(), TimeZone.getTimeZone(Algorithm.timeZone));
+            rstartingdate = properties.getProperty("rstartingdate", today).toString().trim();
+            if (rstartingdate.isEmpty()) {
+                rstartingdate = today;
             }
-            rendingdate=properties.getProperty("rendingdate", today).toString().trim();
-            if(rendingdate.isEmpty()){
-                rendingdate=today;
+            rendingdate = properties.getProperty("rendingdate", today).toString().trim();
+            if (rendingdate.isEmpty()) {
+                rendingdate = today;
             }
-            rscript=properties.getProperty("rscript","historical.R").toString().trim();
-            workingdirectory=properties.getProperty("workingdirectory", "/home/psharma").toString().trim();
-            rbackfill=Boolean.valueOf(properties.getProperty("rbackfill","false"));
+            rscript = properties.getProperty("rscript", "historical.R").toString().trim();
+            workingdirectory = properties.getProperty("workingdirectory", "/home/psharma").toString().trim();
+            rbackfill = Boolean.valueOf(properties.getProperty("rbackfill", "false"));
         }
 
     }
@@ -459,23 +462,25 @@ public class Historical {
         }
     }
 
-    public static long getLastTimeFromR (BeanSymbol s,String endTime,String rfolder,int rnewfileperday,int lookback, String script){
+    public static long getLastTimeFromR(BeanSymbol s, String endTime, String rfolder, int rnewfileperday, int lookback, String script) {
         // if rnewfileperday==TRUE, get list of directories in rfolder
-        try{
-        String type=s.getDisplayname().split("_")[1].toLowerCase();
-        String command="source(\"" + rscript + "\")";
-              rcon.eval(command);
-              command="getStartingTime(\""+rfolder+type+"/"+ "\",\""+s.getDisplayname()+"\",\""+endTime+"\",\""+rnewfileperday+"\",\""+lookback+"\")";
-        REXP time;
+        synchronized (lockRcon) {
+            try {
+                String type = s.getDisplayname().split("_")[1].toLowerCase();
+                String command = "source(\"" + rscript + "\")";
+                rcon.eval(command);
+                command = "getStartingTime(\"" + rfolder + type + "/" + "\",\"" + s.getDisplayname() + "\",\"" + endTime + "\",\"" + rnewfileperday + "\",\"" + lookback + "\")";
+                REXP time;
 
-        time=rcon.eval(command);
-        long out=DateUtil.getFormattedDate(time.asString(), "yyyy-MM-dd HH:mm:ss", Algorithm.timeZone).getTime();
-        return out;
-        }catch (Exception e){
-            return 0L;
+                time = rcon.eval(command);
+                long out = DateUtil.getFormattedDate(time.asString(), "yyyy-MM-dd HH:mm:ss", Algorithm.timeZone).getTime();
+                return out;
+            } catch (Exception e) {
+                return 0L;
+            }
         }
     }
-    
+
     private static Date adjustDate(Date date, String barSize) {
         Date out = null;
         switch (barSize) {

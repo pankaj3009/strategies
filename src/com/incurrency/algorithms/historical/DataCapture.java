@@ -145,23 +145,23 @@ public class DataCapture implements HistoricalBarListener {
         }
     }
 
-    public synchronized void insertIntoRDB(BeanOHLC ohlc, String symbol) {
+    public void insertIntoRDB(BeanOHLC ohlc, String symbol) {
         String file = "NA";
-        String type=symbol.split("_")[1].toLowerCase();
-        if(ohlc.getOpenTime()>0){
+        String type = symbol.split("_")[1].toLowerCase();
+        if (ohlc.getOpenTime() > 0) {
             if (Historical.rnewfileperday > 0) {
                 String formattedDate = getFormattedDate("yyyy-MM-dd", ohlc.getOpenTime(), TimeZone.getTimeZone(Algorithm.timeZone));
-                file = Historical.rfolder + type+"/"+formattedDate + "/" + symbol + "_" + formattedDate + ".rds";
+                file = Historical.rfolder + type + "/" + formattedDate + "/" + symbol + "_" + formattedDate + ".rds";
             } else {
-                file = Historical.rfolder + type+ "/" + symbol + ".rds";
-            }            
+                file = Historical.rfolder + type + "/" + symbol + ".rds";
+            }
         }
         //String keyfile = Historical.rfolder + "/" + symbol + ".rds";
         TreeMap<Long, BeanOHLC> data = rdata.get(file);
-        if(data==null){
+        if (data == null) {
             data = new TreeMap<Long, BeanOHLC>();
         }
-        if (ohlc.getOpenTime()==0) {
+        if (ohlc.getOpenTime() == 0) {
 //            if (Historical.rnewfileperday > 0) {
 //                String formattedDate = getFormattedDate("yyyy-MM-dd", data.firstKey(), TimeZone.getTimeZone(Algorithm.timeZone));
 //                file = Historical.rfolder + formattedDate + "/" + symbol + "_" + formattedDate + ".rds";
@@ -169,14 +169,14 @@ public class DataCapture implements HistoricalBarListener {
 //                file = Historical.rfolder + "/" + symbol + ".rds";
 //            }
             //write record to R
-            for(String f : rdata.keySet()){
-            writeToR(f);
+            for (String f : rdata.keySet()) {
+                writeToR(f);
             }
             rdata.clear();
         }
-        if(ohlc.getOpenTime()!=0){
-        data.put(ohlc.getOpenTime(), ohlc);
-        rdata.put(file, data);            
+        if (ohlc.getOpenTime() != 0) {
+            data.put(ohlc.getOpenTime(), ohlc);
+            rdata.put(file, data);
         }
     }
 
@@ -188,37 +188,39 @@ public class DataCapture implements HistoricalBarListener {
     }
 
     public void writeToR(String file) {
-        try{
-        TreeMap<Long, BeanOHLC> data = rdata.get(file);
-        int n=data.size();
-        double[] open = new double[n];
-        double[] high = new double[n];
-        double[] low = new double[n];
-        double[] close = new double[n];
-        String[] volume = new String[n];
-        String[] date=new String[n];
-        int i=-1;
-        for (BeanOHLC d : data.values()) {
-            i=i+1;
-            open[i]=d.getOpen();
-            high[i]=d.getHigh();
-            low[i]=d.getLow();
-            close[i]=d.getClose();
-            volume[i]=String.valueOf(d.getVolume());
-            date[i]=String.valueOf(d.getOpenTime() / 1000);
-        }
-        Historical.rcon.assign("date", date);
-        Historical.rcon.assign("open", open);
-        Historical.rcon.assign("high", high);
-        Historical.rcon.assign("low", low);
-        Historical.rcon.assign("close", close);
-        Historical.rcon.assign("volume", volume);
-        
-        String command = "insertIntoRDB(\"" + file + "\",\"" + date + "\",\"" + open + "\",\"" + high + "\",\"" + low + "\",\"" + close + "\",\"" + volume + "\")";
-        command = "insertIntoRDB(\""+file+"\""+",date,open,high,low,close,volume)";
-        Historical.rcon.eval(command);
-        } catch (Exception ex) {
-            Logger.getLogger(DataCapture.class.getName()).log(Level.SEVERE, null, ex);
+        synchronized (Historical.lockRcon) {
+            try {
+                TreeMap<Long, BeanOHLC> data = rdata.get(file);
+                int n = data.size();
+                double[] open = new double[n];
+                double[] high = new double[n];
+                double[] low = new double[n];
+                double[] close = new double[n];
+                String[] volume = new String[n];
+                String[] date = new String[n];
+                int i = -1;
+                for (BeanOHLC d : data.values()) {
+                    i = i + 1;
+                    open[i] = d.getOpen();
+                    high[i] = d.getHigh();
+                    low[i] = d.getLow();
+                    close[i] = d.getClose();
+                    volume[i] = String.valueOf(d.getVolume());
+                    date[i] = String.valueOf(d.getOpenTime() / 1000);
+                }
+                Historical.rcon.assign("date", date);
+                Historical.rcon.assign("open", open);
+                Historical.rcon.assign("high", high);
+                Historical.rcon.assign("low", low);
+                Historical.rcon.assign("close", close);
+                Historical.rcon.assign("volume", volume);
+
+                String command = "insertIntoRDB(\"" + file + "\",\"" + date + "\",\"" + open + "\",\"" + high + "\",\"" + low + "\",\"" + close + "\",\"" + volume + "\")";
+                command = "insertIntoRDB(\"" + file + "\"" + ",date,open,high,low,close,volume)";
+                Historical.rcon.eval(command);
+            } catch (Exception ex) {
+                Logger.getLogger(DataCapture.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
     }
 }
