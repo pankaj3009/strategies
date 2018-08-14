@@ -146,37 +146,39 @@ public class DataCapture implements HistoricalBarListener {
     }
 
     public void insertIntoRDB(BeanOHLC ohlc, String symbol) {
-        String file = "NA";
-        String type = symbol.split("_")[1].toLowerCase();
-        if (ohlc.getOpenTime() > 0) {
-            if (Historical.rnewfileperday > 0) {
-                String formattedDate = getFormattedDate("yyyy-MM-dd", ohlc.getOpenTime(), TimeZone.getTimeZone(Algorithm.timeZone));
-                file = Historical.rfolder + type + "/" + formattedDate + "/" + symbol + "_" + formattedDate + ".rds";
-            } else {
-                file = Historical.rfolder + type + "/" + symbol + ".rds";
+        if (ohlc.getVolume() > 0 || Historical.zerovolumeSymbols.contains(symbol)||ohlc.getOpenTime()==0) {
+            String file = "NA";
+            String type = symbol.split("_")[1].toLowerCase();
+            if (ohlc.getOpenTime() > 0) {
+                if (Historical.rnewfileperday > 0) {
+                    String formattedDate = getFormattedDate("yyyy-MM-dd", ohlc.getOpenTime(), TimeZone.getTimeZone(Algorithm.timeZone));
+                    file = Historical.rfolder + type + "/" + formattedDate + "/" + symbol + "_" + formattedDate + ".rds";
+                } else {
+                    file = Historical.rfolder + type + "/" + symbol + ".rds";
+                }
             }
-        }
-        //String keyfile = Historical.rfolder + "/" + symbol + ".rds";
-        TreeMap<Long, BeanOHLC> data = rdata.get(file);
-        if (data == null) {
-            data = new TreeMap<Long, BeanOHLC>();
-        }
-        if (ohlc.getOpenTime() == 0) {
+            //String keyfile = Historical.rfolder + "/" + symbol + ".rds";
+            TreeMap<Long, BeanOHLC> data = rdata.get(file);
+            if (data == null) {
+                data = new TreeMap<Long, BeanOHLC>();
+            }
+            if (ohlc.getOpenTime() == 0) {
 //            if (Historical.rnewfileperday > 0) {
 //                String formattedDate = getFormattedDate("yyyy-MM-dd", data.firstKey(), TimeZone.getTimeZone(Algorithm.timeZone));
 //                file = Historical.rfolder + formattedDate + "/" + symbol + "_" + formattedDate + ".rds";
 //            } else {
 //                file = Historical.rfolder + "/" + symbol + ".rds";
 //            }
-            //write record to R
-            for (String f : rdata.keySet()) {
-                writeToR(f);
+                //write record to R
+                for (String f : rdata.keySet()) {
+                    writeToR(f);
+                }
+                rdata.clear();
             }
-            rdata.clear();
-        }
-        if (ohlc.getOpenTime() != 0) {
-            data.put(ohlc.getOpenTime(), ohlc);
-            rdata.put(file, data);
+            if (ohlc.getOpenTime() != 0) {
+                data.put(ohlc.getOpenTime(), ohlc);
+                rdata.put(file, data);
+            }
         }
     }
 
