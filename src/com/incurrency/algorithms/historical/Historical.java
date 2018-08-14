@@ -248,7 +248,7 @@ public class Historical {
                 int j = -1;
                 for (BeanSymbol s : Parameters.symbol) {//for each symbol
                     j = j + 1;
-                    endDate = new Date();
+                    //endDate = new Date();
                     //get start date
                     if (!done) {
                         startDate = new Date(getLastTimeFromR(s, rstartingdate, rfolder, rnewfileperday, 100, "historical.R"));
