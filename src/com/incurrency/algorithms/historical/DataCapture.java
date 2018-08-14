@@ -193,6 +193,10 @@ public class DataCapture implements HistoricalBarListener {
         synchronized (Historical.lockRcon) {
             try {
                 TreeMap<Long, BeanOHLC> data = rdata.get(file);
+                String[] symbol_a=file.split("_",-1);
+                String[] folder_a=symbol_a[0].split("/",-1);
+                String baseSymbol=folder_a[folder_a.length-1].toUpperCase();
+                String symbol=baseSymbol+"_"+symbol_a[1].toUpperCase()+"_"+symbol_a[2].toUpperCase()+"_"+symbol_a[3].toUpperCase()+"_"+symbol_a[4];
                 int n = data.size();
                 double[] open = new double[n];
                 double[] high = new double[n];
@@ -216,9 +220,10 @@ public class DataCapture implements HistoricalBarListener {
                 Historical.rcon.assign("low", low);
                 Historical.rcon.assign("close", close);
                 Historical.rcon.assign("volume", volume);
+                Historical.rcon.assign("symbol", symbol);
 
-                String command = "insertIntoRDB(\"" + file + "\",\"" + date + "\",\"" + open + "\",\"" + high + "\",\"" + low + "\",\"" + close + "\",\"" + volume + "\")";
-                command = "insertIntoRDB(\"" + file + "\"" + ",date,open,high,low,close,volume)";
+                String command = "insertIntoRDB(\"" + file + "\",\"" + date + "\",\"" + open + "\",\"" + high + "\",\"" + low + "\",\"" + close + "\",\"" + volume + "\",\"" + symbol + "\")";
+                command = "insertIntoRDB(\"" + file + "\"" + ",date,open,high,low,close,volume,symbol)";
                 Historical.rcon.eval(command);
             } catch (Exception ex) {
                 Logger.getLogger(DataCapture.class.getName()).log(Level.SEVERE, null, ex);
