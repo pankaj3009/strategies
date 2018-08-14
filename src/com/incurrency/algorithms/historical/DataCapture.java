@@ -146,7 +146,7 @@ public class DataCapture implements HistoricalBarListener {
     }
 
     public void insertIntoRDB(BeanOHLC ohlc, String symbol) {
-        if (ohlc.getVolume() > 0 || Historical.zerovolumeSymbols.contains(symbol)||ohlc.getOpenTime()==0) {
+        if (ohlc.getVolume() > 0 || Historical.zerovolumeSymbols.contains(symbol.split("_")[0])||ohlc.getOpenTime()==0) {
             String file = "NA";
             String type = symbol.split("_")[1].toLowerCase();
             if (ohlc.getOpenTime() > 0) {
