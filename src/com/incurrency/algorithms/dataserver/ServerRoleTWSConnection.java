@@ -201,6 +201,7 @@ public class ServerRoleTWSConnection extends Thread implements EWrapper, com.inc
 
     public void requestSingleSnapshot(BeanSymbol s) {
         boolean proceed = true;
+        long time=new Date().getTime();
         for (Map.Entry<Integer, Request> entry : requestDetails.entrySet()) {
             if (s.getSerialno() == entry.getValue().symbol.getSerialno() && entry.getValue().requestType.equals(EnumRequestType.SNAPSHOT)) {
                 proceed = false;
@@ -209,7 +210,7 @@ public class ServerRoleTWSConnection extends Thread implements EWrapper, com.inc
         }
         if (proceed && getC().getReqHandle().getHandle()) {
             mRequestId = requestIDManager.getNextRequestId();
-            requestDetails.putIfAbsent(mRequestId, new Request(EnumSource.IB, mRequestId, s, EnumRequestType.SNAPSHOT, EnumBarSize.UNDEFINED, EnumRequestStatus.PENDING, new Date().getTime(), c.getAccountName()));
+            requestDetails.putIfAbsent(mRequestId, new Request(EnumSource.IB, mRequestId, s, EnumRequestType.SNAPSHOT, EnumBarSize.UNDEFINED, EnumRequestStatus.PENDING, time, c.getAccountName()));
             logger.log(Level.FINER, "MarketDataRequestSent_Snapshot,{0}", new Object[]{s.getSerialno() + delimiter + s.getDisplayname() + delimiter + mRequestId + delimiter + this.getC().getAccountName()});
 
             //c.getmSnapShotReqID().put(mRequestId, s.getSerialno());
@@ -969,7 +970,7 @@ public class ServerRoleTWSConnection extends Thread implements EWrapper, com.inc
         long time = new Date().getTime();
         try {
             if (this.getCassandraDetails().isRealtime()) {
-                realtime_tickPrice(tickerId, field, price, canAutoExecute);
+                realtime_tickPrice(tickerId, field, price, canAutoExecute,time);
             } else {
                 boolean snapshot = false;
                 boolean proceed = true;
@@ -1015,7 +1016,7 @@ public class ServerRoleTWSConnection extends Thread implements EWrapper, com.inc
                             }
                             tes.fireTradeEvent(id, com.ib.client.TickType.LAST);
                             if (Parameters.symbol.get(id).getIntraDayBarsFromTick() != null) {
-                                Parameters.symbol.get(id).getIntraDayBarsFromTick().setOHLCFromTick(new Date().getTime(), com.ib.client.TickType.LAST, String.valueOf(price));
+                                Parameters.symbol.get(id).getIntraDayBarsFromTick().setOHLCFromTick(time, com.ib.client.TickType.LAST, String.valueOf(price));
                             }
                         } else if (field == TickType.HIGH) {
                             Parameters.symbol.get(id).setHighPrice(price, false);
@@ -1029,7 +1030,7 @@ public class ServerRoleTWSConnection extends Thread implements EWrapper, com.inc
                         }
                         if (Parameters.symbol.get(id).isAddedToSymbols()) {
                             try (Jedis jedis = Algorithm.marketdatapool.getResource()) {
-                                jedis.publish(this.getCassandraDetails().getTopic(), field + "," + new Date().getTime() + "," + price + "," + Parameters.symbol.get(id).getDisplayname());
+                                jedis.publish(this.getCassandraDetails().getTopic(), field + "," + time + "," + price + "," + Parameters.symbol.get(id).getDisplayname());
                             }
 
                         }
@@ -1042,7 +1043,7 @@ public class ServerRoleTWSConnection extends Thread implements EWrapper, com.inc
         }
     }
 
-    public void realtime_tickPrice(int tickerId, int field, double price, int canAutoExecute) {
+    public void realtime_tickPrice(int tickerId, int field, double price, int canAutoExecute,long time) {
         try {
             boolean proceed = true;
             int serialno = requestDetails.get(tickerId) != null ? (int) requestDetails.get(tickerId).symbol.getSerialno() : 0;
@@ -1064,8 +1065,7 @@ public class ServerRoleTWSConnection extends Thread implements EWrapper, com.inc
 
                 String header = this.getCassandraDetails().getTopic();
                 String symbol = Parameters.symbol.get(id).getDisplayname();
-                long time = new Date().getTime();
-               
+              
                 switch (field) {
                     case com.ib.client.TickType.CLOSE:
                         Parameters.symbol.get(id).setClosePrice(price);
@@ -1074,7 +1074,7 @@ public class ServerRoleTWSConnection extends Thread implements EWrapper, com.inc
                         }
                         break;
                     case com.ib.client.TickType.OPEN:
-                        Rates.rateServer.send(header, field + "," + new Date().getTime() + "," + price + "," + symbol);
+                        Rates.rateServer.send(header, field + "," + time + "," + price + "," + symbol);
                         Parameters.symbol.get(id).setOpenPrice(price);
                         if (MainAlgorithm.getCollectTicks()) {
                             Utilities.writeToFile("tick_" + Parameters.symbol.get(id).getDisplayname() + ".csv", "Open," + price);
@@ -1082,26 +1082,26 @@ public class ServerRoleTWSConnection extends Thread implements EWrapper, com.inc
                         break;
                     case com.ib.client.TickType.HIGH:
                         Parameters.symbol.get(id).setHighPrice(price, false);
-                        Rates.rateServer.send(header, field + "," + new Date().getTime() + "," + price + "," + symbol);
+                        Rates.rateServer.send(header, field + "," + time + "," + price + "," + symbol);
                         if (MainAlgorithm.getCollectTicks()) {
                             Utilities.writeToFile("tick_" + Parameters.symbol.get(id).getDisplayname() + ".csv", "High," + price);
                         }
                         break;
                     case com.ib.client.TickType.LOW:
                         Parameters.symbol.get(id).setLowPrice(price, false);
-                        Rates.rateServer.send(header, field + "," + new Date().getTime() + "," + price + "," + symbol);
+                        Rates.rateServer.send(header, field + "," + time + "," + price + "," + symbol);
                         if (MainAlgorithm.getCollectTicks()) {
                             Utilities.writeToFile("tick_" + Parameters.symbol.get(id).getDisplayname() + ".csv", "Low," + price);
                         }
                         break;
                     case com.ib.client.TickType.BID:
-                        Rates.rateServer.send(header, field + "," + new Date().getTime() + "," + price + "," + symbol);
+                        Rates.rateServer.send(header, field + "," + time + "," + price + "," + symbol);
                         if (MainAlgorithm.getCollectTicks()) {
                             Utilities.writeToFile("tick_" + Parameters.symbol.get(id).getDisplayname() + ".csv", "Bid," + price);
                         }
                         break;
                     case com.ib.client.TickType.ASK:
-                        Rates.rateServer.send(header, field + "," + new Date().getTime() + "," + price + "," + symbol);
+                        Rates.rateServer.send(header, field + "," + time + "," + price + "," + symbol);
                         if (MainAlgorithm.getCollectTicks()) {
                             Utilities.writeToFile("tick_" + Parameters.symbol.get(id).getDisplayname() + ".csv", "Ask," + price);
                         }
@@ -1118,11 +1118,11 @@ public class ServerRoleTWSConnection extends Thread implements EWrapper, com.inc
                         }
                         Parameters.symbol.get(id).setLastPrice(price);
 
-                        Rates.rateServer.send(header, com.ib.client.TickType.LAST + "," + new Date().getTime() + "," + price + "," + symbol);
-                        Rates.rateServer.send(header, com.ib.client.TickType.CLOSE + "," + new Date().getTime() + "," + Parameters.symbol.get(id).getClosePrice() + "," + symbol);
-                        Rates.rateServer.send(header, com.ib.client.TickType.OPEN + "," + new Date().getTime() + "," + Parameters.symbol.get(id).getOpenPrice() + "," + symbol);
-                        Rates.rateServer.send(header, com.ib.client.TickType.HIGH + "," + new Date().getTime() + "," + Parameters.symbol.get(id).getHighPrice() + "," + symbol);
-                        Rates.rateServer.send(header, com.ib.client.TickType.LOW + "," + new Date().getTime() + "," + Parameters.symbol.get(id).getLowPrice() + "," + symbol);
+                        Rates.rateServer.send(header, com.ib.client.TickType.LAST + "," + time + "," + price + "," + symbol);
+                        Rates.rateServer.send(header, com.ib.client.TickType.CLOSE + "," + time + "," + Parameters.symbol.get(id).getClosePrice() + "," + symbol);
+                        Rates.rateServer.send(header, com.ib.client.TickType.OPEN + "," + time + "," + Parameters.symbol.get(id).getOpenPrice() + "," + symbol);
+                        Rates.rateServer.send(header, com.ib.client.TickType.HIGH + "," + time + "," + Parameters.symbol.get(id).getHighPrice() + "," + symbol);
+                        Rates.rateServer.send(header, com.ib.client.TickType.LOW + "," + time + "," + Parameters.symbol.get(id).getLowPrice() + "," + symbol);
                         if (MainAlgorithm.getCollectTicks()) {
                             Utilities.writeToFile("tick_" + Parameters.symbol.get(id).getDisplayname() + ".csv", "Last," + price);
                         }
@@ -1178,9 +1178,10 @@ public class ServerRoleTWSConnection extends Thread implements EWrapper, com.inc
 
     @Override
     public void tickSize(int tickerId, int field, int size) {
+        long time=new Date().getTime();
         try {
             if (this.getCassandraDetails().isRealtime()) {
-                realtime_tickSize(tickerId, field, size);
+                realtime_tickSize(tickerId, field, size,time);
             } else {
 
                 int serialno = requestDetails.get(tickerId) != null ? (int) requestDetails.get(tickerId).symbol.getSerialno() : 0;
@@ -1247,7 +1248,7 @@ public class ServerRoleTWSConnection extends Thread implements EWrapper, com.inc
                         }
                         if (Parameters.symbol.get(id).isAddedToSymbols()) {
                             try (Jedis jedis = Algorithm.marketdatapool.getResource()) {
-                                jedis.publish(this.getCassandraDetails().getTopic(), field + "," + new Date().getTime() + "," + size + "," + Parameters.symbol.get(id).getDisplayname());
+                                jedis.publish(this.getCassandraDetails().getTopic(), field + "," + time + "," + size + "," + Parameters.symbol.get(id).getDisplayname());
                             }
 
                         }
@@ -1260,7 +1261,7 @@ public class ServerRoleTWSConnection extends Thread implements EWrapper, com.inc
         }
     }
 
-    public void realtime_tickSize(int tickerId, int field, int size) {
+    public void realtime_tickSize(int tickerId, int field, int size,long time) {
         try {
             boolean proceed = true;
             int serialno = requestDetails.get(tickerId) != null ? (int) requestDetails.get(tickerId).symbol.getSerialno() : 0;
@@ -1282,19 +1283,17 @@ public class ServerRoleTWSConnection extends Thread implements EWrapper, com.inc
                 }
                 String header = this.getCassandraDetails().getTopic();
                 String symbol = Parameters.symbol.get(id).getDisplayname();
-                long time = new Date().getTime();
                 
                 switch (field) {
                     case com.ib.client.TickType.BID_SIZE:
                     case com.ib.client.TickType.ASK_SIZE:
-                        Rates.rateServer.send(header, field + "," + new Date().getTime() + "," + size + "," + symbol);
+                        Rates.rateServer.send(header, field + "," + time + "," + size + "," + symbol);
                         break;
                     case com.ib.client.TickType.VOLUME: {
-                        long localTime = new Date().getTime();
                         int lastSize = size - Parameters.symbol.get(id).getVolume();
                         if ((MainAlgorithm.rtvolume && snapshot) || !MainAlgorithm.rtvolume) {
                             //Rates.rateServer.send(header, com.ib.client.TickType.LAST_SIZE + "," + new Date().getTime() + "," + lastSize + "," + symbol);
-                            Rates.rateServer.send(header, field + "," + new Date().getTime() + "," + size + "," + symbol);
+                            Rates.rateServer.send(header, field + "," + time + "," + size + "," + symbol);
                             Parameters.symbol.get(id).setVolume(size, false);
                             if (MainAlgorithm.getCollectTicks()) {
                                 Utilities.writeToFile("tick_" + Parameters.symbol.get(id).getDisplayname() + ".csv", "Volume," + size);
@@ -1303,9 +1302,8 @@ public class ServerRoleTWSConnection extends Thread implements EWrapper, com.inc
                         break;
                     }
                     case com.ib.client.TickType.LAST_SIZE: {
-                        long localTime = new Date().getTime();
                         if ((MainAlgorithm.rtvolume && snapshot) || !MainAlgorithm.rtvolume) {
-                            Rates.rateServer.send(header, field + "," + new Date().getTime() + "," + size + "," + symbol);
+                            Rates.rateServer.send(header, field + "," + time + "," + size + "," + symbol);
                             if (MainAlgorithm.getCollectTicks()) {
                                 Utilities.writeToFile("tick_" + Parameters.symbol.get(id).getDisplayname() + ".csv", "Lastsize," + size);
                             }
@@ -1442,7 +1440,7 @@ public class ServerRoleTWSConnection extends Thread implements EWrapper, com.inc
                             tes.fireTradeEvent(id, com.ib.client.TickType.LAST_SIZE);
                             tes.fireTradeEvent(id, com.ib.client.TickType.VOLUME);
                             if (Parameters.symbol.get(id).getIntraDayBarsFromTick() != null) {
-                                Parameters.symbol.get(id).getIntraDayBarsFromTick().setOHLCFromTick(new Date().getTime(), com.ib.client.TickType.VOLUME, String.valueOf(calculatedLastSize));
+                                Parameters.symbol.get(id).getIntraDayBarsFromTick().setOHLCFromTick(time, com.ib.client.TickType.VOLUME, String.valueOf(calculatedLastSize));
                             }
                             if (MainAlgorithm.getCollectTicks()) {
                                 Utilities.writeToFile("tick_" + Parameters.symbol.get(id).getDisplayname() + ".csv", "ExchangeTimeStamp," + sdfTime.format(new Date(time)));
