@@ -119,7 +119,7 @@ public class Historical {
         } else if (cassandraConnection != null) {
             cassandraConnect = new Socket(Historical.cassandraConnection, Integer.valueOf(Historical.cassandraPort));
         } else if (rConnection != null) {
-            if(rcon==null |!rcon.isConnected()){
+            if(rcon==null ||!rcon.isConnected()){
             rcon = new RConnection(Historical.rConnection);                
             }
             String command = "setwd(\"" + workingdirectory + "\")";
