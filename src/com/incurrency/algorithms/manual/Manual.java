@@ -347,12 +347,13 @@ public class Manual extends Strategy implements TradeListener {
                     c = new RConnection(rServerIP);
                     c.eval("setwd(\"" + wd + "\")");
                     REXP wd = c.eval("getwd()");
-                    System.out.println(wd.asString());
+                    logger.log(Level.INFO,"102, R Working Directory:{0}",new Object[]{wd.asString()});
                     c.eval("options(encoding = \"UTF-8\")");
                     c.assign("args", args);
                     logger.log(Level.INFO, "102,Invoking R Strategy,{0}:{1}:{2}:{3}:{4},args={5}",
                             new Object[]{getStrategy(), "Order", "unknown", -1, -1, Arrays.toString(args)});
                     c.eval("source(\"" + RStrategyFile + "\")");
+                    c.close();
                 }
             } else {
                 logger.log(Level.INFO, "102, R Strategy File Not Specified, {0}:{1}:{2}:{3}:{4}",
