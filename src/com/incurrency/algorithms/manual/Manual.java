@@ -501,6 +501,9 @@ public class Manual extends Strategy implements TradeListener {
                     if (order.getOrderType().equals(EnumOrderType.CUSTOMREL)) {
                         order.setLimitPrice(limitPrice);
                     }
+                    if(getOrderAttributes().get("barrierlimitprice")!=null && getOrderAttributes().get("barrierlimitprice").toString().equalsIgnoreCase("true") ){
+                        order.setBarrierLimitPrice(limitPrice);
+                    }
                     order.setOrderStage(EnumOrderStage.INIT);
                     order.setOrderLog(order.getOrderSide().toString() + delimiter + tuple[2]);
                     tmpOrderAttributes.putAll(getOrderAttributes());
@@ -549,6 +552,9 @@ public class Manual extends Strategy implements TradeListener {
         int referenceid = getUnderlyingReferenceID(symbolid);
         if (ob.getLimitPrice() == 0) {
             double limitPrice = Utilities.getLimitPriceForOrder(Parameters.symbol, symbolid, referenceid, ob.getOrderSide(), getTickSize(), ob.getOrderType());
+            if (getOrderAttributes().get("barrierlimitprice") != null && getOrderAttributes().get("barrierlimitprice").toString().equalsIgnoreCase("true")) {
+                ob.setBarrierLimitPrice(limitPrice);
+            }
             if (!ob.getOrderType().equals(EnumOrderType.MKT)) {
                 ob.setLimitPrice(limitPrice);
             }

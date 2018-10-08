@@ -394,6 +394,9 @@ public class Manager extends Strategy {
                                             referenceid = this.optionPricingUsingFutures ? Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, tempExpiry) : referenceid;
                                         }
                                         double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, id, referenceid, derivedSide, getTickSize(), this.getOrdType());
+                                        if (getOrderAttributes().get("barrierlimitprice") != null && getOrderAttributes().get("barrierlimitprice").toString().equalsIgnoreCase("true")) {
+                                            order.setBarrierLimitPrice(limitprice);
+                                        }
                                         order.setLimitPrice(limitprice);
                                         order.setOrderSide(derivedSide);
                                         order.setOriginalOrderSize(size);
@@ -424,6 +427,9 @@ public class Manager extends Strategy {
                                             referenceid = this.optionPricingUsingFutures ? Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, tempExpiry) : referenceid;
                                         }
                                         double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, id, referenceid, derivedSide, getTickSize(), this.getOrdType());
+                                        if (getOrderAttributes().get("barrierlimitprice") != null && getOrderAttributes().get("barrierlimitprice").toString().equalsIgnoreCase("true")) {
+                                            order.setBarrierLimitPrice(limitprice);
+                                        }
                                         order.setLimitPrice(limitprice);
                                         order.setOrderSide(derivedSide);
                                         order.setOriginalOrderSize(size);
@@ -454,6 +460,9 @@ public class Manager extends Strategy {
                                             referenceid = this.optionPricingUsingFutures ? Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, tempExpiry) : referenceid;
                                         }
                                         double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, id, referenceid, derivedSide, getTickSize(), this.getOrdType());
+                                         if (getOrderAttributes().get("barrierlimitprice") != null && getOrderAttributes().get("barrierlimitprice").toString().equalsIgnoreCase("true")) {
+                                            order.setBarrierLimitPrice(limitprice);
+                                        }
                                         order.setLimitPrice(limitprice);
                                         order.setOrderSide(derivedSide);
                                         order.setOriginalOrderSize(size);
@@ -485,6 +494,9 @@ public class Manager extends Strategy {
                                             referenceid = this.optionPricingUsingFutures ? Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, tempExpiry) : referenceid;
                                         }
                                         double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, id, referenceid, derivedSide, getTickSize(), this.getOrdType());
+                                        if (getOrderAttributes().get("barrierlimitprice") != null && getOrderAttributes().get("barrierlimitprice").toString().equalsIgnoreCase("true")) {
+                                            order.setBarrierLimitPrice(limitprice);
+                                        }
                                         order.setLimitPrice(limitprice);
                                         order.setOrderSide(derivedSide);
                                         order.setOriginalOrderSize(size);
