@@ -632,7 +632,7 @@ public class ServerRoleTWSConnection extends Thread implements EWrapper, com.inc
 //                        int connectionid = Parameters.connection.indexOf(this.getC());
                             logger.log(Level.INFO, "500,Placing Hidden Order. Current OrderSize: {0}, Residual:{1}", new Object[]{String.valueOf(order.m_totalQuantity), String.valueOf(event.getOriginalOrderSize() - event.getTotalFillSize() - order.m_totalQuantity)});
                             if (Parameters.symbol.get(parentid).getType().equals("OPT") && event.getOrderType().equals(EnumOrderType.CUSTOMREL)) {
-                                double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, parentid, Parameters.symbol.get(parentid).getUnderlyingFutureID(), event.getOrderSide(), oms.getTickSize(), event.getOrderType());
+                                double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, parentid, Parameters.symbol.get(parentid).getUnderlyingFutureID(), event.getOrderSide(), oms.getTickSize(), event.getOrderType(),event.getBarrierLimitPrice());
                                 if (limitprice > 0) {
                                     order.m_lmtPrice = limitprice;
                                 }

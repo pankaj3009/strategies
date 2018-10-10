@@ -393,7 +393,7 @@ public class Manager extends Strategy {
                                             String tempExpiry = Parameters.symbol.get(id).getExpiry();
                                             referenceid = this.optionPricingUsingFutures ? Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, tempExpiry) : referenceid;
                                         }
-                                        double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, id, referenceid, derivedSide, getTickSize(), this.getOrdType());
+                                        double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, id, referenceid, derivedSide, getTickSize(), this.getOrdType(),0);
                                         if (getOrderAttributes().get("barrierlimitprice") != null && getOrderAttributes().get("barrierlimitprice").toString().equalsIgnoreCase("true")) {
                                             order.setBarrierLimitPrice(limitprice);
                                         }
@@ -426,7 +426,7 @@ public class Manager extends Strategy {
                                             String tempExpiry = Parameters.symbol.get(id).getExpiry();
                                             referenceid = this.optionPricingUsingFutures ? Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, tempExpiry) : referenceid;
                                         }
-                                        double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, id, referenceid, derivedSide, getTickSize(), this.getOrdType());
+                                        double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, id, referenceid, derivedSide, getTickSize(), this.getOrdType(),0);
                                         if (getOrderAttributes().get("barrierlimitprice") != null && getOrderAttributes().get("barrierlimitprice").toString().equalsIgnoreCase("true")) {
                                             order.setBarrierLimitPrice(limitprice);
                                         }
@@ -459,7 +459,7 @@ public class Manager extends Strategy {
                                             String tempExpiry = Parameters.symbol.get(id).getExpiry();
                                             referenceid = this.optionPricingUsingFutures ? Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, tempExpiry) : referenceid;
                                         }
-                                        double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, id, referenceid, derivedSide, getTickSize(), this.getOrdType());
+                                        double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, id, referenceid, derivedSide, getTickSize(), this.getOrdType(),0);
                                          if (getOrderAttributes().get("barrierlimitprice") != null && getOrderAttributes().get("barrierlimitprice").toString().equalsIgnoreCase("true")) {
                                             order.setBarrierLimitPrice(limitprice);
                                         }
@@ -493,7 +493,7 @@ public class Manager extends Strategy {
                                             String tempExpiry = Parameters.symbol.get(id).getExpiry();
                                             referenceid = this.optionPricingUsingFutures ? Utilities.getFutureIDFromBrokerSymbol(Parameters.symbol, referenceid, tempExpiry) : referenceid;
                                         }
-                                        double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, id, referenceid, derivedSide, getTickSize(), this.getOrdType());
+                                        double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, id, referenceid, derivedSide, getTickSize(), this.getOrdType(),0);
                                         if (getOrderAttributes().get("barrierlimitprice") != null && getOrderAttributes().get("barrierlimitprice").toString().equalsIgnoreCase("true")) {
                                             order.setBarrierLimitPrice(limitprice);
                                         }

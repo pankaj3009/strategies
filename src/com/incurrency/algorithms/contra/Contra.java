@@ -149,7 +149,7 @@ public class Contra extends Manager {
                     //stops = Trade.getStop(this.getDb(), this.getStrategy() + ":" + this.ParentInternalOrderIDForSquareOff("Order", ob) this.getFirstInternalOpenOrder(initID, EnumOrderSide.SELL, "Order").iterator().next() + ":Order");
                     OrderBean order = new OrderBean();
                     int referenceid = Utilities.getCashReferenceID(Parameters.symbol, targetID);
-                    double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, initID, referenceid, EnumOrderSide.SELL, getTickSize(), this.getOrdType());
+                    double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, initID, referenceid, EnumOrderSide.SELL, getTickSize(), this.getOrdType(),0);
                     order.setParentDisplayName(Parameters.symbol.get(initID).getDisplayname());
                     order.setChildDisplayName(Parameters.symbol.get(initID).getDisplayname());
                     order.setOrderType(this.getOrdType());
@@ -169,7 +169,7 @@ public class Contra extends Manager {
                     // stops = Trade.getStop(this.getDb(), this.getStrategy() + ":" + this.getFirstInternalOpenOrder(initID, EnumOrderSide.COVER, "Order").iterator().next() + ":Order");
                     order = new OrderBean();
                     referenceid = Utilities.getCashReferenceID(Parameters.symbol, targetID);
-                    limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, initID, referenceid, EnumOrderSide.COVER, getTickSize(), this.getOrdType());
+                    limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, initID, referenceid, EnumOrderSide.COVER, getTickSize(), this.getOrdType(),0);
                     order.setParentDisplayName(Parameters.symbol.get(initID).getDisplayname());
                     order.setChildDisplayName(Parameters.symbol.get(initID).getDisplayname());
                     order.setOrderType(this.getOrdType());
@@ -198,7 +198,7 @@ public class Contra extends Manager {
                         logger.log(Level.INFO, "101,Rollover BUY,{0}:{1}:{2}:{3}:{4},NewPositionSize={5}",
                                 new Object[]{getStrategy(), "Order", Parameters.symbol.get(targetID).getDisplayname(), -1, -1, newSize});
                         int referenceid = Utilities.getCashReferenceID(Parameters.symbol, targetID);
-                        double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, targetID, referenceid, EnumOrderSide.BUY, getTickSize(), this.getOrdType());
+                        double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, targetID, referenceid, EnumOrderSide.BUY, getTickSize(), this.getOrdType(),0);
                         OrderBean order = new OrderBean();
                         order.setParentDisplayName(Parameters.symbol.get(targetID).getDisplayname());
                         order.setChildDisplayName(Parameters.symbol.get(initID).getDisplayname());
@@ -220,7 +220,7 @@ public class Contra extends Manager {
                                 new Object[]{getStrategy(), "Order", Parameters.symbol.get(targetID).getDisplayname(), -1, -1, newSize});
                         OrderBean order = new OrderBean();
                         int referenceid = Utilities.getCashReferenceID(Parameters.symbol, targetID);
-                        double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, targetID, referenceid, EnumOrderSide.SHORT, getTickSize(), this.getOrdType());
+                        double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, targetID, referenceid, EnumOrderSide.SHORT, getTickSize(), this.getOrdType(),0);
                         order.setParentDisplayName(Parameters.symbol.get(targetID).getDisplayname());
                         order.setChildDisplayName(Parameters.symbol.get(initID).getDisplayname());
                         order.setOrderType(this.getOrdType());

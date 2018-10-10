@@ -140,7 +140,7 @@ public class Swing extends Manager implements TradeListener {
                                 order.setOrderSide(derivedSide);
                                 order.setOriginalOrderSize(size);
                                 order.setOrderType(EnumOrderType.CUSTOMREL);
-                                double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, id, referenceid, derivedSide, getTickSize(), this.getOrdType());
+                                double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, id, referenceid, derivedSide, getTickSize(), this.getOrdType(),0);
                                 order.setLimitPrice(limitprice);
                                 if (slTrigger) {
                                     order.setOrderReason(EnumOrderReason.SL);
@@ -353,7 +353,7 @@ public class Swing extends Manager implements TradeListener {
                     stops = Trade.getStop(this.getDb(), this.getStrategy() + ":" + this.EntryInternalOrderIDForSquareOff(0, "Order",getStrategy(), EnumOrderSide.SELL) + ":Order");
                     OrderBean order = new OrderBean();
                     int referenceid = Utilities.getCashReferenceID(Parameters.symbol, targetID);
-                    double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, targetID, referenceid, EnumOrderSide.SELL, getTickSize(), this.getOrdType());
+                    double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, targetID, referenceid, EnumOrderSide.SELL, getTickSize(), this.getOrdType(),0);
                     order.setParentDisplayName(Parameters.symbol.get(initID).getDisplayname());
                     order.setChildDisplayName(Parameters.symbol.get(initID).getDisplayname());
                     order.setOrderType(this.getOrdType());
@@ -373,7 +373,7 @@ public class Swing extends Manager implements TradeListener {
                     stops = Trade.getStop(this.getDb(), this.getStrategy() + ":" + this.EntryInternalOrderIDForSquareOff(0, "Order", getStrategy(),EnumOrderSide.COVER) + ":Order");
                     order = new OrderBean();
                     referenceid = Utilities.getCashReferenceID(Parameters.symbol, targetID);
-                    limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, targetID, referenceid, EnumOrderSide.COVER, getTickSize(), this.getOrdType());
+                    limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, targetID, referenceid, EnumOrderSide.COVER, getTickSize(), this.getOrdType(),0);
                     order.setParentDisplayName(Parameters.symbol.get(initID).getDisplayname());
                     order.setChildDisplayName(Parameters.symbol.get(initID).getDisplayname());
                     order.setOrderType(this.getOrdType());
@@ -403,7 +403,7 @@ public class Swing extends Manager implements TradeListener {
                                 new Object[]{getStrategy(), "Order", Parameters.symbol.get(targetID).getDisplayname(), -1, -1, newSize});
                         OrderBean order = new OrderBean();
                         int referenceid = Utilities.getCashReferenceID(Parameters.symbol, targetID);
-                        double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, targetID, referenceid, EnumOrderSide.BUY, getTickSize(), this.getOrdType());
+                        double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, targetID, referenceid, EnumOrderSide.BUY, getTickSize(), this.getOrdType(),0);
                         order.setParentDisplayName(Parameters.symbol.get(targetID).getDisplayname());
                         order.setChildDisplayName(Parameters.symbol.get(targetID).getDisplayname());
                         order.setOrderSide(EnumOrderSide.BUY);
@@ -425,7 +425,7 @@ public class Swing extends Manager implements TradeListener {
                                 new Object[]{getStrategy(), "Order", Parameters.symbol.get(targetID).getDisplayname(), -1, -1, newSize});
                         OrderBean order = new OrderBean();
                         int referenceid = Utilities.getCashReferenceID(Parameters.symbol, targetID);
-                        double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, targetID, referenceid, EnumOrderSide.SHORT, getTickSize(), this.getOrdType());
+                        double limitprice = Utilities.getLimitPriceForOrder(Parameters.symbol, targetID, referenceid, EnumOrderSide.SHORT, getTickSize(), this.getOrdType(),0);
                         order.setParentDisplayName(Parameters.symbol.get(targetID).getDisplayname());
                         order.setChildDisplayName(Parameters.symbol.get(targetID).getDisplayname());
                         order.setOrderSide(EnumOrderSide.SHORT);
