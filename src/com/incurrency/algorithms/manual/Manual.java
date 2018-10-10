@@ -498,12 +498,18 @@ public class Manual extends Strategy implements TradeListener {
                     HashMap<String, Object> tmpOrderAttributes = new HashMap<>();
                     referenceid = getUnderlyingReferenceID(symbolid);
                     limitPrice = Utilities.getLimitPriceForOrder(Parameters.symbol, symbolid, referenceid, order.getOrderSide(), getTickSize(), order.getOrderType());
-                    if (order.getOrderType().equals(EnumOrderType.CUSTOMREL)) {
-                        order.setLimitPrice(limitPrice);
-                    }
                     if(getOrderAttributes().get("barrierlimitprice")!=null && getOrderAttributes().get("barrierlimitprice").toString().equalsIgnoreCase("true") ){
                         order.setBarrierLimitPrice(limitPrice);
                     }
+                    if(order.getOrderSide().equals(EnumOrderSide.BUY)||order.getOrderSide().equals(EnumOrderSide.COVER)){
+                        limitPrice=order.getBarrierLimitPrice()>0?Math.min(order.getBarrierLimitPrice(),limitPrice):limitPrice;
+                    }else{
+                        limitPrice=order.getBarrierLimitPrice()>0?Math.max(order.getBarrierLimitPrice(),limitPrice):limitPrice;
+                    }
+                    if (order.getOrderType().equals(EnumOrderType.CUSTOMREL)) {
+                        order.setLimitPrice(limitPrice);
+                    }
+
                     order.setOrderStage(EnumOrderStage.INIT);
                     order.setOrderLog(order.getOrderSide().toString() + delimiter + tuple[2]);
                     tmpOrderAttributes.putAll(getOrderAttributes());
@@ -554,6 +560,11 @@ public class Manual extends Strategy implements TradeListener {
             double limitPrice = Utilities.getLimitPriceForOrder(Parameters.symbol, symbolid, referenceid, ob.getOrderSide(), getTickSize(), ob.getOrderType());
             if (getOrderAttributes().get("barrierlimitprice") != null && getOrderAttributes().get("barrierlimitprice").toString().equalsIgnoreCase("true")) {
                 ob.setBarrierLimitPrice(limitPrice);
+            }
+            if (ob.getOrderSide().equals(EnumOrderSide.BUY) || ob.getOrderSide().equals(EnumOrderSide.COVER)) {
+                limitPrice = ob.getBarrierLimitPrice() > 0 ? Math.min(ob.getBarrierLimitPrice(), limitPrice) : limitPrice;
+            } else {
+                limitPrice = ob.getBarrierLimitPrice() > 0 ? Math.max(ob.getBarrierLimitPrice(), limitPrice) : limitPrice;
             }
             if (!ob.getOrderType().equals(EnumOrderType.MKT)) {
                 ob.setLimitPrice(limitPrice);
