@@ -134,6 +134,7 @@ public class Manual extends Strategy implements TradeListener {
         Timer monitor = new Timer("Timer: " + getStrategy() + " WaitForTrades");
         Date timerStart = new Date().after(getStartDate()) ? new Date() : getStartDate();
         monitor.schedule(new OrderProcessor(), timerStart);
+        logger.log(Level.INFO,"501, Started OrderProcessor,,{0}",new Object[]{this.getStrategy()});
     }
 
     public void marketDataTimer() {
