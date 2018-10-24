@@ -175,7 +175,7 @@ public class Manual extends Strategy implements TradeListener {
                             }
                         }
                         if (sltriggered | tptriggered) {
-                            if (Parameters.symbol.get(id).getBidPrice() >= Parameters.symbol.get(id).getLastPrice() * 0.99 && Parameters.symbol.get(id).getAskPrice() <= Parameters.symbol.get(id).getLastPrice() * 1.01) {
+                            if (Parameters.symbol.get(id).getBidPrice() >= Parameters.symbol.get(id).getLastPrice() * 0.1 && Parameters.symbol.get(id).getAskPrice() <= Parameters.symbol.get(id).getLastPrice() * 10) {
                                 OrderBean ord = new OrderBean();
                                 ord.setParentDisplayName(Parameters.symbol.get(id).getDisplayname());
                                 ord.setChildDisplayName(Parameters.symbol.get(id).getDisplayname());
