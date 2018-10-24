@@ -162,8 +162,16 @@ public class Manual extends Strategy implements TradeListener {
                         String key = "";
                         if (internalorderid > 0) {
                             key = "opentrades_" + getStrategy() + ":" + internalorderid + ":" + "Order";
-                            double sl = Trade.getSL(getDb(), key);
-                            double tp = Trade.getTP(getDb(), key);
+                            String entrySymbol=Trade.getEntrySymbol(getDb(), key,this.getTickSize());
+                            double sl=0;
+                            double tp=0;
+                            if (entrySymbol.contains("_PUT_") && useCashReferenceForSLTP) {
+                                tp = Trade.getSL(getDb(), key);
+                                sl = Trade.getTP(getDb(), key);
+                            } else {
+                                sl = Trade.getSL(getDb(), key);
+                                tp = Trade.getTP(getDb(), key);
+                            }
                             int referenceid = id;
                             if (useCashReferenceForSLTP) {
                                 referenceid = Parameters.symbol.get(id).getUnderlyingCashID();
